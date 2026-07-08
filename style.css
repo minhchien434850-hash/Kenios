@@ -1256,7 +1256,15 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   .site-header { overflow: hidden; }
 
   /* AI panel & FX panel */
-  .ai-panel { width: calc(100vw - 24px); right: -100px; }
+  /* Trợ lý AI: neo CỐ ĐỊNH theo VIEWPORT, canh đều 2 mép và nằm phía trên nút
+     bong bóng. Trước đây neo theo .ai-widget nhỏ + right:-100px khiến khung bị
+     đẩy tràn ~88px ra ngoài mép phải → mất chữ/nút. Cách này khít mọi cỡ máy. */
+  .ai-panel {
+    position: fixed; left: 12px; right: 12px; width: auto;
+    max-width: 420px; margin-inline: auto;
+    bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+    max-height: min(66vh, calc(100vh - 200px));
+  }
   .ai-widget { right: 12px; bottom: 80px; }
   .fx-toggle-btn { right: 12px; bottom: 140px; }
 
