@@ -1050,9 +1050,18 @@ window.KENIOS_DEFAULT_DB = {
   const CONTACT_ICON_MAP = {
     zalo: 'zalo', phone: 'phone', hotline: 'phone', telegram: 'telegram', facebook: 'facebook',
     messenger: 'messenger', instagram: 'instagram', tiktok: 'tiktok', email: 'email',
-    youtube: 'youtube', discord: 'discord'
+    youtube: 'youtube', discord: 'discord', web: 'web', other: 'headset'
   };
-  const contactChannelIcon = (id) => ICONS[CONTACT_ICON_MAP[id]] || ICONS.headset;
+  const contactChannelIcon = (type) => ICONS[CONTACT_ICON_MAP[type]] || ICONS.headset;
+  // Nền tảng liên hệ / nhóm — admin thêm bao nhiêu tuỳ ý, mỗi mục chọn 1 nền tảng.
+  const CONTACT_PLATFORMS = [
+    ['zalo', 'Zalo'], ['telegram', 'Telegram'], ['facebook', 'Facebook'], ['messenger', 'Messenger'],
+    ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['discord', 'Discord'],
+    ['phone', 'Hotline'], ['email', 'Email'], ['web', 'Website'], ['other', 'Khác']
+  ];
+  const CONTACT_PLATFORM_LABEL = Object.fromEntries(CONTACT_PLATFORMS);
+  // Kiểu nền tảng của 1 kênh (tương thích ngược: cấu hình cũ chỉ có id).
+  const chType = (ch) => ch.type || ch.id || 'other';
   // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
   const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
 
@@ -1527,14 +1536,16 @@ window.KENIOS_DEFAULT_DB = {
     }
     if (empty) empty.hidden = true;
     grid.innerHTML = enabled.map(c => {
+      const t = chType(c);
       const isTel = c.url.startsWith('tel:') || c.url.startsWith('mailto:');
       const attrs = isTel ? '' : 'target="_blank" rel="noopener"';
-      const cta = /nhóm|group|zalo\.me\/g\/|t\.me\//i.test(c.url) ? 'Tham gia nhóm' : 'Liên hệ ngay';
+      const cta = /nhóm|group|zalo\.me\/g\/|t\.me\/|chat\.whatsapp|discord\.gg/i.test(c.url) ? 'Tham gia nhóm' : 'Liên hệ ngay';
+      const label = c.label || CONTACT_PLATFORM_LABEL[t] || 'Liên hệ';
       return `
-        <a class="contact-card contact-${esc(c.id)}" href="${esc(c.url)}" ${attrs}>
-          <span class="contact-card-ico">${contactChannelIcon(c.id)}</span>
+        <a class="contact-card contact-${esc(t)}" href="${esc(c.url)}" ${attrs}>
+          <span class="contact-card-ico">${contactChannelIcon(t)}</span>
           <span class="contact-card-body">
-            <strong>${esc(c.label)}</strong>
+            <strong>${esc(label)}</strong>
             <small>${esc(cta)}</small>
           </span>
           <span class="contact-card-arrow" aria-hidden="true">${ICONS.chevron || ''}</span>
@@ -1555,7 +1566,7 @@ window.KENIOS_DEFAULT_DB = {
       a.href = c.url;
       if (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
       a.className = opts.btnClass;
-      a.innerHTML = `<span>${c.icon}</span> ${esc(c.label)}`;
+      a.innerHTML = `<span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}`;
       container.appendChild(a);
       return;
     }
@@ -1570,7 +1581,7 @@ window.KENIOS_DEFAULT_DB = {
     dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
     dropdown.innerHTML = enabled.map(c => {
       const targetAttrs = (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) ? 'target="_blank" rel="noopener"' : '';
-      return `<a href="${esc(c.url)}" ${targetAttrs}><span>${c.icon}</span> ${esc(c.label)}</a>`;
+      return `<a href="${esc(c.url)}" ${targetAttrs}><span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}</a>`;
     }).join('');
     btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
     document.addEventListener('click', () => dropdown.classList.remove('open'));
@@ -3177,6 +3188,32 @@ window.KENIOS_DEFAULT_DB = {
     `;
   }
 
+  // 1 dòng cấu hình kênh liên hệ / nhóm trong admin (thêm/xoá động).
+  function contactChannelRowHtml(ch = {}) {
+    const t = chType(ch);
+    return `
+      <div class="contact-ch-row" data-ch-row>
+        <label class="contact-ch-on" title="Bật hiển thị"><input type="checkbox" data-ch-enabled ${ch.enabled ? 'checked' : ''}></label>
+        <select data-ch-type class="contact-ch-type">
+          ${CONTACT_PLATFORMS.map(([v, label]) => `<option value="${v}" ${v === t ? 'selected' : ''}>${label}</option>`).join('')}
+        </select>
+        <input data-ch-label class="contact-ch-label" value="${esc(ch.label || '')}" placeholder="Tên hiển thị (VD: Nhóm Zalo VIP)">
+        <input data-ch-url class="contact-ch-url" value="${esc(ch.url || '')}" placeholder="https://zalo.me/g/... , https://t.me/... , tel:..., mailto:...">
+        <button type="button" class="contact-ch-del" data-ch-remove title="Xoá dòng này">✕</button>
+      </div>`;
+  }
+
+  // Đọc lại toàn bộ kênh liên hệ / nhóm từ trình soạn thảo động khi lưu cấu hình.
+  function readContactChannelsFromEditor() {
+    return $$('#contactChannelsEditor [data-ch-row]').map((row, i) => {
+      const type = row.querySelector('[data-ch-type]').value;
+      const label = row.querySelector('[data-ch-label]').value.trim();
+      const url = row.querySelector('[data-ch-url]').value.trim();
+      const enabled = row.querySelector('[data-ch-enabled]').checked;
+      return { id: `${type}-${i}`, type, label: label || CONTACT_PLATFORM_LABEL[type] || 'Liên hệ', url, enabled };
+    });
+  }
+
   function adminConfigHtml() {
     const c = Store.db.config;
     return `
@@ -3227,18 +3264,15 @@ window.KENIOS_DEFAULT_DB = {
         <label>Hotline <input name="hotline" value="${esc(c.hotline)}"></label>
         <label>Link Zalo <input name="zaloLink" value="${esc(c.zaloLink)}"></label>
 
-        <div class="admin-form-section">Kênh liên hệ (chọn nhiều — tự gộp thành 1 nút danh sách)</div>
-        ${(c.contactChannels || []).map(ch => `
-          <label class="span-2 contact-channel-row">
-            <span class="contact-channel-toggle">
-              <input type="checkbox" name="contact_${esc(ch.id)}_enabled" ${ch.enabled ? 'checked' : ''}>
-              ${ch.icon} ${esc(ch.label)}
-            </span>
-            <input name="contact_${esc(ch.id)}_url" value="${esc(ch.url || '')}" placeholder="${ch.id === 'phone' ? 'tel:0387332523' : ch.id === 'email' ? 'mailto:ban@kenios.store' : 'https://...'}">
-          </label>
-        `).join('')}
+        <div class="admin-form-section">Kênh liên hệ &amp; Nhóm mạng xã hội (thêm bao nhiêu tuỳ ý)</div>
+        <div class="span-2 contact-ch-editor" id="contactChannelsEditor">
+          ${(c.contactChannels || []).map(ch => contactChannelRowHtml(ch)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addContactChannelBtn"><span class="btn-ico">${ICONS.gift || ''}</span> + Thêm kênh / nhóm</button>
+        </div>
         <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
-          Chỉ 1 kênh được bật → hiện thẳng 1 nút. Bật từ 2 kênh trở lên → tự động gộp thành 1 nút "Liên hệ" duy nhất, bấm vào sẽ mở danh sách tất cả các kênh — áp dụng đồng nhất ở header, footer và popup chào mừng.
+          Bấm "+ Thêm kênh / nhóm" để tạo bao nhiêu mục tuỳ ý (nhiều nhóm Zalo, Telegram… đều được). Mỗi mục: chọn nền tảng, đặt tên, dán link, tích "Bật". Kênh nào bật + có link sẽ hiện ở phần "Liên Hệ &amp; Cộng Đồng" và nút liên hệ (từ 2 kênh trở lên tự gộp thành 1 nút danh sách).
         </p>
 
         <div class="admin-form-section">Đăng nhập bằng Google</div>
@@ -3507,6 +3541,15 @@ window.KENIOS_DEFAULT_DB = {
       return;
     }
 
+    // ----- Thêm / xoá kênh liên hệ (nhóm mạng xã hội) -----
+    if (e.target.closest('#addContactChannelBtn')) {
+      const editor = $('#contactChannelsEditor');
+      if (editor) { editor.insertAdjacentHTML('beforeend', contactChannelRowHtml({ enabled: true })); }
+      return;
+    }
+    const delCh = e.target.closest('[data-ch-remove]');
+    if (delCh) { delCh.closest('[data-ch-row]')?.remove(); return; }
+
     const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
     if (adjustBalance) {
       Store.adminAdjustBalance(adjustBalance.dataset.adminAdjustBalance, parseInt(adjustBalance.dataset.delta, 10));
@@ -3678,11 +3721,7 @@ window.KENIOS_DEFAULT_DB = {
         aiResponsePrice: fd.get('aiResponsePrice'), aiResponseContact: fd.get('aiResponseContact'),
         aiResponseThanks: fd.get('aiResponseThanks'), aiResponseFallback: fd.get('aiResponseFallback'),
         bgUrl: fd.get('bgUrl'),
-        contactChannels: (Store.db.config.contactChannels || []).map(ch => ({
-          ...ch,
-          enabled: fd.get(`contact_${ch.id}_enabled`) === 'on',
-          url: (fd.get(`contact_${ch.id}_url`) || '').trim()
-        }))
+        contactChannels: readContactChannelsFromEditor()
       });
       renderStatic();
       toast('Đã lưu cấu hình. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');

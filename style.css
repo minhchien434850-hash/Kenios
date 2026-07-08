@@ -779,6 +779,24 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .contact-discord .contact-card-ico { color: #5865f2; background: rgba(88,101,242,.12); }
 .contact-phone .contact-card-ico { color: #22c55e; background: rgba(34,197,94,.12); }
 .contact-empty { text-align: center; color: var(--muted); }
+/* Icon SVG trong nút / danh sách liên hệ nhỏ */
+.ch-ico { display: inline-flex; vertical-align: -3px; }
+.ch-ico svg { width: 16px; height: 16px; }
+
+/* Trình soạn thảo kênh liên hệ / nhóm trong admin (thêm/xoá động) */
+.contact-ch-editor { display: flex; flex-direction: column; gap: 8px; }
+.contact-ch-row { display: grid; grid-template-columns: auto 130px 1fr 1.4fr auto; gap: 8px; align-items: center; }
+.contact-ch-on { display: inline-flex; align-items: center; justify-content: center; }
+.contact-ch-row select, .contact-ch-row input[type=text], .contact-ch-row input:not([type]) {
+  padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .85rem; min-width: 0; width: 100%;
+}
+.contact-ch-del { flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: rgba(248,113,113,.1); color: #f87171; cursor: pointer; }
+.contact-ch-del:hover { background: rgba(248,113,113,.2); }
+@media (max-width: 640px) {
+  .contact-ch-row { grid-template-columns: auto 1fr auto; grid-template-areas: "on type del" "label label label" "url url url"; }
+  .contact-ch-on { grid-area: on; } .contact-ch-type { grid-area: type; }
+  .contact-ch-label { grid-area: label; } .contact-ch-url { grid-area: url; } .contact-ch-del { grid-area: del; }
+}
 
 /* Nhãn còn key / hết key trên từng gói ở trang mua hàng */
 .pkg-stock { display: block; font-size: .7rem; color: #6ee7b7; margin-top: 2px; }
