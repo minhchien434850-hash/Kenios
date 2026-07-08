@@ -254,7 +254,7 @@
   <!-- ===== Modal: Tìm kiếm dịch vụ ===== -->
   <div class="modal-overlay" id="searchModal" hidden>
     <div class="modal modal-sm search-modal" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3 id="searchModalTitle" class="sr-only">Tìm kiếm dịch vụ</h3>
       <input type="text" id="searchInput" class="search-input" placeholder="Tìm dịch vụ (VD: PUBG, Landing Page...)" autocomplete="off">
       <div class="search-results" id="searchResults"></div>
@@ -264,7 +264,7 @@
   <!-- ===== Modal: Đăng nhập / Đăng ký ===== -->
   <div class="modal-overlay" id="authModal" hidden>
     <div class="modal modal-sm auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="close"></button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <div class="auth-head">
         <span class="auth-logo"><img src="./favicon.svg" alt="" class="brand-mark"></span>
         <strong id="authBrand">KENIOS.STORE</strong>
@@ -312,7 +312,7 @@
   <!-- ===== Modal: Quên mật khẩu ===== -->
   <div class="modal-overlay" id="forgotModal" hidden>
     <div class="modal modal-sm" role="dialog" aria-modal="true">
-      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="close"></button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3>Quên Mật Khẩu</h3>
       <form id="forgotForm" class="auth-form">
         <label>Tên đăng nhập <input type="text" name="username" required></label>
@@ -332,7 +332,7 @@
   <!-- ===== Modal: Nạp tiền ===== -->
   <div class="modal-overlay" id="depositModal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="depositTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3 id="depositTitle">Nạp Tiền Qua VietQR</h3>
       <div class="deposit-body">
         <div class="deposit-form">
@@ -362,7 +362,7 @@
   <!-- ===== Modal: Chi tiết dịch vụ ===== -->
   <div class="modal-overlay" id="serviceModal" hidden>
     <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <div class="service-modal-body">
         <div class="service-modal-media">
           <img id="serviceModalImg" alt="">
@@ -389,7 +389,7 @@
   <!-- ===== Modal: Đơn hàng của tôi ===== -->
   <div class="modal-overlay" id="ordersModal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ordersTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3 id="ordersTitle">Đơn Hàng Của Tôi</h3>
       <div class="orders-list" id="ordersList"></div>
     </div>
@@ -398,7 +398,7 @@
   <!-- ===== Modal: Tải xuống ===== -->
   <div class="modal-overlay" id="downloadsModal" hidden>
     <div class="modal" role="dialog" aria-modal="true">
-      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="close"></button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3>Tải Xuống</h3>
       <div class="downloads-list" id="downloadsList"></div>
     </div>
@@ -407,7 +407,7 @@
   <!-- ===== Modal: Đổi mật khẩu ===== -->
   <div class="modal-overlay" id="passwordModal" hidden>
     <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3 id="passwordTitle">Đổi Mật Khẩu</h3>
       <form id="passwordForm" class="auth-form">
         <label>Mật khẩu hiện tại
@@ -428,7 +428,7 @@
   <!-- ===== Modal: Thông tin cá nhân ===== -->
   <div class="modal-overlay" id="profileModal" hidden>
     <div class="modal modal-md" role="dialog" aria-modal="true" aria-labelledby="profileTitle" style="max-width: 480px;">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3 id="profileTitle" style="text-align: center; margin-bottom: 20px;">Thông Tin Cá Nhân</h3>
       <div id="profileModalBody"></div>
     </div>
@@ -437,7 +437,7 @@
   <!-- ===== Modal: Quản trị hệ thống (chỉ admin) ===== -->
   <div class="modal-overlay" id="adminModal" hidden>
     <div class="modal modal-xl admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3 id="adminTitle">Quản Trị Hệ Thống</h3>
       <div class="admin-tabs" id="adminTabs">
         <button class="admin-tab active" data-admin-tab="overview"><span class="admin-tab-ico" data-icon="dashboard"></span><span>Tổng quan</span></button>
@@ -461,7 +461,7 @@
   <!-- ===== Modal: Thông tin pháp lý ===== -->
   <div class="modal-overlay" id="legalModal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3 id="legalTitle"></h3>
       <div class="legal-content" id="legalContent"></div>
     </div>
@@ -470,7 +470,7 @@
   <!-- ===== Modal: Thông báo chào mừng ===== -->
   <div class="modal-overlay" id="welcomeModal" hidden>
     <div class="modal modal-sm welcome-modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <span class="welcome-icon"></span>
       <h3 id="welcomeTitle"></h3>
       <p id="welcomeMessage"></p>
@@ -494,7 +494,7 @@
           <strong id="aiName">Trợ Lý Ảo</strong>
           <small>Đang hoạt động</small>
         </div>
-        <button class="icon-btn" id="aiClose" aria-label="Đóng trợ lý ảo">✕</button>
+        <button class="icon-btn" id="aiClose" aria-label="Đóng trợ lý ảo" data-icon="close"></button>
       </div>
       <div class="ai-messages" id="aiMessages"></div>
       <div class="ai-quick-replies" id="aiQuickReplies"></div>
