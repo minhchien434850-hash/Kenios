@@ -208,6 +208,14 @@ button { font: inherit; }
 .marquee-bar { background: linear-gradient(90deg, rgba(255,183,3,.12), rgba(139,92,246,.12)); border-bottom: 1px solid var(--border); overflow: hidden; padding: 8px 0; }
 .marquee-track { display: flex; gap: 0; width: max-content; }
 .marquee-track span { font-size: .85rem; color: var(--gold-soft); font-weight: 600; white-space: nowrap; padding-right: 80px; }
+/* Chữ chạy nhỏ lại trên điện thoại để gọn gàng hơn */
+@media (max-width: 640px) {
+  .marquee-bar { padding: 6px 0; }
+  .marquee-track span { font-size: .72rem; padding-right: 56px; }
+}
+@media (max-width: 380px) {
+  .marquee-track span { font-size: .66rem; padding-right: 44px; }
+}
 
 /* ---------- Hero ---------- */
 /* ---------- Hero banner dạng thẻ (icon + tên gradient + tiêu đề + nút "Mua ngay") ---------- */
