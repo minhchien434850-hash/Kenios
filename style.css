@@ -751,6 +751,35 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .secret-box input { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .88rem; font-family: inherit; }
 .secret-box .btn { align-self: flex-start; }
 
+/* ---------- Liên Hệ & Cộng Đồng (nhóm mạng xã hội) ---------- */
+.contact-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.contact-card {
+  display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px;
+  background: var(--glass); border: 1px solid var(--border); transition: transform .15s ease, border-color .15s ease, background .15s ease;
+}
+.contact-card:hover { transform: translateY(-3px); border-color: rgba(255,183,3,.45); background: var(--glass-strong); }
+.contact-card-ico {
+  flex: 0 0 46px; height: 46px; display: grid; place-items: center; border-radius: 12px;
+  background: rgba(255,255,255,.05); color: var(--gold-soft);
+}
+.contact-card-ico svg { width: 24px; height: 24px; }
+.contact-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.contact-card-body strong { font-size: .98rem; }
+.contact-card-body small { color: var(--muted); font-size: .8rem; }
+.contact-card-arrow { color: var(--muted); display: inline-flex; transform: rotate(-90deg); }
+.contact-card-arrow svg { width: 18px; height: 18px; }
+/* Màu thương hiệu cho từng kênh */
+.contact-zalo .contact-card-ico { color: #0068ff; background: rgba(0,104,255,.12); }
+.contact-telegram .contact-card-ico { color: #2aabee; background: rgba(42,171,238,.12); }
+.contact-facebook .contact-card-ico { color: #1877f2; background: rgba(24,119,242,.12); }
+.contact-messenger .contact-card-ico { color: #a334fa; background: rgba(163,52,250,.12); }
+.contact-instagram .contact-card-ico { color: #e1306c; background: rgba(225,48,108,.12); }
+.contact-tiktok .contact-card-ico { color: #ff2d55; background: rgba(255,45,85,.12); }
+.contact-youtube .contact-card-ico { color: #ff0000; background: rgba(255,0,0,.12); }
+.contact-discord .contact-card-ico { color: #5865f2; background: rgba(88,101,242,.12); }
+.contact-phone .contact-card-ico { color: #22c55e; background: rgba(34,197,94,.12); }
+.contact-empty { text-align: center; color: var(--muted); }
+
 /* Nhãn còn key / hết key trên từng gói ở trang mua hàng */
 .pkg-stock { display: block; font-size: .7rem; color: #6ee7b7; margin-top: 2px; }
 .pkg-stock.out { color: var(--danger); }

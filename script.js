@@ -1034,8 +1034,25 @@ window.KENIOS_DEFAULT_DB = {
     headset: _svg('<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M20 19a4 4 0 0 1-4 3h-2"/>'),
     bulb: _svg('<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.8 10.6c.6.6.8 1.4.8 2.4h6c0-1 .2-1.8.8-2.4A6 6 0 0 0 12 3Z"/>'),
     heart: _svg('<path d="M12 20s-7-4.3-9.2-8.5A4.6 4.6 0 0 1 12 6a4.6 4.6 0 0 1 9.2 5.5C19 15.7 12 20 12 20Z"/>'),
-    wallet: _svg('<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 13.5h1.5"/><path d="M17 6V4.5a1.5 1.5 0 0 0-1.9-1.4L5 5.5"/>')
+    wallet: _svg('<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 13.5h1.5"/><path d="M17 6V4.5a1.5 1.5 0 0 0-1.9-1.4L5 5.5"/>'),
+    // ---- Icon SVG cho các kênh liên hệ / mạng xã hội (không dùng emoji) ----
+    zalo: _svg('<path d="M4 5h16v10h-7l-5 4v-4H4Z"/><path d="M8 9h5M8 12h3"/>'),
+    telegram: _svg('<path d="M21 4 3 11l5 2 1.5 5 2.5-3.2L17 18l4-14Z"/><path d="m8 13 8-5"/>'),
+    facebook: _svg('<path d="M14.5 8H16V5.2h-2A3.2 3.2 0 0 0 10.8 8v2H9v3h1.8v6h3v-6h2l.7-3h-2.7V8.6c0-.4.3-.6.7-.6Z"/>'),
+    instagram: _svg('<rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.6" cy="7.4" r="1" fill="currentColor" stroke="none"/>'),
+    tiktok: _svg('<path d="M13 4c.4 2.6 2 4.2 4.5 4.4v2.7c-1.6 0-3.1-.5-4.5-1.4V15a4.7 4.7 0 1 1-4.7-4.7c.3 0 .6 0 .9.1v2.8a2 2 0 1 0 1.3 1.9V4Z"/>'),
+    email: _svg('<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>'),
+    youtube: _svg('<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="m10 9.2 5 2.8-5 2.8Z" fill="currentColor" stroke="none"/>'),
+    messenger: _svg('<path d="M12 3c5 0 9 3.7 9 8.4 0 4.6-4 8.3-9 8.3-1 0-2-.2-2.9-.5L5 20.5l.3-3.4A8 8 0 0 1 3 11.4C3 6.7 7 3 12 3Z"/><path d="m7.5 13.5 3-3 2 2 3-2.5"/>'),
+    discord: _svg('<path d="M7 7a15 15 0 0 1 10 0l1.5 3.5a12 12 0 0 1 1 5l-2.5 2-1.2-2M7 7 5.5 10.5a12 12 0 0 0-1 5l2.5 2 1.2-2"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/>')
   };
+  // Map id kênh liên hệ -> tên icon SVG ở trên (mặc định dùng headset nếu không khớp).
+  const CONTACT_ICON_MAP = {
+    zalo: 'zalo', phone: 'phone', hotline: 'phone', telegram: 'telegram', facebook: 'facebook',
+    messenger: 'messenger', instagram: 'instagram', tiktok: 'tiktok', email: 'email',
+    youtube: 'youtube', discord: 'discord'
+  };
+  const contactChannelIcon = (id) => ICONS[CONTACT_ICON_MAP[id]] || ICONS.headset;
   // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
   const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
 
@@ -1494,6 +1511,35 @@ window.KENIOS_DEFAULT_DB = {
     renderContactWidget($('#drawerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm btn-block' });
     renderContactWidget($('#footerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm', dropUp: true });
     renderContactWidget($('#welcomeContactWrap'), channels, { btnClass: 'btn btn-primary btn-block' });
+    renderContactSection(cfg);
+  }
+
+  // Phần "Liên Hệ & Cộng Đồng" trên trang — hiện các kênh/nhóm mạng xã hội dạng thẻ.
+  function renderContactSection(cfg) {
+    const grid = $('#contactGroups');
+    const empty = $('#contactEmpty');
+    if (!grid) return;
+    const enabled = (cfg.contactChannels || []).filter(c => c.enabled && c.url);
+    if (!enabled.length) {
+      grid.innerHTML = '';
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    grid.innerHTML = enabled.map(c => {
+      const isTel = c.url.startsWith('tel:') || c.url.startsWith('mailto:');
+      const attrs = isTel ? '' : 'target="_blank" rel="noopener"';
+      const cta = /nhóm|group|zalo\.me\/g\/|t\.me\//i.test(c.url) ? 'Tham gia nhóm' : 'Liên hệ ngay';
+      return `
+        <a class="contact-card contact-${esc(c.id)}" href="${esc(c.url)}" ${attrs}>
+          <span class="contact-card-ico">${contactChannelIcon(c.id)}</span>
+          <span class="contact-card-body">
+            <strong>${esc(c.label)}</strong>
+            <small>${esc(cta)}</small>
+          </span>
+          <span class="contact-card-arrow" aria-hidden="true">${ICONS.chevron || ''}</span>
+        </a>`;
+    }).join('');
   }
 
   function renderContactWidget(container, channels, opts = {}) {
