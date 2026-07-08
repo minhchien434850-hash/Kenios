@@ -1480,7 +1480,17 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Thương hiệu: logo (ảnh/font/màu) + màu chủ đạo toàn site ----
-  const LOGO_FONTS = ['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Orbitron', 'Pacifico'];
+  // Font chữ logo — gồm font chữ thường + nhiều font ĐẬM / 3D / display cho logo game.
+  // (Bungee Shade có sẵn hiệu ứng bóng 3D; Russo One/Black Ops One/Anton… kiểu chữ khối 3D.)
+  const LOGO_FONTS = [
+    'Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Pacifico',
+    'Orbitron', 'Russo One', 'Black Ops One', 'Anton', 'Staatliches', 'Archivo Black',
+    'Bungee', 'Bungee Shade', 'Bungee Inline', 'Titan One', 'Bowlby One SC',
+    'Rubik Mono One', 'Passion One', 'Luckiest Guy', 'Bangers', 'Fredoka',
+    'Righteous', 'Monoton', 'Faster One',
+  ];
+  // Font có nhiều độ đậm (nạp kèm trục wght); còn lại là font 1 độ đậm → nạp trơn.
+  const WEIGHTED_FONTS = new Set(['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Fredoka']);
   const BANK_OPTIONS = [
     'ACB', 'Vietcombank', 'VietinBank', 'BIDV', 'MBBank', 'Techcombank', 'VPBank',
     'TPBank', 'Sacombank', 'HDBank', 'SHB', 'OCB', 'MSB', 'SeABank', 'VIB', 'Agribank'
@@ -1488,10 +1498,12 @@ window.KENIOS_DEFAULT_DB = {
   const _loadedFonts = new Set(['Be Vietnam Pro']);
 
   function ensureFontLoaded(fontName) {
-    if (_loadedFonts.has(fontName)) return;
+    if (!fontName || _loadedFonts.has(fontName)) return;
+    // Font display 1 độ đậm sẽ lỗi nếu ép trục wght → chỉ font nhiều độ đậm mới thêm wght.
+    const spec = WEIGHTED_FONTS.has(fontName) ? ':wght@400;600;700;800' : '';
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@400;600;700;800&display=swap`;
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}${spec}&display=swap`;
     document.head.appendChild(link);
     _loadedFonts.add(fontName);
   }
@@ -2997,6 +3009,22 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
 
+  // Bộ chọn FONT chữ logo — mỗi ô hiển thị chữ "Kenios" bằng đúng font đó để xem trước.
+  function fontPickerHtml(selected) {
+    const sel = selected || 'Be Vietnam Pro';
+    LOGO_FONTS.forEach(ensureFontLoaded); // nạp trước để xem trước đúng font
+    return `
+      <div class="fx-picker font-picker" data-fx-picker>
+        <input type="hidden" name="logoFont" value="${esc(sel)}">
+        ${LOGO_FONTS.map(f => `
+          <button type="button" class="fx-pick ${f === sel ? 'selected' : ''}" data-fx-pick="${esc(f)}" title="${esc(f)}">
+            <span class="fx-pick-demo" style="font-family:'${esc(f)}', sans-serif; font-size:1.05rem">Kenios</span>
+            <span class="fx-pick-label">${esc(f)}</span>
+          </button>
+        `).join('')}
+      </div>`;
+  }
+
   function adminCategoriesHtml() {
     const categories = Store.db.categories;
     const subcategories = Store.db.subcategories || [];
@@ -3154,10 +3182,8 @@ window.KENIOS_DEFAULT_DB = {
         <label class="span-2">Ảnh logo (logoUrl — để trống dùng icon mặc định)
           <input name="logoUrl" value="${esc(c.logoUrl || '')}" placeholder="Dán URL ảnh (PNG/GIF/WEBP/SVG) — lấy từ tab Thư viện">
         </label>
-        <label>Font chữ logo
-          <select name="logoFont">
-            ${LOGO_FONTS.map(f => `<option value="${esc(f)}" ${c.logoFont === f ? 'selected' : ''} style="font-family:'${esc(f)}'">${esc(f)}</option>`).join('')}
-          </select>
+        <label class="span-2">Font chữ logo (bấm chọn — xem trước trực tiếp, có nhiều font đậm/3D)
+          ${fontPickerHtml(c.logoFont)}
         </label>
         <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
         <div class="admin-form-section">Hiệu ứng logo — MÀU CHẠY (tách riêng với chuyển động)</div>
