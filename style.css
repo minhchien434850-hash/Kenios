@@ -856,6 +856,39 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   .ai-kb-k { grid-area: k; } .ai-kb-a { grid-area: a; } .ai-kb-del { grid-area: del; }
 }
 
+/* Editor mã giảm giá sản phẩm (admin, trong tab Khuyến mãi) */
+.discount-editor { display: flex; flex-direction: column; gap: 8px; }
+.discount-row { display: grid; grid-template-columns: auto 1.2fr 130px 1fr auto; gap: 8px; align-items: center; }
+.discount-row input, .discount-row select {
+  padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .85rem; width: 100%; min-width: 0;
+}
+.discount-on { display: inline-flex; align-items: center; justify-content: center; }
+.discount-del { flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: rgba(248,113,113,.1); color: #f87171; cursor: pointer; }
+.discount-del:hover { background: rgba(248,113,113,.2); }
+@media (max-width: 640px) {
+  .discount-row { grid-template-columns: auto 1fr auto; grid-template-areas: "on code del" "type type type" "value value value"; }
+  .discount-on { grid-area: on; } .discount-code { grid-area: code; } .discount-type { grid-area: type; }
+  .discount-value { grid-area: value; } .discount-del { grid-area: del; }
+}
+
+/* Ô nhập mã giảm giá + thành tiền trong modal sản phẩm */
+.discount-apply { display: flex; flex-direction: column; gap: 6px; }
+.discount-apply > label { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; color: var(--muted); }
+.discount-apply-input { display: flex; gap: 8px; }
+.discount-apply-input input {
+  flex: 1; min-width: 0; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink);
+}
+.discount-apply-input input:focus { outline: none; border-color: var(--gold); }
+.discount-apply-input .btn { flex-shrink: 0; }
+.discount-apply-msg { font-size: .82rem; margin: 0; }
+.discount-apply-msg.ok { color: #34d399; }
+.discount-apply-msg.ok b { color: #34d399; }
+.discount-apply-msg.err { color: var(--danger); }
+.service-total { font-size: .95rem; color: var(--ink); }
+.service-total strong { color: var(--gold-soft); font-size: 1.05rem; }
+.service-total del { color: var(--muted); font-size: .85rem; margin-right: 4px; }
+.service-total-save { font-size: .78rem; color: #34d399; margin-left: 4px; }
+
 /* Nhãn còn key / hết key trên từng gói ở trang mua hàng */
 .pkg-stock { display: block; font-size: .7rem; color: #6ee7b7; margin-top: 2px; }
 .pkg-stock.out { color: var(--danger); }

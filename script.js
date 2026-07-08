@@ -93,7 +93,10 @@ window.KENIOS_DEFAULT_DB = {
     // Khuyến mãi nạp tiền: nạp >= depositBonusMin sẽ được cộng thêm depositBonusPercent%.
     depositBonusEnabled: false,
     depositBonusPercent: 0,
-    depositBonusMin: 0
+    depositBonusMin: 0,
+    // Mã giảm giá sản phẩm: admin tạo tuỳ ý. Mỗi mã giảm theo % hoặc theo số tiền cố định.
+    // { code, type: 'percent'|'amount', value, enabled }
+    discountCodes: []
   },
   categories: [
     { id: "pubg", name: "PUBG", description: "Công cụ hỗ trợ & phụ kiện cho game PUBG", icon: "🎯",
@@ -448,6 +451,28 @@ window.KENIOS_DEFAULT_DB = {
       return Math.floor(amount * percent / 100);
     },
 
+    // Tìm mã giảm giá đang bật khớp với chuỗi khách nhập (không phân biệt hoa thường / khoảng trắng).
+    findDiscountCode(codeStr) {
+      const code = (codeStr || '').trim().toUpperCase();
+      if (!code) return null;
+      const list = this.db.config.discountCodes || [];
+      return list.find(d => d && d.enabled !== false && (d.code || '').trim().toUpperCase() === code) || null;
+    },
+
+    // Tính giá sau khi áp mã giảm giá cho 1 mức giá gốc.
+    // Trả về { valid, price, discount, reason }: price là giá phải trả sau giảm (>= 0).
+    applyDiscountToPrice(price, codeStr) {
+      const raw = (codeStr || '').trim();
+      if (!raw) return { valid: false, price, discount: 0, reason: '' };
+      const d = this.findDiscountCode(raw);
+      if (!d) return { valid: false, price, discount: 0, reason: 'Mã giảm giá không đúng hoặc đã hết hiệu lực.' };
+      let discount = d.type === 'percent'
+        ? Math.floor(price * (parseFloat(d.value) || 0) / 100)
+        : Math.floor(parseFloat(d.value) || 0);
+      discount = Math.max(0, Math.min(discount, price)); // không giảm quá giá gốc
+      return { valid: true, price: price - discount, discount, reason: '', code: (d.code || raw).trim().toUpperCase(), type: d.type, value: d.value };
+    },
+
     deposit(amount, note) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước.');
@@ -498,10 +523,10 @@ window.KENIOS_DEFAULT_DB = {
       return cat ? cat.name : '';
     },
 
-    async redeemKeyOnServer(username, password, service, pkg) {
+    async redeemKeyOnServer(username, password, service, pkg, discountCode) {
       const result = await this._callApi('redeem_key', {
         username, password, serviceId: service.id, packageId: pkg.id,
-        os: this.serviceOs(service)
+        os: this.serviceOs(service), discountCode: (discountCode || '').trim()
       });
       if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
       const user = this.currentUser();
@@ -518,23 +543,30 @@ window.KENIOS_DEFAULT_DB = {
 
     // Đường cũ (demo cục bộ): dùng cho các gói CHƯA cấu hình kho key thật, sinh key
     // giả lập ngay trên trình duyệt — giữ lại để không phá vỡ các dịch vụ demo hiện có.
-    buyPackage(service, pkg) {
+    buyPackage(service, pkg, discountCode) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
-      if ((user.balance || 0) < pkg.price) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
-      user.balance -= pkg.price;
+      const dc = this.applyDiscountToPrice(pkg.price, discountCode);
+      if (discountCode && discountCode.trim() && !dc.valid) throw new Error(dc.reason || 'Mã giảm giá không hợp lệ.');
+      const finalPrice = dc.valid ? dc.price : pkg.price;
+      if ((user.balance || 0) < finalPrice) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
+      user.balance -= finalPrice;
       const key = this._generateKey(service, pkg);
       const purchaseDate = new Date().toISOString();
       const order = {
         id: 'DH' + Date.now(), userId: user.userId, serviceId: service.id,
-        serviceName: service.name, packageName: pkg.name, price: pkg.price,
+        serviceName: service.name, packageName: pkg.name, price: finalPrice,
+        originalPrice: pkg.price, discountCode: dc.valid ? dc.code : '', discountAmount: dc.valid ? dc.discount : 0,
         os: this.serviceOs(service), key, date: purchaseDate,
         purchaseDate, expiryDate: computeExpiryISO(pkg.name, purchaseDate)
       };
       this.db.orders.unshift(order);
+      const desc = dc.valid && dc.discount > 0
+        ? `Mua ${service.name} - ${pkg.name} (mã ${dc.code} -${dc.discount.toLocaleString('vi-VN')}đ)`
+        : `Mua ${service.name} - ${pkg.name}`;
       this.db.transactions.unshift({
-        id: 'TX' + Date.now(), userId: user.userId, amount: -pkg.price, type: 'purchase',
-        description: `Mua ${service.name} - ${pkg.name}`, date: purchaseDate
+        id: 'TX' + Date.now(), userId: user.userId, amount: -finalPrice, type: 'purchase',
+        description: desc, date: purchaseDate
       });
       this._persistOverrides();
       this._emit();
@@ -1145,6 +1177,7 @@ window.KENIOS_DEFAULT_DB = {
   }
   let currentServiceId = null;
   let currentPackage = null;
+  let currentDiscount = null; // mã giảm giá đã áp dụng hợp lệ cho sản phẩm đang xem
   let adminActiveTab = 'overview';
   let adminServiceEditing = null;     // null | 'new' | service id
   let adminCategoryEditing = null;    // null | 'new' | category id
@@ -2562,7 +2595,51 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Chi tiết dịch vụ ----
+  // Cập nhật dòng "Thành tiền" trong modal sản phẩm theo gói + mã giảm giá đang áp dụng.
+  function updateServiceModalTotal() {
+    const totalEl = $('#serviceModalTotal');
+    if (!totalEl || !currentPackage) { if (totalEl) totalEl.innerHTML = ''; return; }
+    const base = currentPackage.price;
+    if (currentDiscount && currentDiscount.valid && currentDiscount.discount > 0) {
+      totalEl.innerHTML = `Thành tiền: <del>${fmt(base)}</del> <strong>${fmt(currentDiscount.price)}</strong>
+        <span class="service-total-save">(giảm ${fmt(currentDiscount.discount)} · mã ${esc(currentDiscount.code)})</span>`;
+    } else {
+      totalEl.innerHTML = `Thành tiền: <strong>${fmt(base)}</strong>`;
+    }
+  }
+
+  // Áp dụng mã giảm giá khách nhập cho gói đang chọn; hiển thị kết quả.
+  function applyServiceDiscount() {
+    const msgEl = $('#serviceModalDiscountMsg');
+    const codeStr = ($('#serviceModalDiscountCode').value || '').trim();
+    if (!currentPackage) return;
+    if (!codeStr) {
+      currentDiscount = null;
+      msgEl.hidden = true;
+      updateServiceModalTotal();
+      return;
+    }
+    const res = Store.applyDiscountToPrice(currentPackage.price, codeStr);
+    if (res.valid) {
+      currentDiscount = res;
+      msgEl.hidden = false;
+      msgEl.className = 'discount-apply-msg ok';
+      msgEl.innerHTML = `✅ Áp dụng mã <b>${esc(res.code)}</b> — giảm <b>${fmt(res.discount)}</b>.`;
+    } else {
+      currentDiscount = null;
+      msgEl.hidden = false;
+      msgEl.className = 'discount-apply-msg err';
+      msgEl.textContent = '⚠️ ' + (res.reason || 'Mã giảm giá không hợp lệ.');
+    }
+    updateServiceModalTotal();
+  }
+
   function wireServiceModal() {
+    $('#serviceModalApplyDiscountBtn').addEventListener('click', applyServiceDiscount);
+    $('#serviceModalDiscountCode').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); applyServiceDiscount(); }
+    });
+
     $('#serviceModalBuyBtn').addEventListener('click', () => {
       const service = Store.db.services.find(s => s.id === currentServiceId);
       const errEl = $('#serviceModalError');
@@ -2570,18 +2647,22 @@ window.KENIOS_DEFAULT_DB = {
       if (!Store.currentUser()) { errEl.textContent = 'Vui lòng đăng nhập trước khi mua.'; return; }
       if (!currentPackage) { errEl.textContent = 'Vui lòng chọn một gói.'; return; }
 
+      // Mã giảm giá dùng khi mua = mã đã áp dụng hợp lệ cho đúng gói đang chọn.
+      const codeStr = (currentDiscount && currentDiscount.valid) ? currentDiscount.code : '';
+
       withLoading($('#serviceModalBuyBtn'), async () => {
         try {
           let order;
           if (Store.usesRealKeyStock(currentPackage)) {
             const password = $('#serviceModalPassword').value;
             if (!password) { errEl.textContent = 'Vui lòng nhập lại mật khẩu để xác nhận mua hàng.'; return; }
-            order = await Store.redeemKeyOnServer(Store.currentUser().username, password, service, currentPackage);
+            order = await Store.redeemKeyOnServer(Store.currentUser().username, password, service, currentPackage, codeStr);
           } else {
-            order = Store.buyPackage(service, currentPackage);
+            order = Store.buyPackage(service, currentPackage, codeStr);
           }
           closeModal('#serviceModal');
-          toast(`Mua thành công! Key: ${order.key}`, 'success');
+          const saved = order.discountAmount > 0 ? ` (đã giảm ${fmt(order.discountAmount)})` : '';
+          toast(`Mua thành công${saved}! Key: ${order.key}`, 'success');
         } catch (err) { errEl.textContent = err.message; }
       });
     });
@@ -2632,8 +2713,19 @@ window.KENIOS_DEFAULT_DB = {
         el.classList.add('selected');
         currentPackage = service.packages.find(p => p.id === el.dataset.pkg);
         syncServiceModalPasswordField();
+        // Đổi gói -> tính lại mã giảm giá (nếu có) theo giá gói mới.
+        applyServiceDiscount();
       });
     });
+
+    // Reset ô mã giảm giá mỗi lần mở sản phẩm.
+    currentDiscount = null;
+    $('#serviceModalDiscountCode').value = '';
+    $('#serviceModalDiscountMsg').hidden = true;
+    // Ẩn ô mã giảm giá nếu admin chưa tạo mã nào đang bật (tránh khách nhập vô ích).
+    const hasCodes = (Store.db.config.discountCodes || []).some(d => d && d.enabled !== false && (d.code || '').trim());
+    $('#serviceModalDiscountRow').hidden = !hasCodes;
+    updateServiceModalTotal();
 
     syncServiceModalPasswordField();
     $('#serviceModalError').textContent = '';
@@ -3387,6 +3479,30 @@ window.KENIOS_DEFAULT_DB = {
     });
   }
 
+  // 1 dòng mã giảm giá sản phẩm trong admin (mã + loại giảm + giá trị + bật/tắt).
+  function discountCodeRowHtml(dc = {}) {
+    const type = dc.type === 'amount' ? 'amount' : 'percent';
+    return `
+      <div class="discount-row" data-dc-row>
+        <label class="discount-on" title="Bật mã này"><input type="checkbox" data-dc-enabled ${dc.enabled !== false ? 'checked' : ''}></label>
+        <input data-dc-code class="discount-code" value="${esc(dc.code || '')}" placeholder="MÃ (VD: SALE10)" style="text-transform:uppercase">
+        <select data-dc-type class="discount-type">
+          <option value="percent" ${type === 'percent' ? 'selected' : ''}>Giảm %</option>
+          <option value="amount" ${type === 'amount' ? 'selected' : ''}>Giảm tiền (đ)</option>
+        </select>
+        <input data-dc-value class="discount-value" type="number" min="0" step="any" value="${dc.value != null ? dc.value : ''}" placeholder="VD: 10 hoặc 50000">
+        <button type="button" class="discount-del" data-dc-remove title="Xoá mã này">✕</button>
+      </div>`;
+  }
+  function readDiscountCodesFromEditor() {
+    return $$('#discountCodesEditor [data-dc-row]').map(row => ({
+      code: row.querySelector('[data-dc-code]').value.trim().toUpperCase(),
+      type: row.querySelector('[data-dc-type]').value === 'amount' ? 'amount' : 'percent',
+      value: Math.max(0, parseFloat(row.querySelector('[data-dc-value]').value) || 0),
+      enabled: row.querySelector('[data-dc-enabled]').checked
+    })).filter(x => x.code && x.value > 0);
+  }
+
   function adminPromoHtml() {
     const c = Store.db.config;
     const enabled = !!c.depositBonusEnabled;
@@ -3418,6 +3534,18 @@ window.KENIOS_DEFAULT_DB = {
             ? `Ví dụ: khách nạp <b>${sample.toLocaleString('vi-VN')}đ</b> sẽ được cộng thêm <b>${sampleBonus.toLocaleString('vi-VN')}đ</b> (${percent}%), tổng nhận <b>${(sample + sampleBonus).toLocaleString('vi-VN')}đ</b>.`
             : 'Đang tắt khuyến mãi — khách nạp bao nhiêu nhận đúng bấy nhiêu.'}
         </p>
+
+        <div class="admin-form-section">Mã giảm giá sản phẩm (tạo bao nhiêu mã tuỳ ý)</div>
+        <p class="muted" style="grid-column:1/-1;font-size:.82rem;margin:0 0 4px;">
+          Tạo mã giảm giá, chọn <b>Giảm %</b> hoặc <b>Giảm tiền (đ)</b> cùng giá trị. Khách nhập mã ở ô "Mã giảm giá" trong mọi sản phẩm — hệ thống tự đối chiếu với danh sách mã bên dưới để giảm giá khi mua.
+        </p>
+        <div class="span-2 discount-editor" id="discountCodesEditor">
+          ${(c.discountCodes || []).map(dc => discountCodeRowHtml(dc)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodeBtn"><span class="btn-ico">${ICONS.tag || ''}</span> + Thêm mã giảm giá</button>
+        </div>
+
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">Lưu khuyến mãi</button>
           <button type="button" class="btn btn-glass btn-sm" id="adminSyncServerBtn" style="gap:7px;">
@@ -3851,6 +3979,15 @@ window.KENIOS_DEFAULT_DB = {
     const delKb = e.target.closest('[data-kb-remove]');
     if (delKb) { delKb.closest('[data-kb-row]')?.remove(); return; }
 
+    // ----- Thêm / xoá mã giảm giá sản phẩm -----
+    if (e.target.closest('#addDiscountCodeBtn')) {
+      const editor = $('#discountCodesEditor');
+      if (editor) { editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' })); editor.querySelector('.discount-row:last-child [data-dc-code]')?.focus(); }
+      return;
+    }
+    const delDc = e.target.closest('[data-dc-remove]');
+    if (delDc) { delDc.closest('[data-dc-row]')?.remove(); return; }
+
     const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
     if (adjustBalance) {
       Store.adminAdjustBalance(adjustBalance.dataset.adminAdjustBalance, parseInt(adjustBalance.dataset.delta, 10));
@@ -4075,10 +4212,11 @@ window.KENIOS_DEFAULT_DB = {
       Store.adminUpdateConfig({
         depositBonusEnabled: fd.get('depositBonusEnabled') === '1',
         depositBonusPercent: Math.max(0, Math.min(100, parseFloat(fd.get('depositBonusPercent')) || 0)),
-        depositBonusMin: Math.max(0, parseInt(fd.get('depositBonusMin'), 10) || 0)
+        depositBonusMin: Math.max(0, parseInt(fd.get('depositBonusMin'), 10) || 0),
+        discountCodes: readDiscountCodesFromEditor()
       });
       renderAdminTab('promo');
-      toast('Đã lưu khuyến mãi. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
+      toast('Đã lưu khuyến mãi & mã giảm giá. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
     }
   }
 

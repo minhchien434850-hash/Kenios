@@ -398,6 +398,16 @@
           <a class="btn btn-glass btn-sm service-modal-download" id="serviceModalDownload" target="_blank" rel="noopener" hidden></a>
           <ul class="feature-list" id="serviceModalFeatures"></ul>
           <div class="package-list" id="serviceModalPackages"></div>
+          <div class="discount-apply" id="serviceModalDiscountRow">
+            <label>Mã giảm giá
+              <span class="discount-apply-input">
+                <input type="text" id="serviceModalDiscountCode" placeholder="Nhập mã giảm giá (nếu có)" autocomplete="off" style="text-transform:uppercase">
+                <button type="button" class="btn btn-glass btn-sm" id="serviceModalApplyDiscountBtn">Áp dụng</button>
+              </span>
+            </label>
+            <p class="discount-apply-msg" id="serviceModalDiscountMsg" hidden></p>
+          </div>
+          <div class="service-total" id="serviceModalTotal"></div>
           <label class="span-2" id="serviceModalPasswordRow" hidden>Nhập lại mật khẩu để xác nhận mua
             <input type="password" id="serviceModalPassword" autocomplete="current-password">
           </label>

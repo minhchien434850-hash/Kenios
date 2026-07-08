@@ -407,6 +407,7 @@ switch ($action) {
         $password = (string)($input['password'] ?? '');
         $serviceId = (string)($input['serviceId'] ?? '');
         $packageId = (string)($input['packageId'] ?? '');
+        $discountCode = strtoupper(trim((string)($input['discountCode'] ?? '')));
 
         $fp = fopen($db_file, 'c+');
         if (!$fp || !flock($fp, LOCK_EX)) {
@@ -450,6 +451,30 @@ switch ($action) {
         $pkg = $service['packages'][$pkgIdx];
 
         $price = floatval($pkg['price'] ?? 0);
+
+        // Áp mã giảm giá (nếu khách nhập): đối chiếu với danh sách mã trong config, giảm theo % hoặc theo số tiền.
+        $discountAmount = 0;
+        $appliedCode = '';
+        if ($discountCode !== '') {
+            $matched = null;
+            foreach (($db['config']['discountCodes'] ?? []) as $dc) {
+                if (!is_array($dc)) continue;
+                if (($dc['enabled'] ?? true) === false) continue;
+                if (strtoupper(trim((string)($dc['code'] ?? ''))) === $discountCode) { $matched = $dc; break; }
+            }
+            if ($matched === null) {
+                flock($fp, LOCK_UN); fclose($fp);
+                echo json_encode(["status" => "error", "message" => "Mã giảm giá không đúng hoặc đã hết hiệu lực."]);
+                exit;
+            }
+            $val = floatval($matched['value'] ?? 0);
+            $discountAmount = (($matched['type'] ?? 'percent') === 'amount') ? floor($val) : floor($price * $val / 100);
+            $discountAmount = max(0, min($discountAmount, $price));
+            $appliedCode = $discountCode;
+        }
+        $originalPrice = $price;
+        $price = $price - $discountAmount;
+
         $balance = floatval($db['users'][$userIdx]['balance'] ?? 0);
         if ($balance < $price) {
             flock($fp, LOCK_UN); fclose($fp);
@@ -479,16 +504,20 @@ switch ($action) {
         $order = [
             "id" => "DH" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'],
             "serviceId" => $serviceId, "serviceName" => $service['name'], "packageName" => $pkg['name'],
-            "os" => $os, "price" => $price, "key" => $key,
+            "os" => $os, "price" => $price, "originalPrice" => $originalPrice,
+            "discountCode" => $appliedCode, "discountAmount" => $discountAmount, "key" => $key,
             "date" => date("c", $purchaseTs), "purchaseDate" => date("c", $purchaseTs),
             "expiryDate" => $days === null ? null : date("c", $purchaseTs + $days * 86400)
         ];
         if (!isset($db['orders'])) $db['orders'] = [];
         array_unshift($db['orders'], $order);
         if (!isset($db['transactions'])) $db['transactions'] = [];
+        $txDesc = $discountAmount > 0
+            ? "Mua {$service['name']} - {$pkg['name']} (mã {$appliedCode} -" . number_format($discountAmount) . "đ)"
+            : "Mua {$service['name']} - {$pkg['name']}";
         array_unshift($db['transactions'], [
             "id" => "TX" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'], "amount" => -$price,
-            "type" => "purchase", "description" => "Mua {$service['name']} - {$pkg['name']}", "date" => date("c")
+            "type" => "purchase", "description" => $txDesc, "date" => date("c")
         ]);
 
         ftruncate($fp, 0);
