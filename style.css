@@ -391,7 +391,7 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 }
 .modal-sm { max-width: 380px; }
 .modal-lg { max-width: 760px; }
-.modal-close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; }
+.modal-close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; line-height: 1; padding: 0; }
 .modal h3 { margin: 0 0 20px; font-size: 1.2rem; }
 
 .auth-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
@@ -571,9 +571,16 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
     display: block; width: 100%; max-width: 100%; height: 100%; max-height: 100%;
     border-radius: 0; border: none;
     overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
-    padding: 18px 16px calc(28px + env(safe-area-inset-bottom));
+    padding: calc(64px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));
   }
-  .admin-modal h3 { margin-top: 6px; }
+  /* Dấu X luôn cố định ở góc trên, nằm dưới tai thỏ/thanh trạng thái, không bị cuộn mất */
+  .admin-modal .modal-close {
+    position: fixed; top: calc(env(safe-area-inset-top) + 12px); right: 14px; z-index: 2100;
+    width: 42px; height: 42px; font-size: 1.15rem;
+    background: var(--bg-alt); border-color: rgba(255,255,255,.25);
+    box-shadow: 0 6px 18px rgba(0,0,0,.55);
+  }
+  .admin-modal h3 { margin-top: 0; }
   .admin-tabs { flex-direction: row; flex-wrap: wrap; border-right: none; padding-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px; overflow: visible; }
   .admin-tab { border-radius: 999px; }
   .admin-panel-body { overflow: visible; padding-right: 0; }
