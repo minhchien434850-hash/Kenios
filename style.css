@@ -90,7 +90,7 @@ button { font: inherit; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-text strong { font-size: 1.05rem; letter-spacing: .2px; }
 .brand-text small { color: var(--muted); font-size: .7rem; }
-.main-nav { display: flex; gap: 28px; font-size: .92rem; }
+.main-nav { display: flex; gap: 22px; font-size: .92rem; white-space: nowrap; }
 .main-nav a { color: var(--muted); transition: color .15s ease; }
 .main-nav a:hover { color: var(--ink); }
 .header-actions { display: flex; align-items: center; gap: 12px; }
@@ -214,7 +214,7 @@ button { font: inherit; }
 }
 .modal-sm { max-width: 380px; }
 .modal-lg { max-width: 760px; }
-.modal-close { position: absolute; top: 16px; right: 16px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; }
+.modal-close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; }
 .modal h3 { margin: 0 0 20px; font-size: 1.2rem; }
 
 .auth-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
@@ -280,7 +280,7 @@ button { font: inherit; }
   color: #fff;
 }
 .ai-panel {
-  position: absolute; bottom: 72px; right: 0; width: 320px; max-height: 480px; display: flex; flex-direction: column;
+  position: absolute; bottom: 72px; right: 0; width: 320px; max-height: min(480px, calc(100vh - 96px)); display: flex; flex-direction: column;
   background: var(--bg-alt); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden;
 }
 .ai-panel-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
@@ -288,7 +288,7 @@ button { font: inherit; }
 .ai-panel-head strong { display: block; font-size: .92rem; }
 .ai-panel-head small { color: var(--success); font-size: .72rem; }
 .ai-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--glass); }
-.ai-messages { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; max-height: 260px; }
+.ai-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; max-height: 260px; }
 .ai-msg { padding: 10px 13px; border-radius: 14px; font-size: .86rem; max-width: 88%; line-height: 1.45; white-space: pre-line; }
 .ai-msg.bot { background: var(--glass); align-self: flex-start; border-bottom-left-radius: 4px; }
 .ai-msg.user { background: linear-gradient(135deg, var(--gold), #ff8f1f); color: #1a1200; align-self: flex-end; border-bottom-right-radius: 4px; }
@@ -389,13 +389,39 @@ button { font: inherit; }
   .admin-form { grid-template-columns: 1fr; }
   .admin-form label.span-2 { grid-column: span 1; }
 }
-@media (max-width: 720px) {
+/* Điều hướng chính cần đủ chỗ để không bị chèn/gãy chữ — chuyển sang menu
+   hamburger sớm hơn breakpoint bố cục chung, thay vì chờ tới sát 720px. */
+@media (max-width: 880px) {
   .main-nav { display: none; }
   .hide-sm { display: none; }
   .menu-toggle { display: flex; }
+}
+@media (max-width: 720px) {
   .hero-stats { grid-template-columns: repeat(2, 1fr); }
   .fx-toggle-btn, .fx-panel { right: 16px; }
   .ai-widget { right: 16px; bottom: 16px; }
   .fx-toggle-btn { bottom: 16px; right: 82px; }
   .fx-panel { bottom: 76px; right: 16px; }
+  .fx-panel { width: min(260px, calc(100vw - 32px)); }
+  .ai-panel { width: min(320px, calc(100vw - 32px)); }
+}
+/* Điện thoại rất nhỏ (iPhone SE, Galaxy Fold gập, Android cỡ nhỏ 320-400px) */
+@media (max-width: 400px) {
+  :root { font-size: 15px; }
+  .container { width: 94%; }
+  .header-inner { gap: 6px; }
+  .brand { gap: 6px; }
+  .brand-mark { width: 26px; height: 26px; }
+  .brand-text strong { font-size: .82rem; }
+  .brand-text small { display: none; }
+  .header-actions { gap: 6px; }
+  .header-actions .btn { padding: 8px 12px; font-size: .78rem; }
+  .balance-pill { padding: 7px 10px; font-size: .74rem; }
+  .avatar-btn { width: 32px; height: 32px; }
+  .menu-toggle { width: 34px; height: 34px; padding: 0; }
+  .hero { padding: 72px 0 56px; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-chip { padding: 14px 8px; }
+  .modal { padding: 20px 16px; }
+  .service-modal-media { min-height: 140px; }
 }
