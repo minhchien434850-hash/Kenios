@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api.php
+Disallow: /bank_callback.php
+Disallow: /tts.php
+Disallow: /database.json
+Disallow: /secrets.php
+Disallow: /lib_secrets.php
+Disallow: /uploads/
+
+Sitemap: https://kenios.store/sitemap.xml

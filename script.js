@@ -1,0 +1,3623 @@
+/* ===========================================================
+   KENIOS.STORE — script.js (toàn bộ logic phía client)
+   Gộp từ: data.js + store.js + voice.js + effects.js + app.js
+=========================================================== */
+
+/**
+ * data.js — Dữ liệu mặc định của shop (dùng khi chưa nạp được database.json,
+ * ví dụ mở trực tiếp bằng file:// hoặc server chưa có PHP).
+ * Cùng cấu trúc với database.json để store.js dùng chung một schema.
+ */
+window.KENIOS_DEFAULT_DB = {
+  config: {
+    siteName: "kenios.store",
+    siteTitle: "KENIOS.STORE - Cửa Hàng Dịch Vụ Game & Thiết Kế Website",
+    siteSubtitle: "Hệ thống phân phối phụ kiện game & dịch vụ thiết kế web hàng đầu Việt Nam. Tự động 24/24, hỗ trợ setup từ A-Z.",
+    logoText: "KENIOS.STORE",
+    logoSubtext: "v3.0 Premium",
+    logoUrl: "",
+    logoFont: "Be Vietnam Pro",
+    logoColor: "",
+    logoColorMode: "rainbow",
+    logoAnimSpeed: 6,
+    accentColor: "#ffb703",
+    googleClientId: "",
+    welcomePopupEnabled: false,
+    welcomePopupTitle: "Chào mừng bạn đến với KENIOS.STORE!",
+    welcomePopupMessage: "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
+    welcomeVoiceEnabled: true,
+    welcomeAlways: true,
+    welcomeVoiceName: "",
+    welcomeVoiceText: "Xin chào! Chào mừng bạn đã đến với KENIOS.STORE.",
+    hotline: "0387332523",
+    zaloLink: "https://zalo.me/0387332523",
+    contactChannels: [
+      { id: "zalo", label: "Zalo", icon: "💬", url: "https://zalo.me/0387332523", enabled: true },
+      { id: "phone", label: "Hotline", icon: "📞", url: "tel:0387332523", enabled: false },
+      { id: "telegram", label: "Telegram", icon: "📢", url: "", enabled: false },
+      { id: "facebook", label: "Facebook", icon: "👍", url: "", enabled: false },
+      { id: "instagram", label: "Instagram", icon: "📷", url: "", enabled: false },
+      { id: "tiktok", label: "TikTok", icon: "🎵", url: "", enabled: false },
+      { id: "email", label: "Email", icon: "📧", url: "", enabled: false }
+    ],
+    contactAdminName: "ADMIN SHOP",
+    contactAdminSub: "Chủ sở hữu hệ thống",
+    contactAdminDesc: "Chuyên cung cấp phụ kiện gaming và dịch vụ thiết kế website chất lượng cao, giúp nâng tầm trải nghiệm của bạn.",
+    bgUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop",
+    aiName: "Trợ Lý Ảo Kenios",
+    aiGreeting: "Xin chào! Tôi là trợ lý ảo của KENIOS.STORE. Tôi có thể giúp gì cho bạn hôm nay?",
+    aiResponseGreeting: "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
+    aiResponseDeposit: "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
+    aiResponseProduct: "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
+    aiResponseWeb: "Bên mình có dịch vụ thiết kế website phong cách hiện đại, chuẩn SEO và tương thích tốt trên mọi thiết bị. Hãy xem mục \"Thiết Kế Web\" để biết thêm chi tiết nhé!",
+    aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
+    aiResponseContact: "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
+    aiResponseThanks: "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
+    aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
+    bankId: "MBBank",
+    bankAccountNo: "0822148411",
+    bankAccountName: "NGUYEN TIN HAO",
+    bannerTagText: "Dịch vụ hàng đầu Việt Nam",
+    bannerBtn1Text: "Xem Dịch Vụ",
+    bannerBtn2Text: "Nạp Tiền Ngay",
+    marqueeText: "Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24",
+    marqueeSpeed: 26,
+    ttsEnabled: true,
+    ttsVoice: "google_female_vi",
+    ttsRate: 1,
+    ttsPitch: 1
+  },
+  categories: [
+    { id: "pubg", name: "PUBG", description: "Công cụ hỗ trợ & phụ kiện cho game PUBG", icon: "🎯",
+      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop" },
+    { id: "lienquan", name: "Liên Quân", description: "Mod skin, bản đồ sáng và dịch vụ hỗ trợ leo rank", icon: "🛡️",
+      image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=600&auto=format&fit=crop" },
+    { id: "freefire", name: "Free Fire", description: "Công cụ hỗ trợ, phụ kiện độc quyền cho Free Fire", icon: "🔥",
+      image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=600&auto=format&fit=crop" },
+    { id: "tocchien", name: "Tốc Chiến", description: "Phần mềm bổ trợ và mod skin cho Tốc Chiến", icon: "⚡",
+      image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop" },
+    { id: "webdesign", name: "Thiết Kế Web", description: "Thiết kế website hiện đại, Glassmorphism, chuẩn SEO", icon: "💻",
+      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop" },
+    { id: "other", name: "Khác", description: "Các sản phẩm, phần mềm và dịch vụ khác", icon: "📁",
+      image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600&auto=format&fit=crop" }
+  ],
+  services: [
+    {
+      id: "pubg-radar", categoryId: "pubg", name: "PUBG ESP Radar Premium",
+      description: "Hiển thị khung xương địch, vị trí, khoảng cách, hướng nhìn, xe cộ và hòm đồ.",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
+      features: ["Test mượt mà, không giật lag", "Cập nhật tự động", "Hỗ trợ setup từ A-Z"],
+      packages: [
+        { id: "pkg-radar-1day", name: "1 Ngày", price: 25000 },
+        { id: "pkg-radar-3day", name: "3 Ngày", price: 65000 },
+        { id: "pkg-radar-7day", name: "7 Ngày", price: 120000 },
+        { id: "pkg-radar-30day", name: "1 Tháng", price: 350000 }
+      ]
+    },
+    {
+      id: "pubg-aimbot", categoryId: "pubg", name: "PUBG Silent Aimbot Max",
+      description: "Hỗ trợ ngắm bắn mượt mà, tùy chỉnh độ nhạy và trường nhìn (FOV).",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=800&auto=format&fit=crop",
+      features: ["Tùy chỉnh FOV & độ mượt", "Cập nhật tự động"],
+      packages: [
+        { id: "pkg-aimbot-1day", name: "1 Ngày", price: 30000 },
+        { id: "pkg-aimbot-7day", name: "7 Ngày", price: 140000 },
+        { id: "pkg-aimbot-30day", name: "1 Tháng", price: 390000 }
+      ]
+    },
+    {
+      id: "kingmod", categoryId: "pubg", name: "Phụ Kiện KingMod",
+      description: "Phụ kiện hỗ trợ trải nghiệm mượt mà và leo rank dễ dàng hơn.",
+      status: "outofstock",
+      image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=800&auto=format&fit=crop",
+      features: ["Cập nhật tự động"],
+      packages: [{ id: "pkg-kingmod-1m", name: "1 Tháng", price: 200000 }]
+    },
+    {
+      id: "web-landing", categoryId: "webdesign", name: "Thiết Kế Landing Page",
+      description: "Landing Page giới thiệu sản phẩm/dịch vụ với hiệu ứng kính mờ (Glassmorphism), tải trang nhanh, chuẩn SEO.",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop",
+      features: ["Thiết kế phong cách Apple kính mờ", "Tương thích mọi thiết bị", "Chuẩn SEO Google", "Bàn giao toàn bộ mã nguồn", "Bảo hành kỹ thuật trọn đời"],
+      packages: [{ id: "pkg-landing", name: "Trọn gói", price: 1500000 }]
+    },
+    {
+      id: "web-shop", categoryId: "webdesign", name: "Thiết Kế Web Shop Tự Động",
+      description: "Website bán acc/key tích hợp nạp tiền VietQR tự động, quản trị admin thời gian thực.",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop",
+      features: ["Nạp tiền QR tự động", "Đồng bộ thời gian thực", "Trợ lý ảo AI đàm thoại", "Quản trị Admin đầy đủ"],
+      packages: [{ id: "pkg-webshop", name: "Trọn gói", price: 3500000 }]
+    }
+  ],
+  users: [
+    { userId: "10001", username: "kenios", password: "admin1999@", balance: 0, role: "admin", status: "active", createdAt: "2026-06-13" }
+  ],
+  posts: [
+    { id: "1", title: "Hướng dẫn cài đặt an toàn 100%", summary: "Làm sao để trải nghiệm an toàn, không lo mất tài khoản chính? Xem ngay cẩm nang này.", date: "2026-06-10" },
+    { id: "2", title: "Cập nhật hệ thống nạp tiền VietQR siêu tốc", summary: "Hệ thống chính thức nâng cấp cơ chế sinh mã QR tự động theo chuẩn Napas 247.", date: "2026-06-09" }
+  ],
+  orders: [],
+  transactions: [],
+  media: []
+};
+
+/**
+ * store.js — Quản lý dữ liệu & phiên đăng nhập.
+ * Nguồn dữ liệu gốc: database.json (đồng bộ qua api.php khi chạy trên PHP hosting).
+ * Đăng nhập/đăng ký ưu tiên xác thực qua máy chủ (mật khẩu được băm bằng
+ * password_hash phía PHP); nếu không có backend (mở file://, hosting tĩnh),
+ * tự động chuyển sang chế độ demo cục bộ lưu trong localStorage để trải
+ * nghiệm vẫn hoạt động đầy đủ.
+ */
+(function (global) {
+  'use strict';
+
+  const LS_KEY = 'kenios_local_state_v1';
+  const API_URL = './api.php';
+
+  // Ném ra khi không có backend PHP thật sự phản hồi (mở file://, hosting tĩnh,
+  // lỗi mạng...) — phân biệt với lỗi hợp lệ mà server trả về (vd. sai mật khẩu).
+  class BackendUnavailableError extends Error {}
+
+  // Suy ra số ngày sử dụng từ tên gói (VD "7 Ngày", "1 Tháng", "1 Tuần", "Vĩnh viễn").
+  // Trả về null nếu là gói vĩnh viễn / không xác định thời hạn (không tính ngày hết hạn).
+  function parseDurationDays(name) {
+    const t = (name || '').toLowerCase();
+    if (/vĩnh viễn|vinh vien|vĩnh|lifetime|forever|perm|không thời hạn|khong thoi han/.test(t)) return null;
+    const num = parseInt((t.match(/\d+/) || [])[0], 10) || 1;
+    if (/năm|nam|year/.test(t)) return num * 365;
+    if (/tháng|thang|month/.test(t)) return num * 30;
+    if (/tuần|tuan|week/.test(t)) return num * 7;
+    if (/ngày|ngay|day/.test(t)) return num;
+    return null;
+  }
+  // Tính ngày hết hạn (ISO) từ tên gói + ngày mua. Trả về null nếu gói vĩnh viễn.
+  function computeExpiryISO(packageName, fromISO) {
+    const days = parseDurationDays(packageName);
+    if (days == null) return null;
+    const d = new Date(fromISO || Date.now());
+    d.setDate(d.getDate() + days);
+    return d.toISOString();
+  }
+
+  const Store = {
+    db: null,
+    session: null, // { userId } khi đã đăng nhập
+    serverAvailable: null, // null = chưa rõ, true/false sau lần gọi API đầu tiên
+    _listeners: [],
+
+    async init() {
+      this.db = await this._loadDb();
+      if (!Array.isArray(this.db.subcategories)) this.db.subcategories = [];
+      this._mergeLocalOverrides();
+      const savedSession = this._readLocal('session');
+      if (savedSession && this.db.users.some(u => u.userId === savedSession.userId)) {
+        this.session = savedSession;
+      }
+      return this.db;
+    },
+
+    onChange(fn) { this._listeners.push(fn); },
+    _emit() { this._listeners.forEach(fn => { try { fn(this.db); } catch (e) { console.error(e); } }); },
+
+    async _loadDb() {
+      // Ưu tiên api.php?action=get_db — endpoint này đã LỌC BỎ mật khẩu (băm), key thật
+      // trong kho và token ngân hàng trước khi trả ra, nên an toàn cho khách. Chỉ khi
+      // không có backend PHP (hosting tĩnh / mở bằng file://) mới đọc thẳng database.json.
+      try {
+        const res = await fetch(`api.php?action=get_db&t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.config) return json;
+        }
+      } catch (e) { /* thử tiếp database.json */ }
+      try {
+        const res = await fetch(`database.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.config) return json;
+        }
+      } catch (e) {
+        console.warn('Không tải được dữ liệu, dùng dữ liệu mặc định.', e);
+      }
+      return JSON.parse(JSON.stringify(global.KENIOS_DEFAULT_DB));
+    },
+
+    _mergeLocalOverrides() {
+      const local = this._readLocal('overrides');
+      if (!local) return;
+      ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'].forEach(key => {
+        if (Array.isArray(local[key])) this.db[key] = local[key];
+      });
+      if (local.config) Object.assign(this.db.config, local.config);
+    },
+
+    _persistOverrides() {
+      this._writeLocal('overrides', {
+        users: this.db.users,
+        orders: this.db.orders,
+        transactions: this.db.transactions,
+        categories: this.db.categories,
+        subcategories: this.db.subcategories,
+        services: this.db.services,
+        media: this.db.media,
+        config: this.db.config
+      });
+    },
+
+    _readLocal(key) {
+      try { return JSON.parse(localStorage.getItem(`${LS_KEY}:${key}`)); } catch { return null; }
+    },
+    _writeLocal(key, val) {
+      try { localStorage.setItem(`${LS_KEY}:${key}`, JSON.stringify(val)); } catch { /* ignore */ }
+    },
+
+    async _callApi(action, payload) {
+      let res;
+      try {
+        res = await fetch(`${API_URL}?action=${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload || {})
+        });
+      } catch (e) {
+        throw new BackendUnavailableError();
+      }
+      let json;
+      try { json = await res.json(); } catch (e) { throw new BackendUnavailableError(); }
+      if (!json || typeof json.status === 'undefined') throw new BackendUnavailableError();
+      return json;
+    },
+
+    // ---- Tài khoản ----
+    currentUser() {
+      if (!this.session) return null;
+      return this.db.users.find(u => u.userId === this.session.userId) || null;
+    },
+
+    isAdmin() {
+      const u = this.currentUser();
+      return !!u && u.role === 'admin';
+    },
+
+    async register(username, password, contact) {
+      username = (username || '').trim();
+      contact = (contact || '').trim();
+      if (!username || (password || '').length < 6) {
+        throw new Error('Tên đăng nhập không hợp lệ hoặc mật khẩu quá ngắn (tối thiểu 6 ký tự).');
+      }
+      try {
+        const result = await this._callApi('register', { username, password, contact });
+        this.serverAvailable = true;
+        if (result.status !== 'success') throw new Error(result.message || 'Đăng ký thất bại.');
+        this._upsertUser(result.user);
+        this._setSession(result.user.userId);
+        return result.user;
+      } catch (err) {
+        if (err instanceof BackendUnavailableError) {
+          this.serverAvailable = false;
+          return this._localRegister(username, password, contact);
+        }
+        throw err;
+      }
+    },
+
+    async resetPassword(username, contact, newPassword) {
+      const result = await this._callApi('reset_password', { username, contact, newPassword });
+      if (result.status !== 'success') throw new Error(result.message || 'Không đặt lại được mật khẩu.');
+      return true;
+    },
+
+    async login(username, password) {
+      username = (username || '').trim();
+      try {
+        const result = await this._callApi('login', { username, password });
+        this.serverAvailable = true;
+        if (result.status !== 'success') throw new Error(result.message || 'Sai tên đăng nhập hoặc mật khẩu.');
+        this._upsertUser(result.user);
+        this._setSession(result.user.userId);
+        return result.user;
+      } catch (err) {
+        if (err instanceof BackendUnavailableError) {
+          this.serverAvailable = false;
+          return this._localLogin(username, password);
+        }
+        throw err;
+      }
+    },
+
+    // Đăng nhập bằng Google: gửi ID token (credential) lên server để xác thực thật
+    // với Google rồi mới tạo/đăng nhập tài khoản. Chỉ hoạt động khi có backend PHP.
+    async changePassword(currentPassword, newPassword) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập.');
+      if ((newPassword || '').length < 6) throw new Error('Mật khẩu mới tối thiểu 6 ký tự.');
+      try {
+        const result = await this._callApi('change_password', {
+          username: user.username, currentPassword, newPassword
+        });
+        if (result.status !== 'success') throw new Error(result.message || 'Đổi mật khẩu thất bại.');
+        return true;
+      } catch (err) {
+        if (err instanceof BackendUnavailableError) {
+          if (user.password !== undefined && user.password !== currentPassword) throw new Error('Mật khẩu hiện tại không đúng.');
+          user.password = newPassword;
+          this._persistOverrides();
+          return true;
+        }
+        throw err;
+      }
+    },
+
+    async loginWithGoogle(credential) {
+      const result = await this._callApi('google_login', { credential });
+      if (result.status !== 'success') throw new Error(result.message || 'Đăng nhập Google thất bại.');
+      this._upsertUser(result.user);
+      this._setSession(result.user.userId);
+      return result.user;
+    },
+
+    // Chế độ demo cục bộ (không có máy chủ PHP): kiểm tra trực tiếp trong dữ liệu đã tải.
+    _localRegister(username, password, contact) {
+      if (this.db.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        throw new Error('Tên đăng nhập đã tồn tại.');
+      }
+      const user = {
+        userId: String(Date.now()),
+        username, password, contact: contact || '', balance: 0, role: 'member', status: 'active',
+        avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
+        createdAt: new Date().toISOString().slice(0, 10)
+      };
+      this.db.users.push(user);
+      this._persistOverrides();
+      this._setSession(user.userId);
+      return user;
+    },
+
+    _localLogin(username, password) {
+      const user = this.db.users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+      if (!user) throw new Error('Sai tên đăng nhập hoặc mật khẩu.');
+      if (user.status !== 'active') throw new Error('Tài khoản đã bị khóa.');
+      this._setSession(user.userId);
+      return user;
+    },
+
+    _upsertUser(safeUser) {
+      const idx = this.db.users.findIndex(u => u.userId === safeUser.userId);
+      if (idx >= 0) this.db.users[idx] = Object.assign({}, this.db.users[idx], safeUser);
+      else this.db.users.push(safeUser);
+      this._persistOverrides();
+    },
+
+    _setSession(userId) {
+      this.session = { userId };
+      this._writeLocal('session', this.session);
+      this._emit();
+    },
+
+    logout() {
+      this.session = null;
+      this._writeLocal('session', null);
+      this._emit();
+    },
+
+    // ---- Giao dịch ----
+    deposit(amount, note) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập trước.');
+      user.balance = (user.balance || 0) + amount;
+      this.db.transactions.unshift({
+        id: 'TX' + Date.now(), userId: user.userId, amount, type: 'deposit',
+        description: note || 'Nạp tiền qua VietQR', date: new Date().toISOString()
+      });
+      this._persistOverrides();
+      this._emit();
+    },
+
+    // Kiểm tra giao dịch nạp tự động: bảo máy chủ kéo lịch sử ngân hàng từ ThueAPIBank
+    // (poll_acb). Nếu máy chủ đã cộng tiền cho đúng mã nạp này (qua polling lần này hoặc
+    // webhook trước đó), đồng bộ số dư mới từ máy chủ về máy khách.
+    //   • Ném BackendUnavailableError khi KHÔNG có máy chủ PHP (nơi gọi rơi về demo cục bộ).
+    //   • Trả { serverError:true } khi CÓ máy chủ nhưng bước gọi ngân hàng lỗi (KHÔNG được
+    //     cộng tiền demo trong trường hợp này, tránh cộng tiền ảo khi bank API tạm lỗi).
+    async checkAutoDeposit(note) {
+      const res = await this._callApi('poll_acb', { note }); // BackendUnavailableError sẽ propagate ra ngoài
+      if (!res || res.status !== 'success') {
+        return { credited: false, serverError: true, message: (res && res.message) || 'Máy chủ chưa kiểm tra được giao dịch.' };
+      }
+      if (res.credited && res.balance !== null && res.balance !== undefined) {
+        const user = this.currentUser();
+        if (user) user.balance = res.balance;
+        this._persistOverrides();
+        this._emit();
+      }
+      return { credited: !!res.credited, balance: res.balance };
+    },
+
+    // Gói có kho key thật (admin đã nhập key trong tab Dịch vụ) sẽ có field `keyCount`
+    // (kể cả khi = 0). Với gói này, PHẢI mua qua máy chủ (redeemKeyOnServer) để rút
+    // đúng 1 key thật + trừ số dư một cách xác thực, không dùng đường cũ (giả lập cục bộ).
+    usesRealKeyStock(pkg) {
+      return pkg && typeof pkg.keyCount === 'number';
+    },
+
+    // Hệ điều hành / nền tảng của sản phẩm = tên thư mục con (nếu có), ngược lại tên danh mục.
+    serviceOs(service) {
+      const sub = (this.db.subcategories || []).find(s => s.id === service.subcategoryId);
+      if (sub) return sub.name;
+      const cat = this.db.categories.find(c => c.id === service.categoryId);
+      return cat ? cat.name : '';
+    },
+
+    async redeemKeyOnServer(username, password, service, pkg) {
+      const result = await this._callApi('redeem_key', {
+        username, password, serviceId: service.id, packageId: pkg.id,
+        os: this.serviceOs(service)
+      });
+      if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
+      const user = this.currentUser();
+      if (user) user.balance = result.balance;
+      this.db.orders.unshift(result.order);
+      // Giảm số key còn lại hiển thị (key đã bị rút khỏi kho trên máy chủ) để UI khớp ngay.
+      const svc = this.db.services.find(s => s.id === service.id);
+      const p = svc && (svc.packages || []).find(x => x.id === pkg.id);
+      if (p && typeof p.keyCount === 'number') p.keyCount = Math.max(0, p.keyCount - 1);
+      this._persistOverrides();
+      this._emit();
+      return result.order;
+    },
+
+    // Đường cũ (demo cục bộ): dùng cho các gói CHƯA cấu hình kho key thật, sinh key
+    // giả lập ngay trên trình duyệt — giữ lại để không phá vỡ các dịch vụ demo hiện có.
+    buyPackage(service, pkg) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
+      if ((user.balance || 0) < pkg.price) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
+      user.balance -= pkg.price;
+      const key = this._generateKey(service, pkg);
+      const purchaseDate = new Date().toISOString();
+      const order = {
+        id: 'DH' + Date.now(), userId: user.userId, serviceId: service.id,
+        serviceName: service.name, packageName: pkg.name, price: pkg.price,
+        os: this.serviceOs(service), key, date: purchaseDate,
+        purchaseDate, expiryDate: computeExpiryISO(pkg.name, purchaseDate)
+      };
+      this.db.orders.unshift(order);
+      this.db.transactions.unshift({
+        id: 'TX' + Date.now(), userId: user.userId, amount: -pkg.price, type: 'purchase',
+        description: `Mua ${service.name} - ${pkg.name}`, date: purchaseDate
+      });
+      this._persistOverrides();
+      this._emit();
+      return order;
+    },
+
+    myOrders() {
+      const user = this.currentUser();
+      if (!user) return [];
+      return this.db.orders.filter(o => o.userId === user.userId);
+    },
+
+    _generateKey(service, pkg) {
+      const prefix = service.name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 4);
+      const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+      return `${prefix}-${pkg.name.replace(/\s+/g, '').toUpperCase()}-${rand}`;
+    },
+
+    // ============================================================
+    // ADMIN — chỉnh sửa dịch vụ / danh mục / người dùng / cấu hình.
+    // Mọi thay đổi được lưu cục bộ ngay lập tức; nút "Đồng bộ lên máy chủ"
+    // trong bảng quản trị mới thực sự ghi vào database.json qua api.php.
+    // ============================================================
+    adminSaveService(service) {
+      const idx = this.db.services.findIndex(s => s.id === service.id);
+      if (idx >= 0) this.db.services[idx] = service;
+      else this.db.services.push(service);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminDeleteService(id) {
+      this.db.services = this.db.services.filter(s => s.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminSaveCategory(category) {
+      const idx = this.db.categories.findIndex(c => c.id === category.id);
+      if (idx >= 0) this.db.categories[idx] = category;
+      else this.db.categories.push(category);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminDeleteCategory(id) {
+      if (this.db.services.some(s => s.categoryId === id)) {
+        throw new Error('Không thể xóa danh mục đang có dịch vụ. Hãy xóa hoặc chuyển dịch vụ trước.');
+      }
+      if ((this.db.subcategories || []).some(sc => sc.categoryId === id)) {
+        throw new Error('Không thể xóa danh mục đang có thư mục con. Hãy xóa các thư mục con trước.');
+      }
+      this.db.categories = this.db.categories.filter(c => c.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminSaveSubcategory(sub) {
+      if (!this.db.subcategories) this.db.subcategories = [];
+      const idx = this.db.subcategories.findIndex(s => s.id === sub.id);
+      if (idx >= 0) this.db.subcategories[idx] = sub;
+      else this.db.subcategories.push(sub);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminDeleteSubcategory(id) {
+      if (this.db.services.some(s => s.subcategoryId === id)) {
+        throw new Error('Không thể xóa thư mục con đang có sản phẩm. Hãy xóa hoặc chuyển sản phẩm trước.');
+      }
+      this.db.subcategories = (this.db.subcategories || []).filter(s => s.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminUpdateConfig(patch) {
+      Object.assign(this.db.config, patch);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminAdjustBalance(userId, delta) {
+      const user = this.db.users.find(u => u.userId === userId);
+      if (!user) throw new Error('Không tìm thấy người dùng.');
+      user.balance = Math.max(0, (user.balance || 0) + delta);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminSetUserStatus(userId, status) {
+      const user = this.db.users.find(u => u.userId === userId);
+      if (!user) throw new Error('Không tìm thấy người dùng.');
+      if (user.role === 'admin') throw new Error('Không thể khóa tài khoản quản trị.');
+      user.status = status;
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminAddMedia(item) {
+      if (!this.db.media) this.db.media = [];
+      this.db.media.unshift(item);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminDeleteMedia(id) {
+      this.db.media = (this.db.media || []).filter(m => m.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    // Upload file thật lên server (chỉ hoạt động khi có backend PHP với thư mục uploads/ ghi được).
+    async uploadFile(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`${API_URL}?action=upload_file`, { method: 'POST', body: fd });
+      let json;
+      try { json = await res.json(); } catch (e) { throw new Error('Không có máy chủ PHP để tải file lên (chế độ demo cục bộ không hỗ trợ upload).'); }
+      if (json.status !== 'success') throw new Error(json.message || 'Tải file thất bại.');
+      return json.url;
+    },
+
+    // Tải lại toàn bộ kho key thật (packages[].keys) cho tab Dịch vụ — máy chủ chỉ trả
+    // key thật khi xác thực đúng tài khoản admin, tránh lộ key cho khách vãng lai.
+    async fetchFullServiceKeys(adminUser, adminPass) {
+      const res = await fetch(`${API_URL}?action=get_db&t=${Date.now()}`, {
+        headers: { 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass }
+      });
+      const json = await res.json();
+      if (!json || !Array.isArray(json.services)) throw new Error('Không tải được dữ liệu từ máy chủ.');
+      const hasKeys = json.services.some(s => (s.packages || []).some(p => Array.isArray(p.keys)));
+      if (!hasKeys) throw new Error('Sai mật khẩu admin hoặc chưa có kho key nào.');
+      this.db.services = json.services;
+      this._persistOverrides();
+      this._emit();
+    },
+
+    async secretsStatus(adminUser, adminPass) {
+      const res = await fetch(`${API_URL}?action=secrets_status`, {
+        headers: { 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass }
+      });
+      return await res.json();
+    },
+
+    async saveSecrets(adminUser, adminPass, patch) {
+      const res = await fetch(`${API_URL}?action=save_secrets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+        body: JSON.stringify(patch)
+      });
+      return await res.json();
+    },
+
+    // ---- Đồng bộ Admin lên máy chủ (chỉ hoạt động khi có backend PHP) ----
+    async trySaveToServer(adminUser, adminPass) {
+      try {
+        const res = await fetch(`${API_URL}?action=save_db`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+          body: JSON.stringify(this.db)
+        });
+        return await res.json();
+      } catch (e) {
+        return { status: 'error', message: 'Không có kết nối tới máy chủ PHP (chế độ demo cục bộ).' };
+      }
+    }
+  };
+
+  global.Store = Store;
+})(window);
+
+/**
+ * voice.js — Giọng nói trợ lý ảo.
+ * Ưu tiên gọi Google Cloud Text-to-Speech thật (qua tts.php, API key giữ bí mật ở
+ * máy chủ) để có đúng giọng nữ Google trên MỌI trình duyệt kể cả Safari/iPhone
+ * (Web Speech API của Safari không có giọng Google). Nếu chưa cấu hình API key
+ * hoặc máy chủ không phản hồi, tự động dùng lại giọng trình duyệt (Web Speech API)
+ * làm phương án dự phòng.
+ */
+(function (global) {
+  'use strict';
+
+  const PREF_KEY = 'kenios_voice_prefs_v1';
+  const TTS_URL = './tts.php';
+  let ttsUnavailable = false; // set true sau lần gọi lỗi đầu tiên để không spam request lỗi
+  let currentAudio = null;
+
+  const Voice = {
+    voices: [],
+    prefs: Object.assign({ enabled: true, voiceURI: null, rate: 1, pitch: 1, volume: 1 }, readPrefs()),
+
+    init() {
+      if (!('speechSynthesis' in window)) return;
+      const load = () => { this.voices = window.speechSynthesis.getVoices(); };
+      load();
+      window.speechSynthesis.onvoiceschanged = load;
+    },
+
+    // Danh sách giọng ưu tiên hiển thị cho người dùng chọn: Google trước, còn lại sau.
+    availableVoices() {
+      const vi = this.voices.filter(v => v.lang.startsWith('vi'));
+      const others = this.voices.filter(v => !v.lang.startsWith('vi'));
+      const sortGoogleFirst = (a, b) => {
+        const ag = /google/i.test(a.name) ? 0 : 1;
+        const bg = /google/i.test(b.name) ? 0 : 1;
+        return ag - bg;
+      };
+      return [...vi.sort(sortGoogleFirst), ...others.sort(sortGoogleFirst)];
+    },
+
+    _pickVoice() {
+      if (this.prefs.voiceURI) {
+        const chosen = this.voices.find(v => v.voiceURI === this.prefs.voiceURI);
+        if (chosen) return chosen;
+      }
+      // Mặc định: giọng nữ Google tiếng Việt, rồi tới bất kỳ giọng Google nào, cuối cùng là giọng vi-VN bất kỳ.
+      return this.voices.find(v => v.lang.startsWith('vi') && /google/i.test(v.name))
+        || this.voices.find(v => /google/i.test(v.name))
+        || this.voices.find(v => v.lang.startsWith('vi'))
+        || this.voices[0]
+        || null;
+    },
+
+    async speak(text) {
+      // Giọng đọc đã bị xóa hoàn toàn theo yêu cầu
+      return;
+    },
+
+    async _speakGoogleCloud(text) {
+      try {
+        const res = await fetch(TTS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, rate: this.prefs.rate, pitch: (this.prefs.pitch - 1) * 10 })
+        });
+        const json = await res.json();
+        if (json.status !== 'success' || !json.audioContent) { ttsUnavailable = true; return false; }
+        const audio = new Audio('data:audio/mp3;base64,' + json.audioContent);
+        audio.volume = this.prefs.volume;
+        currentAudio = audio;
+        await audio.play();
+        return true;
+      } catch (e) {
+        ttsUnavailable = true;
+        return false;
+      }
+    },
+
+    _speakBrowser(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      const voice = this._pickVoice();
+      if (voice) { utter.voice = voice; utter.lang = voice.lang; }
+      else utter.lang = 'vi-VN';
+      utter.rate = this.prefs.rate;
+      utter.pitch = this.prefs.pitch;
+      utter.volume = this.prefs.volume;
+      window.speechSynthesis.speak(utter);
+    },
+
+    stop() {
+      if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    },
+
+    setPrefs(patch) {
+      Object.assign(this.prefs, patch);
+      writePrefs(this.prefs);
+    }
+  };
+
+  function readPrefs() {
+    try { return JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch { return {}; }
+  }
+  function writePrefs(p) {
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch { /* ignore */ }
+  }
+
+  global.Voice = Voice;
+})(window);
+
+/**
+ * effects.js — Hiệu ứng chạm kèm âm thanh.
+ * Thay thế hoàn toàn effects_patch.js cũ (ripple/spark/bubble/star/heart/magic
+ * + rainbow text + halo logo + marquee 7 màu). Bộ mới chỉ giữ lại một gợn sóng
+ * (ripple) tinh tế tại vị trí chạm, đi kèm âm thanh click tổng hợp bằng Web Audio
+ * API (không phụ thuộc file mp3 ngoài) — người dùng có thể đổi âm thanh, chỉnh
+ * âm lượng hoặc tắt hẳn trong bảng cài đặt góc phải màn hình.
+ */
+(function (global) {
+  'use strict';
+
+  const PREF_KEY = 'kenios_fx_prefs_v1';
+  let audioCtx = null;
+
+  const SOUND_PRESETS = {
+    none: { label: 'Tắt âm thanh' },
+    pop: { label: 'Pop nhẹ' },
+    click: { label: 'Click cơ học' },
+    coin: { label: 'Coin (Xu)' },
+    wood: { label: 'Gõ gỗ' },
+    chime: { label: 'Chuông ngân' },
+    bubble: { label: 'Bong bóng' },
+    blip: { label: 'Blip điện tử' },
+    marimba: { label: 'Marimba' },
+    bell: { label: 'Chuông cửa' },
+    success: { label: 'Báo thành công' },
+    laser: { label: 'Laser' },
+    drop: { label: 'Giọt nước' },
+    notify: { label: 'Thông báo nhẹ' }
+  };
+
+  const Effects = {
+    prefs: Object.assign({ touchEnabled: true, sound: 'pop', volume: 0.5 }, readPrefs()),
+
+    init() {
+      injectCSS();
+      document.addEventListener('pointerdown', (e) => this._onPointer(e), { passive: true });
+      // Đã bỏ nút cài đặt âm thanh nổi (loa) theo yêu cầu — âm thanh chạm vẫn hoạt động.
+    },
+
+    _onPointer(e) {
+      if (this.prefs.touchEnabled) spawnRipple(e.clientX, e.clientY);
+      // Đã xóa âm thanh chạm theo yêu cầu
+    },
+
+    setPrefs(patch) {
+      Object.assign(this.prefs, patch);
+      writePrefs(this.prefs);
+    },
+
+    _buildSettingsPanel() {
+      const btn = document.createElement('button');
+      btn.className = 'fx-toggle-btn';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Cài đặt hiệu ứng chạm & âm thanh');
+      // Icon SVG được điền bởi applyIcons() (gọi trong boot, sau Effects.init).
+      btn.setAttribute('data-icon', 'sound');
+
+      const panel = document.createElement('div');
+      panel.className = 'fx-panel';
+      panel.innerHTML = `
+        <h4>Hiệu ứng chạm &amp; âm thanh</h4>
+        <label class="fx-row">
+          <span>Gợn sóng khi chạm</span>
+          <input type="checkbox" id="fxTouchEnabled">
+        </label>
+        <label class="fx-row">
+          <span>Âm thanh khi chạm</span>
+          <select id="fxSound"></select>
+        </label>
+        <label class="fx-row">
+          <span>Âm lượng</span>
+          <input type="range" id="fxVolume" min="0" max="1" step="0.05">
+        </label>
+        <button type="button" class="fx-test-btn" id="fxTestBtn">Nghe thử</button>
+      `;
+
+      document.body.appendChild(btn);
+      document.body.appendChild(panel);
+
+      const selSound = panel.querySelector('#fxSound');
+      Object.entries(SOUND_PRESETS).forEach(([key, val]) => {
+        const opt = document.createElement('option');
+        opt.value = key; opt.textContent = val.label;
+        selSound.appendChild(opt);
+      });
+
+      const chkTouch = panel.querySelector('#fxTouchEnabled');
+      const rngVolume = panel.querySelector('#fxVolume');
+      const syncUI = () => {
+        chkTouch.checked = this.prefs.touchEnabled;
+        selSound.value = this.prefs.sound;
+        rngVolume.value = this.prefs.volume;
+      };
+      syncUI();
+
+      chkTouch.addEventListener('change', () => this.setPrefs({ touchEnabled: chkTouch.checked }));
+      selSound.addEventListener('change', () => this.setPrefs({ sound: selSound.value }));
+      rngVolume.addEventListener('input', () => this.setPrefs({ volume: parseFloat(rngVolume.value) }));
+      panel.querySelector('#fxTestBtn').addEventListener('click', () => {
+        if (this.prefs.sound !== 'none') playSound(this.prefs.sound, this.prefs.volume);
+        spawnRipple(window.innerWidth / 2, window.innerHeight / 2);
+      });
+
+      btn.addEventListener('click', () => panel.classList.toggle('open'));
+      document.addEventListener('click', (e) => {
+        if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+      });
+    }
+  };
+
+  function injectCSS() {
+    const s = document.createElement('style');
+    s.textContent = `
+      @keyframes fxRipple { 0% { transform: scale(0); opacity: .55; } 100% { transform: scale(1); opacity: 0; } }
+      .fx-ripple { position: fixed; pointer-events: none; z-index: 999999; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,183,3,.55) 0%, rgba(134,59,255,.25) 60%, transparent 75%);
+        animation: fxRipple .5s ease-out forwards; }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function spawnRipple(x, y) {
+    const size = 46;
+    const el = document.createElement('div');
+    el.className = 'fx-ripple';
+    el.style.left = (x - size / 2) + 'px';
+    el.style.top = (y - size / 2) + 'px';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 550);
+  }
+
+  function ctx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  // Toàn bộ âm thanh được tổng hợp bằng Web Audio API — không cần tải file ngoài,
+  // nên không bao giờ "chết link" và có thể chỉnh sửa/mở rộng dễ dàng.
+  function playSound(preset, volume) {
+    const ac = ctx();
+    const now = ac.currentTime;
+    const master = ac.createGain();
+    master.gain.value = volume;
+    master.connect(ac.destination);
+
+    const tone = (freq, start, dur, type = 'sine', gain = 0.35) => {
+      const osc = ac.createOscillator();
+      const g = ac.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, now + start);
+      g.gain.exponentialRampToValueAtTime(gain, now + start + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(now + start); osc.stop(now + start + dur + 0.02);
+    };
+
+    switch (preset) {
+      case 'pop': tone(900, 0, 0.08, 'sine', 0.5); break;
+      case 'click': tone(1800, 0, 0.03, 'square', 0.25); break;
+      case 'coin': tone(1046, 0, 0.09, 'square', 0.3); tone(1568, 0.08, 0.12, 'square', 0.25); break;
+      case 'wood': tone(220, 0, 0.05, 'triangle', 0.4); tone(160, 0.02, 0.06, 'triangle', 0.25); break;
+      case 'chime': tone(1318, 0, 0.35, 'sine', 0.25); tone(1976, 0.05, 0.4, 'sine', 0.18); break;
+      case 'bubble': tone(500, 0, 0.05, 'sine', 0.3); tone(900, 0.04, 0.08, 'sine', 0.25); break;
+      case 'blip': tone(2400, 0, 0.02, 'square', 0.2); tone(1200, 0.02, 0.03, 'square', 0.18); break;
+      case 'marimba': tone(784, 0, 0.2, 'sine', 0.3); tone(988, 0.03, 0.25, 'sine', 0.2); break;
+      case 'bell': tone(1568, 0, 0.5, 'sine', 0.3); tone(2093, 0.02, 0.5, 'sine', 0.15); break;
+      case 'success': tone(659, 0, 0.1, 'sine', 0.3); tone(880, 0.1, 0.1, 'sine', 0.3); tone(1318, 0.2, 0.2, 'sine', 0.3); break;
+      case 'laser': tone(1800, 0, 0.08, 'sawtooth', 0.2); tone(400, 0.05, 0.1, 'sawtooth', 0.15); break;
+      case 'drop': tone(1200, 0, 0.04, 'sine', 0.3); tone(300, 0.03, 0.15, 'sine', 0.25); break;
+      case 'notify': tone(1046, 0, 0.12, 'triangle', 0.25); tone(1568, 0.1, 0.15, 'triangle', 0.2); break;
+      default: break;
+    }
+  }
+
+  function readPrefs() {
+    try { return JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch { return {}; }
+  }
+  function writePrefs(p) {
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch { /* ignore */ }
+  }
+
+  global.Effects = Effects;
+})(window);
+
+/**
+ * app.js — Gắn kết dữ liệu (store.js) với giao diện, xử lý toàn bộ tương tác:
+ * đăng nhập/đăng ký, nạp tiền VietQR, mua gói dịch vụ, đơn hàng, trợ lý ảo AI,
+ * và bảng quản trị hệ thống dành cho admin.
+ */
+(function () {
+  'use strict';
+
+  const fmt = (n) => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+
+  // ============================================================
+  // BỘ ICON SVG (thay cho emoji "icon máy" — hiển thị đồng nhất, nét mảnh, đẹp trên
+  // mọi thiết bị). Dùng qua thuộc tính data-icon="tên" trong HTML, hoặc ICONS.tên
+  // trong template JS. Tất cả vẽ bằng nét currentColor nên tự đổi màu theo chữ.
+  // ============================================================
+  const _svg = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const ICONS = {
+    eye: _svg('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'),
+    download: _svg('<path d="M12 3v12M8 11l4 4 4-4"/><path d="M5 19h14"/>'),
+    google: _svg('<path d="M21 12.2c0-.6-.1-1.2-.2-1.8H12v3.6h5.1a4.4 4.4 0 0 1-1.9 2.9v2.4h3.1c1.8-1.7 2.7-4.1 2.7-7.1Z" fill="currentColor" stroke="none"/><path d="M12 21c2.5 0 4.6-.8 6.1-2.2l-3.1-2.4c-.8.6-1.9.9-3 .9-2.3 0-4.3-1.6-5-3.7H3.8v2.4A9 9 0 0 0 12 21Z" fill="currentColor" stroke="none"/><path d="M7 13.6a5.4 5.4 0 0 1 0-3.4V7.8H3.8a9 9 0 0 0 0 8.1L7 13.6Z" fill="currentColor" stroke="none"/><path d="M12 6.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 3.8 7.8L7 10.2c.7-2.1 2.7-3.6 5-3.6Z" fill="currentColor" stroke="none"/>'),
+    home: _svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'),
+    card: _svg('<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6.5 14.5h4"/>'),
+    box: _svg('<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>'),
+    grid: _svg('<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>'),
+    gamepad: _svg('<path d="M6 8h12a4 4 0 0 1 4 4v.4a3.4 3.4 0 0 1-6.1 2.1l-.6-.9H8.7l-.6.9A3.4 3.4 0 0 1 2 12.4V12a4 4 0 0 1 4-4Z"/><path d="M7.5 11v2M6.5 12h2"/><circle cx="16" cy="11.4" r=".8" fill="currentColor" stroke="none"/><circle cx="17.6" cy="13" r=".8" fill="currentColor" stroke="none"/>'),
+    web: _svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9.7 8-2 2 2 2M14.3 8l2 2-2 2"/>'),
+    news: _svg('<path d="M4 5h13v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"/><path d="M17 8h3v10.5a1.5 1.5 0 0 1-3 0V8Z"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/>'),
+    dashboard: _svg('<path d="M4 20V10M9 20V4M14 20v-7M19 20V8"/>'),
+    users: _svg('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M17.7 20a5.6 5.6 0 0 0-2.7-4.7"/>'),
+    image: _svg('<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.7"/><path d="m4 17 4.5-4.5a2 2 0 0 1 2.7 0L20 20"/>'),
+    gear: _svg('<circle cx="12" cy="12" r="3.1"/><path d="M12 2.5v2.6M12 18.9v2.6M4.3 4.3l1.9 1.9M17.8 17.8l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.3 19.7l1.9-1.9M17.8 6.2l1.9-1.9"/>'),
+    search: _svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>'),
+    shield: _svg('<path d="M12 3 5 6v6c0 4 3 6.6 7 9 4-2.4 7-5 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>'),
+    robot: _svg('<rect x="4.5" y="8" width="15" height="11" rx="3"/><path d="M12 8V5.2"/><circle cx="12" cy="3.6" r="1.6"/><circle cx="9.2" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.8" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 16.3h5M2.5 12v3M21.5 12v3"/>'),
+    sound: _svg('<path d="M4 9v6h3.5L13 20V4L7.5 9H4Z"/><path d="M16.4 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/>'),
+    logout: _svg('<path d="M15 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4"/><path d="M10 12H3M6 8l-3 4 3 4"/>'),
+    close: _svg('<path d="M6 6l12 12M18 6 6 18"/>'),
+    chevron: _svg('<path d="m6 9 6 6 6-6"/>'),
+    back: _svg('<path d="M15 5l-7 7 7 7"/>'),
+    lock: _svg('<rect x="4.5" y="10" width="15" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none"/>'),
+    support: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="m6 6 3.6 3.6M14.4 14.4 18 18M18 6l-3.6 3.6M9.6 14.4 6 18"/>'),
+    refresh: _svg('<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"/>'),
+    check: _svg('<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>'),
+    calendar: _svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>'),
+    clock: _svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+    save: _svg('<path d="M5 4h11l3 3v13H5V4Z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>'),
+    cloud: _svg('<path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 9.5a3.5 3.5 0 0 1 .5 8H7Z"/><path d="M12 21v-7m0 0-2.2 2.2M12 14l2.2 2.2"/>'),
+    copy: _svg('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+    upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
+    trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
+    // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
+    target: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
+    fire: _svg('<path d="M12 2.5C9 6.5 7.5 8.5 7.5 12a4.5 4.5 0 0 0 9 0c0-1.7-.7-3-1.7-4.3C14.5 9 13.5 9.5 13 11c-.6-2.2-.5-4.3-1-8.5Z"/>'),
+    bolt: _svg('<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>'),
+    crown: _svg('<path d="M3 8l4 3.5L12 5l5 6.5L21 8v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8Z"/><path d="M3 15h18"/>'),
+    rocket: _svg('<path d="M14.5 3.5A9 9 0 0 1 9 15l-3-3A9 9 0 0 1 17.5 6.5a10 10 0 0 0-3-3Z"/><circle cx="14.5" cy="9.5" r="1.4"/><path d="M6 15c-1.5 1-2.5 4-2.5 4s3-1 4-2.5"/>'),
+    star: _svg('<path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.9L12 16.9 6.8 19.2l1-5.9L3.5 9.2l5.9-.9L12 3Z"/>'),
+    trophy: _svg('<path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5.5H5V7a3 3 0 0 0 3 3M16 5.5h3V7a3 3 0 0 1-3 3"/><path d="M12 12v4M9 20h6M10 20l.5-4h3l.5 4"/>'),
+    sword: _svg('<path d="M14 3h7v7l-9.5 9.5-2 .5.5-2L19.5 8.5"/><path d="m5 15 4 4M4 20l2.5-2.5"/>'),
+    diamond: _svg('<path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 7 9l5 12 5-12-2-6"/>'),
+    phone: _svg('<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/>'),
+    cart: _svg('<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.2 11a1.5 1.5 0 0 0 1.5 1.2h8a1.5 1.5 0 0 0 1.5-1.2L20 8H6"/>'),
+    tag: _svg('<path d="M4 4h7.5l8.5 8.5-7.5 7.5L4 11.5V4Z"/><circle cx="8.5" cy="8.5" r="1.4"/>'),
+    gift: _svg('<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12"/><path d="M12 8S10.5 4.5 8.2 4.5A1.8 1.8 0 0 0 8 8h4Zm0 0s1.5-3.5 3.8-3.5A1.8 1.8 0 0 1 16 8h-4Z"/>'),
+    key: _svg('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8M17.5 4.5 20 7M15.5 6.5 18 9"/>'),
+    folder: _svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>'),
+    headset: _svg('<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M20 19a4 4 0 0 1-4 3h-2"/>'),
+    bulb: _svg('<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.8 10.6c.6.6.8 1.4.8 2.4h6c0-1 .2-1.8.8-2.4A6 6 0 0 0 12 3Z"/>'),
+    heart: _svg('<path d="M12 20s-7-4.3-9.2-8.5A4.6 4.6 0 0 1 12 6a4.6 4.6 0 0 1 9.2 5.5C19 15.7 12 20 12 20Z"/>'),
+    wallet: _svg('<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 13.5h1.5"/><path d="M17 6V4.5a1.5 1.5 0 0 0-1.9-1.4L5 5.5"/>')
+  };
+  // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
+  const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
+
+  function applyIcons(root = document) {
+    $$('[data-icon]', root).forEach(el => {
+      const name = el.dataset.icon;
+      if (ICONS[name] && !el.dataset.iconDone) { el.innerHTML = ICONS[name]; el.dataset.iconDone = '1'; }
+    });
+  }
+  // Trả về SVG cho icon danh mục: ưu tiên key trong ICONS; nếu dữ liệu cũ còn là emoji
+  // thì vẫn hiển thị emoji đó (tương thích ngược), mặc định là folder.
+  function catIcon(key) {
+    if (key && ICONS[key]) return ICONS[key];
+    if (key && /[\u{1F000}-\u{1FAFF}☀-➿]/u.test(key)) return `<span class="emoji-fallback">${esc(key)}</span>`;
+    return ICONS.folder;
+  }
+
+  let selectedCategory = 'all';
+  let selectedSub = 'all';         // lọc theo thư mục con trong mục "Dịch Vụ Nổi Bật"
+  let browseCategoryId = null;     // null = đang xem danh sách Danh mục; ngược lại = id danh mục đang mở
+  let browseSubId = null;          // null = đang xem Thư mục con; ngược lại = id thư mục con đang mở
+
+  // Sinh ID tự động dạng "01", "02"... cho từng bộ sưu tập (danh mục / thư mục con /
+  // sản phẩm) — MỖI bộ có chuỗi số riêng, không dùng chung. Bỏ qua các id chữ cũ.
+  function nextSeqId(arr) {
+    let max = 0;
+    (arr || []).forEach(item => {
+      const n = parseInt(String(item.id).replace(/\D/g, ''), 10);
+      if (!isNaN(n) && n > max) max = n;
+    });
+    return String(max + 1).padStart(2, '0');
+  }
+  let currentServiceId = null;
+  let currentPackage = null;
+  let adminActiveTab = 'overview';
+  let adminServiceEditing = null;     // null | 'new' | service id
+  let adminCategoryEditing = null;    // null | 'new' | category id
+  let adminSubcategoryEditing = null; // null | 'new' | subcategory id
+
+  const LEGAL_CONTENT = {
+    terms: {
+      title: 'Điều Khoản Dịch Vụ',
+      html: `
+        <h4>1. Phạm vi dịch vụ</h4>
+        <p>KENIOS.STORE cung cấp các gói công cụ hỗ trợ trò chơi và dịch vụ thiết kế website theo mô tả trên từng sản phẩm. Khách hàng chịu trách nhiệm tuân thủ điều khoản sử dụng của nhà phát hành game khi sử dụng sản phẩm.</p>
+        <h4>2. Thanh toán</h4>
+        <p>Nạp tiền được thực hiện qua chuyển khoản VietQR. Số dư được cộng tự động sau khi hệ thống xác nhận giao dịch thành công.</p>
+        <h4>3. Giao sản phẩm</h4>
+        <p>Key/tài khoản được cấp phát tự động ngay sau khi thanh toán thành công và hiển thị trong mục "Đơn hàng của tôi".</p>
+      `
+    },
+    privacy: {
+      title: 'Chính Sách Bảo Mật',
+      html: `
+        <h4>Thông tin thu thập</h4>
+        <p>Chúng tôi chỉ lưu trữ tên đăng nhập, mật khẩu (đã được mã hóa băm một chiều), số dư và lịch sử đơn hàng cần thiết để vận hành dịch vụ.</p>
+        <h4>Bảo vệ dữ liệu</h4>
+        <p>Mật khẩu không bao giờ được lưu ở dạng văn bản thuần trên máy chủ. Không chia sẻ thông tin tài khoản của bạn với bên thứ ba.</p>
+      `
+    },
+    refund: {
+      title: 'Chính Sách Hoàn Tiền',
+      html: `
+        <p>Do đặc thù sản phẩm số (key/tài khoản được cấp phát tức thì), đơn hàng đã giao key không thể hoàn tiền trừ khi sản phẩm lỗi từ phía hệ thống. Vui lòng liên hệ Admin qua Zalo/Hotline trong vòng 24 giờ nếu gặp sự cố để được hỗ trợ.</p>
+      `
+    }
+  };
+
+  // ============================================================
+  // LIVE FEED — Bảng xếp hạng nạp + Giao dịch/Nạp tiền gần đây.
+  // Chạy dữ liệu ẢO (nhiều tên khác nhau, đổi liên tục) để tạo social-proof.
+  // Khi có giao dịch / nạp tiền THẬT thì gộp thêm vào, KHÔNG xoá dữ liệu ảo.
+  // Sản phẩm & giá lấy từ bảng giá của trợ lý AI (cfg.aiResponsePrice).
+  // ============================================================
+  const LiveFeed = (() => {
+    const SURNAMES = ['Nguyễn','Trần','Lê','Phạm','Hoàng','Huỳnh','Phan','Vũ','Võ','Đặng','Bùi','Đỗ','Hồ','Ngô','Dương','Lý','Đinh','Tô','Cao','Mai','Trịnh','Đoàn','Lương','Tạ','Chu'];
+    const GIVENS = ['Minh','Hùng','Quân','Anh','Tuấn','Khoa','Long','Nam','Phúc','Bảo','Đạt','Huy','Kiên','Sơn','Thắng','Vinh','Duy','Tài','Lộc','Phát','Hải','Trung','Dũng','Hoàng','Nghĩa','Khánh','Thịnh','Cường','Đức','Nhân'];
+
+    let productPool = [];
+    let orders = [];      // {name, product, label, price, time}
+    let deposits = [];    // {name, amount, time}
+    let rank = {};        // name -> tổng nạp tích luỹ
+    let timer = null;
+    let seenReal = new Set();
+
+    const rndInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    function maskName() {
+      const s = pick(SURNAMES), g = pick(GIVENS);
+      switch (rndInt(0, 3)) {
+        case 0: return `${s} ${g[0]}${'*'.repeat(rndInt(2, 4))}`;
+        case 1: return `${s.slice(0, 2)}${'*'.repeat(rndInt(2, 3))} ${g}`;
+        case 2: return `${s} V.${g[0]}${'*'.repeat(2)}`;
+        default: return `${s[0]}${'*'.repeat(3)} ${g}`;
+      }
+    }
+
+    function parsePrice(str) {
+      let n = parseInt(String(str).replace(/[^\d]/g, ''), 10);
+      if (!n) return 0;
+      if (n < 1000) n *= 1000;
+      return n;
+    }
+
+    function buildProductPool(cfg) {
+      const pool = [];
+      const text = (cfg && cfg.aiResponsePrice) || '';
+      let current = '';
+      text.split('\n').forEach(raw => {
+        const line = raw.replace(/[\u{1F000}-\u{1FFFF}☀-➿←-⇿️]/gu, '').trim();
+        if (!line) return;
+        if (/https?:|zalo|telegram|linkbio|cảm ơn|bảng giá|android|ios/i.test(line) && !/\d+\s*[kK]?\s*\//.test(line)) { return; }
+        const hasPrice = /\d+\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T\b)/i.test(line);
+        if (!hasPrice) { current = line.replace(/[:\-–].*$/, '').trim(); return; }
+        let name = current;
+        const inline = line.match(/^([^:0-9]+):/);
+        if (inline) name = inline[1].trim();
+        if (!name) return;
+        const re = /(\d+)\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T)\b([^\/\d]*)/gi;
+        let m;
+        while ((m = re.exec(line))) {
+          let label = m[2]; if (/^T$/i.test(label)) label = 'Tháng';
+          const extra = (m[3] || '').replace(/[^\p{L}\s]/gu, '').trim();
+          if (extra) label += ' ' + extra;
+          pool.push({ product: name, label, price: parsePrice(m[1]) });
+        }
+      });
+      if (!pool.length) {
+        ['VNHAX','OASIS VIP','KING','TIMO VIP','FREE FIRE','LIÊN QUÂN'].forEach(p =>
+          pool.push({ product: p, label: pick(['Tháng', 'Tuần']), price: rndInt(2, 12) * 50000 }));
+      }
+      return pool;
+    }
+
+    function relTime(ts) {
+      const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+      if (s < 60) return `${s} giây trước`;
+      const m = Math.floor(s / 60);
+      if (m < 60) return `${m} phút trước`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h} giờ trước`;
+      return `${Math.floor(h / 24)} ngày trước`;
+    }
+
+    const DEPOSIT_AMOUNTS = [50000, 50000, 100000, 100000, 100000, 200000, 200000, 300000, 500000, 500000, 1000000, 2000000];
+
+    function makeFakeOrder(agoMax) {
+      const p = pick(productPool);
+      return { name: maskName(), product: p.product, label: p.label, price: p.price,
+               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+    }
+    function makeFakeDeposit(agoMax) {
+      return { name: maskName(), amount: pick(DEPOSIT_AMOUNTS),
+               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+    }
+
+    function seed() {
+      orders = []; deposits = []; rank = {};
+      // Bảng xếp hạng: một nhóm "đại gia" nạp tích luỹ lớn
+      for (let i = 0; i < 12; i++) rank[maskName()] = rndInt(6, 90) * 500000;
+      // Lịch sử gần đây
+      let t = 5;
+      for (let i = 0; i < 14; i++) { const o = makeFakeOrder(); o.time = Date.now() - t * 1000; orders.push(o); t += rndInt(20, 120); }
+      t = 8;
+      for (let i = 0; i < 14; i++) { const d = makeFakeDeposit(); d.time = Date.now() - t * 1000; deposits.push(d); rank[d.name] = (rank[d.name] || 0) + d.amount; t += rndInt(20, 120); }
+      orders.sort((a, b) => b.time - a.time);
+      deposits.sort((a, b) => b.time - a.time);
+    }
+
+    function mergeReal(db) {
+      if (!db) return;
+      // Đơn hàng thật -> giao dịch gần đây (mua)
+      (db.orders || []).forEach(o => {
+        const key = 'O' + o.id;
+        if (seenReal.has(key)) return;
+        seenReal.add(key);
+        orders.unshift({ name: 'Bạn', product: o.serviceName || 'Sản phẩm', label: (o.packageName || '').replace(/^Gói\s*/i, ''),
+                         price: o.price || 0, time: Date.parse(o.date) || Date.now(), fake: false, real: true });
+      });
+      // Nạp tiền thật -> nạp tiền gần đây + cộng bảng xếp hạng (không mất dữ liệu ảo)
+      (db.transactions || []).filter(x => x.type === 'deposit' && x.amount > 0).forEach(x => {
+        const key = 'D' + x.id;
+        if (seenReal.has(key)) return;
+        seenReal.add(key);
+        deposits.unshift({ name: 'Bạn', amount: x.amount, time: Date.parse(x.date) || Date.now(), fake: false, real: true });
+        rank['Bạn (bạn)'] = (rank['Bạn (bạn)'] || 0) + x.amount;
+      });
+      orders.sort((a, b) => b.time - a.time);
+      deposits.sort((a, b) => b.time - a.time);
+    }
+
+    function tick() {
+      // Thêm 1 mục ảo mới, cập nhật lại thời gian tương đối
+      if (Math.random() < 0.55) { orders.unshift(makeFakeOrder(6)); }
+      else { const d = makeFakeDeposit(6); deposits.unshift(d); rank[d.name] = (rank[d.name] || 0) + d.amount; }
+      // Thỉnh thoảng "đại gia" nạp thêm để bảng xếp hạng nhảy
+      if (Math.random() < 0.25) { const names = Object.keys(rank); if (names.length) { const n = pick(names); rank[n] += pick(DEPOSIT_AMOUNTS); } }
+      if (orders.length > 40) orders.length = 40;
+      if (deposits.length > 40) deposits.length = 40;
+      render();
+    }
+
+    function medal(i) { return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''; }
+
+    function render() {
+      const rankEl = $('#rankList');
+      if (rankEl) {
+        const top = Object.entries(rank).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        rankEl.innerHTML = top.map(([name, total], i) => `
+          <div class="rank-row ${medal(i)}">
+            <span class="rank-pos">${i + 1}</span>
+            <span class="rank-name">${esc(name)}</span>
+            <span class="rank-total">${fmt(total)}</span>
+          </div>`).join('');
+      }
+      const ordEl = $('#orderFeed');
+      if (ordEl) {
+        ordEl.innerHTML = orders.slice(0, 8).map(o => `
+          <div class="feed-row${o.real ? ' feed-real' : ''}">
+            <span class="feed-ava" data-icon="cart"></span>
+            <span class="feed-main"><b>${esc(o.name)}</b> mua <b>${esc(o.product)}</b>${o.label ? ` · ${esc(o.label)}` : ''}<span class="feed-time">${relTime(o.time)}</span></span>
+            <span class="feed-amt">${fmt(o.price)}</span>
+          </div>`).join('');
+        applyIcons(ordEl);
+      }
+      const depEl = $('#depositFeed');
+      if (depEl) {
+        depEl.innerHTML = deposits.slice(0, 8).map(d => `
+          <div class="feed-row${d.real ? ' feed-real' : ''}">
+            <span class="feed-ava dep" data-icon="wallet"></span>
+            <span class="feed-main"><b>${esc(d.name)}</b> đã nạp<span class="feed-time">${relTime(d.time)}</span></span>
+            <span class="feed-amt plus">+${fmt(d.amount)}</span>
+          </div>`).join('');
+        applyIcons(depEl);
+      }
+    }
+
+    function init() {
+      productPool = buildProductPool(Store.db.config);
+      seed();
+      mergeReal(Store.db);
+      render();
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, rndInt(6000, 9000));
+      Store.onChange(db => { mergeReal(db); render(); });
+    }
+
+    return { init };
+  })();
+
+  // ============================================================
+  // MARQUEE — cuộn text ngang liên tục bằng requestAnimationFrame
+  // Không phụ thuộc CSS animation, hoạt động trên mọi browser/device.
+  // ============================================================
+  let _marqueeRaf = null;
+  function startMarquee(speedSec) {
+    const track = document.getElementById('marqueeTrack');
+    if (!track) return;
+
+    // Tắt CSS animation để tránh conflict
+    track.style.animation = 'none';
+    track.style.willChange = 'transform';
+
+    if (_marqueeRaf) { cancelAnimationFrame(_marqueeRaf); _marqueeRaf = null; }
+
+    let pos = 0;
+    let lastTime = null;
+
+    function step(ts) {
+      if (!lastTime) lastTime = ts;
+      const dt = ts - lastTime;
+      lastTime = ts;
+
+      // Tốc độ px/ms = (half width) / (speedSec * 1000)
+      const half = track.scrollWidth / 2;
+      if (half > 0) {
+        const pxPerMs = half / ((speedSec || 26) * 1000);
+        pos -= pxPerMs * dt;
+        if (pos <= -half) pos += half;
+        track.style.transform = `translateX(${pos}px)`;
+      }
+      _marqueeRaf = requestAnimationFrame(step);
+    }
+
+    _marqueeRaf = requestAnimationFrame(step);
+  }
+
+  document.addEventListener('DOMContentLoaded', boot);
+
+  async function boot() {
+    Voice.init();
+    Effects.init();
+    await Store.init();
+    Store.onChange(renderDynamic);
+
+    applyIcons();
+    renderStatic();
+    renderDynamic();
+    // LiveFeed.init(); // Đã xóa phần hoạt động trực tuyến khỏi giao diện nên không cần chạy nữa
+    renderFaq();
+    wireGlobalUI();
+    wireAuthModal();
+    wireDepositModal();
+    wireServiceModal();
+    wireAdminModal();
+    wireLegalModal();
+    wireAiWidget();
+    wireSearchModal();
+    wireScrollReveal();
+    wireScrollTopButton();
+
+    const loader = $('#bootLoader');
+    if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 500); }
+
+    maybeShowWelcome(Store.db.config);
+  }
+
+  // ---- Thông báo popup và lời chào giọng nói khi vào web — HAI tính năng tách
+  // biệt hoàn toàn: mỗi cái có công tắc bật/tắt và nội dung riêng, không dùng chung. ----
+  const WELCOME_POPUP_SHOWN_KEY = 'kenios_welcome_popup_shown_v1';
+  const WELCOME_VOICE_SHOWN_KEY = 'kenios_welcome_voice_shown_v1';
+
+  function maybeShowWelcome(cfg) {
+    // welcomeAlways = bật (mặc định) thì CHÀO MỌI LẦN vào web; tắt thì chỉ 1 lần mỗi phiên.
+    const always = cfg.welcomeAlways !== false;
+    if (cfg.welcomePopupEnabled && (always || !sessionStorage.getItem(WELCOME_POPUP_SHOWN_KEY))) {
+      sessionStorage.setItem(WELCOME_POPUP_SHOWN_KEY, '1');
+      setTimeout(() => {
+        setText('#welcomeTitle', cfg.welcomePopupTitle);
+        setText('#welcomeMessage', cfg.welcomePopupMessage);
+        setAttr('#welcomeContactBtn', 'href', cfg.zaloLink);
+        openModal('#welcomeModal');
+      }, 600);
+    }
+    if (cfg.welcomeVoiceEnabled && (always || !sessionStorage.getItem(WELCOME_VOICE_SHOWN_KEY))) {
+      sessionStorage.setItem(WELCOME_VOICE_SHOWN_KEY, '1');
+      if (cfg.welcomeVoiceName) Voice.setPrefs({ voiceURI: cfg.welcomeVoiceName });
+      // Thử chào ngay; nếu trình duyệt chặn âm thanh khi chưa tương tác, chào lại
+      // ở lần chạm/di chuột/nhấn phím đầu tiên — đảm bảo "ai vào cũng được chào".
+      let greeted = false;
+      const greet = () => { if (greeted) return; greeted = true; try { Voice.speak(cfg.welcomeVoiceText); } catch (e) { /* ignore */ } };
+      const timer = setTimeout(greet, 700);
+      const once = () => {
+        clearTimeout(timer); greet();
+        window.removeEventListener('pointerdown', once);
+        window.removeEventListener('keydown', once);
+        window.removeEventListener('touchstart', once);
+      };
+      window.addEventListener('pointerdown', once, { once: true });
+      window.addEventListener('keydown', once, { once: true });
+      window.addEventListener('touchstart', once, { once: true });
+    }
+  }
+
+  // ============================================================
+  // RENDER — phần tĩnh (cấu hình site, chỉ đọc 1 lần)
+  // ============================================================
+  function renderStatic() {
+    const cfg = Store.db.config;
+    document.title = cfg.siteTitle;
+    setText('#brandName', cfg.logoText);
+    setText('#brandSub', cfg.logoSubtext);
+    setText('#mobileNavBrandName', cfg.logoText);
+    setText('#mobileNavBrandSub', cfg.logoSubtext);
+    setText('#footerBrand', cfg.logoText);
+    setText('#footerDesc', cfg.contactAdminDesc);
+    setText('#footerAdminName', `${cfg.contactAdminName} — ${cfg.contactAdminSub}`);
+    setText('#footerHotline', cfg.hotline);
+    setText('#footerYear', new Date().getFullYear());
+    renderContactWidgets(cfg);
+
+    setText('#heroTag', cfg.bannerTagText);
+    setText('#heroBrandName', cfg.logoText);
+    setText('#heroTitle', cfg.siteTitle.replace(/^.*?-\s*/, ''));
+    setText('#heroSub', cfg.siteSubtitle);
+    setText('#heroBtn1', cfg.bannerBtn1Text);
+    setText('#heroBtn2', cfg.bannerBtn2Text);
+    applyHeroBackground(cfg.bgUrl);
+
+    const m = `📢 ${cfg.marqueeText}`;
+    setText('#marqueeText1', m);
+    setText('#marqueeText2', m);
+    // Marquee chạy bằng JS requestAnimationFrame — không bị block bởi prefers-reduced-motion hay CSS cache
+    const marqueeSpeed = cfg.marqueeSpeed || 26;
+    startMarquee(marqueeSpeed);
+
+    applyBranding(cfg);
+    setupGoogleSignIn(cfg);
+    setText('#aiName', cfg.aiName);
+    if ($('#aiAvatar')) $('#aiAvatar').src = cfg.aiAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=kenios-ai`;
+
+    Voice.setPrefs({ enabled: !!cfg.ttsEnabled, rate: cfg.ttsRate || 1, pitch: cfg.ttsPitch || 1 });
+
+    renderPosts();
+  }
+
+  // ---- Đăng nhập bằng Google (một chạm, không cần mã xác nhận) ----
+  let _gsiScriptLoading = null;
+  function loadGoogleScript() {
+    if (window.google?.accounts?.id) return Promise.resolve();
+    if (_gsiScriptLoading) return _gsiScriptLoading;
+    _gsiScriptLoading = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = () => { _gsiScriptLoading = null; reject(new Error('Không tải được Google Sign-In script.')); };
+      document.head.appendChild(s);
+    });
+    return _gsiScriptLoading;
+  }
+
+  async function setupGoogleSignIn(cfg) {
+    const box = $('#googleSignInBox');
+    const fallback = $('#googleFallbackBtn');
+    if (!box) return;
+    if (!cfg.googleClientId) { box.hidden = true; return; }
+    try {
+      await loadGoogleScript();
+      box.hidden = false;
+      if (fallback) fallback.hidden = true;
+      box.innerHTML = '';
+      window.google.accounts.id.initialize({
+        client_id: cfg.googleClientId,
+        callback: handleGoogleCredential
+      });
+      window.google.accounts.id.renderButton(box, { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with', width: 280 });
+    } catch (err) {
+      console.warn(err);
+      box.hidden = true;
+    }
+  }
+
+  function handleGoogleCredential(response) {
+    Store.loginWithGoogle(response.credential).then(() => {
+      closeModal('#authModal');
+      toast('Đăng nhập bằng Google thành công!', 'success');
+    }).catch(err => toast(err.message, 'error'));
+  }
+
+  // ---- Thương hiệu: logo (ảnh/font/màu) + màu chủ đạo toàn site ----
+  const LOGO_FONTS = ['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Orbitron', 'Pacifico'];
+  const BANK_OPTIONS = [
+    'ACB', 'Vietcombank', 'VietinBank', 'BIDV', 'MBBank', 'Techcombank', 'VPBank',
+    'TPBank', 'Sacombank', 'HDBank', 'SHB', 'OCB', 'MSB', 'SeABank', 'VIB', 'Agribank'
+  ];
+  const _loadedFonts = new Set(['Be Vietnam Pro']);
+
+  function ensureFontLoaded(fontName) {
+    if (_loadedFonts.has(fontName)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@400;600;700;800&display=swap`;
+    document.head.appendChild(link);
+    _loadedFonts.add(fontName);
+  }
+
+  // ---- Widget liên hệ đa kênh: 1 kênh bật -> nút thẳng; nhiều kênh bật -> gộp
+  // thành 1 nút mở ra danh sách. Dùng chung cho header / footer / popup chào mừng. ----
+  function renderContactWidgets(cfg) {
+    const channels = cfg.contactChannels || [];
+    renderContactWidget($('#headerContactWrap'), channels, { btnClass: 'btn btn-ghost btn-sm' });
+    renderContactWidget($('#drawerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm btn-block' });
+    renderContactWidget($('#footerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm', dropUp: true });
+    renderContactWidget($('#welcomeContactWrap'), channels, { btnClass: 'btn btn-primary btn-block' });
+  }
+
+  function renderContactWidget(container, channels, opts = {}) {
+    if (!container) return;
+    const enabled = channels.filter(c => c.enabled && c.url);
+    container.innerHTML = '';
+    if (!enabled.length) { container.hidden = true; return; }
+    container.hidden = false;
+
+    if (enabled.length === 1) {
+      const c = enabled[0];
+      const a = document.createElement('a');
+      a.href = c.url;
+      if (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
+      a.className = opts.btnClass;
+      a.innerHTML = `<span>${c.icon}</span> ${esc(c.label)}`;
+      container.appendChild(a);
+      return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'contact-widget';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = opts.btnClass;
+    btn.innerHTML = `<span>💬</span> Liên hệ`;
+    const dropdown = document.createElement('div');
+    dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
+    dropdown.innerHTML = enabled.map(c => {
+      const targetAttrs = (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) ? 'target="_blank" rel="noopener"' : '';
+      return `<a href="${esc(c.url)}" ${targetAttrs}><span>${c.icon}</span> ${esc(c.label)}</a>`;
+    }).join('');
+    btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
+    document.addEventListener('click', () => dropdown.classList.remove('open'));
+    wrap.appendChild(btn);
+    wrap.appendChild(dropdown);
+    container.appendChild(wrap);
+  }
+
+  function applyBranding(cfg) {
+    const hasPhoto = !!cfg.logoUrl; // logo ảnh riêng → hiển thị full (phủ kín khung như app-icon)
+    $$('.brand-mark').forEach(img => { img.src = cfg.logoUrl || './favicon.svg'; });
+    if ($('#mobileNavLogo')) $('#mobileNavLogo').src = cfg.logoUrl || './favicon.svg';
+    $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => w.classList.toggle('has-photo', hasPhoto));
+
+    const font = cfg.logoFont || 'Be Vietnam Pro';
+    ensureFontLoaded(font);
+    document.documentElement.style.setProperty('--logo-font', `'${font}', 'Be Vietnam Pro', sans-serif`);
+    document.documentElement.style.setProperty('--logo-color', cfg.logoColor || 'inherit');
+
+    const accent = cfg.accentColor || '#ffb703';
+    document.documentElement.style.setProperty('--gold', accent);
+    document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
+
+    document.documentElement.style.setProperty('--logo-anim-speed', `${cfg.logoAnimSpeed || 6}s`);
+    const brandNameEl = $('#brandName');
+    if (brandNameEl) {
+      brandNameEl.classList.remove('logo-anim-rainbow', 'logo-anim-shine');
+      if (cfg.logoColorMode === 'rainbow') brandNameEl.classList.add('logo-anim-rainbow');
+      else if (cfg.logoColorMode === 'shine') brandNameEl.classList.add('logo-anim-shine');
+    }
+  }
+
+  // ============================================================
+  // RENDER — phần động (phụ thuộc trạng thái đăng nhập / dữ liệu đổi)
+  // ============================================================
+  function renderDynamic() {
+    renderAuthArea();
+    renderHeroStats();
+    renderCategories();
+    renderDrawerCategories();
+    renderServiceGrid();
+    renderWebdesignGrid();
+    renderShowcase();
+  }
+
+  // Mục "Hình ảnh & Video" — độc lập với banner Hero, lấy từ Thư viện (Store.db.media).
+  function renderShowcase() {
+    const grid = $('#showcaseGrid');
+    const section = $('#showcase');
+    if (!grid || !section) return;
+    const media = (Store.db.media || []).filter(m => m.showcase !== false);
+    if (!media.length) { section.hidden = true; grid.innerHTML = ''; return; }
+    section.hidden = false;
+    grid.innerHTML = media.map(m => `
+      <div class="showcase-item">
+        ${m.type === 'video'
+          ? `<video src="${esc(m.url)}" muted loop autoplay playsinline></video>`
+          : `<img src="${esc(m.url)}" alt="${esc(m.name || '')}" loading="lazy">`}
+      </div>`).join('');
+  }
+
+  function categoryMediaHtml(c) {
+    if (!c.image) return '';
+    if (isVideoUrl(c.image)) {
+      return `<video class="category-media" src="${esc(c.image)}" muted loop autoplay playsinline></video>`;
+    }
+    return `<div class="category-media" data-fallback-bg="${esc(c.image)}" style="background-image:url('${esc(c.image)}')"></div>`;
+  }
+
+  function categoryCardHtml(c, kind) {
+    // kind: 'category' | 'subcategory'
+    const dataAttr = kind === 'subcategory' ? `data-subcategory="${esc(c.id)}"` : `data-category="${esc(c.id)}"`;
+    return `
+      <div class="category-card ${c.image ? 'has-media' : ''}" ${dataAttr} role="button" tabindex="0">
+        ${categoryMediaHtml(c)}
+        <span class="category-icon">${catIcon(c.icon)}</span>
+        <h3>${esc(c.name)}</h3>
+        <p>${esc(c.description || '')}</p>
+      </div>`;
+  }
+
+  function renderBreadcrumb() {
+    const bc = $('#categoryBreadcrumb');
+    if (!browseCategoryId) { bc.hidden = true; bc.innerHTML = ''; return; }
+    const cat = Store.db.categories.find(c => c.id === browseCategoryId);
+    const sub = browseSubId ? (Store.db.subcategories || []).find(s => s.id === browseSubId) : null;
+    const crumbs = [
+      `<button class="crumb" data-crumb="root"><span class="crumb-ico" data-crumb-back>${ICONS.back}</span>Danh mục</button>`,
+      `<span class="crumb-sep">${ICONS.chevron}</span>`,
+      sub
+        ? `<button class="crumb" data-crumb="category">${esc(cat ? cat.name : '')}</button>`
+        : `<span class="crumb current">${esc(cat ? cat.name : '')}</span>`
+    ];
+    if (sub) {
+      crumbs.push(`<span class="crumb-sep">${ICONS.chevron}</span>`, `<span class="crumb current">${esc(sub.name)}</span>`);
+    }
+    bc.innerHTML = crumbs.join('');
+    bc.hidden = false;
+  }
+
+  // Bộ duyệt 3 cấp: Danh mục → Thư mục con → Sản phẩm.
+  function renderCategories() {
+    const grid = $('#categoryGrid');
+    renderBreadcrumb();
+
+    if (!browseCategoryId) {
+      // Cấp 1: danh sách Danh mục (bỏ webdesign vì đã có mục "Thiết Kế Website" riêng).
+      const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
+      grid.innerHTML = cats.map(c => categoryCardHtml(c, 'category')).join('')
+        || '<p class="empty-note">Chưa có danh mục nào.</p>';
+    } else {
+      const subs = (Store.db.subcategories || []).filter(s => s.categoryId === browseCategoryId);
+      if (!browseSubId && subs.length) {
+        // Cấp 2: các Thư mục con của danh mục + sản phẩm gắn thẳng danh mục (nếu có).
+        const directProducts = Store.db.services.filter(s => s.categoryId === browseCategoryId && !s.subcategoryId);
+        grid.innerHTML = subs.map(s => categoryCardHtml(s, 'subcategory')).join('')
+          + directProducts.map(serviceCardHtml).join('');
+      } else {
+        // Cấp 3: sản phẩm trong thư mục con (hoặc trong danh mục nếu danh mục không có thư mục con).
+        const products = browseSubId
+          ? Store.db.services.filter(s => s.subcategoryId === browseSubId)
+          : Store.db.services.filter(s => s.categoryId === browseCategoryId);
+        grid.innerHTML = products.length
+          ? products.map(serviceCardHtml).join('')
+          : '<p class="empty-note">Chưa có sản phẩm nào trong mục này.</p>';
+      }
+    }
+    applyImageFallbacks(grid, '.category-media');
+    applyImageFallbacks(grid);
+
+    grid.onclick = (e) => {
+      const catCard = e.target.closest('[data-category]');
+      if (catCard) {
+        browseCategoryId = catCard.dataset.category;
+        browseSubId = null;
+        renderCategories();
+        $('#categories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const subCard = e.target.closest('[data-subcategory]');
+      if (subCard) {
+        browseSubId = subCard.dataset.subcategory;
+        renderCategories();
+        $('#categories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    };
+
+    const bc = $('#categoryBreadcrumb');
+    bc.onclick = (e) => {
+      const crumb = e.target.closest('[data-crumb]');
+      if (!crumb) return;
+      if (crumb.dataset.crumb === 'root') { browseCategoryId = null; browseSubId = null; }
+      else if (crumb.dataset.crumb === 'category') { browseSubId = null; }
+      renderCategories();
+    };
+
+    renderFilterTabs();
+  }
+
+  // Render danh mục sản phẩm động trong menu 3 gạch (drawer)
+  function renderDrawerCategories() {
+    const listEl = $('#drawerCategoriesList');
+    if (!listEl) return;
+    const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
+    listEl.innerHTML = cats.map(c => {
+      // Tìm các thư mục con (subcategories) cho danh mục này
+      const subs = (Store.db.subcategories || []).filter(s => s.categoryId === c.id);
+      
+      let subHtml = '';
+      if (subs.length > 0) {
+        subHtml = `
+          <div class="drawer-subcat-list">
+            ${subs.map(s => `
+              <button type="button" class="drawer-subcat-link" data-cat="${esc(c.id)}" data-sub="${esc(s.id)}">
+                👉 ${esc(s.name)}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="drawer-cat-item">
+          <button type="button" class="drawer-cat-btn" data-cat="${esc(c.id)}">
+            <span style="display:flex;align-items:center;gap:10px;">
+              <span class="mnl-icon">${catIcon(c.icon)}</span>
+              <span>${esc(c.name)}</span>
+            </span>
+            ${subs.length > 0 ? `<span style="font-size:0.75rem;opacity:0.6;margin-left:auto;">▼</span>` : ''}
+          </button>
+          ${subHtml}
+        </div>
+      `;
+    }).join('');
+    
+    // Wire sự kiện click cho các nút danh mục chính
+    $$('.drawer-cat-btn', listEl).forEach(btn => {
+      btn.onclick = () => {
+        const catId = btn.dataset.cat;
+        
+        // Cập nhật bộ lọc 3 cấp
+        browseCategoryId = catId;
+        browseSubId = null;
+        renderCategories();
+        
+        // Cập nhật bộ lọc tabs dịch vụ nổi bật (nếu có)
+        selectedCategory = catId;
+        selectedSub = 'all';
+        const filterWrap = $('#filterTabs');
+        if (filterWrap) {
+          $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b.dataset.filter === catId));
+        }
+        renderSubFilterTabs();
+        renderServiceGrid();
+        
+        closeMobileNavGlobal();
+        const target = $('#categories');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    });
+    
+    // Wire sự kiện click cho các nút thư mục con
+    $$('.drawer-subcat-link', listEl).forEach(link => {
+      link.onclick = () => {
+        const catId = link.dataset.cat;
+        const subId = link.dataset.sub;
+        
+        // Cập nhật bộ lọc 3 cấp
+        browseCategoryId = catId;
+        browseSubId = subId;
+        renderCategories();
+        
+        // Cập nhật bộ lọc tabs dịch vụ nổi bật (nếu có)
+        selectedCategory = catId;
+        selectedSub = subId;
+        const filterWrap = $('#filterTabs');
+        if (filterWrap) {
+          $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b.dataset.filter === catId));
+        }
+        renderSubFilterTabs();
+        const subFilterWrap = $('#subFilterTabs');
+        if (subFilterWrap) {
+          $$('.filter-tab', subFilterWrap).forEach(b => b.classList.toggle('active', b.dataset.subfilter === subId));
+        }
+        renderServiceGrid();
+        
+        closeMobileNavGlobal();
+        const target = $('#categories');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    });
+  }
+
+  function renderFilterTabs() {
+    const filterWrap = $('#filterTabs');
+    if (!filterWrap) return;
+    const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
+    filterWrap.innerHTML = [`<button class="filter-tab ${selectedCategory === 'all' ? 'active' : ''}" data-filter="all">Tất cả</button>`]
+      .concat(cats.map(c => `<button class="filter-tab ${selectedCategory === c.id ? 'active' : ''}" data-filter="${esc(c.id)}"><span class="filter-ico">${catIcon(c.icon)}</span> ${esc(c.name)}</button>`))
+      .join('');
+    filterWrap.onclick = (e) => {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      selectedCategory = btn.dataset.filter;
+      selectedSub = 'all'; // đổi danh mục thì reset thư mục con
+      $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b === btn));
+      renderSubFilterTabs();
+      renderServiceGrid();
+    };
+    renderSubFilterTabs();
+  }
+
+  // Hàng lọc thứ 2: thư mục con của danh mục đang chọn (chỉ hiện khi danh mục đó có
+  // thư mục con). Bấm danh mục ở hàng trên → hiện hàng thư mục con này để lọc tiếp.
+  function renderSubFilterTabs() {
+    const wrap = $('#subFilterTabs');
+    if (!wrap) return;
+    const subs = selectedCategory === 'all'
+      ? []
+      : (Store.db.subcategories || []).filter(s => s.categoryId === selectedCategory);
+    if (!subs.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+    wrap.hidden = false;
+    wrap.innerHTML = [`<button class="filter-tab sub ${selectedSub === 'all' ? 'active' : ''}" data-subfilter="all">Tất cả</button>`]
+      .concat(subs.map(s => `<button class="filter-tab sub ${selectedSub === s.id ? 'active' : ''}" data-subfilter="${esc(s.id)}"><span class="filter-ico">${catIcon(s.icon)}</span> ${esc(s.name)}</button>`))
+      .join('');
+    wrap.onclick = (e) => {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      selectedSub = btn.dataset.subfilter;
+      $$('.filter-tab', wrap).forEach(b => b.classList.toggle('active', b === btn));
+      renderServiceGrid();
+    };
+  }
+
+  function renderPosts() {
+    const grid = $('#postGrid');
+    grid.innerHTML = Store.db.posts.map(p => `
+      <article class="post-card">
+        <time>${esc(p.date)}</time>
+        <h3>${esc(p.title)}</h3>
+        <p>${esc(p.summary)}</p>
+      </article>
+    `).join('');
+  }
+
+  // Nền Hero hỗ trợ cả ảnh và video (tự nhận diện qua đuôi file .mp4/.webm/.ogg).
+  function isVideoUrl(url) { return /\.(mp4|webm|ogg|ogv|mov|m4v|mkv|avi|3gp|flv|wmv)(\?|#|$)/i.test(url || ''); }
+
+  function applyHeroBackground(url) {
+    const imgEl = $('#heroBg');
+    const videoEl = $('#heroBgVideo');
+    if (!url) { imgEl.style.backgroundImage = 'none'; videoEl.hidden = true; return; }
+    if (isVideoUrl(url)) {
+      videoEl.src = url;
+      videoEl.hidden = false;
+      videoEl.onerror = () => { videoEl.hidden = true; };
+      imgEl.style.backgroundImage = 'none';
+    } else {
+      videoEl.hidden = true;
+      imgEl.style.backgroundImage = `url(${url})`;
+    }
+  }
+
+  // ---- FAQ ----
+  const FAQ_ITEMS = [
+    { q: 'Nạp tiền vào tài khoản như thế nào?', a: 'Vào mục "Nạp tiền", nhập số tiền muốn nạp rồi quét mã VietQR hiển thị. Số dư được cộng tự động ngay sau khi hệ thống xác nhận giao dịch thành công, không cần chờ duyệt thủ công.' },
+    { q: 'Mua xong bao lâu thì nhận được key?', a: 'Key được cấp phát tự động ngay lập tức sau khi thanh toán, hiển thị trong mục "Đơn hàng của tôi" và có thể sao chép trực tiếp.' },
+    { q: 'Có được hoàn tiền không?', a: 'Do đây là sản phẩm số cấp phát tức thì, đơn hàng đã giao key không thể hoàn tiền trừ khi lỗi từ phía hệ thống. Vui lòng liên hệ Admin trong vòng 24 giờ nếu gặp sự cố.' },
+    { q: 'Tôi cần hỗ trợ thêm thì liên hệ ở đâu?', a: 'Bạn có thể nhắn Zalo/Hotline của Admin (góc phải header) hoặc trò chuyện trực tiếp với trợ lý ảo AI ở góc dưới màn hình, hỗ trợ 24/7.' }
+  ];
+
+  function renderFaq() {
+    const list = $('#faqList');
+    if (!list) return;
+    list.innerHTML = FAQ_ITEMS.map((item, i) => `
+      <div class="faq-item" data-faq-index="${i}">
+        <button class="faq-question" type="button">
+          <span>${esc(item.q)}</span><span class="chev">${ICONS.chevron}</span>
+        </button>
+        <div class="faq-answer"><p>${esc(item.a)}</p></div>
+      </div>
+    `).join('');
+    list.addEventListener('click', (e) => {
+      const btn = e.target.closest('.faq-question');
+      if (!btn) return;
+      btn.closest('.faq-item').classList.toggle('open');
+    });
+  }
+
+  // ---- Tìm kiếm dịch vụ ----
+  function wireSearchModal() {
+    const input = $('#searchInput');
+    $('#searchToggleBtn').addEventListener('click', () => {
+      openModal('#searchModal');
+      input.value = '';
+      renderSearchResults('');
+      setTimeout(() => input.focus(), 50);
+    });
+    input.addEventListener('input', () => renderSearchResults(input.value.trim().toLowerCase()));
+    $('#searchResults').addEventListener('click', (e) => {
+      const item = e.target.closest('[data-search-service]');
+      if (!item) return;
+      closeModal('#searchModal');
+      openServiceModal(item.dataset.searchService);
+    });
+  }
+
+  function renderSearchResults(query) {
+    const results = $('#searchResults');
+    const list = Store.db.services.filter(s => !query || s.name.toLowerCase().includes(query) || s.description.toLowerCase().includes(query));
+    if (!query) {
+      results.innerHTML = `<p class="empty-note">Nhập từ khóa để tìm dịch vụ (VD: PUBG, Landing Page, Aimbot...)</p>`;
+      return;
+    }
+    results.innerHTML = list.length ? list.map(s => {
+      const minPrice = Math.min(...s.packages.map(p => p.price));
+      return `
+        <button type="button" class="search-result-item" data-search-service="${esc(s.id)}">
+          <span>${esc(s.name)}</span><span class="price">Từ ${fmt(minPrice)}</span>
+        </button>
+      `;
+    }).join('') : `<p class="empty-note">Không tìm thấy dịch vụ phù hợp.</p>`;
+  }
+
+  // ---- Hiệu ứng cuộn hiện dần (scroll reveal) ----
+  function wireScrollReveal() {
+    const items = $$('[data-reveal]');
+    if (!items.length) return;
+    if (!('IntersectionObserver' in window)) { items.forEach(el => el.classList.add('revealed')); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { entry.target.classList.add('revealed'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.12 });
+    items.forEach(el => io.observe(el));
+  }
+
+  // ---- Nút lên đầu trang ----
+  function wireScrollTopButton() {
+    const btn = $('#scrollTopBtn');
+    window.addEventListener('scroll', () => {
+      btn.hidden = window.scrollY < 500;
+      btn.classList.toggle('visible', window.scrollY >= 500);
+    }, { passive: true });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  function renderHeroStats() {
+    const db = Store.db;
+    const stats = [
+      { label: 'Dịch Vụ', value: db.services.length },
+      { label: 'Danh Mục', value: db.categories.length },
+      { label: 'Đơn Hàng', value: db.orders.length },
+      { label: 'Hoạt Động', value: '24/7' }
+    ];
+    $('#heroStats').innerHTML = stats.map(s => `
+      <div class="stat-chip"><strong>${s.value}</strong><span>${s.label}</span></div>
+    `).join('');
+  }
+
+  function serviceCardHtml(s) {
+    const minPrice = Math.min(...(s.packages || []).map(p => p.price));
+    const inStock = s.status === 'instock';
+    const isVideo = isVideoUrl(s.image);
+    return `
+      <article class="service-card" data-service="${esc(s.id)}">
+        <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
+          ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
+          <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
+          <span class="views-badge">${ICONS.eye}<b>${viewsFor(s.id)}</b></span>
+        </div>
+        <div class="body">
+          <h3>${esc(s.name)}</h3>
+          <p class="desc">${esc(s.description)}</p>
+          <div class="price-row">
+            <span class="price">Từ ${fmt(minPrice)}</span>
+            <button class="btn btn-glass btn-sm" data-view-service="${esc(s.id)}">Xem chi tiết</button>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  const VIEWS_KEY = 'kenios_views_v1';
+  function _views() { try { return JSON.parse(localStorage.getItem(VIEWS_KEY)) || {}; } catch { return {}; } }
+  function viewsFor(id) {
+    const v = _views();
+    if (v[id] == null) { v[id] = 20 + Math.floor(Math.random() * 180); try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {} }
+    return v[id];
+  }
+  function bumpViews(id) {
+    const v = _views();
+    v[id] = (v[id] || viewsFor(id)) + 1;
+    try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {}
+    return v[id];
+  }
+
+  function renderServiceGrid() {
+    const list = Store.db.services.filter(s => {
+      if (s.categoryId === 'webdesign') return false;
+      if (selectedCategory !== 'all' && s.categoryId !== selectedCategory) return false;
+      if (selectedSub !== 'all' && s.subcategoryId !== selectedSub) return false;
+      return true;
+    });
+    $('#serviceGrid').innerHTML = list.length
+      ? list.map(serviceCardHtml).join('')
+      : `<p class="empty-note">Chưa có dịch vụ nào trong mục này.</p>`;
+    applyImageFallbacks($('#serviceGrid'));
+  }
+
+  function renderWebdesignGrid() {
+    const list = Store.db.services.filter(s => s.categoryId === 'webdesign');
+    $('#webdesignGrid').innerHTML = list.map(serviceCardHtml).join('');
+    applyImageFallbacks($('#webdesignGrid'));
+  }
+
+  // Ảnh minh họa lấy từ Unsplash có thể chậm/không tải được tùy mạng — khi lỗi,
+  // hiển thị nền gradient thay vì để trống mảng xám khó chịu.
+  function applyImageFallbacks(root, selector) {
+    $$(`${selector || '.thumb'}[data-fallback-bg]`, root).forEach(el => {
+      const url = el.dataset.fallbackBg;
+      if (!url) return;
+      const img = new Image();
+      img.onerror = () => { el.classList.add('img-fallback'); el.textContent = ''; el.style.backgroundImage = 'none'; };
+      img.src = url;
+    });
+  }
+
+  // ---- Ghi nhớ tạm thông tin admin trong phiên để "Lưu giao diện" không cần nhập lại mật khẩu ----
+  const ADMIN_CREDS_KEY = 'kenios_admin_creds_v1';
+  function rememberAdminCreds(username, password) {
+    try { sessionStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify({ username, password })); } catch { /* ignore */ }
+  }
+  function getAdminCreds() {
+    try { return JSON.parse(sessionStorage.getItem(ADMIN_CREDS_KEY)) || null; } catch { return null; }
+  }
+  function clearAdminCreds() {
+    try { sessionStorage.removeItem(ADMIN_CREDS_KEY); } catch { /* ignore */ }
+  }
+
+  function renderAuthArea() {
+    const area = $('#authArea');
+    const user = Store.currentUser();
+    const adminLabel = $('#mobileNavAdminLabel');
+    const adminLink = $('#mobileNavAdminLink');
+    if (user && user.role === 'admin') {
+      if (adminLabel) adminLabel.hidden = false;
+      if (adminLink) adminLink.hidden = false;
+    } else {
+      if (adminLabel) adminLabel.hidden = true;
+      if (adminLink) adminLink.hidden = true;
+    }
+    // Nút Lưu giao diện đã được chuyển vào bên trong tab Config của admin modal
+    renderDrawerUser(user);
+    if (!user) {
+      area.innerHTML = `<button class="btn btn-primary btn-sm" id="openAuthBtn">Đăng nhập</button>`;
+      $('#openAuthBtn').addEventListener('click', () => openModal('#authModal'));
+      return;
+    }
+    const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
+    area.innerHTML = `
+      <div class="auth-mini">
+        <button class="balance-pill" id="balancePill">${fmt(user.balance || 0)}</button>
+        <div class="user-menu">
+          <button class="avatar-btn" id="avatarBtn" aria-label="Mở bảng điều khiển tài khoản"><img src="${avatar}" alt=""></button>
+        </div>
+      </div>
+    `;
+    $('#balancePill').addEventListener('click', () => openModal('#depositModal'));
+    $('#avatarBtn').addEventListener('click', () => {
+      renderProfileModal();
+      openModal('#profileModal');
+    });
+  }
+
+  // Khung render thông tin cá nhân dạng Modal chuyên nghiệp khi click vào Avatar
+  function renderProfileModal() {
+    const body = $('#profileModalBody');
+    if (!body) return;
+    const user = Store.currentUser();
+    if (!user) return;
+    const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
+    
+    body.innerHTML = `
+      <div class="profile-head" style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.02);padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:20px;">
+        <img src="${avatar}" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 15px rgba(255,183,3,0.2);">
+        <div class="profile-meta" style="display:flex;flex-direction:column;gap:4px;">
+          <strong style="font-size:1.15rem;color:var(--ink);">${esc(user.username)}</strong>
+          <span style="font-size:0.8rem;color:var(--muted);">ID tài khoản: <code style="color:var(--gold-soft);">${esc(user.userId)}</code></span>
+          <span style="font-size:0.8rem;color:var(--muted);">${user.role === 'admin' ? '🛡️ Quản trị viên' : '👤 Thành viên'}</span>
+        </div>
+      </div>
+      <div class="profile-balance" style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);margin-bottom:20px;">
+        <span style="color:var(--muted);font-weight:500;">Số dư hiện tại</span>
+        <strong style="font-size:1.25rem;color:var(--gold);">${fmt(user.balance || 0)}</strong>
+      </div>
+      <div class="profile-actions" style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="btn btn-glass btn-block" id="profDepositBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
+          <span class="btn-ico">${ICONS.card}</span> Nạp tiền tự động
+        </button>
+        <button type="button" class="btn btn-glass btn-block" id="profOrdersBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
+          <span class="btn-ico">${ICONS.box}</span> Đơn hàng của tôi
+        </button>
+        <button type="button" class="btn btn-glass btn-block" id="profPasswordBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
+          <span class="btn-ico">${ICONS.lock}</span> Thay đổi mật khẩu
+        </button>
+        ${user.role === 'admin' ? `
+          <button type="button" class="btn btn-primary btn-block" id="profAdminBtn" style="background:linear-gradient(135deg, var(--gold), #ff8f1f);color:#1a1200;font-weight:700;justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;box-shadow:0 4px 15px rgba(255,143,31,0.25);">
+            <span class="btn-ico">${ICONS.shield}</span> Quản trị & Cấu hình Shop
+          </button>
+        ` : ''}
+        <button type="button" class="btn btn-ghost btn-block" id="profLogoutBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;color:#ff5e5e;margin-top:10px;">
+          <span class="btn-ico">${ICONS.logout}</span> Đăng xuất tài khoản
+        </button>
+      </div>
+    `;
+
+    // Gán sự kiện click cho các nút
+    $('#profDepositBtn').onclick = () => { closeModal('#profileModal'); openModal('#depositModal'); };
+    $('#profOrdersBtn').onclick = () => { closeModal('#profileModal'); openOrdersModal(); };
+    $('#profPasswordBtn').onclick = () => { closeModal('#profileModal'); openPasswordModal(); };
+    if (user.role === 'admin') {
+      $('#profAdminBtn').onclick = () => { closeModal('#profileModal'); openAdminModal(); };
+    }
+    $('#profLogoutBtn').onclick = () => { closeModal('#profileModal'); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); };
+  }
+
+  // Hộp thông tin người dùng trong menu 3 gạch: ID, số dư, đổi mật khẩu (hoặc nút đăng nhập).
+  function renderDrawerUser(user) {
+    const box = $('#drawerUserBox');
+    if (!box) return;
+    if (!user) {
+      box.innerHTML = `<button type="button" class="btn btn-primary btn-block" id="drawerLoginBtn">Đăng nhập / Đăng ký</button>`;
+      $('#drawerLoginBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#authModal'); });
+      return;
+    }
+    const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
+    box.innerHTML = `
+      <div class="drawer-user-head">
+        <img class="drawer-user-avatar" src="${avatar}" alt="">
+        <div class="drawer-user-meta">
+          <strong>${esc(user.username)}</strong>
+          <small>ID: ${esc(user.userId)}${user.role === 'admin' ? ' · Quản trị' : ''}</small>
+        </div>
+      </div>
+      <div class="drawer-user-balance"><span>Số dư</span><strong>${fmt(user.balance || 0)}</strong></div>
+      <div class="drawer-user-actions">
+        <button type="button" class="btn btn-glass btn-sm" id="drawerDepositBtn"><span class="btn-ico">${ICONS.card}</span> Nạp tiền</button>
+        ${user.role === 'admin' ? `<button type="button" class="btn btn-primary btn-sm" id="drawerAdminBtn" style="background:linear-gradient(135deg, var(--gold), #ff8f1f);color:#1a1200;font-weight:700;"><span class="btn-ico">${ICONS.shield}</span> Quản trị hệ thống</button>` : ''}
+        <button type="button" class="btn btn-glass btn-sm" id="drawerPasswordBtn"><span class="btn-ico">${ICONS.lock}</span> Đổi mật khẩu</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="drawerLogoutBtn"><span class="btn-ico">${ICONS.logout}</span> Đăng xuất</button>
+      </div>`;
+    $('#drawerDepositBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#depositModal'); });
+    if (user.role === 'admin') {
+      $('#drawerAdminBtn')?.addEventListener('click', () => { closeMobileNavGlobal(); openAdminModal(); });
+    }
+    $('#drawerPasswordBtn').addEventListener('click', () => { closeMobileNavGlobal(); openPasswordModal(); });
+    $('#drawerLogoutBtn').addEventListener('click', () => { closeMobileNavGlobal(); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); });
+  }
+
+  function closeMobileNavGlobal() {
+    $('#mobileNav')?.classList.remove('open');
+    $('#mobileNavBackdrop')?.classList.remove('open');
+    $('#menuToggle')?.setAttribute('aria-expanded', 'false');
+  }
+
+  function openPasswordModal() {
+    if (!Store.currentUser()) { openModal('#authModal'); return; }
+    $('#passwordForm').reset();
+    $('#passwordError').textContent = '';
+    openModal('#passwordModal');
+  }
+
+  // ============================================================
+  // MODAL helpers
+  // ============================================================
+  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; }
+  function closeModal(sel) { $(sel).hidden = true; document.body.style.overflow = ''; }
+
+  async function withLoading(btn, fn) {
+    btn.classList.add('is-loading');
+    btn.disabled = true;
+    try { await fn(); } finally { btn.classList.remove('is-loading'); btn.disabled = false; }
+  }
+
+  function wireGlobalUI() {
+    // Nút đồng bộ máy chủ nằm trong tab Config của admin — wire trong wireAdminConfigSecretBoxes()
+
+    // Đổi mật khẩu
+    $('#passwordForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const errEl = $('#passwordError');
+      errEl.textContent = '';
+      if (fd.get('new') !== fd.get('confirm')) { errEl.textContent = 'Mật khẩu mới nhập lại không khớp.'; return; }
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          await Store.changePassword(fd.get('current'), fd.get('new'));
+          const u = Store.currentUser();
+          if (u && u.role === 'admin') rememberAdminCreds(u.username, fd.get('new'));
+          closeModal('#passwordModal');
+          e.target.reset();
+          toast('Đã đổi mật khẩu thành công!', 'success');
+        } catch (err) { errEl.textContent = err.message; }
+      });
+    });
+    $$('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal('#' + overlay.id); });
+    });
+    $$('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', () => closeModal('#' + btn.closest('.modal-overlay').id));
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') $$('.modal-overlay').forEach(o => { if (!o.hidden) closeModal('#' + o.id); });
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-menu')) $('#userDropdown')?.classList.remove('open');
+    });
+
+    const closeMobileNav = () => {
+      $('#mobileNav').classList.remove('open');
+      $('#mobileNavBackdrop').classList.remove('open');
+      $('#menuToggle').setAttribute('aria-expanded', 'false');
+    };
+    $('#menuToggle').addEventListener('click', () => {
+      const open = $('#mobileNav').classList.toggle('open');
+      $('#mobileNavBackdrop').classList.toggle('open', open);
+      $('#menuToggle').setAttribute('aria-expanded', String(open));
+    });
+    $('#mobileNavBackdrop').addEventListener('click', closeMobileNav);
+    $$('.mobile-nav-link', $('#mobileNav')).forEach(a => a.addEventListener('click', closeMobileNav));
+    $('#mobileNavDeposit').addEventListener('click', () => {
+      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
+      openModal('#depositModal');
+    });
+    $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
+    $('#mobileNavDownloads').addEventListener('click', () => { closeMobileNav(); openDownloadsModal(); });
+    const adminNavBtn2 = $('#mobileNavAdminLink');
+    if (adminNavBtn2) adminNavBtn2.addEventListener('click', () => { closeMobileNavGlobal(); openAdminModal(); });
+
+    $('#heroBtn2').addEventListener('click', () => {
+      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
+      openModal('#depositModal');
+    });
+
+    document.body.addEventListener('click', (e) => {
+      const viewBtn = e.target.closest('[data-view-service]');
+      if (viewBtn) openServiceModal(viewBtn.dataset.viewService);
+
+      const pwToggle = e.target.closest('[data-pw-toggle]');
+      if (pwToggle) {
+        const input = pwToggle.previousElementSibling;
+        const isPw = input.type === 'password';
+        input.type = isPw ? 'text' : 'password';
+        pwToggle.classList.toggle('revealed', isPw);
+      }
+
+      const legalLink = e.target.closest('[data-legal]');
+      if (legalLink) { e.preventDefault(); openLegalModal(legalLink.dataset.legal); }
+    });
+  }
+
+  // ---- Đăng nhập / Đăng ký ----
+  function wireAuthModal() {
+    $$('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        $$('.auth-tab').forEach(t => t.classList.toggle('active', t === tab));
+        const isLogin = tab.dataset.authTab === 'login';
+        $('#loginForm').hidden = !isLogin;
+        $('#registerForm').hidden = isLogin;
+      });
+    });
+
+    $('#loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          const u = await Store.login(fd.get('username'), fd.get('password'));
+          if (u && u.role === 'admin') rememberAdminCreds(fd.get('username'), fd.get('password'));
+          closeModal('#authModal');
+          e.target.reset();
+          $('#loginError').textContent = '';
+          toast('Đăng nhập thành công!', 'success');
+        } catch (err) { $('#loginError').textContent = err.message; }
+      });
+    });
+
+    $('#registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          await Store.register(fd.get('username'), fd.get('password'), fd.get('contact'));
+          closeModal('#authModal');
+          e.target.reset();
+          $('#registerError').textContent = '';
+          toast('Tạo tài khoản thành công! Chào mừng bạn.', 'success');
+        } catch (err) { $('#registerError').textContent = err.message; }
+      });
+    });
+
+    $('#forgotPwBtn')?.addEventListener('click', () => { closeModal('#authModal'); $('#forgotForm').reset(); $('#forgotError').textContent = ''; openModal('#forgotModal'); });
+    $('#forgotForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          await Store.resetPassword(fd.get('username').trim(), fd.get('contact').trim(), fd.get('new'));
+          closeModal('#forgotModal');
+          toast('Đã đặt lại mật khẩu! Đăng nhập bằng mật khẩu mới.', 'success');
+          openModal('#authModal');
+        } catch (err) { $('#forgotError').textContent = err.message; }
+      });
+    });
+
+    $('#googleFallbackBtn')?.addEventListener('click', () => {
+      if (window.google?.accounts?.id) { window.google.accounts.id.prompt(); }
+      else if (!Store.db.config.googleClientId) { toast('Admin chưa cấu hình Google Client ID trong tab Cấu hình.', 'error'); }
+      else { toast('Đang tải Google… thử lại sau vài giây.', 'error'); }
+    });
+  }
+
+  // ---- Nạp tiền VietQR ----
+  function wireDepositModal() {
+    const quick = $('#quickAmounts');
+    [50000, 100000, 200000, 500000, 1000000].forEach(v => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = fmt(v);
+      b.addEventListener('click', () => { $('#depositAmount').value = v; });
+      quick.appendChild(b);
+    });
+
+    $('#genQrBtn').addEventListener('click', () => {
+      const cfg = Store.db.config;
+      const amount = parseInt($('#depositAmount').value, 10);
+      if (!amount || amount < 10000) { toast('Số tiền nạp tối thiểu là 10.000đ.', 'error'); return; }
+      const user = Store.currentUser();
+      const note = `NAP${user.userId}${Date.now().toString().slice(-6)}`;
+      const url = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankId)}-${cfg.bankAccountNo}-qr_only.png`
+        + `?amount=${amount}&addInfo=${encodeURIComponent(note)}&accountName=${encodeURIComponent(cfg.bankAccountName)}`;
+      $('#depositQrImg').src = url;
+      setText('#qrBank', cfg.bankId);
+      setText('#qrOwner', cfg.bankAccountName);
+      setText('#qrAccount', cfg.bankAccountNo);
+      setText('#qrAmount', fmt(amount));
+      setText('#qrNote', note);
+      $('#depositQrBox').hidden = false;
+      $('#confirmDepositBtn').dataset.amount = amount;
+      $('#confirmDepositBtn').dataset.note = note;
+      $('#copyAccountBtn').onclick = () => {
+        navigator.clipboard?.writeText(cfg.bankAccountNo).then(() => toast('Đã sao chép số tài khoản!', 'success'));
+      };
+      $('#copyNoteBtn').onclick = () => {
+        navigator.clipboard?.writeText(note).then(() => toast('Đã sao chép nội dung chuyển khoản!', 'success'));
+      };
+    });
+
+    $('#confirmDepositBtn').addEventListener('click', async () => {
+      const amount = parseInt($('#confirmDepositBtn').dataset.amount, 10);
+      const note = $('#confirmDepositBtn').dataset.note;
+      await withLoading($('#confirmDepositBtn'), async () => {
+        try {
+          const res = await Store.checkAutoDeposit(note);
+          if (res.credited) {
+            closeModal('#depositModal');
+            $('#depositQrBox').hidden = true;
+            toast('Đã nhận được chuyển khoản! Số dư của bạn đã được cộng tự động.', 'success');
+          } else if (res.serverError) {
+            // Có máy chủ nhưng bước gọi ngân hàng lỗi — KHÔNG cộng tiền, chỉ báo lỗi.
+            toast(res.message + ' Vui lòng thử lại sau ít phút hoặc liên hệ Admin.', 'error');
+          } else {
+            toast('Chưa nhận được giao dịch. Nếu bạn vừa chuyển khoản, vui lòng đợi 10–30 giây rồi bấm lại nút này.', 'error');
+          }
+        } catch (e) {
+          // Chỉ tới đây khi KHÔNG có máy chủ PHP (chế độ demo) → cộng cục bộ để vẫn dùng thử được.
+          Store.deposit(amount, note);
+          closeModal('#depositModal');
+          $('#depositQrBox').hidden = true;
+          toast(`Đã cộng ${fmt(amount)} vào số dư (chế độ demo cục bộ, không có máy chủ xác thực).`, 'success');
+        }
+      });
+    });
+  }
+
+  // ---- Chi tiết dịch vụ ----
+  function wireServiceModal() {
+    $('#serviceModalBuyBtn').addEventListener('click', () => {
+      const service = Store.db.services.find(s => s.id === currentServiceId);
+      const errEl = $('#serviceModalError');
+      errEl.textContent = '';
+      if (!Store.currentUser()) { errEl.textContent = 'Vui lòng đăng nhập trước khi mua.'; return; }
+      if (!currentPackage) { errEl.textContent = 'Vui lòng chọn một gói.'; return; }
+
+      withLoading($('#serviceModalBuyBtn'), async () => {
+        try {
+          let order;
+          if (Store.usesRealKeyStock(currentPackage)) {
+            const password = $('#serviceModalPassword').value;
+            if (!password) { errEl.textContent = 'Vui lòng nhập lại mật khẩu để xác nhận mua hàng.'; return; }
+            order = await Store.redeemKeyOnServer(Store.currentUser().username, password, service, currentPackage);
+          } else {
+            order = Store.buyPackage(service, currentPackage);
+          }
+          closeModal('#serviceModal');
+          toast(`Mua thành công! Key: ${order.key}`, 'success');
+        } catch (err) { errEl.textContent = err.message; }
+      });
+    });
+  }
+
+  function openServiceModal(serviceId) {
+    const service = Store.db.services.find(s => s.id === serviceId);
+    if (!service) return;
+    currentServiceId = serviceId;
+    currentPackage = service.packages[0] || null;
+
+    const modalImg = $('#serviceModalImg');
+    const modalVideo = $('#serviceModalVideo');
+    if (isVideoUrl(service.image)) {
+      modalVideo.src = service.image;
+      modalVideo.hidden = false;
+      modalImg.hidden = true;
+    } else {
+      modalImg.src = service.image;
+      modalImg.alt = service.name;
+      modalImg.hidden = false;
+      modalVideo.hidden = true;
+    }
+    const inStock = service.status === 'instock';
+    $('#serviceModalBadge').textContent = inStock ? 'Còn hàng' : 'Hết hàng';
+    $('#serviceModalBadge').className = 'badge' + (inStock ? '' : ' out');
+    setText('#serviceModalTitle', service.name);
+    setText('#serviceModalDesc', service.description);
+    $('#serviceModalViews').innerHTML = `${ICONS.eye}<b>${bumpViews(serviceId)}</b> lượt xem`;
+    const dl = $('#serviceModalDownload');
+    if (service.downloadUrl) { dl.hidden = false; dl.href = service.downloadUrl; dl.innerHTML = `${ICONS.download} Tải bản game`; }
+    else { dl.hidden = true; }
+    $('#serviceModalFeatures').innerHTML = (service.features || []).map(f => `<li>${esc(f)}</li>`).join('');
+
+    const pkgWrap = $('#serviceModalPackages');
+    pkgWrap.innerHTML = service.packages.map((p, i) => `
+      <div class="package-option ${i === 0 ? 'selected' : ''}" data-pkg="${esc(p.id)}">
+        <span>${esc(p.name)}</span>
+        <span class="package-option-price">
+          <strong>${fmt(p.price)}</strong>
+          ${Store.usesRealKeyStock(p) ? `<small class="pkg-stock ${p.keyCount > 0 ? '' : 'out'}">${p.keyCount > 0 ? `Còn ${p.keyCount} key` : 'Hết key'}</small>` : ''}
+        </span>
+      </div>
+    `).join('');
+    pkgWrap.querySelectorAll('.package-option').forEach(el => {
+      el.addEventListener('click', () => {
+        pkgWrap.querySelectorAll('.package-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        currentPackage = service.packages.find(p => p.id === el.dataset.pkg);
+        syncServiceModalPasswordField();
+      });
+    });
+
+    syncServiceModalPasswordField();
+    $('#serviceModalError').textContent = '';
+    $('#serviceModalPassword').value = '';
+    $('#serviceModalBuyBtn').disabled = !inStock;
+    $('#serviceModalBuyBtn').textContent = inStock ? 'Mua Ngay' : 'Hết Hàng';
+    openModal('#serviceModal');
+  }
+
+  function syncServiceModalPasswordField() {
+    $('#serviceModalPasswordRow').hidden = !Store.usesRealKeyStock(currentPackage);
+  }
+
+  // ---- Đơn hàng của tôi ----
+  const fmtDateTime = (iso) => { try { return new Date(iso).toLocaleString('vi-VN'); } catch { return ''; } };
+
+  function orderCardHtml(o) {
+    const contact = Store.db.config.zaloLink || (Store.db.config.contactChannels || []).find(c => c.enabled && c.url)?.url || '';
+    const expiry = o.expiryDate ? fmtDateTime(o.expiryDate) : 'Vĩnh viễn (không hết hạn)';
+    const purchased = fmtDateTime(o.purchaseDate || o.date);
+    const svc = Store.db.services.find(s => s.id === o.serviceId);
+    const download = (svc && svc.downloadUrl) || o.downloadUrl || '';
+    return `
+      <div class="order-card">
+        <div class="order-card-head">
+          <strong>${esc(o.serviceName)}</strong>
+          <span class="order-price">${fmt(o.price)}</span>
+        </div>
+        <div class="order-line"><span class="order-ico">${ICONS.key}</span>
+          <span>Bạn đã mua 1 key${o.os ? ` <b>${esc(o.os)}</b>` : ''} (Thời hạn: <b>${esc(o.packageName)}</b>)</span>
+        </div>
+        <div class="order-line"><span class="order-ico">${ICONS.calendar}</span><span>Ngày mua: <b>${esc(purchased)}</b></span></div>
+        <div class="order-line"><span class="order-ico">${ICONS.clock}</span><span>Hết hạn: <b>${esc(expiry)}</b></span></div>
+        <div class="order-key-row">
+          <span class="order-ico">${ICONS.key}</span>
+          <code>${esc(o.key)}</code>
+          <button class="btn-copy-key" data-copy-key="${esc(o.key)}" title="Sao chép key">${ICONS.copy}</button>
+        </div>
+        ${download ? `<a class="btn btn-primary btn-sm btn-block order-download" href="${esc(download)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.upload || ICONS.box}</span> Tải bản game</a>` : ''}
+        ${contact ? `<a class="btn btn-glass btn-sm btn-block order-contact" href="${esc(contact)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.headset}</span> Liên hệ hỗ trợ</a>` : ''}
+      </div>`;
+  }
+
+  function openOrdersModal() {
+    if (!Store.currentUser()) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
+    const orders = Store.myOrders();
+    $('#ordersList').innerHTML = orders.length
+      ? orders.map(orderCardHtml).join('')
+      : `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
+    $$('[data-copy-key]', $('#ordersList')).forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard?.writeText(btn.dataset.copyKey).then(() => toast('Đã sao chép key!', 'success'));
+      });
+    });
+    openModal('#ordersModal');
+  }
+
+  // Tải xuống — đồng bộ với link tải của từng sản phẩm.
+  function openDownloadsModal() {
+    const items = Store.db.services.filter(s => s.downloadUrl);
+    $('#downloadsList').innerHTML = items.length
+      ? items.map(s => `
+        <div class="download-item">
+          <div class="download-item-info">
+            <span class="download-ico">${ICONS.download}</span>
+            <div><strong>${esc(s.name)}</strong><small>${esc(Store.serviceOs ? Store.serviceOs(s) : '')}</small></div>
+          </div>
+          <a class="btn btn-primary btn-sm" href="${esc(s.downloadUrl)}" target="_blank" rel="noopener">Tải bản này</a>
+        </div>`).join('')
+      : '<p class="empty-note">Chưa có bản tải nào. Admin thêm link tải cho sản phẩm ở tab Dịch vụ.</p>';
+    openModal('#downloadsModal');
+  }
+
+  // ---- Thông tin pháp lý ----
+  function wireLegalModal() {}
+  function openLegalModal(key) {
+    const data = LEGAL_CONTENT[key];
+    if (!data) return;
+    setText('#legalTitle', data.title);
+    $('#legalContent').innerHTML = data.html;
+    openModal('#legalModal');
+  }
+
+  // ============================================================
+  // TRỢ LÝ ẢO AI
+  // ============================================================
+  function wireAiWidget() {
+    const cfg = Store.db.config;
+    setText('#aiName', cfg.aiName);
+    $('#aiAvatar').src = cfg.aiAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=kenios-ai`;
+
+    const quick = [
+      { icon: 'card', label: 'Nạp tiền', text: 'Cách nạp tiền' },
+      { icon: 'tag', label: 'Giá sản phẩm', text: 'Giá sản phẩm' },
+      { icon: 'web', label: 'Thiết kế web', text: 'Dịch vụ thiết kế web' },
+      { icon: 'headset', label: 'Liên hệ Admin', text: 'Liên hệ admin' }
+    ];
+    $('#aiQuickReplies').innerHTML = quick.map(q => `<button data-q="${esc(q.text)}"><span class="qr-ico">${ICONS[q.icon]}</span>${esc(q.label)}</button>`).join('');
+    $('#aiQuickReplies').addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (btn) sendAiMessage(btn.dataset.q);
+    });
+
+    $('#aiFab').addEventListener('click', () => {
+      const panel = $('#aiPanel');
+      const wasHidden = panel.hidden;
+      panel.hidden = !panel.hidden;
+      if (wasHidden && !$('#aiMessages').children.length) {
+        addAiMessage(cfg.aiGreeting, 'bot');
+      }
+    });
+    $('#aiClose').addEventListener('click', () => { $('#aiPanel').hidden = true; });
+
+    $('#aiForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = $('#aiInput');
+      const text = input.value.trim();
+      if (!text) return;
+      sendAiMessage(text);
+      input.value = '';
+    });
+  }
+
+  function addAiMessage(text, who) {
+    const el = document.createElement('div');
+    el.className = `ai-msg ${who}`;
+    el.textContent = text;
+    $('#aiMessages').appendChild(el);
+    $('#aiMessages').scrollTop = $('#aiMessages').scrollHeight;
+  }
+
+  function sendAiMessage(text) {
+    addAiMessage(text, 'user');
+    const reply = getAiReply(text.toLowerCase());
+    setTimeout(() => { addAiMessage(reply, 'bot'); }, 350);
+  }
+
+  // Bảng giá theo từng mục — khách hỏi đúng mục nào thì trả lời riêng mục đó,
+  // chỉ đưa ra toàn bộ bảng giá (cfg.aiResponsePrice) khi khách hỏi chung chung.
+  const PRICE_ITEMS = [
+    { keys: ['vnhax mod skin', 'mod skin vn', 'mod skin'], text: '💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần' },
+    { keys: ['vnhax'], text: '💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần' },
+    { keys: ['oasis'], text: '💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần' },
+    { keys: ['king'], text: '💎 KING\n💰 900K/Tháng\n💰 450K/Tuần' },
+    { keys: ['timo'], text: '💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày' },
+    { keys: ['vingodl', 'vin godl'], text: '💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần' },
+    { keys: ['zolo'], text: 'PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['vnb'], text: 'PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['root'], text: 'PUBG ANDROID — ROOT\n💰 650K/Tháng' },
+    { keys: ['mg'], text: 'PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['liên quân', 'lien quan'], text: '⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500K/Tháng chống tố\n💰 250K/Tuần chống tố' },
+    { keys: ['free fire', 'freefire'], text: '🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần' },
+    { keys: ['pubg ios', 'ios'], text: '📱 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
+    { keys: ['pubg android', 'android'], text: 'PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
+  ];
+
+  function matchPriceItem(t) {
+    const norm = t.toLowerCase();
+    const hasWord = (w) => new RegExp(`\\b${w}\\b`, 'i').test(norm);
+    for (const item of PRICE_ITEMS) {
+      for (const key of item.keys) {
+        const matched = key.includes(' ') ? norm.includes(key) : hasWord(key);
+        if (matched) return item.text;
+      }
+    }
+    return null;
+  }
+
+  function getAiReply(t) {
+    const cfg = Store.db.config;
+    if (/nạp tiền|nap tien|vietqr|qr/.test(t)) return cfg.aiResponseDeposit;
+    const specificPrice = matchPriceItem(t);
+    if (specificPrice) return specificPrice;
+    if (/giá|gia|bảng giá|bang gia|price/.test(t)) return cfg.aiResponsePrice;
+    if (/thiết kế web|thiet ke web|landing|web shop/.test(t)) return cfg.aiResponseWeb;
+    if (/sản phẩm|san pham|pubg|liên quân|lien quan|free fire|tốc chiến|toc chien/.test(t)) return cfg.aiResponseProduct;
+    if (/admin|liên hệ|lien he|zalo|hotline/.test(t)) return cfg.aiResponseContact;
+    if (/cảm ơn|cam on|thanks/.test(t)) return cfg.aiResponseThanks;
+    if (/chào|hello|hi\b|xin chào/.test(t)) return cfg.aiResponseGreeting;
+    return cfg.aiResponseFallback;
+  }
+
+  // ============================================================
+  // ADMIN DASHBOARD
+  // ============================================================
+  function openAdminModal() {
+    if (!Store.isAdmin()) { toast('Bạn không có quyền truy cập.', 'error'); return; }
+    adminActiveTab = 'overview';
+    $$('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.adminTab === 'overview'));
+    renderAdminTab('overview');
+    $('#adminSyncMsg').textContent = '';
+    openModal('#adminModal');
+  }
+
+  function wireAdminModal() {
+    $('#adminTabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.admin-tab');
+      if (!btn) return;
+      adminActiveTab = btn.dataset.adminTab;
+      $$('.admin-tab', $('#adminTabs')).forEach(t => t.classList.toggle('active', t === btn));
+      renderAdminTab(adminActiveTab);
+    });
+
+    // Ủy quyền sự kiện cho toàn bộ nội dung động bên trong bảng quản trị.
+    $('#adminPanelBody').addEventListener('click', onAdminPanelClick);
+    $('#adminPanelBody').addEventListener('submit', onAdminPanelSubmit);
+    $('#adminPanelBody').addEventListener('change', onAdminPanelChange);
+
+    $('#adminLoadKeysBtn').addEventListener('click', () => {
+      const user = Store.currentUser();
+      const creds = getAdminCreds();
+      if (!creds) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#adminLoadKeysBtn'), async () => {
+        try {
+          await Store.fetchFullServiceKeys(user.username, creds.password);
+          renderAdminTab('services');
+          toast('Đã tải kho key đầy đủ từ máy chủ.', 'success');
+        } catch (err) { $('#adminSyncMsg').textContent = err.message; }
+      });
+    });
+  }
+
+  // Đồng bộ toàn bộ dữ liệu lên máy chủ dùng thông tin admin đã lưu trong phiên
+  // (không cần nhập lại mật khẩu). Nếu chưa có (vd. đã tải lại trang), yêu cầu đăng nhập lại.
+  async function saveUiToServer() {
+    const creds = getAdminCreds();
+    const user = Store.currentUser();
+    if (!user || user.role !== 'admin') { toast('Chỉ admin mới lưu được giao diện.', 'error'); return; }
+    if (!creds || creds.username.toLowerCase() !== user.username.toLowerCase()) {
+      toast('Vui lòng đăng nhập lại admin 1 lần để bật lưu tự động.', 'error');
+      clearAdminCreds(); Store.logout(); openModal('#authModal');
+      return;
+    }
+    const btn = $('#adminSyncServerBtn');
+    const msgEl = $('#adminConfigSyncMsg');
+    await withLoading(btn || { classList: { add: () => {}, remove: () => {} }, disabled: false }, async () => {
+      const result = await Store.trySaveToServer(creds.username, creds.password);
+      if (result.status === 'success') {
+        toast('Đã lưu giao diện lên máy chủ! Mọi khách truy cập sẽ thấy thay đổi.', 'success');
+        if (msgEl) msgEl.textContent = 'Đã lưu lúc ' + new Date().toLocaleTimeString('vi-VN');
+        if ($('#adminSyncMsg')) $('#adminSyncMsg').textContent = 'Đã lưu lúc ' + new Date().toLocaleTimeString('vi-VN');
+      } else {
+        toast(result.message || 'Lưu thất bại. Thử đăng nhập lại admin.', 'error');
+      }
+    });
+  }
+
+  function renderAdminTab(tab) {
+    const body = $('#adminPanelBody');
+    if (tab === 'overview') body.innerHTML = adminOverviewHtml();
+    else if (tab === 'services') body.innerHTML = adminServicesHtml();
+    else if (tab === 'categories') body.innerHTML = adminCategoriesHtml();
+    else if (tab === 'orders') body.innerHTML = adminOrdersHtml();
+    else if (tab === 'users') body.innerHTML = adminUsersHtml();
+    else if (tab === 'media') body.innerHTML = adminMediaHtml();
+    else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
+  }
+
+  function wireAdminConfigSecretBoxes() {
+    // Wire nút Đồng bộ lên máy chủ (chỉ nằm trong tab Config)
+    $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer());
+
+    // Nạp danh sách giọng nói cho lời chào + nút nghe thử.
+    const vsel = $('#welcomeVoiceSelect');
+    if (vsel) {
+      (Voice.availableVoices() || []).forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.voiceURI; opt.textContent = `${v.name} (${v.lang})`;
+        if (Store.db.config.welcomeVoiceName === v.voiceURI) opt.selected = true;
+        vsel.appendChild(opt);
+      });
+      $('#testWelcomeVoiceBtn')?.addEventListener('click', () => {
+        Voice.setPrefs({ voiceURI: vsel.value || null, enabled: true });
+        Voice.speak($('[name=welcomeVoiceText]')?.value || 'Xin chào, chào mừng bạn đến với cửa hàng.');
+      });
+    }
+
+    $('#bankWebhookUrl').value = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}bank_callback.php`;
+    $('#copyWebhookUrlBtn').addEventListener('click', () => {
+      navigator.clipboard?.writeText($('#bankWebhookUrl').value).then(() => toast('Đã sao chép URL webhook!', 'success'));
+    });
+
+    const user = Store.currentUser();
+    const creds = getAdminCreds();
+    const pass = creds ? creds.password : '';
+    Store.secretsStatus(user.username, pass).then(res => {
+      if (res.status !== 'success') {
+        $('#bankTokenStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
+        $('#ttsKeyStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
+        return;
+      }
+      $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
+      $('#ttsKeyStatus').innerHTML = res.ttsApiKeyConfigured ? '✅ Đã cấu hình API key — giọng nói dùng Google Cloud TTS thật.' : 'Chưa cấu hình — trang đang dùng giọng trình duyệt để dự phòng.';
+    }).catch(() => {
+      $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái.';
+      $('#ttsKeyStatus').textContent = 'Không kiểm tra được trạng thái.';
+    });
+
+    $('#saveBankTokenBtn').addEventListener('click', () => {
+      const token = $('#bankTokenInput').value.trim();
+      const c = getAdminCreds();
+      if (!token) { toast('Vui lòng nhập token trước khi lưu.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#saveBankTokenBtn'), async () => {
+        const res = await Store.saveSecrets(c.username, c.password, { bankToken: token });
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#bankTokenInput').value = ''; renderAdminTab('config'); }
+      });
+    });
+
+    $('#saveTtsKeyBtn').addEventListener('click', () => {
+      const key = $('#ttsApiKeyInput').value.trim();
+      const c = getAdminCreds();
+      if (!key) { toast('Vui lòng nhập API key trước khi lưu.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#saveTtsKeyBtn'), async () => {
+        const res = await Store.saveSecrets(c.username, c.password, { ttsApiKey: key });
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
+      });
+    });
+  }
+
+  function adminOverviewHtml() {
+    const db = Store.db;
+    const revenue = db.orders.reduce((sum, o) => sum + (o.price || 0), 0);
+    const totalBalance = db.users.reduce((sum, u) => sum + (u.balance || 0), 0);
+    const stats = [
+      { label: 'Người dùng', value: db.users.length },
+      { label: 'Đơn hàng', value: db.orders.length },
+      { label: 'Doanh thu', value: fmt(revenue) },
+      { label: 'Tổng số dư ví', value: fmt(totalBalance) }
+    ];
+    const recent = db.orders.slice(0, 5);
+    return `
+      <div class="admin-stat-grid">
+        ${stats.map(s => `<div class="admin-stat-card"><strong>${s.value}</strong><span>${s.label}</span></div>`).join('')}
+      </div>
+      <h4 class="admin-section-title">Đơn hàng gần đây</h4>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Dịch vụ</th><th>Gói</th><th>Giá</th><th>Thời gian</th></tr></thead>
+          <tbody>
+            ${recent.length ? recent.map(o => `
+              <tr><td>${esc(o.serviceName)}</td><td>${esc(o.packageName)}</td><td>${fmt(o.price)}</td><td>${new Date(o.date).toLocaleString('vi-VN')}</td></tr>
+            `).join('') : '<tr><td colspan="4">Chưa có đơn hàng nào.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function adminServicesHtml() {
+    const services = Store.db.services;
+    const categories = Store.db.categories;
+    const editing = adminServiceEditing;
+    const editTarget = editing && editing !== 'new' ? services.find(s => s.id === editing) : null;
+    let formHtml = '';
+    if (editing) {
+      const s = editTarget || { id: '', name: '', categoryId: categories[0]?.id || '', subcategoryId: '', description: '', image: '', status: 'instock', features: [], packages: [{ name: '1 Ngày', price: 0 }] };
+      const subsForCat = (Store.db.subcategories || []).filter(sc => sc.categoryId === s.categoryId);
+      formHtml = `
+        <form class="admin-form" data-admin-form="service">
+          <input type="hidden" name="_originalId" value="${esc(s.id)}">
+          <label>Mã sản phẩm (tự động) <input class="auto-id" value="#${editTarget ? esc(s.id) : nextSeqId(services)}" readonly tabindex="-1"></label>
+          <label>Danh mục
+            <select name="categoryId" id="adminServiceCategory">${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+          </label>
+          <label>Thư mục con (tùy chọn)
+            <select name="subcategoryId" id="adminServiceSubcat">
+              <option value="">— Không thuộc thư mục con —</option>
+              ${subsForCat.map(sc => `<option value="${esc(sc.id)}" ${sc.id === s.subcategoryId ? 'selected' : ''}>${esc(sc.name)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="span-2">Tên dịch vụ <input name="name" value="${esc(s.name)}" required></label>
+          <label class="span-2">Mô tả <textarea name="description">${esc(s.description)}</textarea></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(s.image)}" placeholder="Lấy từ tab Thư viện"></label>
+          <label class="span-2">Link tải / file tải bản game (khách xem trong đơn hàng)
+            <input name="downloadUrl" id="adminServiceDownload" value="${esc(s.downloadUrl || '')}" placeholder="Dán link (Drive/MediaFire/link trực tiếp) hoặc bấm Tải file lên">
+          </label>
+          <label class="span-2 download-upload-row">
+            <input type="file" id="adminServiceFile">
+            <button type="button" class="btn btn-glass btn-sm" id="adminServiceUploadBtn">Tải file lên máy chủ</button>
+            <span class="muted" style="font-size:.75rem;">File tải lên sẽ tự điền vào ô link ở trên.</span>
+          </label>
+          <label>Trạng thái
+            <select name="status">
+              <option value="instock" ${s.status === 'instock' ? 'selected' : ''}>Còn hàng</option>
+              <option value="outofstock" ${s.status === 'outofstock' ? 'selected' : ''}>Hết hàng</option>
+            </select>
+          </label>
+          <label class="span-2">Tính năng (mỗi dòng một mục) <textarea name="features">${esc((s.features || []).join('\n'))}</textarea></label>
+          <div class="admin-pkg-rows" id="adminPkgRows">
+            ${(s.packages || []).map(p => adminPkgRowHtml(p)).join('')}
+          </div>
+          <div class="admin-form-actions">
+            <button type="button" class="btn btn-glass btn-sm" id="adminAddPkgRow">+ Thêm gói</button>
+            <button type="submit" class="btn btn-primary btn-sm">Lưu dịch vụ</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-service>Hủy</button>
+          </div>
+        </form>
+      `;
+    }
+    return `
+      <div class="admin-toolbar">
+        <button class="btn btn-primary btn-sm" data-admin-new-service>+ Thêm dịch vụ</button>
+      </div>
+      ${formHtml}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Tên</th><th>Danh mục › Thư mục con</th><th>Giá từ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+          <tbody>
+            ${services.map(s => {
+              const catName = categories.find(c => c.id === s.categoryId)?.name || s.categoryId;
+              const subName = s.subcategoryId ? ((Store.db.subcategories || []).find(x => x.id === s.subcategoryId)?.name || '') : '';
+              return `
+              <tr>
+                <td>${esc(s.name)}</td>
+                <td>${esc(catName)}${subName ? ' › ' + esc(subName) : ''}</td>
+                <td>${fmt(Math.min(...(s.packages || [{ price: 0 }]).map(p => p.price)))}</td>
+                <td>${s.status === 'instock' ? 'Còn hàng' : 'Hết hàng'}</td>
+                <td class="admin-row-actions">
+                  <button data-admin-edit-service="${esc(s.id)}">Sửa</button>
+                  <button class="danger" data-admin-delete-service="${esc(s.id)}">Xóa</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function adminPkgRowHtml(p) {
+    const keys = p.keys || [];
+    return `
+      <div class="admin-pkg-row" data-pkg-id="${esc(p.id || '')}">
+        <div class="admin-pkg-row-main">
+          <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
+          <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
+          <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>Kho key (<span data-pkg-key-count>${keys.length}</span>)</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
+        </div>
+        <div class="admin-pkg-keys-panel" data-pkg-keys-panel hidden>
+          <p class="muted" style="font-size:.75rem;margin:0 0 6px;">Mỗi dòng là 1 key. Khi khách mua gói này, hệ thống tự rút đúng 1 key ở đây và xóa khỏi kho.</p>
+          <ul class="admin-pkg-key-list" data-pkg-key-list>${pkgKeyListItems(keys)}</ul>
+          <textarea class="pkg-keys-input" data-pkg-keys-input placeholder="Dán nhiều key, mỗi dòng 1 key rồi bấm Thêm key"></textarea>
+          <div class="admin-pkg-keys-actions">
+            <button type="button" class="btn btn-glass btn-sm" data-add-pkg-keys>+ Thêm key</button>
+            <button type="button" class="btn btn-ghost btn-sm danger" data-clear-pkg-keys>Xóa hết key</button>
+          </div>
+        </div>
+        <textarea data-pkg-keys-data hidden>${esc(keys.join('\n'))}</textarea>
+      </div>
+    `;
+  }
+
+  function pkgKeyListItems(keys) {
+    return keys.length
+      ? keys.map((k, i) => `<li><span>${esc(k)}</span><button type="button" data-remove-pkg-key="${i}" title="Xóa key này">✕</button></li>`).join('')
+      : '<li class="empty-note">Chưa có key nào trong kho.</li>';
+  }
+
+  function refreshPkgKeyList(row, keys) {
+    row.querySelector('[data-pkg-key-count]').textContent = keys.length;
+    row.querySelector('[data-pkg-key-list]').innerHTML = pkgKeyListItems(keys);
+  }
+
+  // Bộ chọn icon SVG cho Danh mục / Thư mục con (không dùng emoji "icon máy").
+  function iconPickerHtml(selectedKey, hiddenName) {
+    const sel = (selectedKey && ICONS[selectedKey]) ? selectedKey : 'folder';
+    return `
+      <div class="icon-picker" data-icon-picker>
+        <input type="hidden" name="${hiddenName}" value="${esc(sel)}">
+        ${PICKER_ICON_KEYS.map(k => `
+          <button type="button" class="icon-pick ${k === sel ? 'selected' : ''}" data-icon-pick="${k}" title="${k}" aria-label="${k}">${ICONS[k]}</button>
+        `).join('')}
+      </div>`;
+  }
+
+  function adminCategoriesHtml() {
+    const categories = Store.db.categories;
+    const subcategories = Store.db.subcategories || [];
+
+    // ----- Form Danh mục -----
+    const cEditing = adminCategoryEditing;
+    const cEditTarget = cEditing && cEditing !== 'new' ? categories.find(c => c.id === cEditing) : null;
+    let catForm = '';
+    if (cEditing) {
+      const c = cEditTarget || { id: '', name: '', icon: 'folder', description: '', image: '' };
+      catForm = `
+        <form class="admin-form" data-admin-form="category">
+          <label>Mã danh mục (tự động) <input class="auto-id" value="#${cEditTarget ? esc(c.id) : nextSeqId(categories)}" readonly tabindex="-1"></label>
+          <label class="span-2">Tên danh mục <input name="name" value="${esc(c.name)}" required></label>
+          <label class="span-2">Chọn icon danh mục ${iconPickerHtml(c.icon, 'icon')}</label>
+          <label class="span-2">Mô tả <input name="description" value="${esc(c.description || '')}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(c.image || '')}" placeholder="Lấy từ tab Thư viện"></label>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Lưu danh mục</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-category>Hủy</button>
+          </div>
+        </form>`;
+    }
+
+    // ----- Form Thư mục con -----
+    const sEditing = adminSubcategoryEditing;
+    const sEditTarget = sEditing && sEditing !== 'new' ? subcategories.find(s => s.id === sEditing) : null;
+    let subForm = '';
+    if (sEditing) {
+      const s = sEditTarget || { id: '', categoryId: categories[0]?.id || '', name: '', icon: 'folder', description: '', image: '' };
+      subForm = `
+        <form class="admin-form" data-admin-form="subcategory">
+          <label>Mã thư mục con (tự động) <input class="auto-id" value="#${sEditTarget ? esc(s.id) : nextSeqId(subcategories)}" readonly tabindex="-1"></label>
+          <label>Thuộc danh mục
+            <select name="categoryId" required>${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+          </label>
+          <label class="span-2">Tên thư mục con (VD: PUBG IOS) <input name="name" value="${esc(s.name)}" required></label>
+          <label class="span-2">Chọn icon thư mục con ${iconPickerHtml(s.icon, 'icon')}</label>
+          <label class="span-2">Mô tả <input name="description" value="${esc(s.description || '')}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(s.image || '')}" placeholder="Lấy từ tab Thư viện"></label>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Lưu thư mục con</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-subcategory>Hủy</button>
+          </div>
+        </form>`;
+    }
+
+    return `
+      <div class="admin-toolbar">
+        <button class="btn btn-primary btn-sm" data-admin-new-category>+ Thêm danh mục</button>
+      </div>
+      ${catForm}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Icon</th><th>Tên</th><th>Thư mục con</th><th>Mô tả</th><th>Thao tác</th></tr></thead>
+          <tbody>
+            ${categories.map(c => `
+              <tr>
+                <td><span class="admin-cell-ico">${catIcon(c.icon)}</span></td>
+                <td>${esc(c.name)}</td>
+                <td>${subcategories.filter(s => s.categoryId === c.id).length}</td>
+                <td>${esc(c.description || '')}</td>
+                <td class="admin-row-actions">
+                  <button data-admin-edit-category="${esc(c.id)}">Sửa</button>
+                  <button class="danger" data-admin-delete-category="${esc(c.id)}">Xóa</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-form-section" style="margin-top:24px;">Thư mục con (Danh mục → Thư mục con → Sản phẩm)</div>
+      <div class="admin-toolbar">
+        <button class="btn btn-primary btn-sm" data-admin-new-subcategory>+ Thêm thư mục con</button>
+      </div>
+      ${subForm}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Icon</th><th>Tên thư mục con</th><th>Thuộc danh mục</th><th>Số sản phẩm</th><th>Thao tác</th></tr></thead>
+          <tbody>
+            ${subcategories.length ? subcategories.map(s => `
+              <tr>
+                <td><span class="admin-cell-ico">${catIcon(s.icon)}</span></td>
+                <td>${esc(s.name)}</td>
+                <td>${esc(categories.find(c => c.id === s.categoryId)?.name || s.categoryId)}</td>
+                <td>${Store.db.services.filter(x => x.subcategoryId === s.id).length}</td>
+                <td class="admin-row-actions">
+                  <button data-admin-edit-subcategory="${esc(s.id)}">Sửa</button>
+                  <button class="danger" data-admin-delete-subcategory="${esc(s.id)}">Xóa</button>
+                </td>
+              </tr>
+            `).join('') : '<tr><td colspan="5" class="empty-note">Chưa có thư mục con. VD: danh mục PUBG → thư mục con "PUBG IOS".</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function adminOrdersHtml() {
+    const orders = Store.db.orders;
+    return `
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Mã đơn</th><th>Người dùng</th><th>Dịch vụ</th><th>Gói</th><th>Giá</th><th>Key</th><th>Thời gian</th></tr></thead>
+          <tbody>
+            ${orders.length ? orders.map(o => {
+              const user = Store.db.users.find(u => u.userId === o.userId);
+              return `<tr>
+                <td>${esc(o.id)}</td><td>${esc(user?.username || o.userId)}</td><td>${esc(o.serviceName)}</td>
+                <td>${esc(o.packageName)}</td><td>${fmt(o.price)}</td><td>${esc(o.key)}</td>
+                <td>${new Date(o.date).toLocaleString('vi-VN')}</td>
+              </tr>`;
+            }).join('') : '<tr><td colspan="7">Chưa có đơn hàng nào.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function adminUsersHtml() {
+    const users = Store.db.users;
+    return `
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Tên đăng nhập</th><th>Vai trò</th><th>Số dư</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td>${esc(u.username)}</td>
+                <td>${u.role === 'admin' ? 'Admin' : 'Thành viên'}</td>
+                <td>${fmt(u.balance || 0)}</td>
+                <td>${u.status === 'banned' ? 'Đã khóa' : 'Hoạt động'}</td>
+                <td>${esc(u.createdAt || '')}</td>
+                <td class="admin-row-actions">
+                  <button data-admin-adjust-balance="${esc(u.userId)}" data-delta="10000">+10k</button>
+                  <button data-admin-adjust-balance="${esc(u.userId)}" data-delta="-10000">-10k</button>
+                  ${u.role !== 'admin' ? `<button class="danger" data-admin-toggle-status="${esc(u.userId)}" data-status="${u.status === 'banned' ? 'active' : 'banned'}">${u.status === 'banned' ? 'Mở khóa' : 'Khóa'}</button>` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function adminConfigHtml() {
+    const c = Store.db.config;
+    return `
+      <form class="admin-form" data-admin-form="config">
+        <div class="admin-form-section">Thương hiệu &amp; Logo</div>
+        <label>Chữ logo (logoText) <input name="logoText" value="${esc(c.logoText)}"></label>
+        <label>Dòng phụ (logoSubtext) <input name="logoSubtext" value="${esc(c.logoSubtext)}"></label>
+        <label class="span-2">Ảnh logo (logoUrl — để trống dùng icon mặc định)
+          <input name="logoUrl" value="${esc(c.logoUrl || '')}" placeholder="Dán URL ảnh (PNG/GIF/WEBP/SVG) — lấy từ tab Thư viện">
+        </label>
+        <label>Font chữ logo
+          <select name="logoFont">
+            ${LOGO_FONTS.map(f => `<option value="${esc(f)}" ${c.logoFont === f ? 'selected' : ''} style="font-family:'${esc(f)}'">${esc(f)}</option>`).join('')}
+          </select>
+        </label>
+        <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
+        <label>Hiệu ứng chạy màu chữ logo
+          <select name="logoColorMode">
+            <option value="solid" ${c.logoColorMode === 'solid' ? 'selected' : ''}>Tắt (dùng màu ở trên)</option>
+            <option value="rainbow" ${c.logoColorMode === 'rainbow' ? 'selected' : ''}>Cầu vồng 7 màu (chạy liên tục)</option>
+            <option value="shine" ${c.logoColorMode === 'shine' ? 'selected' : ''}>Ánh kim lấp lánh</option>
+          </select>
+        </label>
+        <label>Tốc độ chạy màu (giây/vòng)
+          <input type="number" name="logoAnimSpeed" min="1" max="20" step="0.5" value="${c.logoAnimSpeed || 6}">
+        </label>
+
+        <div class="admin-form-section">Màu chủ đạo toàn trang</div>
+        <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || '#ffb703')}"></label>
+
+        <div class="admin-form-section">Banner / Hero</div>
+        <label class="span-2">Nhãn nhỏ trên tiêu đề (bannerTagText) <input name="bannerTagText" value="${esc(c.bannerTagText || '')}"></label>
+        <label>Nút 1 (bannerBtn1Text) <input name="bannerBtn1Text" value="${esc(c.bannerBtn1Text || '')}"></label>
+        <label>Nút 2 (bannerBtn2Text) <input name="bannerBtn2Text" value="${esc(c.bannerBtn2Text || '')}"></label>
+        <label class="span-2">Ảnh/Video nền Hero (bgUrl)
+          <input name="bgUrl" value="${esc(c.bgUrl || '')}" placeholder="Dán URL ảnh (PNG/JPEG/GIF/WEBP) hoặc video (.mp4/.webm/.ogg) — lấy từ tab Thư viện">
+        </label>
+
+        <div class="admin-form-section">Liên hệ &amp; Giới thiệu</div>
+        <label class="span-2">Tên website (siteTitle) <input name="siteTitle" value="${esc(c.siteTitle)}"></label>
+        <label class="span-2">Mô tả ngắn (siteSubtitle) <textarea name="siteSubtitle">${esc(c.siteSubtitle)}</textarea></label>
+        <label>Tên Admin hiển thị (contactAdminName) <input name="contactAdminName" value="${esc(c.contactAdminName || '')}"></label>
+        <label>Chức danh (contactAdminSub) <input name="contactAdminSub" value="${esc(c.contactAdminSub || '')}"></label>
+        <label class="span-2">Giới thiệu (contactAdminDesc) <textarea name="contactAdminDesc">${esc(c.contactAdminDesc || '')}</textarea></label>
+        <label>Hotline <input name="hotline" value="${esc(c.hotline)}"></label>
+        <label>Link Zalo <input name="zaloLink" value="${esc(c.zaloLink)}"></label>
+
+        <div class="admin-form-section">Kênh liên hệ (chọn nhiều — tự gộp thành 1 nút danh sách)</div>
+        ${(c.contactChannels || []).map(ch => `
+          <label class="span-2 contact-channel-row">
+            <span class="contact-channel-toggle">
+              <input type="checkbox" name="contact_${esc(ch.id)}_enabled" ${ch.enabled ? 'checked' : ''}>
+              ${ch.icon} ${esc(ch.label)}
+            </span>
+            <input name="contact_${esc(ch.id)}_url" value="${esc(ch.url || '')}" placeholder="${ch.id === 'phone' ? 'tel:0387332523' : ch.id === 'email' ? 'mailto:ban@kenios.store' : 'https://...'}">
+          </label>
+        `).join('')}
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Chỉ 1 kênh được bật → hiện thẳng 1 nút. Bật từ 2 kênh trở lên → tự động gộp thành 1 nút "Liên hệ" duy nhất, bấm vào sẽ mở danh sách tất cả các kênh — áp dụng đồng nhất ở header, footer và popup chào mừng.
+        </p>
+
+        <div class="admin-form-section">Đăng nhập bằng Google</div>
+        <label class="span-2">Google Client ID
+          <input name="googleClientId" value="${esc(c.googleClientId || '')}" placeholder="xxxxxxxx.apps.googleusercontent.com">
+        </label>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Lấy Client ID miễn phí tại
+          <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--gold-soft);">Google Cloud Console</a>
+          (tạo OAuth Client ID loại "Web application", thêm domain của bạn vào "Authorized JavaScript origins").
+          Để trống thì nút đăng nhập Google sẽ ẩn.
+        </p>
+
+        <div class="admin-form-section">Ngân hàng (VietQR) &amp; Giao dịch tự động</div>
+        <label>Ngân hàng
+          <select name="bankId">
+            ${BANK_OPTIONS.concat(BANK_OPTIONS.includes(c.bankId) ? [] : [c.bankId]).filter(Boolean).map(b => `<option value="${esc(b)}" ${c.bankId === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+          </select>
+        </label>
+        <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
+        <label class="span-2">Tên chủ tài khoản <input name="bankAccountName" value="${esc(c.bankAccountName)}"></label>
+
+        <div class="secret-box span-2" id="bankWebhookBox">
+          <div class="secret-status" id="bankTokenStatus">Đang kiểm tra trạng thái…</div>
+          <label>Webhook Token (dùng chung cho Casso / SePay / ThueAPIBank / ACB...)
+            <input type="password" id="bankTokenInput" placeholder="Để trống nếu giữ nguyên token hiện tại" autocomplete="new-password">
+          </label>
+          <label>URL Webhook — dán vào cấu hình bên SePay/Casso/ACB
+            <span class="input-with-toggle">
+              <input type="text" id="bankWebhookUrl" readonly>
+              <button type="button" class="pw-toggle-btn" id="copyWebhookUrlBtn" title="Sao chép"></button>
+            </span>
+          </label>
+          <button type="button" class="btn btn-glass btn-sm" id="saveBankTokenBtn">🔒 Lưu Token Webhook</button>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
+        </div>
+
+        <div class="admin-form-section">Giọng nói Google Cloud TTS (chạy được trên mọi trình duyệt, kể cả Safari/iPhone)</div>
+        <div class="secret-box span-2" id="ttsKeyBox">
+          <div class="secret-status" id="ttsKeyStatus">Đang kiểm tra trạng thái…</div>
+          <label>Google Cloud Text-to-Speech API Key
+            <input type="password" id="ttsApiKeyInput" placeholder="Để trống nếu giữ nguyên API key hiện tại" autocomplete="new-password">
+          </label>
+          <button type="button" class="btn btn-glass btn-sm" id="saveTtsKeyBtn">🔒 Lưu API Key</button>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">
+            Lấy API key miễn phí tại <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--gold-soft);">Google Cloud Console</a> (bật API "Cloud Text-to-Speech"). Chưa cấu hình thì trang sẽ tự dùng giọng trình duyệt để dự phòng. Khóa được lưu riêng ở máy chủ, không hiển thị lại và không gửi cho khách truy cập trang.
+          </p>
+        </div>
+
+        <div class="admin-form-section">Thông báo Popup khi vào Web</div>
+        <label>Bật thông báo popup
+          <select name="welcomePopupEnabled">
+            <option value="1" ${c.welcomePopupEnabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!c.welcomePopupEnabled ? 'selected' : ''}>Tắt</option>
+          </select>
+        </label>
+        <label>Tiêu đề popup <input name="welcomePopupTitle" value="${esc(c.welcomePopupTitle || '')}"></label>
+        <label class="span-2">Nội dung popup
+          <textarea name="welcomePopupMessage">${esc(c.welcomePopupMessage || '')}</textarea>
+        </label>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Popup kèm nút "Liên hệ ngay" sẽ hiện 1 lần mỗi phiên truy cập. Đây là thông báo <b>chỉ hiển thị bằng chữ</b>, tách riêng hoàn toàn với lời chào giọng nói bên dưới.
+        </p>
+
+        <div class="admin-form-section">Lời chào giọng nói khi vào Web</div>
+        <label>Bật lời chào giọng nói
+          <select name="welcomeVoiceEnabled">
+            <option value="1" ${c.welcomeVoiceEnabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!c.welcomeVoiceEnabled ? 'selected' : ''}>Tắt</option>
+          </select>
+        </label>
+        <label>Chào mọi lần vào web
+          <select name="welcomeAlways">
+            <option value="1" ${c.welcomeAlways !== false ? 'selected' : ''}>Có — ai vào cũng được chào</option>
+            <option value="0" ${c.welcomeAlways === false ? 'selected' : ''}>Chỉ 1 lần mỗi phiên</option>
+          </select>
+        </label>
+        <label class="span-2">Nội dung lời chào (đọc to bằng giọng nói)
+          <textarea name="welcomeVoiceText">${esc(c.welcomeVoiceText || '')}</textarea>
+        </label>
+        <label class="span-2">Chọn giọng nói
+          <select name="welcomeVoiceName" id="welcomeVoiceSelect">
+            <option value="">Tự động (ưu tiên giọng nữ tiếng Việt / Google)</option>
+          </select>
+        </label>
+        <div class="admin-form-actions" style="margin-top:0;">
+          <button type="button" class="btn btn-glass btn-sm" id="testWelcomeVoiceBtn">Nghe thử lời chào</button>
+        </div>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Danh sách giọng lấy từ trình duyệt. Muốn giọng "chị Google" chuẩn trên mọi máy (kể cả iPhone), hãy nhập Google Cloud TTS API Key ở mục dưới.
+        </p>
+
+        <div class="admin-form-section">Chữ chạy</div>
+        <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
+        <label>Tốc độ chạy (giây/vòng, càng nhỏ càng nhanh)
+          <input type="number" name="marqueeSpeed" min="6" max="60" step="1" value="${c.marqueeSpeed || 26}">
+        </label>
+
+        <div class="admin-form-section">Trợ lý ảo AI</div>
+        <label>Giọng nói trợ lý (TTS)
+          <select name="ttsEnabled">
+            <option value="1" ${c.ttsEnabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!c.ttsEnabled ? 'selected' : ''}>Tắt</option>
+          </select>
+        </label>
+        <label>Tên trợ lý (aiName) <input name="aiName" value="${esc(c.aiName || '')}"></label>
+        <label class="span-2">Lời chào đầu tiên (aiGreeting) <textarea name="aiGreeting">${esc(c.aiGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời khi chào hỏi (aiResponseGreeting) <textarea name="aiResponseGreeting">${esc(c.aiResponseGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời về nạp tiền (aiResponseDeposit) <textarea name="aiResponseDeposit">${esc(c.aiResponseDeposit || '')}</textarea></label>
+        <label class="span-2">Trả lời về sản phẩm (aiResponseProduct) <textarea name="aiResponseProduct">${esc(c.aiResponseProduct || '')}</textarea></label>
+        <label class="span-2">Trả lời về thiết kế web (aiResponseWeb) <textarea name="aiResponseWeb">${esc(c.aiResponseWeb || '')}</textarea></label>
+        <label class="span-2">Trả lời về bảng giá (aiResponsePrice) <textarea name="aiResponsePrice">${esc(c.aiResponsePrice || '')}</textarea></label>
+        <label class="span-2">Trả lời về liên hệ (aiResponseContact) <textarea name="aiResponseContact">${esc(c.aiResponseContact || '')}</textarea></label>
+        <label class="span-2">Trả lời khi cảm ơn (aiResponseThanks) <textarea name="aiResponseThanks">${esc(c.aiResponseThanks || '')}</textarea></label>
+        <label class="span-2">Trả lời mặc định khi không hiểu (aiResponseFallback) <textarea name="aiResponseFallback">${esc(c.aiResponseFallback || '')}</textarea></label>
+
+        <div class="admin-form-actions">
+          <button type="submit" class="btn btn-primary btn-sm">Lưu cấu hình</button>
+          <button type="button" class="btn btn-glass btn-sm" id="adminSyncServerBtn" style="gap:7px;">
+            <span class="btn-ico" data-icon="cloud"></span> Đồng bộ lên máy chủ
+          </button>
+          <span class="admin-sync-msg" id="adminConfigSyncMsg" style="font-size:.78rem;color:var(--muted);align-self:center;"></span>
+        </div>
+      </form>
+    `;
+  }
+
+  function adminMediaHtml() {
+    const media = Store.db.media || [];
+    return `
+      <div class="media-upload-row">
+        <input type="file" id="adminMediaFile" accept="image/*,video/*">
+        <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">Tải lên</button>
+        <span class="muted" style="font-size:.8rem;">Ảnh hoặc video tối đa 500MB. Chỉ hoạt động khi có máy chủ PHP (cần hosting cho phép upload lớn — xem file .user.ini).</span>
+      </div>
+      <div class="media-link-row">
+        <input type="text" id="adminMediaUrl" placeholder="Dán link ảnh/video từ nơi khác (VD: link .mp4...)">
+        <select id="adminMediaType">
+          <option value="auto">Tự nhận đuôi</option>
+          <option value="video">Video (.mp4/.webm)</option>
+          <option value="image">Ảnh (.jpg/.png/.gif)</option>
+        </select>
+        <button type="button" class="btn btn-glass btn-sm" id="adminAddLinkBtn">+ Thêm link (tạo video/ảnh thành link)</button>
+      </div>
+      <p class="muted" style="font-size:.75rem;margin:0 0 12px;">Thư viện dùng cho ảnh sản phẩm/danh mục, nền Hero, và mục "Hình ảnh &amp; Video" trên trang chủ. Chọn đuôi (video/ảnh) khi link không rõ đuôi.</p>
+      <div class="media-grid">
+        ${media.length ? media.map(m => `
+          <div class="media-card">
+            <div class="media-preview">
+              ${m.type === 'video'
+                ? `<video src="${esc(m.url)}" muted></video>`
+                : `<img src="${esc(m.url)}" alt="">`}
+            </div>
+            <div class="media-info">
+              <strong style="font-size:.78rem;">${esc(m.name || '')}</strong>
+              <span class="media-url">${esc(m.url)}</span>
+              <div class="media-actions">
+                <button type="button" data-admin-copy-media="${esc(m.url)}">Sao chép</button>
+                <button type="button" class="danger" data-admin-delete-media="${esc(m.id)}">Xóa</button>
+              </div>
+            </div>
+          </div>
+        `).join('') : '<p class="empty-note">Chưa có ảnh/video nào. Tải lên để lấy link sử dụng cho ảnh sản phẩm, danh mục hoặc nền Hero.</p>'}
+      </div>
+    `;
+  }
+
+  function onAdminPanelClick(e) {
+    const newService = e.target.closest('[data-admin-new-service]');
+    if (newService) { adminServiceEditing = 'new'; renderAdminTab('services'); return; }
+
+    const editService = e.target.closest('[data-admin-edit-service]');
+    if (editService) { adminServiceEditing = editService.dataset.adminEditService; renderAdminTab('services'); return; }
+
+    const cancelService = e.target.closest('[data-admin-cancel-service]');
+    if (cancelService) { adminServiceEditing = null; renderAdminTab('services'); return; }
+
+    const deleteService = e.target.closest('[data-admin-delete-service]');
+    if (deleteService) {
+      if (confirm('Xóa dịch vụ này? Hành động không thể hoàn tác.')) {
+        Store.adminDeleteService(deleteService.dataset.adminDeleteService);
+        renderAdminTab('services');
+        toast('Đã xóa dịch vụ.', 'success');
+      }
+      return;
+    }
+
+    const addPkgRow = e.target.closest('#adminAddPkgRow');
+    if (addPkgRow) {
+      $('#adminPkgRows').insertAdjacentHTML('beforeend', adminPkgRowHtml({ name: '', price: 0 }));
+      return;
+    }
+    const removePkgRow = e.target.closest('[data-remove-pkg-row]');
+    if (removePkgRow) { removePkgRow.closest('.admin-pkg-row').remove(); return; }
+
+    const pkgKeysToggle = e.target.closest('[data-pkg-keys-toggle]');
+    if (pkgKeysToggle) {
+      const panel = pkgKeysToggle.closest('.admin-pkg-row').querySelector('[data-pkg-keys-panel]');
+      panel.hidden = !panel.hidden;
+      return;
+    }
+    const removePkgKey = e.target.closest('[data-remove-pkg-key]');
+    if (removePkgKey) {
+      const row = removePkgKey.closest('.admin-pkg-row');
+      const dataEl = row.querySelector('[data-pkg-keys-data]');
+      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean);
+      keys.splice(parseInt(removePkgKey.dataset.removePkgKey, 10), 1);
+      dataEl.value = keys.join('\n');
+      refreshPkgKeyList(row, keys);
+      return;
+    }
+    const addPkgKeys = e.target.closest('[data-add-pkg-keys]');
+    if (addPkgKeys) {
+      const row = addPkgKeys.closest('.admin-pkg-row');
+      const input = row.querySelector('[data-pkg-keys-input]');
+      const newKeys = input.value.split('\n').map(k => k.trim()).filter(Boolean);
+      if (!newKeys.length) return;
+      const dataEl = row.querySelector('[data-pkg-keys-data]');
+      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean).concat(newKeys);
+      dataEl.value = keys.join('\n');
+      input.value = '';
+      refreshPkgKeyList(row, keys);
+      return;
+    }
+    const clearPkgKeys = e.target.closest('[data-clear-pkg-keys]');
+    if (clearPkgKeys) {
+      if (!confirm('Xóa toàn bộ key trong kho của gói này?')) return;
+      const row = clearPkgKeys.closest('.admin-pkg-row');
+      row.querySelector('[data-pkg-keys-data]').value = '';
+      refreshPkgKeyList(row, []);
+      return;
+    }
+    const newCategory = e.target.closest('[data-admin-new-category]');
+    if (newCategory) { adminCategoryEditing = 'new'; renderAdminTab('categories'); return; }
+
+    const editCategory = e.target.closest('[data-admin-edit-category]');
+    if (editCategory) { adminCategoryEditing = editCategory.dataset.adminEditCategory; renderAdminTab('categories'); return; }
+
+    const cancelCategory = e.target.closest('[data-admin-cancel-category]');
+    if (cancelCategory) { adminCategoryEditing = null; renderAdminTab('categories'); return; }
+
+    const deleteCategory = e.target.closest('[data-admin-delete-category]');
+    if (deleteCategory) {
+      try {
+        Store.adminDeleteCategory(deleteCategory.dataset.adminDeleteCategory);
+        renderAdminTab('categories');
+        toast('Đã xóa danh mục.', 'success');
+      } catch (err) { toast(err.message, 'error'); }
+      return;
+    }
+
+    // ----- Thư mục con -----
+    const newSubcat = e.target.closest('[data-admin-new-subcategory]');
+    if (newSubcat) { adminSubcategoryEditing = 'new'; renderAdminTab('categories'); return; }
+
+    const editSubcat = e.target.closest('[data-admin-edit-subcategory]');
+    if (editSubcat) { adminSubcategoryEditing = editSubcat.dataset.adminEditSubcategory; renderAdminTab('categories'); return; }
+
+    const cancelSubcat = e.target.closest('[data-admin-cancel-subcategory]');
+    if (cancelSubcat) { adminSubcategoryEditing = null; renderAdminTab('categories'); return; }
+
+    const deleteSubcat = e.target.closest('[data-admin-delete-subcategory]');
+    if (deleteSubcat) {
+      try {
+        Store.adminDeleteSubcategory(deleteSubcat.dataset.adminDeleteSubcategory);
+        renderAdminTab('categories');
+        toast('Đã xóa thư mục con.', 'success');
+      } catch (err) { toast(err.message, 'error'); }
+      return;
+    }
+
+    // ----- Bộ chọn icon (Danh mục / Thư mục con) -----
+    const iconPick = e.target.closest('[data-icon-pick]');
+    if (iconPick) {
+      const picker = iconPick.closest('[data-icon-picker]');
+      picker.querySelector('input[type=hidden]').value = iconPick.dataset.iconPick;
+      $$('.icon-pick', picker).forEach(b => b.classList.toggle('selected', b === iconPick));
+      return;
+    }
+
+    const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
+    if (adjustBalance) {
+      Store.adminAdjustBalance(adjustBalance.dataset.adminAdjustBalance, parseInt(adjustBalance.dataset.delta, 10));
+      renderAdminTab('users');
+      toast('Đã cập nhật số dư.', 'success');
+      return;
+    }
+
+    const toggleStatus = e.target.closest('[data-admin-toggle-status]');
+    if (toggleStatus) {
+      Store.adminSetUserStatus(toggleStatus.dataset.adminToggleStatus, toggleStatus.dataset.status);
+      renderAdminTab('users');
+      toast('Đã cập nhật trạng thái người dùng.', 'success');
+      return;
+    }
+
+    const uploadBtn = e.target.closest('#adminUploadBtn');
+    if (uploadBtn) {
+      const fileInput = $('#adminMediaFile');
+      const file = fileInput.files[0];
+      if (!file) { toast('Vui lòng chọn một file trước.', 'error'); return; }
+      withLoading(uploadBtn, async () => {
+        try {
+          const url = await Store.uploadFile(file);
+          const type = isVideoUrl(url) ? 'video' : 'image';
+          Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: file.name, date: new Date().toISOString() });
+          renderAdminTab('media');
+          toast('Tải lên thành công!', 'success');
+        } catch (err) { toast(err.message, 'error'); }
+      });
+      return;
+    }
+
+    const svcUploadBtn = e.target.closest('#adminServiceUploadBtn');
+    if (svcUploadBtn) {
+      const file = $('#adminServiceFile').files[0];
+      if (!file) { toast('Vui lòng chọn file bản game trước.', 'error'); return; }
+      withLoading(svcUploadBtn, async () => {
+        try {
+          const url = await Store.uploadFile(file);
+          $('#adminServiceDownload').value = url;
+          toast('Đã tải file lên & điền link tải!', 'success');
+        } catch (err) { toast(err.message, 'error'); }
+      });
+      return;
+    }
+
+    const addLinkBtn = e.target.closest('#adminAddLinkBtn');
+    if (addLinkBtn) {
+      const url = $('#adminMediaUrl').value.trim();
+      if (!url) { toast('Vui lòng dán link trước.', 'error'); return; }
+      let type = $('#adminMediaType').value;
+      if (type === 'auto') type = /\.(mp4|webm|ogg)(\?|#|$)/i.test(url) ? 'video' : 'image';
+      Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: 'Link ' + type, date: new Date().toISOString() });
+      renderAdminTab('media');
+      toast('Đã thêm link vào Thư viện.', 'success');
+      return;
+    }
+
+    const copyMedia = e.target.closest('[data-admin-copy-media]');
+    if (copyMedia) {
+      navigator.clipboard?.writeText(copyMedia.dataset.adminCopyMedia).then(() => toast('Đã sao chép link!', 'success'));
+      return;
+    }
+
+    const deleteMedia = e.target.closest('[data-admin-delete-media]');
+    if (deleteMedia) {
+      if (confirm('Xóa file này khỏi thư viện?')) {
+        Store.adminDeleteMedia(deleteMedia.dataset.adminDeleteMedia);
+        renderAdminTab('media');
+        toast('Đã xóa file.', 'success');
+      }
+      return;
+    }
+  }
+
+  // Khi admin đổi Danh mục trong form Dịch vụ, nạp lại danh sách Thư mục con tương ứng.
+  function onAdminPanelChange(e) {
+    const catSel = e.target.closest('#adminServiceCategory');
+    if (!catSel) return;
+    const sub = $('#adminServiceSubcat');
+    if (!sub) return;
+    const subs = (Store.db.subcategories || []).filter(s => s.categoryId === catSel.value);
+    sub.innerHTML = `<option value="">— Không thuộc thư mục con —</option>`
+      + subs.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+  }
+
+  function onAdminPanelSubmit(e) {
+    const formType = e.target.dataset.adminForm;
+    if (!formType) return;
+    e.preventDefault();
+    const fd = new FormData(e.target);
+
+    if (formType === 'service') {
+      // ID sản phẩm sinh tự động (#01, #02...) khi thêm mới; giữ nguyên khi sửa.
+      const id = adminServiceEditing === 'new' ? nextSeqId(Store.db.services) : adminServiceEditing;
+      // Giữ nguyên id gói cũ (không sinh lại mỗi lần lưu) và chỉ gửi lại field `keys`
+      // khi thực sự biết rõ nội dung kho key hiện tại (đã gõ thêm, hoặc phiên này đã
+      // tải đủ kho key từ máy chủ) — tránh trường hợp sửa giá/tên mà vô tình gửi kho
+      // key rỗng đè lên kho key thật trên máy chủ khi chưa bấm "Tải kho key đầy đủ".
+      const originalService = Store.db.services.find(s => s.id === id);
+      const packages = $$('.admin-pkg-row', e.target).map((row, i) => {
+        const name = row.querySelector('[data-pkg-name]').value.trim();
+        const price = parseInt(row.querySelector('[data-pkg-price]').value, 10) || 0;
+        const keys = row.querySelector('[data-pkg-keys-data]').value.split('\n').map(k => k.trim()).filter(Boolean);
+        const pkgId = row.dataset.pkgId;
+        const pkg = { id: pkgId || `pkg-${id}-${i}-${Date.now().toString(36)}`, name, price };
+        const original = pkgId && originalService ? (originalService.packages || []).find(p => p.id === pkgId) : null;
+        const knewKeysAlready = original && Array.isArray(original.keys);
+        if (keys.length || knewKeysAlready) pkg.keys = keys;
+        return pkg;
+      }).filter(p => p.name);
+      if (!packages.length) { toast('Cần ít nhất một gói giá.', 'error'); return; }
+      const categoryId = fd.get('categoryId');
+      // Chỉ giữ subcategoryId nếu thư mục con đó thực sự thuộc danh mục đã chọn.
+      let subcategoryId = fd.get('subcategoryId') || '';
+      if (subcategoryId && !(Store.db.subcategories || []).some(sc => sc.id === subcategoryId && sc.categoryId === categoryId)) {
+        subcategoryId = '';
+      }
+      Store.adminSaveService({
+        id, name: fd.get('name').trim(), categoryId, subcategoryId,
+        description: fd.get('description').trim(), image: fd.get('image').trim(),
+        downloadUrl: (fd.get('downloadUrl') || '').trim(),
+        status: fd.get('status'), features: fd.get('features').split('\n').map(s => s.trim()).filter(Boolean),
+        packages
+      });
+      adminServiceEditing = null;
+      renderAdminTab('services');
+      toast('Đã lưu dịch vụ.', 'success');
+    } else if (formType === 'category') {
+      const id = adminCategoryEditing === 'new' ? nextSeqId(Store.db.categories) : adminCategoryEditing;
+      Store.adminSaveCategory({
+        id, name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
+        description: fd.get('description').trim(), image: fd.get('image').trim()
+      });
+      adminCategoryEditing = null;
+      renderAdminTab('categories');
+      toast('Đã lưu danh mục.', 'success');
+    } else if (formType === 'subcategory') {
+      const id = adminSubcategoryEditing === 'new' ? nextSeqId(Store.db.subcategories || []) : adminSubcategoryEditing;
+      Store.adminSaveSubcategory({
+        id, categoryId: fd.get('categoryId'), name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
+        description: fd.get('description').trim(), image: fd.get('image').trim()
+      });
+      adminSubcategoryEditing = null;
+      renderAdminTab('categories');
+      toast('Đã lưu thư mục con.', 'success');
+    } else if (formType === 'config') {
+      Store.adminUpdateConfig({
+        logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),
+        logoUrl: fd.get('logoUrl'), logoFont: fd.get('logoFont'), logoColor: fd.get('logoColor'),
+        logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
+        accentColor: fd.get('accentColor'),
+        bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
+        siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
+        contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
+        hotline: fd.get('hotline'), zaloLink: fd.get('zaloLink'),
+        googleClientId: fd.get('googleClientId'),
+        welcomePopupEnabled: fd.get('welcomePopupEnabled') === '1',
+        welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
+        welcomeVoiceEnabled: fd.get('welcomeVoiceEnabled') === '1', welcomeVoiceText: fd.get('welcomeVoiceText'),
+        welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceName: fd.get('welcomeVoiceName') || '',
+        bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
+        marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
+        ttsEnabled: fd.get('ttsEnabled') === '1',
+        aiName: fd.get('aiName'), aiGreeting: fd.get('aiGreeting'),
+        aiResponseGreeting: fd.get('aiResponseGreeting'), aiResponseDeposit: fd.get('aiResponseDeposit'),
+        aiResponseProduct: fd.get('aiResponseProduct'), aiResponseWeb: fd.get('aiResponseWeb'),
+        aiResponsePrice: fd.get('aiResponsePrice'), aiResponseContact: fd.get('aiResponseContact'),
+        aiResponseThanks: fd.get('aiResponseThanks'), aiResponseFallback: fd.get('aiResponseFallback'),
+        bgUrl: fd.get('bgUrl'),
+        contactChannels: (Store.db.config.contactChannels || []).map(ch => ({
+          ...ch,
+          enabled: fd.get(`contact_${ch.id}_enabled`) === 'on',
+          url: (fd.get(`contact_${ch.id}_url`) || '').trim()
+        }))
+      });
+      renderStatic();
+      toast('Đã lưu cấu hình. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
+    }
+  }
+
+  // ============================================================
+  // Toast
+  // ============================================================
+  const TOAST_ICONS = { success: '✅', error: '⚠️' };
+  function toast(message, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${TOAST_ICONS[type] || 'ℹ️'}</span><span class="toast-body"></span><button class="toast-dismiss" aria-label="Đóng">✕</button>`;
+    el.querySelector('.toast-body').textContent = message;
+    el.querySelector('.toast-dismiss').addEventListener('click', () => el.remove());
+    $('#toastStack').appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+
+  function setText(sel, text) { const el = $(sel); if (el) el.textContent = text ?? ''; }
+  function setAttr(sel, attr, val) { const el = $(sel); if (el && val) el.setAttribute(attr, val); }
+})();

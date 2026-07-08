@@ -1,0 +1,152 @@
+{
+  "config": {
+    "siteName": "kenios.store",
+    "siteTitle": "KENIOS.STORE - Cửa Hàng Dịch Vụ Game & Thiết Kế Website",
+    "siteSubtitle": "Hệ thống phân phối phụ kiện game & dịch vụ thiết kế web hàng đầu Việt Nam. Tự động 24/24, hỗ trợ setup từ A-Z.",
+    "logoText": "KENIOS.STORE",
+    "logoSubtext": "v3.0 Premium",
+    "logoUrl": "",
+    "logoFont": "Be Vietnam Pro",
+    "logoColor": "",
+    "logoColorMode": "rainbow",
+    "logoAnimSpeed": 6,
+    "accentColor": "#ffb703",
+    "googleClientId": "",
+    "welcomePopupEnabled": false,
+    "welcomePopupTitle": "Chào mừng bạn đến với KENIOS.STORE!",
+    "welcomePopupMessage": "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
+    "welcomeVoiceEnabled": true,
+    "welcomeAlways": true,
+    "welcomeVoiceName": "",
+    "welcomeVoiceText": "Xin chào! Chào mừng bạn đã đến với KENIOS.STORE.",
+    "hotline": "0387332523",
+    "zaloLink": "https://zalo.me/0387332523",
+    "contactChannels": [
+      { "id": "zalo", "label": "Zalo", "icon": "💬", "url": "https://zalo.me/0387332523", "enabled": true },
+      { "id": "phone", "label": "Hotline", "icon": "📞", "url": "tel:0387332523", "enabled": false },
+      { "id": "telegram", "label": "Telegram", "icon": "📢", "url": "", "enabled": false },
+      { "id": "facebook", "label": "Facebook", "icon": "👍", "url": "", "enabled": false },
+      { "id": "instagram", "label": "Instagram", "icon": "📷", "url": "", "enabled": false },
+      { "id": "tiktok", "label": "TikTok", "icon": "🎵", "url": "", "enabled": false },
+      { "id": "email", "label": "Email", "icon": "📧", "url": "", "enabled": false }
+    ],
+    "contactAdminName": "ADMIN SHOP",
+    "contactAdminSub": "Chủ sở hữu hệ thống",
+    "contactAdminDesc": "Chuyên cung cấp phụ kiện gaming và dịch vụ thiết kế website chất lượng cao, giúp nâng tầm trải nghiệm của bạn.",
+    "bgUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop",
+    "aiName": "Trợ Lý Ảo Kenios",
+    "aiGreeting": "Xin chào! Tôi là trợ lý ảo của KENIOS.STORE. Tôi có thể giúp gì cho bạn hôm nay?",
+    "aiResponseGreeting": "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
+    "aiResponseDeposit": "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
+    "aiResponseProduct": "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
+    "aiResponseWeb": "Bên mình có dịch vụ thiết kế website phong cách hiện đại, chuẩn SEO và tương thích tốt trên mọi thiết bị. Hãy xem mục \"Thiết Kế Web\" để biết thêm chi tiết nhé!",
+    "aiResponsePrice": "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
+    "aiResponseContact": "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
+    "aiResponseThanks": "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
+    "aiResponseFallback": "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
+    "bankId": "",
+    "bankAccountNo": "",
+    "bankAccountName": "",
+    "bankToken": "",
+    "bannerTagText": "Dịch vụ hàng đầu Việt Nam",
+    "bannerBtn1Text": "Xem Dịch Vụ",
+    "bannerBtn2Text": "Nạp Tiền Ngay",
+    "marqueeText": "Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24",
+    "marqueeSpeed": 26,
+    "ttsEnabled": true,
+    "ttsVoice": "google_female_vi",
+    "ttsRate": 1,
+    "ttsPitch": 1
+  },
+  "categories": [
+    {
+      "id": "pubg",
+      "name": "PUBG",
+      "description": "Công cụ hỗ trợ & phụ kiện cho game PUBG",
+      "icon": "target",
+      "image": "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      "id": "lienquan",
+      "name": "Liên Quân",
+      "description": "Mod skin, bản đồ sáng và dịch vụ hỗ trợ leo rank",
+      "icon": "shield",
+      "image": "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      "id": "freefire",
+      "name": "Free Fire",
+      "description": "Công cụ hỗ trợ, phụ kiện độc quyền cho Free Fire",
+      "icon": "fire",
+      "image": "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      "id": "tocchien",
+      "name": "Tốc Chiến",
+      "description": "Phần mềm bổ trợ và mod skin cho Tốc Chiến",
+      "icon": "bolt",
+      "image": "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      "id": "webdesign",
+      "name": "Thiết Kế Web",
+      "description": "Thiết kế website hiện đại, Glassmorphism, chuẩn SEO",
+      "icon": "web",
+      "image": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      "id": "other",
+      "name": "Khác",
+      "description": "Các sản phẩm, phần mềm và dịch vụ khác",
+      "icon": "folder",
+      "image": "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600&auto=format&fit=crop"
+    }
+  ],
+  "subcategories": [
+    {
+      "id": "pubg-ios",
+      "categoryId": "pubg",
+      "name": "PUBG IOS",
+      "description": "Sản phẩm dành cho PUBG Mobile trên hệ điều hành iOS",
+      "icon": "diamond",
+      "image": ""
+    },
+    {
+      "id": "pubg-android",
+      "categoryId": "pubg",
+      "name": "PUBG ANDROID",
+      "description": "Sản phẩm dành cho PUBG Mobile trên hệ điều hành Android",
+      "icon": "gamepad",
+      "image": ""
+    }
+  ],
+  "services": [],
+  "users": [
+    {
+      "userId": "10001",
+      "username": "kenios",
+      "password": "$2y$12$/IIRSKFYv48pWmB809NhfOinEYYt6b2S9EzdSKk2.w2gMLBG9cLh2",
+      "balance": 0,
+      "role": "admin",
+      "status": "active",
+      "createdAt": "2026-06-13"
+    }
+  ],
+  "posts": [
+    {
+      "id": "1",
+      "title": "Hướng dẫn cài đặt an toàn 100%",
+      "summary": "Làm sao để trải nghiệm an toàn, không lo mất tài khoản chính? Xem ngay cẩm nang này.",
+      "date": "2026-06-10"
+    },
+    {
+      "id": "2",
+      "title": "Cập nhật hệ thống nạp tiền VietQR siêu tốc",
+      "summary": "Hệ thống chính thức nâng cấp cơ chế sinh mã QR tự động theo chuẩn Napas 247.",
+      "date": "2026-06-09"
+    }
+  ],
+  "orders": [],
+  "transactions": [],
+  "media": []
+}
