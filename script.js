@@ -1592,9 +1592,16 @@ window.KENIOS_DEFAULT_DB = {
 
   function applyBranding(cfg) {
     const hasPhoto = !!cfg.logoUrl; // logo ảnh riêng → hiển thị full (phủ kín khung như app-icon)
-    $$('.brand-mark').forEach(img => { img.src = cfg.logoUrl || './favicon.svg'; });
-    if ($('#mobileNavLogo')) $('#mobileNavLogo').src = cfg.logoUrl || './favicon.svg';
-    $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => w.classList.toggle('has-photo', hasPhoto));
+    const logoUrl = cfg.logoUrl || '';
+    const isVid = isVideoUrl(logoUrl);           // logo là VIDEO -> dùng <video>, không phải <img>
+    const src = logoUrl || './favicon.svg';
+    $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => {
+      w.classList.toggle('has-photo', hasPhoto);
+      const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
+      w.innerHTML = isVid
+        ? `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline></video>`
+        : `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
+    });
 
     const font = cfg.logoFont || 'Be Vietnam Pro';
     ensureFontLoaded(font);
@@ -3221,8 +3228,8 @@ window.KENIOS_DEFAULT_DB = {
         <div class="admin-form-section">Thương hiệu &amp; Logo</div>
         <label>Chữ logo (logoText) <input name="logoText" value="${esc(c.logoText)}"></label>
         <label>Dòng phụ (logoSubtext) <input name="logoSubtext" value="${esc(c.logoSubtext)}"></label>
-        <label class="span-2">Ảnh logo (logoUrl — để trống dùng icon mặc định)
-          <input name="logoUrl" value="${esc(c.logoUrl || '')}" placeholder="Dán URL ảnh (PNG/GIF/WEBP/SVG) — lấy từ tab Thư viện">
+        <label class="span-2">Ảnh / Video logo (logoUrl — để trống dùng icon mặc định)
+          <input name="logoUrl" value="${esc(c.logoUrl || '')}" placeholder="Dán URL ảnh (PNG/GIF/WEBP/SVG) hoặc video (.mp4/.webm/.ogg) — logo sẽ tự phát video">
         </label>
         <label class="span-2">Font chữ logo (bấm chọn — xem trước trực tiếp, có nhiều font đậm/3D)
           ${fontPickerHtml(c.logoFont)}

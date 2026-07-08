@@ -112,10 +112,10 @@ button { font: inherit; }
   border: 1px solid rgba(139,92,246,.25);
 }
 .brand-mark-wrap.footer-mark { width: 34px; height: 34px; border-radius: 10px; }
-.brand-mark { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
+.brand-mark { width: 100%; height: 100%; object-fit: contain; padding: 5px; display: block; }
 /* Logo ảnh riêng do admin tải lên → hiển thị FULL, phủ kín khung như app-icon (không viền, không đệm) */
 .brand-mark-wrap.has-photo, .mobile-nav-brand-mark.has-photo { background: none; border-color: transparent; padding: 0; }
-.brand-mark-wrap.has-photo .brand-mark, .mobile-nav-brand-mark.has-photo img { object-fit: cover; padding: 0; }
+.brand-mark-wrap.has-photo .brand-mark, .mobile-nav-brand-mark.has-photo img, .mobile-nav-brand-mark.has-photo video { object-fit: cover; padding: 0; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-text strong { font-size: 1.05rem; letter-spacing: .2px; font-family: var(--logo-font); color: var(--logo-color); }
 
@@ -242,7 +242,7 @@ button { font: inherit; }
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, rgba(139,92,246,.3), rgba(255,183,3,.18)); border: 1px solid rgba(139,92,246,.28);
 }
-.mobile-nav-brand-mark img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.mobile-nav-brand-mark img, .mobile-nav-brand-mark video { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
 .mobile-nav-brand-text { display: flex; flex-direction: column; line-height: 1.2; }
 .mobile-nav-brand-text strong { font-family: var(--logo-font); color: var(--logo-color); font-size: 1.05rem; }
 .mobile-nav-brand-text small { color: var(--muted); font-size: .7rem; }
