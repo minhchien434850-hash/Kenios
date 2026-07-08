@@ -22,9 +22,11 @@ window.KENIOS_DEFAULT_DB = {
     logoAnimSpeed: 6,
     accentColor: "#ffb703",
     googleClientId: "",
-    welcomeEnabled: false,
-    welcomeTitle: "Chào mừng bạn đến với KENIOS.STORE!",
-    welcomeMessage: "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
+    welcomePopupEnabled: false,
+    welcomePopupTitle: "Chào mừng bạn đến với KENIOS.STORE!",
+    welcomePopupMessage: "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
+    welcomeVoiceEnabled: false,
+    welcomeVoiceText: "Xin chào! Chào mừng bạn đã đến với KENIOS.STORE.",
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
     contactAdminName: "ADMIN SHOP",
@@ -37,7 +39,7 @@ window.KENIOS_DEFAULT_DB = {
     aiResponseDeposit: "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
     aiResponseProduct: "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
     aiResponseWeb: "Bên mình có dịch vụ thiết kế website phong cách hiện đại, chuẩn SEO và tương thích tốt trên mọi thiết bị. Hãy xem mục \"Thiết Kế Web\" để biết thêm chi tiết nhé!",
-    aiResponsePrice: "Bảng giá tóm tắt:\n• PUBG ESP Radar: 25.000đ/ngày\n• PUBG Silent Aimbot: 30.000đ/ngày\n• Thiết kế Landing Page: từ 1.500.000đ\n• Thiết kế Web Shop tự động: từ 3.500.000đ\n\nNạp tiền qua VietQR để mua key và nhận ngay lập tức nhé!",
+    aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
     aiResponseContact: "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
     aiResponseThanks: "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
     aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
@@ -807,19 +809,25 @@ window.KENIOS_DEFAULT_DB = {
     maybeShowWelcome(Store.db.config);
   }
 
-  // ---- Thông báo chào mừng + lời chào giọng nói (giọng Google) khi vào web ----
-  const WELCOME_SHOWN_KEY = 'kenios_welcome_shown_v1';
+  // ---- Thông báo popup và lời chào giọng nói khi vào web — HAI tính năng tách
+  // biệt hoàn toàn: mỗi cái có công tắc bật/tắt và nội dung riêng, không dùng chung. ----
+  const WELCOME_POPUP_SHOWN_KEY = 'kenios_welcome_popup_shown_v1';
+  const WELCOME_VOICE_SHOWN_KEY = 'kenios_welcome_voice_shown_v1';
+
   function maybeShowWelcome(cfg) {
-    if (!cfg.welcomeEnabled) return;
-    if (sessionStorage.getItem(WELCOME_SHOWN_KEY)) return;
-    sessionStorage.setItem(WELCOME_SHOWN_KEY, '1');
-    setTimeout(() => {
-      setText('#welcomeTitle', cfg.welcomeTitle);
-      setText('#welcomeMessage', cfg.welcomeMessage);
-      setAttr('#welcomeContactBtn', 'href', cfg.zaloLink);
-      openModal('#welcomeModal');
-      Voice.speak(`${cfg.welcomeTitle}. ${cfg.welcomeMessage}`);
-    }, 600);
+    if (cfg.welcomePopupEnabled && !sessionStorage.getItem(WELCOME_POPUP_SHOWN_KEY)) {
+      sessionStorage.setItem(WELCOME_POPUP_SHOWN_KEY, '1');
+      setTimeout(() => {
+        setText('#welcomeTitle', cfg.welcomePopupTitle);
+        setText('#welcomeMessage', cfg.welcomePopupMessage);
+        setAttr('#welcomeContactBtn', 'href', cfg.zaloLink);
+        openModal('#welcomeModal');
+      }, 600);
+    }
+    if (cfg.welcomeVoiceEnabled && !sessionStorage.getItem(WELCOME_VOICE_SHOWN_KEY)) {
+      sessionStorage.setItem(WELCOME_VOICE_SHOWN_KEY, '1');
+      setTimeout(() => { Voice.speak(cfg.welcomeVoiceText); }, 600);
+    }
   }
 
   // ============================================================
@@ -1795,19 +1803,33 @@ window.KENIOS_DEFAULT_DB = {
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
         <label class="span-2">Tên chủ tài khoản <input name="bankAccountName" value="${esc(c.bankAccountName)}"></label>
 
-        <div class="admin-form-section">📣 Thông báo &amp; Lời chào khi vào Web (giọng Google)</div>
-        <label>Bật thông báo chào mừng
-          <select name="welcomeEnabled">
-            <option value="1" ${c.welcomeEnabled ? 'selected' : ''}>Bật</option>
-            <option value="0" ${!c.welcomeEnabled ? 'selected' : ''}>Tắt</option>
+        <div class="admin-form-section">📣 Thông báo Popup khi vào Web</div>
+        <label>Bật thông báo popup
+          <select name="welcomePopupEnabled">
+            <option value="1" ${c.welcomePopupEnabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!c.welcomePopupEnabled ? 'selected' : ''}>Tắt</option>
           </select>
         </label>
-        <label>Tiêu đề <input name="welcomeTitle" value="${esc(c.welcomeTitle || '')}"></label>
-        <label class="span-2">Nội dung lời chào (hiển thị + đọc bằng giọng Google)
-          <textarea name="welcomeMessage">${esc(c.welcomeMessage || '')}</textarea>
+        <label>Tiêu đề popup <input name="welcomePopupTitle" value="${esc(c.welcomePopupTitle || '')}"></label>
+        <label class="span-2">Nội dung popup
+          <textarea name="welcomePopupMessage">${esc(c.welcomePopupMessage || '')}</textarea>
         </label>
         <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
-          Thông báo kèm nút "Liên hệ ngay" sẽ hiện 1 lần mỗi phiên truy cập, đồng thời đọc to nội dung này bằng giọng nữ Google (nếu trình duyệt hỗ trợ).
+          Popup kèm nút "Liên hệ ngay" sẽ hiện 1 lần mỗi phiên truy cập. Đây là thông báo <b>chỉ hiển thị bằng chữ</b>, tách riêng hoàn toàn với lời chào giọng nói bên dưới.
+        </p>
+
+        <div class="admin-form-section">🔊 Lời chào giọng nói (Google) khi vào Web</div>
+        <label>Bật lời chào giọng nói
+          <select name="welcomeVoiceEnabled">
+            <option value="1" ${c.welcomeVoiceEnabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!c.welcomeVoiceEnabled ? 'selected' : ''}>Tắt</option>
+          </select>
+        </label>
+        <label class="span-2">Nội dung đọc bằng giọng Google
+          <textarea name="welcomeVoiceText">${esc(c.welcomeVoiceText || '')}</textarea>
+        </label>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Chỉ đọc to bằng giọng nữ Google (nếu trình duyệt hỗ trợ), <b>không hiện popup nào</b> — độc lập hoàn toàn với thông báo popup ở trên. Có thể bật riêng 1 trong 2, cả 2, hoặc tắt cả 2.
         </p>
 
         <div class="admin-form-section">📢 Chữ chạy</div>
@@ -2011,7 +2033,9 @@ window.KENIOS_DEFAULT_DB = {
         contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
         hotline: fd.get('hotline'), zaloLink: fd.get('zaloLink'),
         googleClientId: fd.get('googleClientId'),
-        welcomeEnabled: fd.get('welcomeEnabled') === '1', welcomeTitle: fd.get('welcomeTitle'), welcomeMessage: fd.get('welcomeMessage'),
+        welcomePopupEnabled: fd.get('welcomePopupEnabled') === '1',
+        welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
+        welcomeVoiceEnabled: fd.get('welcomeVoiceEnabled') === '1', welcomeVoiceText: fd.get('welcomeVoiceText'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
