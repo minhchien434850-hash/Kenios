@@ -22,6 +22,7 @@ window.KENIOS_DEFAULT_DB = {
     logoAnimSpeed: 6,
     logoMotionMode: "none",
     logoMotionSpeed: 2,
+    logoStyle: "none",
     accentColor: "#ffb703",
     googleClientId: "",
     welcomePopupEnabled: false,
@@ -1583,6 +1584,12 @@ window.KENIOS_DEFAULT_DB = {
       // Gộp cả 2 animation vào 1 khai báo inline để chạy đồng thời (không đè nhau).
       el.style.animation = anims.join(', ');
     });
+    // Kiểu chữ logo trang trí — áp cho header, hero và menu 3 gạch.
+    const styleMode = cfg.logoStyle || 'none';
+    $$('#brandName, #heroBrandName, #mobileNavBrandName').forEach(el => {
+      el.classList.remove(...LOGO_STYLE_MODES.map(m => 'logo-style-' + m));
+      if (styleMode !== 'none') el.classList.add('logo-style-' + styleMode);
+    });
   }
 
   // ============================================================
@@ -2966,6 +2973,13 @@ window.KENIOS_DEFAULT_DB = {
   const LOGO_MOTION_FX = [
     ['none', 'Không'], ['pulse', 'Nhịp đập'], ['bounce', 'Nảy'], ['wave', 'Lắc lư'], ['flip', 'Lật 3D'],
   ];
+  // Kiểu chữ logo trang trí (game 3D: gradient + viền + đổ bóng nổi).
+  const LOGO_STYLE_FX = [
+    ['none', 'Mặc định'], ['gold3d', 'Vàng kim 3D'], ['fire3d', 'Lửa 3D'], ['ice3d', 'Băng giá 3D'],
+    ['chrome', 'Bạc kim loại'], ['emerald', 'Lục bảo'], ['royal', 'Hoàng gia'],
+    ['candy3d', 'Kẹo ngọt 3D'], ['neonline', 'Neon ống'], ['festive', 'Vàng-đỏ Tết'],
+  ];
+  const LOGO_STYLE_MODES = LOGO_STYLE_FX.map(([v]) => v).filter(v => v !== 'none');
   const LOGO_COLOR_MODES = LOGO_COLOR_FX.map(([v]) => v).filter(v => v !== 'solid');
   const LOGO_MOTION_MODES = LOGO_MOTION_FX.map(([v]) => v).filter(v => v !== 'none');
   // Tên keyframe + kiểu chạy cho từng hiệu ứng (để gộp animation inline khi kết hợp màu + chuyển động).
@@ -3174,6 +3188,11 @@ window.KENIOS_DEFAULT_DB = {
         </label>
         <label>Tốc độ chuyển động (giây/vòng)
           <input type="number" name="logoMotionSpeed" min="0.5" max="20" step="0.5" value="${c.logoMotionSpeed || 2}">
+        </label>
+
+        <div class="admin-form-section">Kiểu chữ logo — MẪU TRANG TRÍ (chữ game 3D, viền, đổ bóng)</div>
+        <label class="span-2">Chọn kiểu chữ (bấm chọn — xem trước trực tiếp)
+          ${fxPickerHtml(LOGO_STYLE_FX, 'logoStyle', c.logoStyle, 'logo-style', 'none')}
         </label>
 
         <div class="admin-form-section">Màu chủ đạo toàn trang</div>
@@ -3650,6 +3669,7 @@ window.KENIOS_DEFAULT_DB = {
         logoUrl: fd.get('logoUrl'), logoFont: fd.get('logoFont'), logoColor: fd.get('logoColor'),
         logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
         logoMotionMode: fd.get('logoMotionMode') || 'none', logoMotionSpeed: parseFloat(fd.get('logoMotionSpeed')) || 2,
+        logoStyle: fd.get('logoStyle') || 'none',
         accentColor: fd.get('accentColor'),
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),

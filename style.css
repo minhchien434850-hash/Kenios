@@ -1304,3 +1304,75 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   background: rgba(255, 255, 255, 0.03) !important;
   transform: translateX(3px);
 }
+
+/* =========================================================
+   KIỂU CHỮ LOGO — MẪU TRANG TRÍ (logoStyle)
+   Chữ logo game 3D: nền gradient clip vào chữ + viền + đổ bóng nổi.
+   Đặt cuối file để thắng thứ tự nguồn, phủ lên style hero mặc định.
+========================================================= */
+[class*="logo-style-"] { font-weight: 800; letter-spacing: .01em; }
+
+/* 1) Vàng kim 3D (giống mẫu ZERMANGO) */
+.logo-style-gold3d {
+  background: linear-gradient(180deg, #fff6c0 0%, #ffd23f 42%, #f59e0b 72%, #b45309 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .6px #7c2d12;
+  text-shadow: 0 1px 0 #7c2d12, 0 2px 0 #5c1d0a, 0 3px 0 #4a1607, 0 4px 7px rgba(0,0,0,.55);
+}
+/* 2) Lửa 3D */
+.logo-style-fire3d {
+  background: linear-gradient(180deg, #ffe08a 0%, #ff8c00 45%, #ff3d00 78%, #9a0000 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .6px #4a0000;
+  text-shadow: 0 1px 0 #4a0000, 0 2px 0 #300000, 0 4px 8px rgba(0,0,0,.6);
+}
+/* 3) Băng giá 3D */
+.logo-style-ice3d {
+  background: linear-gradient(180deg, #ffffff 0%, #cdeeff 40%, #6cc5ff 72%, #2a7fd6 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .6px #0f3b6b;
+  text-shadow: 0 1px 0 #0f3b6b, 0 2px 0 #0a2a4d, 0 4px 8px rgba(0,60,120,.5);
+}
+/* 4) Bạc kim loại (chrome) */
+.logo-style-chrome {
+  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 30%, #94a3b8 55%, #ffffff 70%, #64748b 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .6px #1e293b;
+  text-shadow: 0 1px 0 #334155, 0 2px 0 #1e293b, 0 4px 7px rgba(0,0,0,.5);
+}
+/* 5) Lục bảo (ngọc lục) */
+.logo-style-emerald {
+  background: linear-gradient(180deg, #d9ffe6 0%, #34d399 45%, #059669 75%, #065f46 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .6px #043d2e;
+  text-shadow: 0 1px 0 #043d2e, 0 2px 0 #032a20, 0 4px 8px rgba(0,0,0,.5);
+}
+/* 6) Hoàng gia (tím + viền vàng) */
+.logo-style-royal {
+  background: linear-gradient(180deg, #e9d5ff 0%, #a855f7 45%, #7c3aed 75%, #4c1d95 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .7px #ffd700;
+  text-shadow: 0 1px 0 #3b0764, 0 2px 0 #2a0548, 0 4px 8px rgba(0,0,0,.55);
+}
+/* 7) Kẹo ngọt 3D (hồng) */
+.logo-style-candy3d {
+  background: linear-gradient(180deg, #ffe3f3 0%, #ff8ac9 45%, #ff4fa3 75%, #c9186e 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .7px #ffffff;
+  text-shadow: 0 1px 0 #a3115a, 0 2px 0 #7a0d43, 0 4px 8px rgba(0,0,0,.4);
+}
+/* 8) Neon ống (viền sáng, rỗng ruột) */
+.logo-style-neonline {
+  color: transparent; -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.2px #4ff0ff;
+  text-shadow: 0 0 5px #4ff0ff, 0 0 12px #22d3ee, 0 0 22px #0ea5e9, 0 0 34px #2563eb;
+}
+/* 9) Vàng-đỏ Tết (viền vàng, nền đỏ đô) */
+.logo-style-festive {
+  background: linear-gradient(180deg, #ffe9a8 0%, #ffcf3f 40%, #e11d1d 72%, #7a0b0b 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: .8px #ffe9a8;
+  text-shadow: 0 1px 0 #5a0808, 0 2px 0 #3d0505, 0 4px 9px rgba(0,0,0,.6);
+}
+
+@media (prefers-reduced-motion: reduce) { /* các kiểu tĩnh không cần tắt animation */ }
