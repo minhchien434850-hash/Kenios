@@ -1210,6 +1210,24 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .download-ico { display: inline-flex; color: var(--gold-soft); flex-shrink: 0; }
 .download-ico svg { width: 22px; height: 22px; }
 
+/* ---------- Lịch sử nạp tiền ---------- */
+.deposit-history-summary { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.dh-summary-row {
+  flex: 1; min-width: 130px; display: flex; flex-direction: column; gap: 3px;
+  padding: 12px 14px; border-radius: 12px; background: rgba(255,183,3,.08); border: 1px solid rgba(255,183,3,.2);
+}
+.dh-summary-row span { color: var(--muted); font-size: .76rem; }
+.dh-summary-row strong { color: var(--gold-soft); font-size: 1.05rem; }
+.deposit-history-list { display: flex; flex-direction: column; gap: 10px; max-height: 56vh; overflow-y: auto; }
+.dh-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--glass);
+}
+.dh-item-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dh-item-amount { color: #6ee7b7; font-weight: 700; font-size: .98rem; }
+.dh-item-desc { color: var(--muted); font-size: .78rem; word-break: break-word; }
+.dh-item-date { color: var(--muted); font-size: .74rem; white-space: nowrap; flex-shrink: 0; }
+
 .auth-head { text-align: center; margin-bottom: 18px; }
 .auth-logo { width: 52px; height: 52px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(139,92,246,.28), rgba(255,183,3,.16)); border: 1px solid rgba(139,92,246,.25); margin-bottom: 8px; }
 .auth-logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }

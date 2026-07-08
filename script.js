@@ -1041,6 +1041,7 @@ window.KENIOS_DEFAULT_DB = {
     cloud: _svg('<path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 9.5a3.5 3.5 0 0 1 .5 8H7Z"/><path d="M12 21v-7m0 0-2.2 2.2M12 14l2.2 2.2"/>'),
     copy: _svg('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
     link: _svg('<path d="M9.5 13.5a4 4 0 0 0 5.7.3l3-3a4 4 0 0 0-5.7-5.7L11 6.6"/><path d="M14.5 10.5a4 4 0 0 0-5.7-.3l-3 3a4 4 0 0 0 5.7 5.7L13 17.4"/>'),
+    history: _svg('<path d="M3 3v5h5"/><path d="M3.05 13a9 9 0 1 0 2.4-6.36L3 8"/><path d="M12 7v5l3.5 2"/>'),
     upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
     trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
     // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
@@ -2364,6 +2365,7 @@ window.KENIOS_DEFAULT_DB = {
       if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
       openModal('#depositModal');
     });
+    $('#mobileNavDepositHistory').addEventListener('click', () => openDepositHistoryModal());
     $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
     $('#mobileNavDownloads').addEventListener('click', () => { closeMobileNav(); openDownloadsModal(); });
     const adminNavBtn2 = $('#mobileNavAdminLink');
@@ -2661,6 +2663,30 @@ window.KENIOS_DEFAULT_DB = {
         </div>`).join('')
       : '<p class="empty-note">Chưa có bản tải nào. Admin thêm link tải cho sản phẩm ở tab Dịch vụ.</p>';
     openModal('#downloadsModal');
+  }
+
+  // Lịch sử nạp tiền của người dùng hiện tại (giao dịch type='deposit').
+  function openDepositHistoryModal() {
+    const user = Store.currentUser();
+    if (!user) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
+    const deps = (Store.db.transactions || [])
+      .filter(t => t.userId === user.userId && t.type === 'deposit' && (t.amount || 0) > 0);
+    const total = deps.reduce((s, t) => s + (t.amount || 0), 0);
+    $('#depositHistorySummary').innerHTML = deps.length
+      ? `<div class="dh-summary-row"><span>Tổng đã nạp</span><strong>${fmt(total)}</strong></div>
+         <div class="dh-summary-row"><span>Số lần nạp</span><strong>${deps.length}</strong></div>`
+      : '';
+    $('#depositHistoryList').innerHTML = deps.length
+      ? deps.map(t => `
+        <div class="dh-item">
+          <div class="dh-item-main">
+            <span class="dh-item-amount">+${fmt(t.amount)}</span>
+            <span class="dh-item-desc">${esc(t.description || 'Nạp tiền')}</span>
+          </div>
+          <span class="dh-item-date">${esc(new Date(t.date).toLocaleString('vi-VN'))}</span>
+        </div>`).join('')
+      : '<p class="empty-note">Bạn chưa có giao dịch nạp tiền nào.</p>';
+    openModal('#depositHistoryModal');
   }
 
   // ---- Thông tin pháp lý ----

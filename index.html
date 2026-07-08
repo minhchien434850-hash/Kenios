@@ -104,6 +104,7 @@
       <div class="mobile-nav-group-label">Menu</div>
       <a href="#top" class="mobile-nav-link" data-mobile-link><span class="mnl-icon" data-icon="home"></span><span>Trang chủ</span></a>
       <button type="button" class="mobile-nav-link" id="mobileNavDeposit"><span class="mnl-icon" data-icon="card"></span><span>Nạp tiền</span><span class="mnl-badge auto">Auto</span></button>
+      <button type="button" class="mobile-nav-link" id="mobileNavDepositHistory"><span class="mnl-icon" data-icon="history"></span><span>Lịch sử nạp tiền</span></button>
       <button type="button" class="mobile-nav-link" id="mobileNavOrders"><span class="mnl-icon" data-icon="box"></span><span>Đơn hàng của tôi</span></button>
       <button type="button" class="mobile-nav-link" id="mobileNavDownloads"><span class="mnl-icon" data-icon="download"></span><span>Tải xuống</span></button>
 
@@ -421,6 +422,16 @@
       <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3>Tải Xuống</h3>
       <div class="downloads-list" id="downloadsList"></div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Lịch sử nạp tiền ===== -->
+  <div class="modal-overlay" id="depositHistoryModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="depositHistoryTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
+      <h3 id="depositHistoryTitle">Lịch Sử Nạp Tiền</h3>
+      <div class="deposit-history-summary" id="depositHistorySummary"></div>
+      <div class="deposit-history-list" id="depositHistoryList"></div>
     </div>
   </div>
 
