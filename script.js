@@ -160,6 +160,27 @@ window.KENIOS_DEFAULT_DB = {
   // lỗi mạng...) — phân biệt với lỗi hợp lệ mà server trả về (vd. sai mật khẩu).
   class BackendUnavailableError extends Error {}
 
+  // Suy ra số ngày sử dụng từ tên gói (VD "7 Ngày", "1 Tháng", "1 Tuần", "Vĩnh viễn").
+  // Trả về null nếu là gói vĩnh viễn / không xác định thời hạn (không tính ngày hết hạn).
+  function parseDurationDays(name) {
+    const t = (name || '').toLowerCase();
+    if (/vĩnh viễn|vinh vien|vĩnh|lifetime|forever|perm|không thời hạn|khong thoi han/.test(t)) return null;
+    const num = parseInt((t.match(/\d+/) || [])[0], 10) || 1;
+    if (/năm|nam|year/.test(t)) return num * 365;
+    if (/tháng|thang|month/.test(t)) return num * 30;
+    if (/tuần|tuan|week/.test(t)) return num * 7;
+    if (/ngày|ngay|day/.test(t)) return num;
+    return null;
+  }
+  // Tính ngày hết hạn (ISO) từ tên gói + ngày mua. Trả về null nếu gói vĩnh viễn.
+  function computeExpiryISO(packageName, fromISO) {
+    const days = parseDurationDays(packageName);
+    if (days == null) return null;
+    const d = new Date(fromISO || Date.now());
+    d.setDate(d.getDate() + days);
+    return d.toISOString();
+  }
+
   const Store = {
     db: null,
     session: null, // { userId } khi đã đăng nhập
@@ -168,6 +189,7 @@ window.KENIOS_DEFAULT_DB = {
 
     async init() {
       this.db = await this._loadDb();
+      if (!Array.isArray(this.db.subcategories)) this.db.subcategories = [];
       this._mergeLocalOverrides();
       const savedSession = this._readLocal('session');
       if (savedSession && this.db.users.some(u => u.userId === savedSession.userId)) {
@@ -180,6 +202,16 @@ window.KENIOS_DEFAULT_DB = {
     _emit() { this._listeners.forEach(fn => { try { fn(this.db); } catch (e) { console.error(e); } }); },
 
     async _loadDb() {
+      // Ưu tiên api.php?action=get_db — endpoint này đã LỌC BỎ mật khẩu (băm), key thật
+      // trong kho và token ngân hàng trước khi trả ra, nên an toàn cho khách. Chỉ khi
+      // không có backend PHP (hosting tĩnh / mở bằng file://) mới đọc thẳng database.json.
+      try {
+        const res = await fetch(`api.php?action=get_db&t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.config) return json;
+        }
+      } catch (e) { /* thử tiếp database.json */ }
       try {
         const res = await fetch(`database.json?v=${Date.now()}`, { cache: 'no-store' });
         if (res.ok) {
@@ -187,7 +219,7 @@ window.KENIOS_DEFAULT_DB = {
           if (json && json.config) return json;
         }
       } catch (e) {
-        console.warn('Không tải được database.json, dùng dữ liệu mặc định.', e);
+        console.warn('Không tải được dữ liệu, dùng dữ liệu mặc định.', e);
       }
       return JSON.parse(JSON.stringify(global.KENIOS_DEFAULT_DB));
     },
@@ -195,7 +227,7 @@ window.KENIOS_DEFAULT_DB = {
     _mergeLocalOverrides() {
       const local = this._readLocal('overrides');
       if (!local) return;
-      ['users', 'orders', 'transactions', 'categories', 'services', 'media'].forEach(key => {
+      ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'].forEach(key => {
         if (Array.isArray(local[key])) this.db[key] = local[key];
       });
       if (local.config) Object.assign(this.db.config, local.config);
@@ -207,6 +239,7 @@ window.KENIOS_DEFAULT_DB = {
         orders: this.db.orders,
         transactions: this.db.transactions,
         categories: this.db.categories,
+        subcategories: this.db.subcategories,
         services: this.db.services,
         media: this.db.media,
         config: this.db.config
@@ -381,14 +414,27 @@ window.KENIOS_DEFAULT_DB = {
       return pkg && typeof pkg.keyCount === 'number';
     },
 
+    // Hệ điều hành / nền tảng của sản phẩm = tên thư mục con (nếu có), ngược lại tên danh mục.
+    serviceOs(service) {
+      const sub = (this.db.subcategories || []).find(s => s.id === service.subcategoryId);
+      if (sub) return sub.name;
+      const cat = this.db.categories.find(c => c.id === service.categoryId);
+      return cat ? cat.name : '';
+    },
+
     async redeemKeyOnServer(username, password, service, pkg) {
       const result = await this._callApi('redeem_key', {
-        username, password, serviceId: service.id, packageId: pkg.id
+        username, password, serviceId: service.id, packageId: pkg.id,
+        os: this.serviceOs(service)
       });
       if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
       const user = this.currentUser();
       if (user) user.balance = result.balance;
       this.db.orders.unshift(result.order);
+      // Giảm số key còn lại hiển thị (key đã bị rút khỏi kho trên máy chủ) để UI khớp ngay.
+      const svc = this.db.services.find(s => s.id === service.id);
+      const p = svc && (svc.packages || []).find(x => x.id === pkg.id);
+      if (p && typeof p.keyCount === 'number') p.keyCount = Math.max(0, p.keyCount - 1);
       this._persistOverrides();
       this._emit();
       return result.order;
@@ -402,15 +448,17 @@ window.KENIOS_DEFAULT_DB = {
       if ((user.balance || 0) < pkg.price) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
       user.balance -= pkg.price;
       const key = this._generateKey(service, pkg);
+      const purchaseDate = new Date().toISOString();
       const order = {
         id: 'DH' + Date.now(), userId: user.userId, serviceId: service.id,
         serviceName: service.name, packageName: pkg.name, price: pkg.price,
-        key, date: new Date().toISOString()
+        os: this.serviceOs(service), key, date: purchaseDate,
+        purchaseDate, expiryDate: computeExpiryISO(pkg.name, purchaseDate)
       };
       this.db.orders.unshift(order);
       this.db.transactions.unshift({
         id: 'TX' + Date.now(), userId: user.userId, amount: -pkg.price, type: 'purchase',
-        description: `Mua ${service.name} - ${pkg.name}`, date: new Date().toISOString()
+        description: `Mua ${service.name} - ${pkg.name}`, date: purchaseDate
       });
       this._persistOverrides();
       this._emit();
@@ -460,7 +508,28 @@ window.KENIOS_DEFAULT_DB = {
       if (this.db.services.some(s => s.categoryId === id)) {
         throw new Error('Không thể xóa danh mục đang có dịch vụ. Hãy xóa hoặc chuyển dịch vụ trước.');
       }
+      if ((this.db.subcategories || []).some(sc => sc.categoryId === id)) {
+        throw new Error('Không thể xóa danh mục đang có thư mục con. Hãy xóa các thư mục con trước.');
+      }
       this.db.categories = this.db.categories.filter(c => c.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminSaveSubcategory(sub) {
+      if (!this.db.subcategories) this.db.subcategories = [];
+      const idx = this.db.subcategories.findIndex(s => s.id === sub.id);
+      if (idx >= 0) this.db.subcategories[idx] = sub;
+      else this.db.subcategories.push(sub);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminDeleteSubcategory(id) {
+      if (this.db.services.some(s => s.subcategoryId === id)) {
+        throw new Error('Không thể xóa thư mục con đang có sản phẩm. Hãy xóa hoặc chuyển sản phẩm trước.');
+      }
+      this.db.subcategories = (this.db.subcategories || []).filter(s => s.id !== id);
       this._persistOverrides();
       this._emit();
     },
@@ -904,21 +973,66 @@ window.KENIOS_DEFAULT_DB = {
     robot: _svg('<rect x="4.5" y="8" width="15" height="11" rx="3"/><path d="M12 8V5.2"/><circle cx="12" cy="3.6" r="1.6"/><circle cx="9.2" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.8" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 16.3h5M2.5 12v3M21.5 12v3"/>'),
     sound: _svg('<path d="M4 9v6h3.5L13 20V4L7.5 9H4Z"/><path d="M16.4 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/>'),
     logout: _svg('<path d="M15 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4"/><path d="M10 12H3M6 8l-3 4 3 4"/>'),
-    close: _svg('<path d="M6 6l12 12M18 6 6 18"/>')
+    close: _svg('<path d="M6 6l12 12M18 6 6 18"/>'),
+    chevron: _svg('<path d="m6 9 6 6 6-6"/>'),
+    back: _svg('<path d="M15 5l-7 7 7 7"/>'),
+    lock: _svg('<rect x="4.5" y="10" width="15" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none"/>'),
+    support: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="m6 6 3.6 3.6M14.4 14.4 18 18M18 6l-3.6 3.6M9.6 14.4 6 18"/>'),
+    refresh: _svg('<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"/>'),
+    check: _svg('<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>'),
+    calendar: _svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>'),
+    clock: _svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+    save: _svg('<path d="M5 4h11l3 3v13H5V4Z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>'),
+    cloud: _svg('<path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 9.5a3.5 3.5 0 0 1 .5 8H7Z"/><path d="M12 21v-7m0 0-2.2 2.2M12 14l2.2 2.2"/>'),
+    copy: _svg('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+    upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
+    trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
+    // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
+    target: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
+    fire: _svg('<path d="M12 2.5C9 6.5 7.5 8.5 7.5 12a4.5 4.5 0 0 0 9 0c0-1.7-.7-3-1.7-4.3C14.5 9 13.5 9.5 13 11c-.6-2.2-.5-4.3-1-8.5Z"/>'),
+    bolt: _svg('<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>'),
+    crown: _svg('<path d="M3 8l4 3.5L12 5l5 6.5L21 8v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8Z"/><path d="M3 15h18"/>'),
+    rocket: _svg('<path d="M14.5 3.5A9 9 0 0 1 9 15l-3-3A9 9 0 0 1 17.5 6.5a10 10 0 0 0-3-3Z"/><circle cx="14.5" cy="9.5" r="1.4"/><path d="M6 15c-1.5 1-2.5 4-2.5 4s3-1 4-2.5"/>'),
+    star: _svg('<path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.9L12 16.9 6.8 19.2l1-5.9L3.5 9.2l5.9-.9L12 3Z"/>'),
+    trophy: _svg('<path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5.5H5V7a3 3 0 0 0 3 3M16 5.5h3V7a3 3 0 0 1-3 3"/><path d="M12 12v4M9 20h6M10 20l.5-4h3l.5 4"/>'),
+    sword: _svg('<path d="M14 3h7v7l-9.5 9.5-2 .5.5-2L19.5 8.5"/><path d="m5 15 4 4M4 20l2.5-2.5"/>'),
+    diamond: _svg('<path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 7 9l5 12 5-12-2-6"/>'),
+    phone: _svg('<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/>'),
+    cart: _svg('<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.2 11a1.5 1.5 0 0 0 1.5 1.2h8a1.5 1.5 0 0 0 1.5-1.2L20 8H6"/>'),
+    tag: _svg('<path d="M4 4h7.5l8.5 8.5-7.5 7.5L4 11.5V4Z"/><circle cx="8.5" cy="8.5" r="1.4"/>'),
+    gift: _svg('<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12"/><path d="M12 8S10.5 4.5 8.2 4.5A1.8 1.8 0 0 0 8 8h4Zm0 0s1.5-3.5 3.8-3.5A1.8 1.8 0 0 1 16 8h-4Z"/>'),
+    key: _svg('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8M17.5 4.5 20 7M15.5 6.5 18 9"/>'),
+    folder: _svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>'),
+    headset: _svg('<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M20 19a4 4 0 0 1-4 3h-2"/>'),
+    bulb: _svg('<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.8 10.6c.6.6.8 1.4.8 2.4h6c0-1 .2-1.8.8-2.4A6 6 0 0 0 12 3Z"/>'),
+    heart: _svg('<path d="M12 20s-7-4.3-9.2-8.5A4.6 4.6 0 0 1 12 6a4.6 4.6 0 0 1 9.2 5.5C19 15.7 12 20 12 20Z"/>')
   };
+  // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
+  const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
+
   function applyIcons(root = document) {
     $$('[data-icon]', root).forEach(el => {
       const name = el.dataset.icon;
       if (ICONS[name] && !el.dataset.iconDone) { el.innerHTML = ICONS[name]; el.dataset.iconDone = '1'; }
     });
   }
+  // Trả về SVG cho icon danh mục: ưu tiên key trong ICONS; nếu dữ liệu cũ còn là emoji
+  // thì vẫn hiển thị emoji đó (tương thích ngược), mặc định là folder.
+  function catIcon(key) {
+    if (key && ICONS[key]) return ICONS[key];
+    if (key && /[\u{1F000}-\u{1FAFF}☀-➿]/u.test(key)) return `<span class="emoji-fallback">${esc(key)}</span>`;
+    return ICONS.folder;
+  }
 
   let selectedCategory = 'all';
+  let browseCategoryId = null;     // null = đang xem danh sách Danh mục; ngược lại = id danh mục đang mở
+  let browseSubId = null;          // null = đang xem Thư mục con; ngược lại = id thư mục con đang mở
   let currentServiceId = null;
   let currentPackage = null;
   let adminActiveTab = 'overview';
-  let adminServiceEditing = null;  // null | 'new' | service id
-  let adminCategoryEditing = null; // null | 'new' | category id
+  let adminServiceEditing = null;     // null | 'new' | service id
+  let adminCategoryEditing = null;    // null | 'new' | category id
+  let adminSubcategoryEditing = null; // null | 'new' | subcategory id
 
   const LEGAL_CONTENT = {
     terms: {
@@ -1183,31 +1297,103 @@ window.KENIOS_DEFAULT_DB = {
     return `<div class="category-media" data-fallback-bg="${esc(c.image)}" style="background-image:url('${esc(c.image)}')"></div>`;
   }
 
+  function categoryCardHtml(c, kind) {
+    // kind: 'category' | 'subcategory'
+    const dataAttr = kind === 'subcategory' ? `data-subcategory="${esc(c.id)}"` : `data-category="${esc(c.id)}"`;
+    return `
+      <div class="category-card ${c.image ? 'has-media' : ''}" ${dataAttr} role="button" tabindex="0">
+        ${categoryMediaHtml(c)}
+        <span class="category-icon">${catIcon(c.icon)}</span>
+        <h3>${esc(c.name)}</h3>
+        <p>${esc(c.description || '')}</p>
+      </div>`;
+  }
+
+  function renderBreadcrumb() {
+    const bc = $('#categoryBreadcrumb');
+    if (!browseCategoryId) { bc.hidden = true; bc.innerHTML = ''; return; }
+    const cat = Store.db.categories.find(c => c.id === browseCategoryId);
+    const sub = browseSubId ? (Store.db.subcategories || []).find(s => s.id === browseSubId) : null;
+    const crumbs = [
+      `<button class="crumb" data-crumb="root"><span class="crumb-ico" data-crumb-back>${ICONS.back}</span>Danh mục</button>`,
+      `<span class="crumb-sep">${ICONS.chevron}</span>`,
+      sub
+        ? `<button class="crumb" data-crumb="category">${esc(cat ? cat.name : '')}</button>`
+        : `<span class="crumb current">${esc(cat ? cat.name : '')}</span>`
+    ];
+    if (sub) {
+      crumbs.push(`<span class="crumb-sep">${ICONS.chevron}</span>`, `<span class="crumb current">${esc(sub.name)}</span>`);
+    }
+    bc.innerHTML = crumbs.join('');
+    bc.hidden = false;
+  }
+
+  // Bộ duyệt 3 cấp: Danh mục → Thư mục con → Sản phẩm.
   function renderCategories() {
     const grid = $('#categoryGrid');
-    grid.innerHTML = Store.db.categories.map(c => `
-      <div class="category-card ${c.image ? 'has-media' : ''}" data-category="${esc(c.id)}" role="button" tabindex="0">
-        ${categoryMediaHtml(c)}
-        <span class="category-icon">${c.icon}</span>
-        <h3>${esc(c.name)}</h3>
-        <p>${esc(c.description)}</p>
-      </div>
-    `).join('');
+    renderBreadcrumb();
+
+    if (!browseCategoryId) {
+      // Cấp 1: danh sách Danh mục (bỏ webdesign vì đã có mục "Thiết Kế Website" riêng).
+      const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
+      grid.innerHTML = cats.map(c => categoryCardHtml(c, 'category')).join('')
+        || '<p class="empty-note">Chưa có danh mục nào.</p>';
+    } else {
+      const subs = (Store.db.subcategories || []).filter(s => s.categoryId === browseCategoryId);
+      if (!browseSubId && subs.length) {
+        // Cấp 2: các Thư mục con của danh mục + sản phẩm gắn thẳng danh mục (nếu có).
+        const directProducts = Store.db.services.filter(s => s.categoryId === browseCategoryId && !s.subcategoryId);
+        grid.innerHTML = subs.map(s => categoryCardHtml(s, 'subcategory')).join('')
+          + directProducts.map(serviceCardHtml).join('');
+      } else {
+        // Cấp 3: sản phẩm trong thư mục con (hoặc trong danh mục nếu danh mục không có thư mục con).
+        const products = browseSubId
+          ? Store.db.services.filter(s => s.subcategoryId === browseSubId)
+          : Store.db.services.filter(s => s.categoryId === browseCategoryId);
+        grid.innerHTML = products.length
+          ? products.map(serviceCardHtml).join('')
+          : '<p class="empty-note">Chưa có sản phẩm nào trong mục này.</p>';
+      }
+    }
     applyImageFallbacks(grid, '.category-media');
+    applyImageFallbacks(grid);
+
     grid.onclick = (e) => {
-      const card = e.target.closest('.category-card');
-      if (!card) return;
-      const catId = card.dataset.category;
-      selectedCategory = catId === 'webdesign' ? 'all' : catId;
-      renderServiceGrid();
-      const target = catId === 'webdesign' ? '#webdesign' : '#services';
-      document.querySelector(target).scrollIntoView({ behavior: 'smooth' });
+      const catCard = e.target.closest('[data-category]');
+      if (catCard) {
+        browseCategoryId = catCard.dataset.category;
+        browseSubId = null;
+        renderCategories();
+        $('#categories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const subCard = e.target.closest('[data-subcategory]');
+      if (subCard) {
+        browseSubId = subCard.dataset.subcategory;
+        renderCategories();
+        $('#categories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
     };
 
+    const bc = $('#categoryBreadcrumb');
+    bc.onclick = (e) => {
+      const crumb = e.target.closest('[data-crumb]');
+      if (!crumb) return;
+      if (crumb.dataset.crumb === 'root') { browseCategoryId = null; browseSubId = null; }
+      else if (crumb.dataset.crumb === 'category') { browseSubId = null; }
+      renderCategories();
+    };
+
+    renderFilterTabs();
+  }
+
+  function renderFilterTabs() {
     const filterWrap = $('#filterTabs');
+    if (!filterWrap) return;
     const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
     filterWrap.innerHTML = [`<button class="filter-tab ${selectedCategory === 'all' ? 'active' : ''}" data-filter="all">Tất cả</button>`]
-      .concat(cats.map(c => `<button class="filter-tab ${selectedCategory === c.id ? 'active' : ''}" data-filter="${esc(c.id)}">${c.icon} ${esc(c.name)}</button>`))
+      .concat(cats.map(c => `<button class="filter-tab ${selectedCategory === c.id ? 'active' : ''}" data-filter="${esc(c.id)}"><span class="filter-ico">${catIcon(c.icon)}</span> ${esc(c.name)}</button>`))
       .join('');
     filterWrap.onclick = (e) => {
       const btn = e.target.closest('.filter-tab');
@@ -1261,7 +1447,7 @@ window.KENIOS_DEFAULT_DB = {
     list.innerHTML = FAQ_ITEMS.map((item, i) => `
       <div class="faq-item" data-faq-index="${i}">
         <button class="faq-question" type="button">
-          <span>${esc(item.q)}</span><span class="chev">▾</span>
+          <span>${esc(item.q)}</span><span class="chev">${ICONS.chevron}</span>
         </button>
         <div class="faq-answer"><p>${esc(item.a)}</p></div>
       </div>
@@ -1564,6 +1750,9 @@ window.KENIOS_DEFAULT_DB = {
       $('#copyAccountBtn').onclick = () => {
         navigator.clipboard?.writeText(cfg.bankAccountNo).then(() => toast('Đã sao chép số tài khoản!', 'success'));
       };
+      $('#copyNoteBtn').onclick = () => {
+        navigator.clipboard?.writeText(note).then(() => toast('Đã sao chép nội dung chuyển khoản!', 'success'));
+      };
     });
 
     $('#confirmDepositBtn').addEventListener('click', async () => {
@@ -1678,16 +1867,38 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Đơn hàng của tôi ----
+  const fmtDateTime = (iso) => { try { return new Date(iso).toLocaleString('vi-VN'); } catch { return ''; } };
+
+  function orderCardHtml(o) {
+    const contact = Store.db.config.zaloLink || (Store.db.config.contactChannels || []).find(c => c.enabled && c.url)?.url || '';
+    const expiry = o.expiryDate ? fmtDateTime(o.expiryDate) : 'Vĩnh viễn (không hết hạn)';
+    const purchased = fmtDateTime(o.purchaseDate || o.date);
+    return `
+      <div class="order-card">
+        <div class="order-card-head">
+          <strong>${esc(o.serviceName)}</strong>
+          <span class="order-price">${fmt(o.price)}</span>
+        </div>
+        <div class="order-line"><span class="order-ico">${ICONS.key}</span>
+          <span>Bạn đã mua 1 key${o.os ? ` <b>${esc(o.os)}</b>` : ''} (Thời hạn: <b>${esc(o.packageName)}</b>)</span>
+        </div>
+        <div class="order-line"><span class="order-ico">${ICONS.calendar}</span><span>Ngày mua: <b>${esc(purchased)}</b></span></div>
+        <div class="order-line"><span class="order-ico">${ICONS.clock}</span><span>Hết hạn: <b>${esc(expiry)}</b></span></div>
+        <div class="order-key-row">
+          <span class="order-ico">${ICONS.key}</span>
+          <code>${esc(o.key)}</code>
+          <button class="btn-copy-key" data-copy-key="${esc(o.key)}" title="Sao chép key">${ICONS.copy}</button>
+        </div>
+        ${contact ? `<a class="btn btn-glass btn-sm btn-block order-contact" href="${esc(contact)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.headset}</span> Liên hệ hỗ trợ</a>` : ''}
+      </div>`;
+  }
+
   function openOrdersModal() {
     if (!Store.currentUser()) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
     const orders = Store.myOrders();
-    $('#ordersList').innerHTML = orders.length ? orders.map(o => `
-      <div class="order-item">
-        <div class="row"><strong>${esc(o.serviceName)}</strong><span>${fmt(o.price)}</span></div>
-        <div class="row muted"><span>${esc(o.packageName)}</span><span>${new Date(o.date).toLocaleString('vi-VN')}</span></div>
-        <div class="key">${esc(o.key)} <button class="btn-copy-key" data-copy-key="${esc(o.key)}" title="Sao chép">📋</button></div>
-      </div>
-    `).join('') : `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
+    $('#ordersList').innerHTML = orders.length
+      ? orders.map(orderCardHtml).join('')
+      : `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
     $$('[data-copy-key]', $('#ordersList')).forEach(btn => {
       btn.addEventListener('click', () => {
         navigator.clipboard?.writeText(btn.dataset.copyKey).then(() => toast('Đã sao chép key!', 'success'));
@@ -1715,12 +1926,12 @@ window.KENIOS_DEFAULT_DB = {
     $('#aiAvatar').src = cfg.aiAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=kenios-ai`;
 
     const quick = [
-      { label: '💳 Nạp tiền', text: 'Cách nạp tiền' },
-      { label: '🏷️ Giá sản phẩm', text: 'Giá sản phẩm' },
-      { label: '💻 Thiết kế web', text: 'Dịch vụ thiết kế web' },
-      { label: '📞 Liên hệ Admin', text: 'Liên hệ admin' }
+      { icon: 'card', label: 'Nạp tiền', text: 'Cách nạp tiền' },
+      { icon: 'tag', label: 'Giá sản phẩm', text: 'Giá sản phẩm' },
+      { icon: 'web', label: 'Thiết kế web', text: 'Dịch vụ thiết kế web' },
+      { icon: 'headset', label: 'Liên hệ Admin', text: 'Liên hệ admin' }
     ];
-    $('#aiQuickReplies').innerHTML = quick.map(q => `<button data-q="${esc(q.text)}">${q.label}</button>`).join('');
+    $('#aiQuickReplies').innerHTML = quick.map(q => `<button data-q="${esc(q.text)}"><span class="qr-ico">${ICONS[q.icon]}</span>${esc(q.label)}</button>`).join('');
     $('#aiQuickReplies').addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (btn) sendAiMessage(btn.dataset.q);
@@ -1841,6 +2052,7 @@ window.KENIOS_DEFAULT_DB = {
     // Ủy quyền sự kiện cho toàn bộ nội dung động bên trong bảng quản trị.
     $('#adminPanelBody').addEventListener('click', onAdminPanelClick);
     $('#adminPanelBody').addEventListener('submit', onAdminPanelSubmit);
+    $('#adminPanelBody').addEventListener('change', onAdminPanelChange);
   }
 
   function renderAdminTab(tab) {
@@ -1935,13 +2147,20 @@ window.KENIOS_DEFAULT_DB = {
     const editTarget = editing && editing !== 'new' ? services.find(s => s.id === editing) : null;
     let formHtml = '';
     if (editing) {
-      const s = editTarget || { id: '', name: '', categoryId: categories[0]?.id || '', description: '', image: '', status: 'instock', features: [], packages: [{ name: '1 Ngày', price: 0 }] };
+      const s = editTarget || { id: '', name: '', categoryId: categories[0]?.id || '', subcategoryId: '', description: '', image: '', status: 'instock', features: [], packages: [{ name: '1 Ngày', price: 0 }] };
+      const subsForCat = (Store.db.subcategories || []).filter(sc => sc.categoryId === s.categoryId);
       formHtml = `
         <form class="admin-form" data-admin-form="service">
           <input type="hidden" name="_originalId" value="${esc(s.id)}">
           <label>Mã dịch vụ (id, không dấu) <input name="id" value="${esc(s.id)}" ${editTarget ? 'readonly' : ''} required></label>
           <label>Danh mục
-            <select name="categoryId">${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+            <select name="categoryId" id="adminServiceCategory">${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+          </label>
+          <label>Thư mục con (tùy chọn)
+            <select name="subcategoryId" id="adminServiceSubcat">
+              <option value="">— Không thuộc thư mục con —</option>
+              ${subsForCat.map(sc => `<option value="${esc(sc.id)}" ${sc.id === s.subcategoryId ? 'selected' : ''}>${esc(sc.name)}</option>`).join('')}
+            </select>
           </label>
           <label class="span-2">Tên dịch vụ <input name="name" value="${esc(s.name)}" required></label>
           <label class="span-2">Mô tả <textarea name="description">${esc(s.description)}</textarea></label>
@@ -1971,20 +2190,23 @@ window.KENIOS_DEFAULT_DB = {
       ${formHtml}
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Tên</th><th>Danh mục</th><th>Giá từ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+          <thead><tr><th>Tên</th><th>Danh mục › Thư mục con</th><th>Giá từ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
           <tbody>
-            ${services.map(s => `
+            ${services.map(s => {
+              const catName = categories.find(c => c.id === s.categoryId)?.name || s.categoryId;
+              const subName = s.subcategoryId ? ((Store.db.subcategories || []).find(x => x.id === s.subcategoryId)?.name || '') : '';
+              return `
               <tr>
                 <td>${esc(s.name)}</td>
-                <td>${esc(categories.find(c => c.id === s.categoryId)?.name || s.categoryId)}</td>
+                <td>${esc(catName)}${subName ? ' › ' + esc(subName) : ''}</td>
                 <td>${fmt(Math.min(...(s.packages || [{ price: 0 }]).map(p => p.price)))}</td>
                 <td>${s.status === 'instock' ? 'Còn hàng' : 'Hết hàng'}</td>
                 <td class="admin-row-actions">
                   <button data-admin-edit-service="${esc(s.id)}">Sửa</button>
                   <button class="danger" data-admin-delete-service="${esc(s.id)}">Xóa</button>
                 </td>
-              </tr>
-            `).join('')}
+              </tr>`;
+            }).join('')}
           </tbody>
         </table>
       </div>
@@ -2026,47 +2248,111 @@ window.KENIOS_DEFAULT_DB = {
     row.querySelector('[data-pkg-key-list]').innerHTML = pkgKeyListItems(keys);
   }
 
+  // Bộ chọn icon SVG cho Danh mục / Thư mục con (không dùng emoji "icon máy").
+  function iconPickerHtml(selectedKey, hiddenName) {
+    const sel = (selectedKey && ICONS[selectedKey]) ? selectedKey : 'folder';
+    return `
+      <div class="icon-picker" data-icon-picker>
+        <input type="hidden" name="${hiddenName}" value="${esc(sel)}">
+        ${PICKER_ICON_KEYS.map(k => `
+          <button type="button" class="icon-pick ${k === sel ? 'selected' : ''}" data-icon-pick="${k}" title="${k}" aria-label="${k}">${ICONS[k]}</button>
+        `).join('')}
+      </div>`;
+  }
+
   function adminCategoriesHtml() {
     const categories = Store.db.categories;
-    const editing = adminCategoryEditing;
-    const editTarget = editing && editing !== 'new' ? categories.find(c => c.id === editing) : null;
-    let formHtml = '';
-    if (editing) {
-      const c = editTarget || { id: '', name: '', icon: '📁', description: '', image: '' };
-      formHtml = `
+    const subcategories = Store.db.subcategories || [];
+
+    // ----- Form Danh mục -----
+    const cEditing = adminCategoryEditing;
+    const cEditTarget = cEditing && cEditing !== 'new' ? categories.find(c => c.id === cEditing) : null;
+    let catForm = '';
+    if (cEditing) {
+      const c = cEditTarget || { id: '', name: '', icon: 'folder', description: '', image: '' };
+      catForm = `
         <form class="admin-form" data-admin-form="category">
-          <label>Mã danh mục (id) <input name="id" value="${esc(c.id)}" ${editTarget ? 'readonly' : ''} required></label>
-          <label>Icon (emoji) <input name="icon" value="${esc(c.icon)}"></label>
+          <label>Mã danh mục (id, không dấu) <input name="id" value="${esc(c.id)}" ${cEditTarget ? 'readonly' : ''} required></label>
           <label class="span-2">Tên danh mục <input name="name" value="${esc(c.name)}" required></label>
-          <label class="span-2">Mô tả <input name="description" value="${esc(c.description)}"></label>
-          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(c.image)}" placeholder="Lấy từ tab Thư viện"></label>
+          <label class="span-2">Chọn icon danh mục ${iconPickerHtml(c.icon, 'icon')}</label>
+          <label class="span-2">Mô tả <input name="description" value="${esc(c.description || '')}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(c.image || '')}" placeholder="Lấy từ tab Thư viện"></label>
           <div class="admin-form-actions">
-            <button type="submit" class="btn btn-primary btn-sm">💾 Lưu danh mục</button>
+            <button type="submit" class="btn btn-primary btn-sm">Lưu danh mục</button>
             <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-category>Hủy</button>
           </div>
-        </form>
-      `;
+        </form>`;
     }
+
+    // ----- Form Thư mục con -----
+    const sEditing = adminSubcategoryEditing;
+    const sEditTarget = sEditing && sEditing !== 'new' ? subcategories.find(s => s.id === sEditing) : null;
+    let subForm = '';
+    if (sEditing) {
+      const s = sEditTarget || { id: '', categoryId: categories[0]?.id || '', name: '', icon: 'folder', description: '', image: '' };
+      subForm = `
+        <form class="admin-form" data-admin-form="subcategory">
+          <label>Mã thư mục con (id, không dấu) <input name="id" value="${esc(s.id)}" ${sEditTarget ? 'readonly' : ''} required></label>
+          <label>Thuộc danh mục
+            <select name="categoryId" required>${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+          </label>
+          <label class="span-2">Tên thư mục con (VD: PUBG IOS) <input name="name" value="${esc(s.name)}" required></label>
+          <label class="span-2">Chọn icon thư mục con ${iconPickerHtml(s.icon, 'icon')}</label>
+          <label class="span-2">Mô tả <input name="description" value="${esc(s.description || '')}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(s.image || '')}" placeholder="Lấy từ tab Thư viện"></label>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Lưu thư mục con</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-subcategory>Hủy</button>
+          </div>
+        </form>`;
+    }
+
     return `
       <div class="admin-toolbar">
         <button class="btn btn-primary btn-sm" data-admin-new-category>+ Thêm danh mục</button>
       </div>
-      ${formHtml}
+      ${catForm}
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Icon</th><th>Tên</th><th>Mô tả</th><th>Thao tác</th></tr></thead>
+          <thead><tr><th>Icon</th><th>Tên</th><th>Thư mục con</th><th>Mô tả</th><th>Thao tác</th></tr></thead>
           <tbody>
             ${categories.map(c => `
               <tr>
-                <td>${c.icon}</td>
+                <td><span class="admin-cell-ico">${catIcon(c.icon)}</span></td>
                 <td>${esc(c.name)}</td>
-                <td>${esc(c.description)}</td>
+                <td>${subcategories.filter(s => s.categoryId === c.id).length}</td>
+                <td>${esc(c.description || '')}</td>
                 <td class="admin-row-actions">
                   <button data-admin-edit-category="${esc(c.id)}">Sửa</button>
                   <button class="danger" data-admin-delete-category="${esc(c.id)}">Xóa</button>
                 </td>
               </tr>
             `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-form-section" style="margin-top:24px;">📂 Thư mục con (Danh mục → Thư mục con → Sản phẩm)</div>
+      <div class="admin-toolbar">
+        <button class="btn btn-primary btn-sm" data-admin-new-subcategory>+ Thêm thư mục con</button>
+      </div>
+      ${subForm}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Icon</th><th>Tên thư mục con</th><th>Thuộc danh mục</th><th>Số sản phẩm</th><th>Thao tác</th></tr></thead>
+          <tbody>
+            ${subcategories.length ? subcategories.map(s => `
+              <tr>
+                <td><span class="admin-cell-ico">${catIcon(s.icon)}</span></td>
+                <td>${esc(s.name)}</td>
+                <td>${esc(categories.find(c => c.id === s.categoryId)?.name || s.categoryId)}</td>
+                <td>${Store.db.services.filter(x => x.subcategoryId === s.id).length}</td>
+                <td class="admin-row-actions">
+                  <button data-admin-edit-subcategory="${esc(s.id)}">Sửa</button>
+                  <button class="danger" data-admin-delete-subcategory="${esc(s.id)}">Xóa</button>
+                </td>
+              </tr>
+            `).join('') : '<tr><td colspan="5" class="empty-note">Chưa có thư mục con. VD: danh mục PUBG → thư mục con "PUBG IOS".</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -2420,6 +2706,35 @@ window.KENIOS_DEFAULT_DB = {
       return;
     }
 
+    // ----- Thư mục con -----
+    const newSubcat = e.target.closest('[data-admin-new-subcategory]');
+    if (newSubcat) { adminSubcategoryEditing = 'new'; renderAdminTab('categories'); return; }
+
+    const editSubcat = e.target.closest('[data-admin-edit-subcategory]');
+    if (editSubcat) { adminSubcategoryEditing = editSubcat.dataset.adminEditSubcategory; renderAdminTab('categories'); return; }
+
+    const cancelSubcat = e.target.closest('[data-admin-cancel-subcategory]');
+    if (cancelSubcat) { adminSubcategoryEditing = null; renderAdminTab('categories'); return; }
+
+    const deleteSubcat = e.target.closest('[data-admin-delete-subcategory]');
+    if (deleteSubcat) {
+      try {
+        Store.adminDeleteSubcategory(deleteSubcat.dataset.adminDeleteSubcategory);
+        renderAdminTab('categories');
+        toast('Đã xóa thư mục con.', 'success');
+      } catch (err) { toast(err.message, 'error'); }
+      return;
+    }
+
+    // ----- Bộ chọn icon (Danh mục / Thư mục con) -----
+    const iconPick = e.target.closest('[data-icon-pick]');
+    if (iconPick) {
+      const picker = iconPick.closest('[data-icon-picker]');
+      picker.querySelector('input[type=hidden]').value = iconPick.dataset.iconPick;
+      $$('.icon-pick', picker).forEach(b => b.classList.toggle('selected', b === iconPick));
+      return;
+    }
+
     const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
     if (adjustBalance) {
       Store.adminAdjustBalance(adjustBalance.dataset.adminAdjustBalance, parseInt(adjustBalance.dataset.delta, 10));
@@ -2470,6 +2785,17 @@ window.KENIOS_DEFAULT_DB = {
     }
   }
 
+  // Khi admin đổi Danh mục trong form Dịch vụ, nạp lại danh sách Thư mục con tương ứng.
+  function onAdminPanelChange(e) {
+    const catSel = e.target.closest('#adminServiceCategory');
+    if (!catSel) return;
+    const sub = $('#adminServiceSubcat');
+    if (!sub) return;
+    const subs = (Store.db.subcategories || []).filter(s => s.categoryId === catSel.value);
+    sub.innerHTML = `<option value="">— Không thuộc thư mục con —</option>`
+      + subs.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+  }
+
   function onAdminPanelSubmit(e) {
     const formType = e.target.dataset.adminForm;
     if (!formType) return;
@@ -2496,8 +2822,14 @@ window.KENIOS_DEFAULT_DB = {
         return pkg;
       }).filter(p => p.name);
       if (!packages.length) { toast('Cần ít nhất một gói giá.', 'error'); return; }
+      const categoryId = fd.get('categoryId');
+      // Chỉ giữ subcategoryId nếu thư mục con đó thực sự thuộc danh mục đã chọn.
+      let subcategoryId = fd.get('subcategoryId') || '';
+      if (subcategoryId && !(Store.db.subcategories || []).some(sc => sc.id === subcategoryId && sc.categoryId === categoryId)) {
+        subcategoryId = '';
+      }
       Store.adminSaveService({
-        id, name: fd.get('name').trim(), categoryId: fd.get('categoryId'),
+        id, name: fd.get('name').trim(), categoryId, subcategoryId,
         description: fd.get('description').trim(), image: fd.get('image').trim(),
         status: fd.get('status'), features: fd.get('features').split('\n').map(s => s.trim()).filter(Boolean),
         packages
@@ -2509,12 +2841,22 @@ window.KENIOS_DEFAULT_DB = {
       const id = fd.get('id').trim();
       if (!id) { toast('Vui lòng nhập mã danh mục.', 'error'); return; }
       Store.adminSaveCategory({
-        id, name: fd.get('name').trim(), icon: fd.get('icon').trim() || '📁',
+        id, name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
         description: fd.get('description').trim(), image: fd.get('image').trim()
       });
       adminCategoryEditing = null;
       renderAdminTab('categories');
       toast('Đã lưu danh mục.', 'success');
+    } else if (formType === 'subcategory') {
+      const id = fd.get('id').trim();
+      if (!id) { toast('Vui lòng nhập mã thư mục con.', 'error'); return; }
+      Store.adminSaveSubcategory({
+        id, categoryId: fd.get('categoryId'), name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
+        description: fd.get('description').trim(), image: fd.get('image').trim()
+      });
+      adminSubcategoryEditing = null;
+      renderAdminTab('categories');
+      toast('Đã lưu thư mục con.', 'success');
     } else if (formType === 'config') {
       Store.adminUpdateConfig({
         logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),

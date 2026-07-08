@@ -115,10 +115,10 @@
 
     <div class="trust-strip">
       <div class="container trust-strip-inner">
-        <div class="trust-item"><span>🔒</span> Thanh toán VietQR bảo mật</div>
-        <div class="trust-item"><span>⚡</span> Giao key tự động tức thì</div>
-        <div class="trust-item"><span>🛟</span> Hỗ trợ 24/7 qua Zalo</div>
-        <div class="trust-item"><span>🔁</span> Hoàn tiền nếu lỗi hệ thống</div>
+        <div class="trust-item"><span class="trust-ico" data-icon="lock"></span> Thanh toán VietQR bảo mật</div>
+        <div class="trust-item"><span class="trust-ico" data-icon="bolt"></span> Giao key tự động tức thì</div>
+        <div class="trust-item"><span class="trust-ico" data-icon="support"></span> Hỗ trợ 24/7 qua Zalo</div>
+        <div class="trust-item"><span class="trust-ico" data-icon="refresh"></span> Hoàn tiền nếu lỗi hệ thống</div>
       </div>
     </div>
 
@@ -126,8 +126,9 @@
       <div class="container">
         <div class="section-head">
           <h2>Danh Mục Dịch Vụ</h2>
-          <p>Chọn danh mục bạn quan tâm để xem các gói dịch vụ tương ứng</p>
+          <p>Chọn danh mục → thư mục con → sản phẩm để xem chi tiết và mua</p>
         </div>
+        <nav class="cat-breadcrumb" id="categoryBreadcrumb" aria-label="Đường dẫn danh mục" hidden></nav>
         <div class="category-grid" id="categoryGrid"></div>
       </div>
     </section>
@@ -271,11 +272,12 @@
           <ul class="qr-info">
             <li>Ngân hàng: <strong id="qrBank"></strong></li>
             <li>Chủ TK: <strong id="qrOwner"></strong></li>
-            <li>Số TK: <strong id="qrAccount"></strong> <button type="button" class="btn-copy-key" id="copyAccountBtn" title="Sao chép số tài khoản">📋</button></li>
+            <li>Số TK: <strong id="qrAccount"></strong> <button type="button" class="btn-copy-key" id="copyAccountBtn" data-icon="copy" title="Sao chép số tài khoản"></button></li>
             <li>Số tiền: <strong id="qrAmount"></strong></li>
-            <li>Nội dung: <strong id="qrNote"></strong></li>
+            <li class="qr-note-row">Nội dung (mã KH): <strong id="qrNote"></strong> <button type="button" class="btn-copy-key" id="copyNoteBtn" data-icon="copy" title="Sao chép nội dung"></button></li>
           </ul>
-          <button type="button" class="btn btn-glass btn-block" id="confirmDepositBtn">Tôi đã chuyển khoản</button>
+          <p class="deposit-hint">⚠️ Chuyển khoản đúng <b>nội dung</b> trên (chính là mã khách hàng của bạn). Hệ thống tự động cộng tiền khi nhận được — hoặc bấm nút bên dưới để kiểm tra ngay.</p>
+          <button type="button" class="btn btn-primary btn-block" id="confirmDepositBtn"><span class="btn-ico" data-icon="check"></span> Kiểm tra giao dịch</button>
         </div>
       </div>
     </div>

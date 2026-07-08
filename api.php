@@ -21,6 +21,20 @@ require_once __DIR__ . '/lib_secrets.php';
 $db_file = __DIR__ . '/database.json';
 $action = $_GET['action'] ?? '';
 
+// Suy ra số ngày sử dụng từ tên gói ("7 Ngày", "1 Tháng"...). null = vĩnh viễn.
+function duration_days_from_name($name) {
+    $t = mb_strtolower((string)$name);
+    if (preg_match('/vĩnh viễn|vinh vien|vĩnh|lifetime|forever|perm/u', $t)) return null;
+    preg_match('/\d+/', $t, $m);
+    $num = isset($m[0]) ? intval($m[0]) : 1;
+    if ($num <= 0) $num = 1;
+    if (preg_match('/năm|nam|year/u', $t)) return $num * 365;
+    if (preg_match('/tháng|thang|month/u', $t)) return $num * 30;
+    if (preg_match('/tuần|tuan|week/u', $t)) return $num * 7;
+    if (preg_match('/ngày|ngay|day/u', $t)) return $num;
+    return null;
+}
+
 function admin_authenticated($db, $admin_user, $admin_pass) {
     $users = $db['users'] ?? [];
     if (empty($users)) return true; // Cho phép ghi lần đầu khi chưa có tài khoản nào (khởi tạo)
@@ -392,10 +406,21 @@ switch ($action) {
         $db['services'][$serviceIdx]['packages'][$pkgIdx]['keys'] = $keys;
         $db['users'][$userIdx]['balance'] = $balance - $price;
 
+        // Hệ điều hành khách chọn: ưu tiên tên thư mục con, rồi tới tên danh mục.
+        $os = trim((string)($input['os'] ?? ''));
+        if ($os === '') {
+            $subId = $service['subcategoryId'] ?? '';
+            foreach (($db['subcategories'] ?? []) as $sc) { if (($sc['id'] ?? '') === $subId && $subId !== '') { $os = $sc['name']; break; } }
+            if ($os === '') foreach (($db['categories'] ?? []) as $c) { if (($c['id'] ?? '') === ($service['categoryId'] ?? '')) { $os = $c['name']; break; } }
+        }
+        $purchaseTs = time();
+        $days = duration_days_from_name($pkg['name']);
         $order = [
             "id" => "DH" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'],
             "serviceId" => $serviceId, "serviceName" => $service['name'], "packageName" => $pkg['name'],
-            "price" => $price, "key" => $key, "date" => date("c")
+            "os" => $os, "price" => $price, "key" => $key,
+            "date" => date("c", $purchaseTs), "purchaseDate" => date("c", $purchaseTs),
+            "expiryDate" => $days === null ? null : date("c", $purchaseTs + $days * 86400)
         ];
         if (!isset($db['orders'])) $db['orders'] = [];
         array_unshift($db['orders'], $order);
