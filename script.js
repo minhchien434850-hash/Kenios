@@ -95,8 +95,13 @@ window.KENIOS_DEFAULT_DB = {
     depositBonusPercent: 0,
     depositBonusMin: 0,
     // Mã giảm giá sản phẩm: admin tạo tuỳ ý. Mỗi mã giảm theo % hoặc theo số tiền cố định.
-    // { code, type: 'percent'|'amount', value, enabled }
-    discountCodes: []
+    // { code, type:'percent'|'amount', value, enabled, maxUses, usedCount, expiresAt, minOrder, categoryId }
+    discountCodes: [],
+    // Flash Sale toàn shop có đếm ngược: giảm % mọi sản phẩm tới thời điểm endsAt.
+    flashSale: { enabled: false, percent: 0, endsAt: '', title: 'FLASH SALE' },
+    // Hạng thành viên VIP: tổng chi tiêu >= minSpent thì tự động giảm discountPercent% khi mua.
+    // [{ name, minSpent, discountPercent }] — sắp xếp tăng dần theo minSpent.
+    vipTiers: []
   },
   categories: [
     { id: "pubg", name: "PUBG", description: "Công cụ hỗ trợ & phụ kiện cho game PUBG", icon: "🎯",
@@ -459,18 +464,105 @@ window.KENIOS_DEFAULT_DB = {
       return list.find(d => d && d.enabled !== false && (d.code || '').trim().toUpperCase() === code) || null;
     },
 
-    // Tính giá sau khi áp mã giảm giá cho 1 mức giá gốc.
+    // Tính giá sau khi áp mã giảm giá cho 1 mức giá gốc, có kiểm tra các điều kiện nâng cao:
+    // hạn sử dụng (expiresAt), giới hạn lượt dùng (maxUses/usedCount), đơn tối thiểu (minOrder),
+    // giới hạn danh mục (categoryId). opts.categoryId = danh mục của sản phẩm đang mua.
     // Trả về { valid, price, discount, reason }: price là giá phải trả sau giảm (>= 0).
-    applyDiscountToPrice(price, codeStr) {
+    applyDiscountToPrice(price, codeStr, opts = {}) {
       const raw = (codeStr || '').trim();
       if (!raw) return { valid: false, price, discount: 0, reason: '' };
       const d = this.findDiscountCode(raw);
       if (!d) return { valid: false, price, discount: 0, reason: 'Mã giảm giá không đúng hoặc đã hết hiệu lực.' };
+      // Hạn sử dụng
+      if (d.expiresAt) {
+        const exp = Date.parse(d.expiresAt);
+        if (!isNaN(exp) && Date.now() > exp) return { valid: false, price, discount: 0, reason: 'Mã giảm giá đã hết hạn sử dụng.' };
+      }
+      // Giới hạn lượt dùng
+      const maxUses = parseInt(d.maxUses, 10) || 0;
+      if (maxUses > 0 && (parseInt(d.usedCount, 10) || 0) >= maxUses) {
+        return { valid: false, price, discount: 0, reason: 'Mã giảm giá đã hết lượt sử dụng.' };
+      }
+      // Đơn tối thiểu
+      const minOrder = parseInt(d.minOrder, 10) || 0;
+      if (minOrder > 0 && price < minOrder) {
+        return { valid: false, price, discount: 0, reason: `Mã chỉ áp dụng cho đơn từ ${minOrder.toLocaleString('vi-VN')}đ.` };
+      }
+      // Giới hạn danh mục
+      if (d.categoryId && opts.categoryId && d.categoryId !== opts.categoryId) {
+        return { valid: false, price, discount: 0, reason: 'Mã giảm giá không áp dụng cho sản phẩm này.' };
+      }
       let discount = d.type === 'percent'
         ? Math.floor(price * (parseFloat(d.value) || 0) / 100)
         : Math.floor(parseFloat(d.value) || 0);
       discount = Math.max(0, Math.min(discount, price)); // không giảm quá giá gốc
       return { valid: true, price: price - discount, discount, reason: '', code: (d.code || raw).trim().toUpperCase(), type: d.type, value: d.value };
+    },
+
+    // Ghi nhận 1 lượt sử dụng mã giảm giá (tăng usedCount) sau khi mua thành công ở chế độ demo.
+    recordDiscountUse(codeStr) {
+      const d = this.findDiscountCode(codeStr);
+      if (d) { d.usedCount = (parseInt(d.usedCount, 10) || 0) + 1; this._persistOverrides(); }
+    },
+
+    // ---- Flash Sale ----
+    // Trạng thái flash sale hiện tại: { active, percent, endsAt, remainingMs, title }.
+    flashSaleInfo() {
+      const f = (this.db.config && this.db.config.flashSale) || {};
+      const percent = parseFloat(f.percent) || 0;
+      const end = f.endsAt ? Date.parse(f.endsAt) : NaN;
+      const remainingMs = isNaN(end) ? 0 : end - Date.now();
+      const active = !!f.enabled && percent > 0 && (!f.endsAt || remainingMs > 0);
+      return { active, percent, endsAt: f.endsAt || '', remainingMs: Math.max(0, remainingMs), title: f.title || 'FLASH SALE' };
+    },
+    // Giá sau khi áp Flash Sale (giá niêm yết khi đang sale). Không sale thì trả nguyên giá.
+    flashSalePrice(base) {
+      const f = this.flashSaleInfo();
+      if (!f.active) return base;
+      return Math.max(0, base - Math.floor(base * f.percent / 100));
+    },
+
+    // ---- Hạng thành viên VIP ----
+    // Tổng chi tiêu (tiền đã mua hàng) của 1 user — dùng để xét hạng VIP.
+    userTotalSpent(user) {
+      if (!user) return 0;
+      return (this.db.orders || [])
+        .filter(o => o.userId === user.userId)
+        .reduce((s, o) => s + (o.price || 0), 0);
+    },
+    // Hạng VIP cao nhất mà user đạt được (tổng chi tiêu >= minSpent). Trả null nếu chưa đạt hạng nào.
+    vipTierFor(user) {
+      const tiers = (this.db.config && this.db.config.vipTiers) || [];
+      if (!tiers.length || !user) return null;
+      const spent = this.userTotalSpent(user);
+      const eligible = tiers
+        .filter(t => spent >= (parseInt(t.minSpent, 10) || 0))
+        .sort((a, b) => (parseInt(b.minSpent, 10) || 0) - (parseInt(a.minSpent, 10) || 0));
+      return eligible[0] || null;
+    },
+
+    // Tính chi tiết giá phải trả khi mua 1 gói: Flash Sale -> VIP -> Mã giảm giá.
+    // Trả về { base, afterFlash, afterVip, final, flashPercent, vipPercent, vipName, code, codeDiscount, totalDiscount }.
+    computePurchasePrice(service, pkg, discountCode, user) {
+      user = user || this.currentUser();
+      const base = pkg.price;
+      const flash = this.flashSaleInfo();
+      const afterFlash = this.flashSalePrice(base);
+      const tier = this.vipTierFor(user);
+      const vipPercent = tier ? (parseFloat(tier.discountPercent) || 0) : 0;
+      const vipCut = Math.floor(afterFlash * vipPercent / 100);
+      const afterVip = Math.max(0, afterFlash - vipCut);
+      const dc = this.applyDiscountToPrice(afterVip, discountCode, { categoryId: service ? service.categoryId : '' });
+      const codeValid = dc.valid;
+      const codeDiscount = codeValid ? dc.discount : 0;
+      const final = Math.max(0, afterVip - codeDiscount);
+      return {
+        base, afterFlash, afterVip, final,
+        flashPercent: flash.active ? flash.percent : 0,
+        vipPercent, vipName: tier ? tier.name : '',
+        code: codeValid ? dc.code : '', codeValid, codeReason: dc.reason || '',
+        codeDiscount, totalDiscount: base - final
+      };
     },
 
     deposit(amount, note) {
@@ -546,9 +638,9 @@ window.KENIOS_DEFAULT_DB = {
     buyPackage(service, pkg, discountCode) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
-      const dc = this.applyDiscountToPrice(pkg.price, discountCode);
-      if (discountCode && discountCode.trim() && !dc.valid) throw new Error(dc.reason || 'Mã giảm giá không hợp lệ.');
-      const finalPrice = dc.valid ? dc.price : pkg.price;
+      const p = this.computePurchasePrice(service, pkg, discountCode, user);
+      if (discountCode && discountCode.trim() && !p.codeValid) throw new Error(p.codeReason || 'Mã giảm giá không hợp lệ.');
+      const finalPrice = p.final;
       if ((user.balance || 0) < finalPrice) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
       user.balance -= finalPrice;
       const key = this._generateKey(service, pkg);
@@ -556,18 +648,24 @@ window.KENIOS_DEFAULT_DB = {
       const order = {
         id: 'DH' + Date.now(), userId: user.userId, serviceId: service.id,
         serviceName: service.name, packageName: pkg.name, price: finalPrice,
-        originalPrice: pkg.price, discountCode: dc.valid ? dc.code : '', discountAmount: dc.valid ? dc.discount : 0,
+        originalPrice: pkg.price, discountCode: p.code, discountAmount: p.totalDiscount,
+        flashPercent: p.flashPercent, vipPercent: p.vipPercent,
         os: this.serviceOs(service), key, date: purchaseDate,
         purchaseDate, expiryDate: computeExpiryISO(pkg.name, purchaseDate)
       };
       this.db.orders.unshift(order);
-      const desc = dc.valid && dc.discount > 0
-        ? `Mua ${service.name} - ${pkg.name} (mã ${dc.code} -${dc.discount.toLocaleString('vi-VN')}đ)`
+      const parts = [];
+      if (p.flashPercent > 0) parts.push(`flash -${p.flashPercent}%`);
+      if (p.vipPercent > 0) parts.push(`VIP -${p.vipPercent}%`);
+      if (p.code) parts.push(`mã ${p.code}`);
+      const desc = parts.length
+        ? `Mua ${service.name} - ${pkg.name} (${parts.join(', ')} · giảm ${p.totalDiscount.toLocaleString('vi-VN')}đ)`
         : `Mua ${service.name} - ${pkg.name}`;
       this.db.transactions.unshift({
         id: 'TX' + Date.now(), userId: user.userId, amount: -finalPrice, type: 'purchase',
         description: desc, date: purchaseDate
       });
+      if (p.code) this.recordDiscountUse(p.code);
       this._persistOverrides();
       this._emit();
       return order;
@@ -1049,6 +1147,13 @@ window.KENIOS_DEFAULT_DB = {
   const fmt = (n) => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  // ISO -> giá trị cho <input type="datetime-local"> (yyyy-MM-ddTHH:mm theo giờ địa phương).
+  function toLocalDatetimeValue(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
@@ -1096,6 +1201,8 @@ window.KENIOS_DEFAULT_DB = {
     upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
     trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
     arrowUp: _svg('<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>'),
+    sun: _svg('<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/>'),
+    moon: _svg('<path d="M20 14.5A8 8 0 0 1 9.5 4 7 7 0 1 0 20 14.5Z"/>'),
     // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
     target: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
     fire: _svg('<path d="M12 2.5C9 6.5 7.5 8.5 7.5 12a4.5 4.5 0 0 0 9 0c0-1.7-.7-3-1.7-4.3C14.5 9 13.5 9.5 13 11c-.6-2.2-.5-4.3-1-8.5Z"/>'),
@@ -1432,6 +1539,71 @@ window.KENIOS_DEFAULT_DB = {
     _marqueeRaf = requestAnimationFrame(step);
   }
 
+  // ============================================================
+  // FLASH SALE — banner đếm ngược trên trang chủ
+  // ============================================================
+  let _flashTimer = null;
+  function updateFlashSaleBar() {
+    const bar = $('#flashSaleBar');
+    if (!bar) return;
+    const f = Store.flashSaleInfo();
+    if (!f.active) { bar.hidden = true; return; }
+    bar.hidden = false;
+    setText('#flashSaleTitle', f.title || 'FLASH SALE');
+    setText('#flashSaleDesc', `Giảm ${f.percent}% toàn bộ sản phẩm`);
+    const cd = $('#flashSaleCountdown');
+    if (f.endsAt) {
+      const ms = f.remainingMs;
+      const s = Math.floor(ms / 1000);
+      const d = Math.floor(s / 86400);
+      const h = Math.floor((s % 86400) / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      const pad = n => String(n).padStart(2, '0');
+      cd.textContent = (d > 0 ? `${d} ngày ` : '') + `${pad(h)}:${pad(m)}:${pad(sec)}`;
+      cd.hidden = false;
+    } else {
+      cd.hidden = true;
+    }
+  }
+  function wireFlashSaleBar() {
+    updateFlashSaleBar();
+    if (_flashTimer) clearInterval(_flashTimer);
+    _flashTimer = setInterval(() => {
+      const before = Store.flashSaleInfo().active;
+      updateFlashSaleBar();
+      // Khi flash sale vừa hết giờ -> render lại sản phẩm để bỏ giá sale.
+      if (before && !Store.flashSaleInfo().active) renderDynamic();
+    }, 1000);
+  }
+
+  // ============================================================
+  // THEME — chế độ Sáng / Tối (lưu lựa chọn của khách)
+  // ============================================================
+  const THEME_KEY = 'kenios_theme';
+  function applyTheme(theme) {
+    const t = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    const btn = $('#themeToggleBtn');
+    if (btn) {
+      btn.innerHTML = t === 'light' ? ICONS.moon || '🌙' : ICONS.sun || '☀️';
+      btn.setAttribute('aria-label', t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng');
+      btn.title = t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng';
+    }
+  }
+  function wireThemeToggle() {
+    let saved = 'dark';
+    try { saved = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
+    applyTheme(saved);
+    const btn = $('#themeToggleBtn');
+    if (btn) btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      const next = cur === 'light' ? 'dark' : 'light';
+      applyTheme(next);
+      try { localStorage.setItem(THEME_KEY, next); } catch {}
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', boot);
 
   async function boot() {
@@ -1455,6 +1627,8 @@ window.KENIOS_DEFAULT_DB = {
     wireSearchModal();
     wireScrollReveal();
     wireScrollTopButton();
+    wireFlashSaleBar();
+    wireThemeToggle();
 
     const loader = $('#bootLoader');
     if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 500); }
@@ -1753,6 +1927,7 @@ window.KENIOS_DEFAULT_DB = {
     renderServiceGrid();
     renderWebdesignGrid();
     renderShowcase();
+    if (typeof updateFlashSaleBar === 'function') updateFlashSaleBar();
   }
 
   // Mục "Hình ảnh & Video" — độc lập với banner Hero, lấy từ Thư viện (Store.db.media).
@@ -2158,18 +2333,24 @@ window.KENIOS_DEFAULT_DB = {
     const minPrice = Math.min(...(s.packages || []).map(p => p.price));
     const inStock = s.status === 'instock';
     const isVideo = isVideoUrl(s.image);
+    const flash = Store.flashSaleInfo();
+    const salePrice = Store.flashSalePrice(minPrice);
+    const priceHtml = flash.active && salePrice < minPrice
+      ? `<span class="price"><del class="price-old">Từ ${fmt(minPrice)}</del> <b class="price-sale">Từ ${fmt(salePrice)}</b></span>`
+      : `<span class="price">Từ ${fmt(minPrice)}</span>`;
     return `
       <article class="service-card" data-service="${esc(s.id)}">
         <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
           ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
           <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
+          ${flash.active ? `<span class="badge flash-badge">-${flash.percent}%</span>` : ''}
           <span class="views-badge">${ICONS.eye}<b>${viewsFor(s.id)}</b></span>
         </div>
         <div class="body">
           <h3>${esc(s.name)}</h3>
           <p class="desc">${esc(s.description)}</p>
           <div class="price-row">
-            <span class="price">Từ ${fmt(minPrice)}</span>
+            ${priceHtml}
             <button class="btn btn-glass btn-sm" data-view-service="${esc(s.id)}">Xem chi tiết</button>
           </div>
         </div>
@@ -2270,6 +2451,36 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // Khung render thông tin cá nhân dạng Modal chuyên nghiệp khi click vào Avatar
+  // Thẻ hạng VIP trong hồ sơ: hạng hiện tại + tiến độ tới hạng kế tiếp.
+  function vipBadgeHtml(user) {
+    const tiers = (Store.db.config.vipTiers || []).slice().sort((a, b) => (parseInt(a.minSpent, 10) || 0) - (parseInt(b.minSpent, 10) || 0));
+    if (!tiers.length) return '';
+    const spent = Store.userTotalSpent(user);
+    const current = Store.vipTierFor(user);
+    const next = tiers.find(t => spent < (parseInt(t.minSpent, 10) || 0));
+    let progress = '';
+    if (next) {
+      const need = (parseInt(next.minSpent, 10) || 0) - spent;
+      const base = current ? (parseInt(current.minSpent, 10) || 0) : 0;
+      const pct = Math.max(0, Math.min(100, Math.round((spent - base) / ((parseInt(next.minSpent, 10) || 1) - base) * 100)));
+      progress = `<div class="vip-progress"><span style="width:${pct}%"></span></div>
+        <small style="color:var(--muted);">Mua thêm <b style="color:var(--gold-soft);">${fmt(need)}</b> để lên hạng <b>${esc(next.name)}</b> (giảm ${parseFloat(next.discountPercent) || 0}%)</small>`;
+    } else if (current) {
+      progress = `<small style="color:var(--muted);">Bạn đang ở hạng cao nhất 🎉</small>`;
+    }
+    return `
+      <div class="vip-badge-box">
+        <div class="vip-badge-head">
+          <span class="vip-badge-crown">${ICONS.crown || '👑'}</span>
+          <div>
+            <strong>${current ? esc(current.name) + ` · giảm ${parseFloat(current.discountPercent) || 0}%` : 'Chưa có hạng'}</strong>
+            <small>Tổng chi tiêu: ${fmt(spent)}</small>
+          </div>
+        </div>
+        ${progress}
+      </div>`;
+  }
+
   function renderProfileModal() {
     const body = $('#profileModalBody');
     if (!body) return;
@@ -2286,10 +2497,11 @@ window.KENIOS_DEFAULT_DB = {
           <span style="font-size:0.8rem;color:var(--muted);">${user.role === 'admin' ? '🛡️ Quản trị viên' : '👤 Thành viên'}</span>
         </div>
       </div>
-      <div class="profile-balance" style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);margin-bottom:20px;">
+      <div class="profile-balance" style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);margin-bottom:12px;">
         <span style="color:var(--muted);font-weight:500;">Số dư hiện tại</span>
         <strong style="font-size:1.25rem;color:var(--gold);">${fmt(user.balance || 0)}</strong>
       </div>
+      ${vipBadgeHtml(user)}
       <div class="profile-actions" style="display:flex;flex-direction:column;gap:10px;">
         <button type="button" class="btn btn-glass btn-block" id="profDepositBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
           <span class="btn-ico">${ICONS.card}</span> Nạp tiền tự động
@@ -2595,16 +2807,23 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Chi tiết dịch vụ ----
-  // Cập nhật dòng "Thành tiền" trong modal sản phẩm theo gói + mã giảm giá đang áp dụng.
+  // Cập nhật dòng "Thành tiền" trong modal sản phẩm: Flash Sale + VIP + mã giảm giá.
   function updateServiceModalTotal() {
     const totalEl = $('#serviceModalTotal');
     if (!totalEl || !currentPackage) { if (totalEl) totalEl.innerHTML = ''; return; }
-    const base = currentPackage.price;
-    if (currentDiscount && currentDiscount.valid && currentDiscount.discount > 0) {
-      totalEl.innerHTML = `Thành tiền: <del>${fmt(base)}</del> <strong>${fmt(currentDiscount.price)}</strong>
-        <span class="service-total-save">(giảm ${fmt(currentDiscount.discount)} · mã ${esc(currentDiscount.code)})</span>`;
+    const service = Store.db.services.find(s => s.id === currentServiceId);
+    const codeStr = (currentDiscount && currentDiscount.valid) ? currentDiscount.code : '';
+    const p = Store.computePurchasePrice(service, currentPackage, codeStr, Store.currentUser());
+    const tags = [];
+    if (p.flashPercent > 0) tags.push(`<span class="save-tag flash">Flash -${p.flashPercent}%</span>`);
+    if (p.vipPercent > 0) tags.push(`<span class="save-tag vip">${esc(p.vipName || 'VIP')} -${p.vipPercent}%</span>`);
+    if (p.code) tags.push(`<span class="save-tag code">Mã ${esc(p.code)} -${fmt(p.codeDiscount)}</span>`);
+    if (p.totalDiscount > 0) {
+      totalEl.innerHTML = `Thành tiền: <del>${fmt(p.base)}</del> <strong>${fmt(p.final)}</strong>
+        <span class="service-total-save">(tiết kiệm ${fmt(p.totalDiscount)})</span>
+        <span class="save-tags">${tags.join('')}</span>`;
     } else {
-      totalEl.innerHTML = `Thành tiền: <strong>${fmt(base)}</strong>`;
+      totalEl.innerHTML = `Thành tiền: <strong>${fmt(p.final)}</strong>`;
     }
   }
 
@@ -2619,17 +2838,19 @@ window.KENIOS_DEFAULT_DB = {
       updateServiceModalTotal();
       return;
     }
-    const res = Store.applyDiscountToPrice(currentPackage.price, codeStr);
-    if (res.valid) {
-      currentDiscount = res;
+    const service = Store.db.services.find(s => s.id === currentServiceId);
+    // Áp mã trên giá SAU Flash Sale + VIP (đúng như khi mua thật).
+    const p = Store.computePurchasePrice(service, currentPackage, codeStr, Store.currentUser());
+    if (p.codeValid) {
+      currentDiscount = { valid: true, code: p.code };
       msgEl.hidden = false;
       msgEl.className = 'discount-apply-msg ok';
-      msgEl.innerHTML = `✅ Áp dụng mã <b>${esc(res.code)}</b> — giảm <b>${fmt(res.discount)}</b>.`;
+      msgEl.innerHTML = `✅ Áp dụng mã <b>${esc(p.code)}</b> — giảm thêm <b>${fmt(p.codeDiscount)}</b>.`;
     } else {
       currentDiscount = null;
       msgEl.hidden = false;
       msgEl.className = 'discount-apply-msg err';
-      msgEl.textContent = '⚠️ ' + (res.reason || 'Mã giảm giá không hợp lệ.');
+      msgEl.textContent = '⚠️ ' + (p.codeReason || 'Mã giảm giá không hợp lệ.');
     }
     updateServiceModalTotal();
   }
@@ -2698,15 +2919,21 @@ window.KENIOS_DEFAULT_DB = {
     $('#serviceModalFeatures').innerHTML = (service.features || []).map(f => `<li>${esc(f)}</li>`).join('');
 
     const pkgWrap = $('#serviceModalPackages');
-    pkgWrap.innerHTML = service.packages.map((p, i) => `
+    const flash = Store.flashSaleInfo();
+    pkgWrap.innerHTML = service.packages.map((p, i) => {
+      const sale = Store.flashSalePrice(p.price);
+      const priceCell = flash.active && sale < p.price
+        ? `<del class="price-old">${fmt(p.price)}</del> <strong>${fmt(sale)}</strong>`
+        : `<strong>${fmt(p.price)}</strong>`;
+      return `
       <div class="package-option ${i === 0 ? 'selected' : ''}" data-pkg="${esc(p.id)}">
         <span>${esc(p.name)}</span>
         <span class="package-option-price">
-          <strong>${fmt(p.price)}</strong>
+          ${priceCell}
           ${Store.usesRealKeyStock(p) ? `<small class="pkg-stock ${p.keyCount > 0 ? '' : 'out'}">${p.keyCount > 0 ? `Còn ${p.keyCount} key` : 'Hết key'}</small>` : ''}
         </span>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
     pkgWrap.querySelectorAll('.package-option').forEach(el => {
       el.addEventListener('click', () => {
         pkgWrap.querySelectorAll('.package-option').forEach(o => o.classList.remove('selected'));
@@ -2742,12 +2969,28 @@ window.KENIOS_DEFAULT_DB = {
   // ---- Đơn hàng của tôi ----
   const fmtDateTime = (iso) => { try { return new Date(iso).toLocaleString('vi-VN'); } catch { return ''; } };
 
+  // Trạng thái hết hạn của 1 đơn: {cls, text} hoặc null nếu vĩnh viễn / còn xa.
+  function orderExpiryWarn(o) {
+    if (!o.expiryDate) return null;
+    const exp = Date.parse(o.expiryDate);
+    if (isNaN(exp)) return null;
+    const diff = exp - Date.now();
+    const dayMs = 86400000;
+    if (diff <= 0) return { cls: 'expired', text: '⛔ Key đã hết hạn — gia hạn để tiếp tục dùng' };
+    if (diff <= 3 * dayMs) {
+      const days = Math.ceil(diff / dayMs);
+      return { cls: 'soon', text: `⏳ Sắp hết hạn — còn ${days} ngày, nên gia hạn sớm` };
+    }
+    return null;
+  }
+
   function orderCardHtml(o) {
     const contact = Store.db.config.zaloLink || (Store.db.config.contactChannels || []).find(c => c.enabled && c.url)?.url || '';
     const expiry = o.expiryDate ? fmtDateTime(o.expiryDate) : 'Vĩnh viễn (không hết hạn)';
     const purchased = fmtDateTime(o.purchaseDate || o.date);
     const svc = Store.db.services.find(s => s.id === o.serviceId);
     const download = (svc && svc.downloadUrl) || o.downloadUrl || '';
+    const warn = orderExpiryWarn(o);
     return `
       <div class="order-card">
         <div class="order-card-head">
@@ -2759,6 +3002,8 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <div class="order-line"><span class="order-ico">${ICONS.calendar}</span><span>Ngày mua: <b>${esc(purchased)}</b></span></div>
         <div class="order-line"><span class="order-ico">${ICONS.clock}</span><span>Hết hạn: <b>${esc(expiry)}</b></span></div>
+        ${warn ? `<span class="order-expiry-warn ${warn.cls}">${warn.text}</span>
+          <button class="btn btn-primary btn-sm btn-block" data-renew-service="${esc(o.serviceId)}" style="margin-top:8px;"><span class="order-ico">${ICONS.refresh || ''}</span> Gia hạn ngay</button>` : ''}
         <div class="order-key-row">
           <span class="order-ico">${ICONS.key}</span>
           <code>${esc(o.key)}</code>
@@ -2772,13 +3017,21 @@ window.KENIOS_DEFAULT_DB = {
   function openOrdersModal() {
     if (!Store.currentUser()) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
     const orders = Store.myOrders();
+    // Banner tổng hợp số key sắp/đã hết hạn để khách chú ý gia hạn.
+    const warnCount = orders.filter(o => orderExpiryWarn(o)).length;
+    const banner = warnCount > 0
+      ? `<div class="order-expiry-warn expired" style="display:block;margin-bottom:12px;">🔔 Bạn có <b>${warnCount}</b> key sắp/đã hết hạn — hãy gia hạn để không gián đoạn.</div>`
+      : '';
     $('#ordersList').innerHTML = orders.length
-      ? orders.map(orderCardHtml).join('')
+      ? banner + orders.map(orderCardHtml).join('')
       : `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
     $$('[data-copy-key]', $('#ordersList')).forEach(btn => {
       btn.addEventListener('click', () => {
         navigator.clipboard?.writeText(btn.dataset.copyKey).then(() => toast('Đã sao chép key!', 'success'));
       });
+    });
+    $$('[data-renew-service]', $('#ordersList')).forEach(btn => {
+      btn.addEventListener('click', () => { closeModal('#ordersModal'); openServiceModal(btn.dataset.renewService); });
     });
     openModal('#ordersModal');
   }
@@ -3080,17 +3333,85 @@ window.KENIOS_DEFAULT_DB = {
     const db = Store.db;
     const revenue = db.orders.reduce((sum, o) => sum + (o.price || 0), 0);
     const totalBalance = db.users.reduce((sum, u) => sum + (u.balance || 0), 0);
+    const totalDeposit = (db.transactions || []).filter(t => t.type === 'deposit').reduce((s, t) => s + (t.amount || 0), 0);
     const stats = [
       { label: 'Người dùng', value: db.users.length },
       { label: 'Đơn hàng', value: db.orders.length },
       { label: 'Doanh thu', value: fmt(revenue) },
+      { label: 'Tổng đã nạp', value: fmt(totalDeposit) },
       { label: 'Tổng số dư ví', value: fmt(totalBalance) }
     ];
     const recent = db.orders.slice(0, 5);
+
+    // ----- Doanh thu 14 ngày gần nhất (từ đơn hàng) -----
+    const days = 14;
+    const byDay = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+      const start = d.getTime(), end = start + 86400000;
+      const total = db.orders.reduce((s, o) => {
+        const t = Date.parse(o.purchaseDate || o.date);
+        return (!isNaN(t) && t >= start && t < end) ? s + (o.price || 0) : s;
+      }, 0);
+      byDay.push({ label: `${d.getDate()}/${d.getMonth() + 1}`, total });
+    }
+    const maxDay = Math.max(1, ...byDay.map(x => x.total));
+    const chart = byDay.map(x => `
+      <div class="revenue-bar-wrap" title="${x.label}: ${fmt(x.total)}">
+        <span class="revenue-bar-val">${x.total > 0 ? Math.round(x.total / 1000) + 'k' : ''}</span>
+        <div class="revenue-bar" style="height:${Math.round(x.total / maxDay * 100)}%"></div>
+        <span class="revenue-bar-label">${x.label}</span>
+      </div>`).join('');
+
+    // ----- Sản phẩm bán chạy (theo doanh thu) -----
+    const prodMap = {};
+    db.orders.forEach(o => {
+      const k = o.serviceName || 'Khác';
+      if (!prodMap[k]) prodMap[k] = { name: k, count: 0, revenue: 0 };
+      prodMap[k].count++; prodMap[k].revenue += (o.price || 0);
+    });
+    const topProducts = Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 6);
+    const maxProd = Math.max(1, ...topProducts.map(p => p.revenue));
+
+    // ----- Lịch sử dùng mã giảm giá -----
+    const codes = (db.config.discountCodes || []).filter(d => (parseInt(d.usedCount, 10) || 0) > 0)
+      .sort((a, b) => (parseInt(b.usedCount, 10) || 0) - (parseInt(a.usedCount, 10) || 0));
+
     return `
+      <div class="admin-guide">
+        <b>📘 Hướng dẫn:</b> Trang <b>Tổng quan</b> cho bạn thấy sức khoẻ shop: số liệu nhanh, biểu đồ
+        <b>doanh thu 14 ngày</b>, <b>sản phẩm bán chạy</b> và <b>lịch sử dùng mã giảm giá</b>. Dữ liệu tự
+        cập nhật theo đơn hàng & giao dịch thực tế.
+      </div>
       <div class="admin-stat-grid">
         ${stats.map(s => `<div class="admin-stat-card"><strong>${s.value}</strong><span>${s.label}</span></div>`).join('')}
       </div>
+
+      <h4 class="admin-section-title">Doanh thu 14 ngày gần nhất</h4>
+      <div class="revenue-chart">${chart}</div>
+
+      <h4 class="admin-section-title">Sản phẩm bán chạy (theo doanh thu)</h4>
+      <div class="top-products">
+        ${topProducts.length ? topProducts.map(p => `
+          <div class="top-product-row">
+            <span style="flex:0 0 34%;">${esc(p.name)}</span>
+            <span class="top-product-bar"><span style="width:${Math.round(p.revenue / maxProd * 100)}%"></span></span>
+            <span style="flex:0 0 auto;color:var(--gold-soft);">${fmt(p.revenue)} · ${p.count} đơn</span>
+          </div>`).join('') : '<p class="muted">Chưa có đơn hàng nào.</p>'}
+      </div>
+
+      <h4 class="admin-section-title">Lịch sử dùng mã giảm giá</h4>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Mã</th><th>Loại</th><th>Đã dùng</th><th>Giới hạn</th></tr></thead>
+          <tbody>
+            ${codes.length ? codes.map(d => `
+              <tr><td><b>${esc(d.code)}</b></td><td>${d.type === 'amount' ? 'Giảm ' + fmt(parseInt(d.value, 10) || 0) : 'Giảm ' + (parseFloat(d.value) || 0) + '%'}</td><td>${parseInt(d.usedCount, 10) || 0}</td><td>${(parseInt(d.maxUses, 10) || 0) > 0 ? d.maxUses : 'Không giới hạn'}</td></tr>
+            `).join('') : '<tr><td colspan="4">Chưa có mã giảm giá nào được sử dụng.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
       <h4 class="admin-section-title">Đơn hàng gần đây</h4>
       <div class="admin-table-wrap">
         <table class="admin-table">
@@ -3479,19 +3800,38 @@ window.KENIOS_DEFAULT_DB = {
     });
   }
 
-  // 1 dòng mã giảm giá sản phẩm trong admin (mã + loại giảm + giá trị + bật/tắt).
+  // 1 dòng mã giảm giá sản phẩm trong admin: mã + loại giảm + giá trị + điều kiện nâng cao.
   function discountCodeRowHtml(dc = {}) {
     const type = dc.type === 'amount' ? 'amount' : 'percent';
+    const used = parseInt(dc.usedCount, 10) || 0;
+    const maxUses = parseInt(dc.maxUses, 10) || 0;
+    // input date cần định dạng yyyy-MM-dd
+    const expDate = dc.expiresAt ? String(dc.expiresAt).slice(0, 10) : '';
+    const cats = Store.db.categories || [];
     return `
-      <div class="discount-row" data-dc-row>
-        <label class="discount-on" title="Bật mã này"><input type="checkbox" data-dc-enabled ${dc.enabled !== false ? 'checked' : ''}></label>
-        <input data-dc-code class="discount-code" value="${esc(dc.code || '')}" placeholder="MÃ (VD: SALE10)" style="text-transform:uppercase">
-        <select data-dc-type class="discount-type">
-          <option value="percent" ${type === 'percent' ? 'selected' : ''}>Giảm %</option>
-          <option value="amount" ${type === 'amount' ? 'selected' : ''}>Giảm tiền (đ)</option>
-        </select>
-        <input data-dc-value class="discount-value" type="number" min="0" step="any" value="${dc.value != null ? dc.value : ''}" placeholder="VD: 10 hoặc 50000">
-        <button type="button" class="discount-del" data-dc-remove title="Xoá mã này">✕</button>
+      <div class="discount-row2" data-dc-row data-dc-used="${used}">
+        <div class="discount-line">
+          <label class="discount-on" title="Bật mã này"><input type="checkbox" data-dc-enabled ${dc.enabled !== false ? 'checked' : ''}></label>
+          <input data-dc-code class="discount-code" value="${esc(dc.code || '')}" placeholder="MÃ (VD: SALE10)" style="text-transform:uppercase">
+          <select data-dc-type class="discount-type">
+            <option value="percent" ${type === 'percent' ? 'selected' : ''}>Giảm %</option>
+            <option value="amount" ${type === 'amount' ? 'selected' : ''}>Giảm tiền (đ)</option>
+          </select>
+          <input data-dc-value class="discount-value" type="number" min="0" step="any" value="${dc.value != null ? dc.value : ''}" placeholder="VD: 10 hoặc 50000">
+          <button type="button" class="discount-del" data-dc-remove title="Xoá mã này">✕</button>
+        </div>
+        <div class="discount-line discount-cond">
+          <label class="dc-cond">Lượt tối đa <input data-dc-maxuses type="number" min="0" step="1" value="${maxUses || ''}" placeholder="0 = không giới hạn"></label>
+          <label class="dc-cond">Đã dùng <input value="${used}${maxUses ? '/' + maxUses : ''}" readonly tabindex="-1" class="dc-used-view"></label>
+          <label class="dc-cond">Hạn dùng <input data-dc-expires type="date" value="${esc(expDate)}"></label>
+          <label class="dc-cond">Đơn tối thiểu (đ) <input data-dc-minorder type="number" min="0" step="1000" value="${dc.minOrder ? parseInt(dc.minOrder, 10) : ''}" placeholder="0 = mọi đơn"></label>
+          <label class="dc-cond">Chỉ danh mục
+            <select data-dc-category>
+              <option value="">— Mọi sản phẩm —</option>
+              ${cats.map(cat => `<option value="${esc(cat.id)}" ${dc.categoryId === cat.id ? 'selected' : ''}>${esc(cat.name)}</option>`).join('')}
+            </select>
+          </label>
+        </div>
       </div>`;
   }
   function readDiscountCodesFromEditor() {
@@ -3499,8 +3839,32 @@ window.KENIOS_DEFAULT_DB = {
       code: row.querySelector('[data-dc-code]').value.trim().toUpperCase(),
       type: row.querySelector('[data-dc-type]').value === 'amount' ? 'amount' : 'percent',
       value: Math.max(0, parseFloat(row.querySelector('[data-dc-value]').value) || 0),
-      enabled: row.querySelector('[data-dc-enabled]').checked
+      enabled: row.querySelector('[data-dc-enabled]').checked,
+      maxUses: Math.max(0, parseInt(row.querySelector('[data-dc-maxuses]').value, 10) || 0),
+      usedCount: parseInt(row.dataset.dcUsed, 10) || 0,
+      expiresAt: row.querySelector('[data-dc-expires]').value || '',
+      minOrder: Math.max(0, parseInt(row.querySelector('[data-dc-minorder]').value, 10) || 0),
+      categoryId: row.querySelector('[data-dc-category]').value || ''
     })).filter(x => x.code && x.value > 0);
+  }
+
+  // 1 dòng hạng VIP trong admin (tên hạng + mốc chi tiêu + % giảm).
+  function vipTierRowHtml(t = {}) {
+    return `
+      <div class="vip-row" data-vip-row>
+        <input data-vip-name class="vip-name" value="${esc(t.name || '')}" placeholder="Tên hạng (VD: VIP Bạc)">
+        <label class="vip-cond">Chi tiêu từ (đ) <input data-vip-min type="number" min="0" step="1000" value="${t.minSpent ? parseInt(t.minSpent, 10) : ''}" placeholder="VD: 500000"></label>
+        <label class="vip-cond">Giảm (%) <input data-vip-pct type="number" min="0" max="100" step="1" value="${t.discountPercent ? parseFloat(t.discountPercent) : ''}" placeholder="VD: 5"></label>
+        <button type="button" class="vip-del" data-vip-remove title="Xoá hạng này">✕</button>
+      </div>`;
+  }
+  function readVipTiersFromEditor() {
+    return $$('#vipTiersEditor [data-vip-row]').map(row => ({
+      name: row.querySelector('[data-vip-name]').value.trim(),
+      minSpent: Math.max(0, parseInt(row.querySelector('[data-vip-min]').value, 10) || 0),
+      discountPercent: Math.max(0, Math.min(100, parseFloat(row.querySelector('[data-vip-pct]').value) || 0))
+    })).filter(x => x.name && x.discountPercent > 0)
+      .sort((a, b) => a.minSpent - b.minSpent);
   }
 
   function adminPromoHtml() {
@@ -3511,11 +3875,21 @@ window.KENIOS_DEFAULT_DB = {
     // Ví dụ minh hoạ để admin dễ hình dung.
     const sample = min > 0 ? min : 100000;
     const sampleBonus = enabled && percent > 0 ? Math.floor(sample * percent / 100) : 0;
+    const fs = c.flashSale || {};
+    // datetime-local cần định dạng yyyy-MM-ddTHH:mm (giờ địa phương)
+    const fsEndLocal = fs.endsAt ? toLocalDatetimeValue(fs.endsAt) : '';
     return `
       <form class="admin-form" data-admin-form="promo">
-        <div class="admin-form-section">Khuyến mãi nạp tiền</div>
+        <div class="admin-guide">
+          <b>📘 Hướng dẫn nhanh:</b> Trang này gộp 4 công cụ tăng doanh thu — <b>Khuyến mãi nạp tiền</b>,
+          <b>Flash Sale</b>, <b>Mã giảm giá</b>, <b>Hạng VIP</b>. Sau khi chỉnh, bấm <b>"Lưu"</b> rồi
+          <b>"Đồng bộ lên máy chủ"</b> để áp dụng cho mọi khách. Thứ tự giảm giá khi khách mua:
+          <b>Flash Sale → Hạng VIP → Mã giảm giá</b>.
+        </div>
+
+        <div class="admin-form-section">1. Khuyến mãi nạp tiền</div>
         <p class="muted" style="grid-column:1/-1;font-size:.82rem;margin:0 0 4px;">
-          Khi khách nạp tiền đạt mức tối thiểu, hệ thống sẽ tự động cộng thêm % khuyến mãi vào số dư.
+          <b>Hướng dẫn:</b> Khi khách nạp tiền đạt mức tối thiểu, hệ thống tự cộng thêm % khuyến mãi vào số dư. Đặt % = 0 hoặc chọn "Tắt" để ngừng.
         </p>
         <label>Bật khuyến mãi nạp tiền
           <select name="depositBonusEnabled">
@@ -3535,15 +3909,57 @@ window.KENIOS_DEFAULT_DB = {
             : 'Đang tắt khuyến mãi — khách nạp bao nhiêu nhận đúng bấy nhiêu.'}
         </p>
 
-        <div class="admin-form-section">Mã giảm giá sản phẩm (tạo bao nhiêu mã tuỳ ý)</div>
+        <div class="admin-form-section">2. Flash Sale (giảm giá toàn shop có đếm ngược)</div>
         <p class="muted" style="grid-column:1/-1;font-size:.82rem;margin:0 0 4px;">
-          Tạo mã giảm giá, chọn <b>Giảm %</b> hoặc <b>Giảm tiền (đ)</b> cùng giá trị. Khách nhập mã ở ô "Mã giảm giá" trong mọi sản phẩm — hệ thống tự đối chiếu với danh sách mã bên dưới để giảm giá khi mua.
+          <b>Hướng dẫn:</b> Bật Flash Sale để giảm giá <b>toàn bộ sản phẩm</b> theo % trong một khung thời gian. Trang chủ sẽ hiện banner <b>đồng hồ đếm ngược</b>, giá sản phẩm tự gạch ngang giá cũ. Hết giờ (mốc "Kết thúc lúc") thì tự tắt.
         </p>
+        <label>Bật Flash Sale
+          <select name="flashSaleEnabled">
+            <option value="1" ${fs.enabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!fs.enabled ? 'selected' : ''}>Tắt</option>
+          </select>
+        </label>
+        <label>Giảm giá (%)
+          <input type="number" name="flashSalePercent" min="0" max="100" step="1" value="${parseFloat(fs.percent) || 0}" placeholder="VD: 15">
+        </label>
+        <label>Kết thúc lúc
+          <input type="datetime-local" name="flashSaleEndsAt" value="${esc(fsEndLocal)}">
+        </label>
+        <label>Tiêu đề banner
+          <input name="flashSaleTitle" value="${esc(fs.title || 'FLASH SALE')}" placeholder="VD: FLASH SALE CUỐI TUẦN">
+        </label>
+
+        <div class="admin-form-section">3. Mã giảm giá sản phẩm (tạo bao nhiêu mã tuỳ ý)</div>
+        <div class="admin-guide">
+          <b>📘 Hướng dẫn dùng mã giảm giá:</b>
+          <ul style="margin:6px 0 0;padding-left:18px;">
+            <li><b>Ô tick trái:</b> bật/tắt từng mã.</li>
+            <li><b>MÃ:</b> tên mã khách gõ (VD: <code>SALE10</code>). <b>Giảm %</b> hoặc <b>Giảm tiền (đ)</b> + giá trị.</li>
+            <li><b>Lượt tối đa:</b> số lần mã được dùng (0 = không giới hạn). "Đã dùng" hiển thị số lần đã sử dụng.</li>
+            <li><b>Hạn dùng:</b> ngày hết hạn (để trống = không hết hạn).</li>
+            <li><b>Đơn tối thiểu:</b> giá đơn phải từ mức này mới áp được mã (0 = mọi đơn).</li>
+            <li><b>Chỉ danh mục:</b> giới hạn mã cho 1 danh mục sản phẩm (mặc định mọi sản phẩm).</li>
+          </ul>
+          Khách nhập mã ở ô "Mã giảm giá" trong từng sản phẩm — hệ thống tự đối chiếu &amp; kiểm tra các điều kiện trên.
+        </div>
         <div class="span-2 discount-editor" id="discountCodesEditor">
           ${(c.discountCodes || []).map(dc => discountCodeRowHtml(dc)).join('')}
         </div>
         <div class="span-2">
           <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodeBtn"><span class="btn-ico">${ICONS.tag || ''}</span> + Thêm mã giảm giá</button>
+        </div>
+
+        <div class="admin-form-section">4. Hạng thành viên VIP (tự giảm giá theo tổng chi tiêu)</div>
+        <div class="admin-guide">
+          <b>📘 Hướng dẫn hạng VIP:</b> Khách mua càng nhiều (tổng tiền đã mua) sẽ tự lên hạng và được <b>giảm giá % mọi đơn</b> mà không cần nhập mã.
+          Mỗi hạng gồm: <b>Tên hạng</b>, <b>Chi tiêu từ</b> (tổng tiền đã mua để đạt hạng) và <b>Giảm (%)</b>. Tạo nhiều hạng với mốc chi tiêu tăng dần (VD: 500.000đ → 3%, 2.000.000đ → 5%, 5.000.000đ → 8%).
+          Khách sẽ thấy hạng của mình trong menu tài khoản.
+        </div>
+        <div class="span-2 vip-editor" id="vipTiersEditor">
+          ${(c.vipTiers || []).map(t => vipTierRowHtml(t)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addVipTierBtn"><span class="btn-ico">${ICONS.crown || ''}</span> + Thêm hạng VIP</button>
         </div>
 
         <div class="admin-form-actions">
@@ -3982,11 +4398,20 @@ window.KENIOS_DEFAULT_DB = {
     // ----- Thêm / xoá mã giảm giá sản phẩm -----
     if (e.target.closest('#addDiscountCodeBtn')) {
       const editor = $('#discountCodesEditor');
-      if (editor) { editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' })); editor.querySelector('.discount-row:last-child [data-dc-code]')?.focus(); }
+      if (editor) { editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' })); editor.querySelector('[data-dc-row]:last-child [data-dc-code]')?.focus(); }
       return;
     }
     const delDc = e.target.closest('[data-dc-remove]');
     if (delDc) { delDc.closest('[data-dc-row]')?.remove(); return; }
+
+    // ----- Thêm / xoá hạng VIP -----
+    if (e.target.closest('#addVipTierBtn')) {
+      const editor = $('#vipTiersEditor');
+      if (editor) { editor.insertAdjacentHTML('beforeend', vipTierRowHtml({})); editor.querySelector('[data-vip-row]:last-child [data-vip-name]')?.focus(); }
+      return;
+    }
+    const delVip = e.target.closest('[data-vip-remove]');
+    if (delVip) { delVip.closest('[data-vip-row]')?.remove(); return; }
 
     const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
     if (adjustBalance) {
@@ -4209,14 +4634,23 @@ window.KENIOS_DEFAULT_DB = {
       renderStatic();
       toast('Đã lưu cấu hình. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
     } else if (formType === 'promo') {
+      const fsEnds = fd.get('flashSaleEndsAt');
       Store.adminUpdateConfig({
         depositBonusEnabled: fd.get('depositBonusEnabled') === '1',
         depositBonusPercent: Math.max(0, Math.min(100, parseFloat(fd.get('depositBonusPercent')) || 0)),
         depositBonusMin: Math.max(0, parseInt(fd.get('depositBonusMin'), 10) || 0),
-        discountCodes: readDiscountCodesFromEditor()
+        discountCodes: readDiscountCodesFromEditor(),
+        flashSale: {
+          enabled: fd.get('flashSaleEnabled') === '1',
+          percent: Math.max(0, Math.min(100, parseFloat(fd.get('flashSalePercent')) || 0)),
+          endsAt: fsEnds ? new Date(fsEnds).toISOString() : '',
+          title: (fd.get('flashSaleTitle') || 'FLASH SALE').trim() || 'FLASH SALE'
+        },
+        vipTiers: readVipTiersFromEditor()
       });
+      renderStatic();
       renderAdminTab('promo');
-      toast('Đã lưu khuyến mãi & mã giảm giá. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
+      toast('Đã lưu Khuyến mãi / Flash Sale / Mã giảm giá / VIP. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách.', 'success');
     }
   }
 

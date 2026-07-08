@@ -450,21 +450,56 @@ switch ($action) {
         }
         $pkg = $service['packages'][$pkgIdx];
 
-        $price = floatval($pkg['price'] ?? 0);
+        $basePrice = floatval($pkg['price'] ?? 0);
+        $originalPrice = $basePrice;
+        $cfg = is_array($db['config'] ?? null) ? $db['config'] : [];
 
-        // Áp mã giảm giá (nếu khách nhập): đối chiếu với danh sách mã trong config, giảm theo % hoặc theo số tiền.
+        // 1) Flash Sale toàn shop (giảm % nếu đang bật & còn hiệu lực).
+        $flashPercent = 0;
+        $fs = is_array($cfg['flashSale'] ?? null) ? $cfg['flashSale'] : [];
+        if (!empty($fs['enabled'])) {
+            $fp_percent = floatval($fs['percent'] ?? 0);
+            $endsOk = empty($fs['endsAt']) || strtotime((string)$fs['endsAt']) > time();
+            if ($fp_percent > 0 && $endsOk) $flashPercent = $fp_percent;
+        }
+        $price = $basePrice - floor($basePrice * $flashPercent / 100);
+
+        // 2) Hạng VIP theo tổng chi tiêu (tổng price các đơn của user).
+        $vipPercent = 0;
+        $tiers = is_array($cfg['vipTiers'] ?? null) ? $cfg['vipTiers'] : [];
+        if (!empty($tiers)) {
+            $uid = $db['users'][$userIdx]['userId'] ?? '';
+            $spent = 0;
+            foreach (($db['orders'] ?? []) as $o) { if (($o['userId'] ?? '') === $uid) $spent += floatval($o['price'] ?? 0); }
+            foreach ($tiers as $t) {
+                if (!is_array($t)) continue;
+                if ($spent >= (floatval($t['minSpent'] ?? 0)) && floatval($t['discountPercent'] ?? 0) > $vipPercent) {
+                    $vipPercent = floatval($t['discountPercent'] ?? 0);
+                }
+            }
+        }
+        $price = max(0, $price - floor($price * $vipPercent / 100));
+
+        // 3) Mã giảm giá (nếu khách nhập): đối chiếu + kiểm tra hạn/lượt/đơn tối thiểu/danh mục.
         $discountAmount = 0;
         $appliedCode = '';
+        $matchedCodeIdx = -1;
         if ($discountCode !== '') {
             $matched = null;
-            foreach (($db['config']['discountCodes'] ?? []) as $dc) {
+            foreach (($cfg['discountCodes'] ?? []) as $ci => $dc) {
                 if (!is_array($dc)) continue;
                 if (($dc['enabled'] ?? true) === false) continue;
-                if (strtoupper(trim((string)($dc['code'] ?? ''))) === $discountCode) { $matched = $dc; break; }
+                if (strtoupper(trim((string)($dc['code'] ?? ''))) === $discountCode) { $matched = $dc; $matchedCodeIdx = $ci; break; }
             }
-            if ($matched === null) {
+            $err = '';
+            if ($matched === null) $err = "Mã giảm giá không đúng hoặc đã hết hiệu lực.";
+            elseif (!empty($matched['expiresAt']) && strtotime((string)$matched['expiresAt']) < time()) $err = "Mã giảm giá đã hết hạn sử dụng.";
+            elseif ((intval($matched['maxUses'] ?? 0) > 0) && (intval($matched['usedCount'] ?? 0) >= intval($matched['maxUses'] ?? 0))) $err = "Mã giảm giá đã hết lượt sử dụng.";
+            elseif ((intval($matched['minOrder'] ?? 0) > 0) && $price < intval($matched['minOrder'] ?? 0)) $err = "Đơn chưa đạt mức tối thiểu để dùng mã.";
+            elseif (!empty($matched['categoryId']) && ($matched['categoryId'] !== ($service['categoryId'] ?? ''))) $err = "Mã giảm giá không áp dụng cho sản phẩm này.";
+            if ($err !== '') {
                 flock($fp, LOCK_UN); fclose($fp);
-                echo json_encode(["status" => "error", "message" => "Mã giảm giá không đúng hoặc đã hết hiệu lực."]);
+                echo json_encode(["status" => "error", "message" => $err]);
                 exit;
             }
             $val = floatval($matched['value'] ?? 0);
@@ -472,7 +507,6 @@ switch ($action) {
             $discountAmount = max(0, min($discountAmount, $price));
             $appliedCode = $discountCode;
         }
-        $originalPrice = $price;
         $price = $price - $discountAmount;
 
         $balance = floatval($db['users'][$userIdx]['balance'] ?? 0);
@@ -501,19 +535,31 @@ switch ($action) {
         }
         $purchaseTs = time();
         $days = duration_days_from_name($pkg['name']);
+        // Tăng lượt dùng của mã giảm giá đã áp dụng thành công.
+        if ($matchedCodeIdx >= 0) {
+            $db['config']['discountCodes'][$matchedCodeIdx]['usedCount'] = (intval($db['config']['discountCodes'][$matchedCodeIdx]['usedCount'] ?? 0)) + 1;
+        }
+        $totalDiscount = $originalPrice - $price;
+        $purchaseTs = time();
+        $days = duration_days_from_name($pkg['name']);
         $order = [
             "id" => "DH" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'],
             "serviceId" => $serviceId, "serviceName" => $service['name'], "packageName" => $pkg['name'],
             "os" => $os, "price" => $price, "originalPrice" => $originalPrice,
-            "discountCode" => $appliedCode, "discountAmount" => $discountAmount, "key" => $key,
+            "discountCode" => $appliedCode, "discountAmount" => $totalDiscount,
+            "flashPercent" => $flashPercent, "vipPercent" => $vipPercent, "key" => $key,
             "date" => date("c", $purchaseTs), "purchaseDate" => date("c", $purchaseTs),
             "expiryDate" => $days === null ? null : date("c", $purchaseTs + $days * 86400)
         ];
         if (!isset($db['orders'])) $db['orders'] = [];
         array_unshift($db['orders'], $order);
         if (!isset($db['transactions'])) $db['transactions'] = [];
-        $txDesc = $discountAmount > 0
-            ? "Mua {$service['name']} - {$pkg['name']} (mã {$appliedCode} -" . number_format($discountAmount) . "đ)"
+        $parts = [];
+        if ($flashPercent > 0) $parts[] = "flash -{$flashPercent}%";
+        if ($vipPercent > 0) $parts[] = "VIP -{$vipPercent}%";
+        if ($appliedCode !== '') $parts[] = "mã {$appliedCode}";
+        $txDesc = count($parts) > 0
+            ? "Mua {$service['name']} - {$pkg['name']} (" . implode(', ', $parts) . " · giảm " . number_format($totalDiscount) . "đ)"
             : "Mua {$service['name']} - {$pkg['name']}";
         array_unshift($db['transactions'], [
             "id" => "TX" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'], "amount" => -$price,

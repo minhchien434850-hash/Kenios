@@ -26,6 +26,19 @@
   font-size: 16px;
 }
 
+/* ---- Chế độ SÁNG (light theme) — đảo nền/chữ, giữ nguyên tông nhấn vàng/tím ---- */
+:root[data-theme="light"] {
+  --bg: #f4f5f8;
+  --bg-alt: #ffffff;
+  --ink: #1a1d24;
+  --muted: #5b6472;
+  --border: rgba(0,0,0,.10);
+  --glass: rgba(0,0,0,.03);
+  --glass-strong: rgba(0,0,0,.05);
+  --shadow: 0 20px 60px -24px rgba(0,0,0,.25);
+}
+:root[data-theme="light"] body { background: var(--bg); }
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 40px); }
@@ -888,6 +901,100 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .service-total strong { color: var(--gold-soft); font-size: 1.05rem; }
 .service-total del { color: var(--muted); font-size: .85rem; margin-right: 4px; }
 .service-total-save { font-size: .78rem; color: #34d399; margin-left: 4px; }
+
+/* Mã giảm giá NÂNG CAO — bố cục 2 dòng (điều kiện) trong admin */
+.discount-row2 { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.02); }
+.discount-line { display: grid; grid-template-columns: auto 1.2fr 130px 1fr auto; gap: 8px; align-items: center; }
+.discount-line input, .discount-line select { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .84rem; width: 100%; min-width: 0; }
+.discount-cond { grid-template-columns: repeat(5, 1fr); }
+.dc-cond { display: flex; flex-direction: column; gap: 3px; font-size: .72rem; color: var(--muted); }
+.dc-used-view { background: rgba(255,255,255,.05) !important; color: var(--gold-soft) !important; text-align: center; }
+@media (max-width: 720px) {
+  .discount-line { grid-template-columns: auto 1fr auto; grid-template-areas: "on code del" "type type type" "value value value"; }
+  .discount-on { grid-area: on; } .discount-code { grid-area: code; } .discount-type { grid-area: type; }
+  .discount-value { grid-area: value; } .discount-del { grid-area: del; }
+  .discount-cond { grid-template-columns: 1fr 1fr; grid-template-areas: none; }
+}
+
+/* Editor hạng VIP (admin) */
+.vip-editor { display: flex; flex-direction: column; gap: 8px; }
+.vip-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 8px; align-items: end; }
+.vip-row input, .vip-row select { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .84rem; width: 100%; min-width: 0; }
+.vip-cond { display: flex; flex-direction: column; gap: 3px; font-size: .72rem; color: var(--muted); }
+.vip-del { flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: rgba(248,113,113,.1); color: #f87171; cursor: pointer; }
+.vip-del:hover { background: rgba(248,113,113,.2); }
+@media (max-width: 640px) { .vip-row { grid-template-columns: 1fr 1fr auto; grid-template-areas: "name name del" "min pct pct"; } .vip-name { grid-area: name; } .vip-del { grid-area: del; align-self: center; } }
+
+/* Hộp hướng dẫn trong admin */
+.admin-guide { grid-column: 1/-1; background: rgba(139,92,246,.1); border: 1px solid rgba(139,92,246,.28); border-radius: 12px; padding: 12px 14px; font-size: .82rem; line-height: 1.6; color: var(--ink); }
+.admin-guide b { color: var(--violet-soft); }
+.admin-guide code { background: rgba(255,255,255,.08); padding: 1px 6px; border-radius: 5px; font-size: .82em; }
+
+/* Nhãn giảm giá trong modal sản phẩm (thành tiền) */
+.save-tags { display: inline-flex; gap: 6px; flex-wrap: wrap; margin-left: 6px; vertical-align: middle; }
+.save-tag { font-size: .68rem; padding: 2px 8px; border-radius: 999px; font-weight: 700; }
+.save-tag.flash { background: rgba(248,113,113,.15); color: #fca5a5; }
+.save-tag.vip { background: rgba(255,183,3,.15); color: var(--gold-soft); }
+.save-tag.code { background: rgba(52,211,153,.15); color: #6ee7b7; }
+
+/* Giá gạch ngang / giá sale trên thẻ sản phẩm khi Flash Sale */
+.price-old { color: var(--muted); font-size: .82rem; text-decoration: line-through; font-weight: 500; }
+.price-sale { color: #fca5a5; }
+.badge.flash-badge { left: auto; right: 10px; background: linear-gradient(135deg,#f43f5e,#f97316); color: #fff; border: none; }
+
+/* Banner FLASH SALE + đếm ngược */
+.flash-sale-bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 9px 16px;
+  background: linear-gradient(90deg, #f43f5e, #f97316, #f43f5e); background-size: 200% 100%; animation: flashGlow 4s linear infinite;
+  color: #fff; font-weight: 700; text-align: center; }
+@keyframes flashGlow { 0% { background-position: 0 0; } 100% { background-position: 200% 0; } }
+.flash-sale-ico { font-size: 1.1rem; }
+.flash-sale-title { letter-spacing: .5px; text-transform: uppercase; }
+.flash-sale-desc { font-weight: 500; opacity: .95; }
+.flash-sale-countdown { font-variant-numeric: tabular-nums; background: rgba(0,0,0,.28); padding: 4px 12px; border-radius: 999px; letter-spacing: 1px; }
+@media (max-width: 560px) { .flash-sale-desc { width: 100%; order: 3; font-size: .8rem; } }
+
+/* Thẻ hạng VIP trong hồ sơ khách */
+.vip-badge-box { background: linear-gradient(135deg, rgba(255,183,3,.12), rgba(139,92,246,.12)); border: 1px solid rgba(255,183,3,.28); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+.vip-badge-head { display: flex; align-items: center; gap: 12px; }
+.vip-badge-crown { width: 34px; height: 34px; color: var(--gold); flex-shrink: 0; }
+.vip-badge-crown svg { width: 34px; height: 34px; }
+.vip-badge-head strong { display: block; color: var(--gold-soft); font-size: .98rem; }
+.vip-badge-head small { display: block; color: var(--muted); font-size: .78rem; }
+.vip-progress { height: 7px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+.vip-progress span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--violet)); border-radius: 999px; }
+
+/* Nhắc key sắp / đã hết hạn trong Đơn hàng của tôi */
+.order-expiry-warn { display: inline-block; margin-top: 6px; font-size: .76rem; padding: 3px 10px; border-radius: 999px; font-weight: 600; }
+.order-expiry-warn.soon { background: rgba(255,183,3,.15); color: var(--gold-soft); }
+.order-expiry-warn.expired { background: rgba(248,113,113,.15); color: #fca5a5; }
+
+/* Bảng thống kê doanh thu (admin, biểu đồ cột) */
+.revenue-chart { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.02); overflow-x: auto; }
+.revenue-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 34px; flex: 1; height: 100%; justify-content: flex-end; }
+.revenue-bar { width: 68%; min-height: 2px; border-radius: 5px 5px 0 0; background: linear-gradient(180deg, var(--gold), rgba(255,183,3,.35)); transition: height .3s; }
+.revenue-bar-label { font-size: .62rem; color: var(--muted); white-space: nowrap; }
+.revenue-bar-val { font-size: .6rem; color: var(--gold-soft); white-space: nowrap; }
+.top-products { display: flex; flex-direction: column; gap: 8px; }
+.top-product-row { display: flex; align-items: center; gap: 10px; font-size: .85rem; }
+.top-product-bar { flex: 1; height: 8px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
+.top-product-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--violet), var(--gold)); }
+
+/* Thanh lọc sản phẩm */
+.filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+.filter-bar select, .filter-bar input { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); font-size: .85rem; }
+.filter-bar .filter-label { font-size: .82rem; color: var(--muted); }
+
+/* Đánh giá sản phẩm (sao) */
+.review-stars { color: var(--gold); letter-spacing: 2px; }
+.review-stars .empty { color: var(--border); }
+.review-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.review-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.02); }
+.review-item-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .82rem; }
+.review-item-user { font-weight: 600; }
+.review-item-text { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
+.review-form { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.review-star-pick { display: inline-flex; gap: 4px; font-size: 1.4rem; cursor: pointer; color: var(--border); }
+.review-star-pick .on { color: var(--gold); }
 
 /* Nhãn còn key / hết key trên từng gói ở trang mua hàng */
 .pkg-stock { display: block; font-size: .7rem; color: #6ee7b7; margin-top: 2px; }
