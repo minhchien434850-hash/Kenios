@@ -1,5 +1,5 @@
 <?php
-// bank_callback.php - Webhook nhận thanh toán tự động VietQR cho shopaccnghao.com
+// bank_callback.php - Webhook nhận thanh toán tự động VietQR cho kenios.store
 // Hỗ trợ payload dạng ThueAPIBank / Casso / SePay / webhook đơn giản (flat JSON).
 //
 // BẢO MẬT: token xác thực PHẢI được cấu hình trong database.json (config.bankToken).
@@ -87,7 +87,7 @@ $has_amount_field = isset($data['amount']) || isset($data['transferAmount']) || 
 if (!$is_authenticated) {
     if (!$has_amount_field) {
         http_response_code(200);
-        echo json_encode(["status" => "success", "message" => "Webhook connected successfully to shopaccnghao.com", "time" => date("Y-m-d H:i:s")]);
+        echo json_encode(["status" => "success", "message" => "Webhook connected successfully to kenios.store", "time" => date("Y-m-d H:i:s")]);
         exit;
     }
     http_response_code(401);

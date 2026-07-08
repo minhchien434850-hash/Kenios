@@ -5,10 +5,10 @@
  */
 window.KENIOS_DEFAULT_DB = {
   config: {
-    siteName: "shopaccnghao.com",
-    siteTitle: "SHOPACCNGHAO.COM - Cửa Hàng Dịch Vụ Game & Thiết Kế Website",
+    siteName: "kenios.store",
+    siteTitle: "KENIOS.STORE - Cửa Hàng Dịch Vụ Game & Thiết Kế Website",
     siteSubtitle: "Hệ thống phân phối phụ kiện game & dịch vụ thiết kế web hàng đầu Việt Nam. Tự động 24/24, hỗ trợ setup từ A-Z.",
-    logoText: "shopaccnghao",
+    logoText: "KENIOS.STORE",
     logoSubtext: "v3.0 Premium",
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
@@ -17,7 +17,7 @@ window.KENIOS_DEFAULT_DB = {
     contactAdminDesc: "Chuyên cung cấp phụ kiện gaming và dịch vụ thiết kế website chất lượng cao, giúp nâng tầm trải nghiệm của bạn.",
     bgUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop",
     aiName: "Trợ Lý Ảo Kenios",
-    aiGreeting: "Xin chào! Tôi là trợ lý ảo của shopaccnghao.com. Tôi có thể giúp gì cho bạn hôm nay?",
+    aiGreeting: "Xin chào! Tôi là trợ lý ảo của KENIOS.STORE. Tôi có thể giúp gì cho bạn hôm nay?",
     aiResponseGreeting: "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
     aiResponseDeposit: "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
     aiResponseProduct: "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
@@ -104,7 +104,7 @@ window.KENIOS_DEFAULT_DB = {
     }
   ],
   users: [
-    { userId: "10001", username: "kenios", password: "me123456789@", balance: 0, role: "admin", status: "active", createdAt: "2026-06-13" }
+    { userId: "10001", username: "kenios", password: "admin1999@", balance: 0, role: "admin", status: "active", createdAt: "2026-06-13" }
   ],
   posts: [
     { id: "1", title: "Hướng dẫn cài đặt an toàn 100%", summary: "Làm sao để trải nghiệm an toàn, không lo mất tài khoản chính? Xem ngay cẩm nang này.", date: "2026-06-10" },

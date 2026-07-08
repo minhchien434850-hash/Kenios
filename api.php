@@ -1,5 +1,5 @@
 <?php
-// api.php - Backend Storage Sync for shopaccnghao.com
+// api.php - Backend Storage Sync for kenios.store
 ini_set('memory_limit', '256M');
 ini_set('max_execution_time', 60);
 header("Access-Control-Allow-Origin: *");
