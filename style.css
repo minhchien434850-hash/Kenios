@@ -228,10 +228,17 @@ button { font: inherit; }
   position: fixed; top: 0; left: 0; bottom: 0; width: min(320px, 84vw); z-index: 900;
   background: rgba(9,9,15,.98); backdrop-filter: blur(20px); border-right: 1px solid var(--border);
   transform: translateX(-105%); transition: transform .3s cubic-bezier(.4,0,.2,1);
-  overflow-y: auto; box-shadow: 24px 0 48px rgba(0,0,0,.35);
+  overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  box-shadow: 24px 0 48px rgba(0,0,0,.35);
 }
 .mobile-nav.open { transform: translateX(0); }
-.mobile-nav-inner { padding: 16px 12px 28px; display: flex; flex-direction: column; gap: 2px; }
+/* Chừa safe-area trên (tai thỏ) và đệm đáy RỘNG + safe-area dưới, để mục cuối
+   (khu "Liên hệ") luôn cuộn lên khỏi thanh công cụ / home indicator của trình
+   duyệt di động — trước đây nó bị khuất dưới đáy nên tưởng như biến mất. */
+.mobile-nav-inner {
+  padding: calc(16px + env(safe-area-inset-top)) 12px calc(96px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 2px;
+}
 /* Logo đầu ngăn kéo (giống mẫu: banner thương hiệu trên cùng) */
 .mobile-nav-brand {
   display: flex; align-items: center; gap: 12px; padding: 10px 12px 16px; margin-bottom: 6px;
