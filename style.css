@@ -219,9 +219,9 @@ button { font: inherit; }
 @keyframes logoFlip { 0% { transform: rotateY(0); } 50% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
 .logo-motion-flip { display: inline-block; animation: logoFlip var(--logo-motion-speed, 4s) ease-in-out infinite; }
 
-@media (prefers-reduced-motion: reduce) {
-  [class*="logo-color-"], [class*="logo-motion-"] { animation: none !important; }
-}
+/* Hiệu ứng logo (màu chạy + chuyển động) là trang trí do admin CHỦ ĐỘNG chọn,
+   nên vẫn cho chạy kể cả khi thiết bị bật "Giảm chuyển động" (Reduce Motion) —
+   trước đây rule tắt ở đây khiến logo đứng yên trên máy có bật tính năng này. */
 .brand-text small { color: var(--muted); font-size: .7rem; }
 .main-nav { display: flex; gap: 22px; font-size: .92rem; white-space: nowrap; }
 .main-nav a { color: var(--muted); transition: color .15s ease; }
