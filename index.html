@@ -38,6 +38,14 @@
 
   <div class="bg-mesh" aria-hidden="true"></div>
 
+  <!-- Nền ẢNH/VIDEO phủ toàn giao diện (cấu hình: siteBgUrl). Nằm trên .bg-mesh,
+       dưới mọi nội dung; có lớp phủ tối để chữ luôn dễ đọc. -->
+  <div class="site-bg" id="siteBg" aria-hidden="true" hidden>
+    <div class="site-bg-media" id="siteBgImg"></div>
+    <video class="site-bg-media" id="siteBgVideo" hidden loop muted autoplay playsinline></video>
+    <div class="site-bg-overlay"></div>
+  </div>
+
   <a class="skip-link" href="#main">Bỏ qua tới nội dung chính</a>
 
   <header class="site-header" id="siteHeader">

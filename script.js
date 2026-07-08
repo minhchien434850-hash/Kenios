@@ -44,6 +44,7 @@ window.KENIOS_DEFAULT_DB = {
     contactAdminSub: "Chủ sở hữu hệ thống",
     contactAdminDesc: "Chuyên cung cấp phụ kiện gaming và dịch vụ thiết kế website chất lượng cao, giúp nâng tầm trải nghiệm của bạn.",
     bgUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop",
+    siteBgUrl: "",
     aiName: "Trợ Lý Ảo Kenios",
     aiGreeting: "Xin chào! Tôi là trợ lý ảo của KENIOS.STORE. Tôi có thể giúp gì cho bạn hôm nay?",
     aiResponseGreeting: "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
@@ -1447,6 +1448,7 @@ window.KENIOS_DEFAULT_DB = {
     setText('#heroBtn1', cfg.bannerBtn1Text);
     setText('#heroBtn2', cfg.bannerBtn2Text);
     applyHeroBackground(cfg.bgUrl);
+    applySiteBackground(cfg.siteBgUrl);
 
     const m = `📢 ${cfg.marqueeText}`;
     setText('#marqueeText1', m);
@@ -1974,6 +1976,29 @@ window.KENIOS_DEFAULT_DB = {
     } else {
       videoEl.hidden = true;
       imgEl.style.backgroundImage = `url(${url})`;
+    }
+  }
+
+  // Nền ẢNH/VIDEO phủ toàn giao diện (cấu hình siteBgUrl) — nhận link giống hero.
+  function applySiteBackground(url) {
+    const wrap = $('#siteBg');
+    const imgEl = $('#siteBgImg');
+    const videoEl = $('#siteBgVideo');
+    if (!wrap) return;
+    if (!url) {
+      wrap.hidden = true;
+      videoEl.hidden = true; videoEl.removeAttribute('src');
+      imgEl.hidden = true; imgEl.style.backgroundImage = 'none';
+      return;
+    }
+    wrap.hidden = false;
+    if (isVideoUrl(url)) {
+      imgEl.hidden = true; imgEl.style.backgroundImage = 'none';
+      videoEl.src = url; videoEl.hidden = false;
+      videoEl.onerror = () => { videoEl.hidden = true; };
+    } else {
+      videoEl.hidden = true; videoEl.removeAttribute('src');
+      imgEl.hidden = false; imgEl.style.backgroundImage = `url(${url})`;
     }
   }
 
@@ -3331,6 +3356,9 @@ window.KENIOS_DEFAULT_DB = {
         <label class="span-2">Ảnh/Video nền Hero (bgUrl)
           <input name="bgUrl" value="${esc(c.bgUrl || '')}" placeholder="Dán URL ảnh (PNG/JPEG/GIF/WEBP) hoặc video (.mp4/.webm/.ogg) — lấy từ tab Thư viện">
         </label>
+        <label class="span-2">Ảnh/Video nền GIAO DIỆN (siteBgUrl — chạy sau toàn trang)
+          <input name="siteBgUrl" value="${esc(c.siteBgUrl || '')}" placeholder="Dán URL ảnh (PNG/JPEG/GIF/WEBP) hoặc video (.mp4/.webm/.ogg) — để trống dùng nền mặc định">
+        </label>
 
         <div class="admin-form-section">Liên hệ &amp; Giới thiệu</div>
         <label class="span-2">Tên website (siteTitle) <input name="siteTitle" value="${esc(c.siteTitle)}"></label>
@@ -3817,6 +3845,7 @@ window.KENIOS_DEFAULT_DB = {
         aiResponsePrice: fd.get('aiResponsePrice'), aiResponseFallback: fd.get('aiResponseFallback'),
         aiKnowledge: readAiKnowledgeFromEditor(),
         bgUrl: fd.get('bgUrl'),
+        siteBgUrl: fd.get('siteBgUrl'),
         contactChannels: readContactChannelsFromEditor()
       });
       renderStatic();
