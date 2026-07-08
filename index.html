@@ -107,15 +107,26 @@
 
   <main id="main">
     <section class="hero" id="top">
-      <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
-      <video class="hero-bg" id="heroBgVideo" aria-hidden="true" hidden loop muted autoplay playsinline></video>
-      <div class="container hero-inner">
-        <span class="tag-pill" id="heroTag">Dịch vụ hàng đầu Việt Nam</span>
-        <h1 id="heroTitle">Cửa Hàng Dịch Vụ Game &amp; Thiết Kế Website</h1>
-        <p class="hero-sub" id="heroSub">Hệ thống phân phối phụ kiện game &amp; dịch vụ thiết kế web hàng đầu Việt Nam.</p>
-        <div class="hero-actions">
-          <a href="#services" class="btn btn-primary" id="heroBtn1">Xem Dịch Vụ</a>
-          <button class="btn btn-glass" id="heroBtn2">Nạp Tiền Ngay</button>
+      <div class="container">
+        <div class="hero-banner">
+          <div class="hero-banner-bg" id="heroBg" aria-hidden="true"></div>
+          <video class="hero-banner-bg" id="heroBgVideo" aria-hidden="true" hidden loop muted autoplay playsinline></video>
+          <div class="hero-banner-overlay" aria-hidden="true"></div>
+          <div class="hero-banner-content">
+            <div class="hero-brand-row">
+              <span class="hero-brand-mark brand-mark-wrap"><img src="./favicon.svg" alt="" class="brand-mark"></span>
+              <div class="hero-brand-text">
+                <strong class="hero-brand-name" id="heroBrandName">KENIOS.STORE</strong>
+                <span class="hero-brand-sub" id="heroTag">Dịch vụ hàng đầu Việt Nam</span>
+              </div>
+            </div>
+            <h1 class="hero-heading" id="heroTitle">Cửa Hàng Dịch Vụ Game &amp; Thiết Kế Website</h1>
+            <p class="hero-feature" id="heroSub">Hệ thống phân phối phụ kiện game &amp; dịch vụ thiết kế web hàng đầu Việt Nam.</p>
+            <div class="hero-actions">
+              <a href="#services" class="btn hero-cta" id="heroBtn1">Mua ngay <span class="hero-cta-arrow">→</span></a>
+              <button class="btn btn-glass hero-cta2" id="heroBtn2">Nạp Tiền Ngay</button>
+            </div>
+          </div>
         </div>
         <div class="hero-stats" id="heroStats"></div>
       </div>
@@ -129,6 +140,38 @@
         <div class="trust-item"><span class="trust-ico" data-icon="refresh"></span> Hoàn tiền nếu lỗi hệ thống</div>
       </div>
     </div>
+
+    <section class="section live-section" id="liveFeed" data-reveal>
+      <div class="container">
+        <div class="section-head">
+          <h2>Hoạt Động Trực Tuyến</h2>
+          <p>Bảng xếp hạng nạp tích luỹ · Giao dịch &amp; nạp tiền cập nhật liên tục</p>
+        </div>
+        <div class="live-grid">
+          <div class="live-card live-rank">
+            <div class="live-card-head">
+              <h3><span class="live-ico" data-icon="trophy"></span> Bảng xếp hạng nạp</h3>
+              <span class="live-badge">REALTIME</span>
+            </div>
+            <div class="rank-list" id="rankList"></div>
+          </div>
+          <div class="live-card live-orders">
+            <div class="live-card-head">
+              <h3><span class="live-ico" data-icon="bolt"></span> Giao dịch gần đây</h3>
+              <span class="live-badge">REALTIME</span>
+            </div>
+            <div class="feed-list" id="orderFeed"></div>
+          </div>
+          <div class="live-card live-deposits">
+            <div class="live-card-head">
+              <h3><span class="live-ico" data-icon="wallet"></span> Nạp tiền gần đây</h3>
+              <span class="live-badge">REALTIME</span>
+            </div>
+            <div class="feed-list" id="depositFeed"></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="section" id="categories" data-reveal>
       <div class="container">

@@ -1005,7 +1005,8 @@ window.KENIOS_DEFAULT_DB = {
     folder: _svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>'),
     headset: _svg('<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M20 19a4 4 0 0 1-4 3h-2"/>'),
     bulb: _svg('<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.8 10.6c.6.6.8 1.4.8 2.4h6c0-1 .2-1.8.8-2.4A6 6 0 0 0 12 3Z"/>'),
-    heart: _svg('<path d="M12 20s-7-4.3-9.2-8.5A4.6 4.6 0 0 1 12 6a4.6 4.6 0 0 1 9.2 5.5C19 15.7 12 20 12 20Z"/>')
+    heart: _svg('<path d="M12 20s-7-4.3-9.2-8.5A4.6 4.6 0 0 1 12 6a4.6 4.6 0 0 1 9.2 5.5C19 15.7 12 20 12 20Z"/>'),
+    wallet: _svg('<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 13.5h1.5"/><path d="M17 6V4.5a1.5 1.5 0 0 0-1.9-1.4L5 5.5"/>')
   };
   // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
   const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
@@ -1075,6 +1076,189 @@ window.KENIOS_DEFAULT_DB = {
     }
   };
 
+  // ============================================================
+  // LIVE FEED — Bảng xếp hạng nạp + Giao dịch/Nạp tiền gần đây.
+  // Chạy dữ liệu ẢO (nhiều tên khác nhau, đổi liên tục) để tạo social-proof.
+  // Khi có giao dịch / nạp tiền THẬT thì gộp thêm vào, KHÔNG xoá dữ liệu ảo.
+  // Sản phẩm & giá lấy từ bảng giá của trợ lý AI (cfg.aiResponsePrice).
+  // ============================================================
+  const LiveFeed = (() => {
+    const SURNAMES = ['Nguyễn','Trần','Lê','Phạm','Hoàng','Huỳnh','Phan','Vũ','Võ','Đặng','Bùi','Đỗ','Hồ','Ngô','Dương','Lý','Đinh','Tô','Cao','Mai','Trịnh','Đoàn','Lương','Tạ','Chu'];
+    const GIVENS = ['Minh','Hùng','Quân','Anh','Tuấn','Khoa','Long','Nam','Phúc','Bảo','Đạt','Huy','Kiên','Sơn','Thắng','Vinh','Duy','Tài','Lộc','Phát','Hải','Trung','Dũng','Hoàng','Nghĩa','Khánh','Thịnh','Cường','Đức','Nhân'];
+
+    let productPool = [];
+    let orders = [];      // {name, product, label, price, time}
+    let deposits = [];    // {name, amount, time}
+    let rank = {};        // name -> tổng nạp tích luỹ
+    let timer = null;
+    let seenReal = new Set();
+
+    const rndInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    function maskName() {
+      const s = pick(SURNAMES), g = pick(GIVENS);
+      switch (rndInt(0, 3)) {
+        case 0: return `${s} ${g[0]}${'*'.repeat(rndInt(2, 4))}`;
+        case 1: return `${s.slice(0, 2)}${'*'.repeat(rndInt(2, 3))} ${g}`;
+        case 2: return `${s} V.${g[0]}${'*'.repeat(2)}`;
+        default: return `${s[0]}${'*'.repeat(3)} ${g}`;
+      }
+    }
+
+    function parsePrice(str) {
+      let n = parseInt(String(str).replace(/[^\d]/g, ''), 10);
+      if (!n) return 0;
+      if (n < 1000) n *= 1000;
+      return n;
+    }
+
+    function buildProductPool(cfg) {
+      const pool = [];
+      const text = (cfg && cfg.aiResponsePrice) || '';
+      let current = '';
+      text.split('\n').forEach(raw => {
+        const line = raw.replace(/[\u{1F000}-\u{1FFFF}☀-➿←-⇿️]/gu, '').trim();
+        if (!line) return;
+        if (/https?:|zalo|telegram|linkbio|cảm ơn|bảng giá|android|ios/i.test(line) && !/\d+\s*[kK]?\s*\//.test(line)) { return; }
+        const hasPrice = /\d+\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T\b)/i.test(line);
+        if (!hasPrice) { current = line.replace(/[:\-–].*$/, '').trim(); return; }
+        let name = current;
+        const inline = line.match(/^([^:0-9]+):/);
+        if (inline) name = inline[1].trim();
+        if (!name) return;
+        const re = /(\d+)\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T)\b([^\/\d]*)/gi;
+        let m;
+        while ((m = re.exec(line))) {
+          let label = m[2]; if (/^T$/i.test(label)) label = 'Tháng';
+          const extra = (m[3] || '').replace(/[^\p{L}\s]/gu, '').trim();
+          if (extra) label += ' ' + extra;
+          pool.push({ product: name, label, price: parsePrice(m[1]) });
+        }
+      });
+      if (!pool.length) {
+        ['VNHAX','OASIS VIP','KING','TIMO VIP','FREE FIRE','LIÊN QUÂN'].forEach(p =>
+          pool.push({ product: p, label: pick(['Tháng', 'Tuần']), price: rndInt(2, 12) * 50000 }));
+      }
+      return pool;
+    }
+
+    function relTime(ts) {
+      const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+      if (s < 60) return `${s} giây trước`;
+      const m = Math.floor(s / 60);
+      if (m < 60) return `${m} phút trước`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h} giờ trước`;
+      return `${Math.floor(h / 24)} ngày trước`;
+    }
+
+    const DEPOSIT_AMOUNTS = [50000, 50000, 100000, 100000, 100000, 200000, 200000, 300000, 500000, 500000, 1000000, 2000000];
+
+    function makeFakeOrder(agoMax) {
+      const p = pick(productPool);
+      return { name: maskName(), product: p.product, label: p.label, price: p.price,
+               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+    }
+    function makeFakeDeposit(agoMax) {
+      return { name: maskName(), amount: pick(DEPOSIT_AMOUNTS),
+               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+    }
+
+    function seed() {
+      orders = []; deposits = []; rank = {};
+      // Bảng xếp hạng: một nhóm "đại gia" nạp tích luỹ lớn
+      for (let i = 0; i < 12; i++) rank[maskName()] = rndInt(6, 90) * 500000;
+      // Lịch sử gần đây
+      let t = 5;
+      for (let i = 0; i < 14; i++) { const o = makeFakeOrder(); o.time = Date.now() - t * 1000; orders.push(o); t += rndInt(20, 120); }
+      t = 8;
+      for (let i = 0; i < 14; i++) { const d = makeFakeDeposit(); d.time = Date.now() - t * 1000; deposits.push(d); rank[d.name] = (rank[d.name] || 0) + d.amount; t += rndInt(20, 120); }
+      orders.sort((a, b) => b.time - a.time);
+      deposits.sort((a, b) => b.time - a.time);
+    }
+
+    function mergeReal(db) {
+      if (!db) return;
+      // Đơn hàng thật -> giao dịch gần đây (mua)
+      (db.orders || []).forEach(o => {
+        const key = 'O' + o.id;
+        if (seenReal.has(key)) return;
+        seenReal.add(key);
+        orders.unshift({ name: 'Bạn', product: o.serviceName || 'Sản phẩm', label: (o.packageName || '').replace(/^Gói\s*/i, ''),
+                         price: o.price || 0, time: Date.parse(o.date) || Date.now(), fake: false, real: true });
+      });
+      // Nạp tiền thật -> nạp tiền gần đây + cộng bảng xếp hạng (không mất dữ liệu ảo)
+      (db.transactions || []).filter(x => x.type === 'deposit' && x.amount > 0).forEach(x => {
+        const key = 'D' + x.id;
+        if (seenReal.has(key)) return;
+        seenReal.add(key);
+        deposits.unshift({ name: 'Bạn', amount: x.amount, time: Date.parse(x.date) || Date.now(), fake: false, real: true });
+        rank['Bạn (bạn)'] = (rank['Bạn (bạn)'] || 0) + x.amount;
+      });
+      orders.sort((a, b) => b.time - a.time);
+      deposits.sort((a, b) => b.time - a.time);
+    }
+
+    function tick() {
+      // Thêm 1 mục ảo mới, cập nhật lại thời gian tương đối
+      if (Math.random() < 0.55) { orders.unshift(makeFakeOrder(6)); }
+      else { const d = makeFakeDeposit(6); deposits.unshift(d); rank[d.name] = (rank[d.name] || 0) + d.amount; }
+      // Thỉnh thoảng "đại gia" nạp thêm để bảng xếp hạng nhảy
+      if (Math.random() < 0.25) { const names = Object.keys(rank); if (names.length) { const n = pick(names); rank[n] += pick(DEPOSIT_AMOUNTS); } }
+      if (orders.length > 40) orders.length = 40;
+      if (deposits.length > 40) deposits.length = 40;
+      render();
+    }
+
+    function medal(i) { return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''; }
+
+    function render() {
+      const rankEl = $('#rankList');
+      if (rankEl) {
+        const top = Object.entries(rank).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        rankEl.innerHTML = top.map(([name, total], i) => `
+          <div class="rank-row ${medal(i)}">
+            <span class="rank-pos">${i + 1}</span>
+            <span class="rank-name">${esc(name)}</span>
+            <span class="rank-total">${fmt(total)}</span>
+          </div>`).join('');
+      }
+      const ordEl = $('#orderFeed');
+      if (ordEl) {
+        ordEl.innerHTML = orders.slice(0, 8).map(o => `
+          <div class="feed-row${o.real ? ' feed-real' : ''}">
+            <span class="feed-ava" data-icon="cart"></span>
+            <span class="feed-main"><b>${esc(o.name)}</b> mua <b>${esc(o.product)}</b>${o.label ? ` · ${esc(o.label)}` : ''}<span class="feed-time">${relTime(o.time)}</span></span>
+            <span class="feed-amt">${fmt(o.price)}</span>
+          </div>`).join('');
+        applyIcons(ordEl);
+      }
+      const depEl = $('#depositFeed');
+      if (depEl) {
+        depEl.innerHTML = deposits.slice(0, 8).map(d => `
+          <div class="feed-row${d.real ? ' feed-real' : ''}">
+            <span class="feed-ava dep" data-icon="wallet"></span>
+            <span class="feed-main"><b>${esc(d.name)}</b> đã nạp<span class="feed-time">${relTime(d.time)}</span></span>
+            <span class="feed-amt plus">+${fmt(d.amount)}</span>
+          </div>`).join('');
+        applyIcons(depEl);
+      }
+    }
+
+    function init() {
+      productPool = buildProductPool(Store.db.config);
+      seed();
+      mergeReal(Store.db);
+      render();
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, rndInt(6000, 9000));
+      Store.onChange(db => { mergeReal(db); render(); });
+    }
+
+    return { init };
+  })();
+
   document.addEventListener('DOMContentLoaded', boot);
 
   async function boot() {
@@ -1086,6 +1270,7 @@ window.KENIOS_DEFAULT_DB = {
     applyIcons();
     renderStatic();
     renderDynamic();
+    LiveFeed.init();
     renderFaq();
     wireGlobalUI();
     wireAuthModal();
@@ -1143,6 +1328,7 @@ window.KENIOS_DEFAULT_DB = {
     renderContactWidgets(cfg);
 
     setText('#heroTag', cfg.bannerTagText);
+    setText('#heroBrandName', cfg.logoText);
     setText('#heroTitle', cfg.siteTitle.replace(/^.*?-\s*/, ''));
     setText('#heroSub', cfg.siteSubtitle);
     setText('#heroBtn1', cfg.bannerBtn1Text);
@@ -1272,8 +1458,10 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function applyBranding(cfg) {
+    const hasPhoto = !!cfg.logoUrl; // logo ảnh riêng → hiển thị full (phủ kín khung như app-icon)
     $$('.brand-mark').forEach(img => { img.src = cfg.logoUrl || './favicon.svg'; });
     if ($('#mobileNavLogo')) $('#mobileNavLogo').src = cfg.logoUrl || './favicon.svg';
+    $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => w.classList.toggle('has-photo', hasPhoto));
 
     const font = cfg.logoFont || 'Be Vietnam Pro';
     ensureFontLoaded(font);
@@ -1456,7 +1644,7 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // Nền Hero hỗ trợ cả ảnh và video (tự nhận diện qua đuôi file .mp4/.webm/.ogg).
-  function isVideoUrl(url) { return /\.(mp4|webm|ogg)(\?|#|$)/i.test(url || ''); }
+  function isVideoUrl(url) { return /\.(mp4|webm|ogg|ogv|mov|m4v|mkv|avi|3gp|flv|wmv)(\?|#|$)/i.test(url || ''); }
 
   function applyHeroBackground(url) {
     const imgEl = $('#heroBg');
@@ -1812,7 +2000,6 @@ window.KENIOS_DEFAULT_DB = {
             closeModal('#depositModal');
             $('#depositQrBox').hidden = true;
             toast('Đã nhận được chuyển khoản! Số dư của bạn đã được cộng tự động.', 'success');
-            Voice.speak('Bạn đã nạp tiền thành công. Số dư đã được cộng vào tài khoản.');
           } else if (res.serverError) {
             // Có máy chủ nhưng bước gọi ngân hàng lỗi — KHÔNG cộng tiền, chỉ báo lỗi.
             toast(res.message + ' Vui lòng thử lại sau ít phút hoặc liên hệ Admin.', 'error');
@@ -1851,7 +2038,6 @@ window.KENIOS_DEFAULT_DB = {
           }
           closeModal('#serviceModal');
           toast(`Mua thành công! Key: ${order.key}`, 'success');
-          Voice.speak(`Bạn đã mua thành công gói ${order.packageName} của ${order.serviceName}.`);
         } catch (err) { errEl.textContent = err.message; }
       });
     });
@@ -1990,7 +2176,6 @@ window.KENIOS_DEFAULT_DB = {
       panel.hidden = !panel.hidden;
       if (wasHidden && !$('#aiMessages').children.length) {
         addAiMessage(cfg.aiGreeting, 'bot');
-        Voice.speak(cfg.aiGreeting);
       }
     });
     $('#aiClose').addEventListener('click', () => { $('#aiPanel').hidden = true; });
@@ -2016,7 +2201,7 @@ window.KENIOS_DEFAULT_DB = {
   function sendAiMessage(text) {
     addAiMessage(text, 'user');
     const reply = getAiReply(text.toLowerCase());
-    setTimeout(() => { addAiMessage(reply, 'bot'); Voice.speak(reply); }, 350);
+    setTimeout(() => { addAiMessage(reply, 'bot'); }, 350);
   }
 
   // Bảng giá theo từng mục — khách hỏi đúng mục nào thì trả lời riêng mục đó,
@@ -2626,7 +2811,7 @@ window.KENIOS_DEFAULT_DB = {
     const media = Store.db.media || [];
     return `
       <div class="media-upload-row">
-        <input type="file" id="adminMediaFile" accept="image/*,video/mp4,video/webm,video/ogg">
+        <input type="file" id="adminMediaFile" accept="image/*,video/*">
         <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">⬆️ Tải lên</button>
         <span class="muted" style="font-size:.8rem;">Ảnh hoặc video tối đa 500MB. Chỉ hoạt động khi có máy chủ PHP (cần hosting cho phép upload lớn — xem file .user.ini).</span>
       </div>
@@ -2806,7 +2991,7 @@ window.KENIOS_DEFAULT_DB = {
       withLoading(uploadBtn, async () => {
         try {
           const url = await Store.uploadFile(file);
-          const type = /\.(mp4|webm|ogg)$/i.test(url) ? 'video' : 'image';
+          const type = isVideoUrl(url) ? 'video' : 'image';
           Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: file.name, date: new Date().toISOString() });
           renderAdminTab('media');
           toast('Tải lên thành công!', 'success');

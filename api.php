@@ -577,12 +577,12 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "File upload error code: " . $file['error']]);
             exit;
         }
-        $image_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-        $video_ext = ['mp4', 'webm', 'ogg'];
+        $image_ext = ['jpg', 'jpeg', 'jfif', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'heic', 'heif', 'ico', 'apng'];
+        $video_ext = ['mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v', 'mkv', 'avi', '3gp', 'flv', 'wmv'];
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $is_video = in_array($ext, $video_ext, true);
         if (!$is_video && !in_array($ext, $image_ext, true)) {
-            echo json_encode(["status" => "error", "message" => "Định dạng file không được hỗ trợ (chỉ ảnh hoặc video mp4/webm/ogg)"]);
+            echo json_encode(["status" => "error", "message" => "Định dạng file không được hỗ trợ. Chấp nhận ảnh (jpg, jpeg, png, gif, webp, svg, bmp, avif, heic, ico...) và video (mp4, webm, ogg, mov, m4v, mkv, avi, 3gp, flv, wmv)."]);
             exit;
         }
         $max_size = 500 * 1024 * 1024; // 500MB cho cả ảnh và video
