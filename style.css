@@ -85,6 +85,7 @@ button { font: inherit; }
   background: rgba(7,7,12,.72); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
 }
 .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.header-left { display: flex; align-items: center; gap: 4px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-mark { filter: drop-shadow(0 0 10px rgba(139,92,246,.5)); }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
@@ -94,7 +95,12 @@ button { font: inherit; }
 .main-nav a { color: var(--muted); transition: color .15s ease; }
 .main-nav a:hover { color: var(--ink); }
 .header-actions { display: flex; align-items: center; gap: 12px; }
-.menu-toggle { display: none; flex-direction: column; gap: 4px; padding: 10px; }
+/* Gọn, phẳng — không viền/nền tròn, chỉ 3 gạch như thiết kế gốc */
+.menu-toggle {
+  display: none; flex-direction: column; justify-content: center; gap: 4px;
+  width: 30px; height: 30px; padding: 0; margin-right: 6px;
+  background: transparent; border: none; cursor: pointer;
+}
 .menu-toggle span { width: 18px; height: 2px; background: var(--ink); border-radius: 2px; }
 .mobile-nav {
   display: none; flex-direction: column; padding: 10px 24px 18px; gap: 4px;

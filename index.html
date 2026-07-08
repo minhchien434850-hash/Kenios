@@ -34,13 +34,19 @@
 
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
-      <a class="brand" href="#top">
-        <img src="./favicon.svg" alt="" class="brand-mark" width="32" height="32" />
-        <span class="brand-text">
-          <strong id="brandName">KENIOS.STORE</strong>
-          <small id="brandSub">v3.0 Premium</small>
-        </span>
-      </a>
+      <div class="header-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Mở menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+
+        <a class="brand" href="#top">
+          <img src="./favicon.svg" alt="" class="brand-mark" width="32" height="32" />
+          <span class="brand-text">
+            <strong id="brandName">KENIOS.STORE</strong>
+            <small id="brandSub">v3.0 Premium</small>
+          </span>
+        </a>
+      </div>
 
       <nav class="main-nav" aria-label="Điều hướng chính">
         <a href="#categories">Danh mục</a>
@@ -54,9 +60,6 @@
           <span>💬</span> Zalo Admin
         </a>
         <div id="authArea"></div>
-        <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Mở menu" aria-expanded="false">
-          <span></span><span></span><span></span>
-        </button>
       </div>
     </div>
     <nav class="mobile-nav" id="mobileNav" aria-label="Điều hướng di động">
