@@ -1557,12 +1557,14 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
 
     document.documentElement.style.setProperty('--logo-anim-speed', `${cfg.logoAnimSpeed || 6}s`);
-    const brandNameEl = $('#brandName');
-    if (brandNameEl) {
-      brandNameEl.classList.remove('logo-anim-rainbow', 'logo-anim-shine');
-      if (cfg.logoColorMode === 'rainbow') brandNameEl.classList.add('logo-anim-rainbow');
-      else if (cfg.logoColorMode === 'shine') brandNameEl.classList.add('logo-anim-shine');
-    }
+    // Danh sách hiệu ứng động logo (đa dạng, chọn trong quản trị)
+    const LOGO_ANIM_MODES = ['rainbow', 'shine', 'gradient', 'glow', 'pulse', 'bounce', 'wave', 'flip', 'neon', 'sparkle'];
+    const mode = cfg.logoColorMode || 'solid';
+    // Áp hiệu ứng cho cả logo header và logo trong menu 3 gạch
+    $$('#brandName, #mobileNavBrandName').forEach(el => {
+      el.classList.remove(...LOGO_ANIM_MODES.map(m => 'logo-anim-' + m));
+      if (LOGO_ANIM_MODES.includes(mode)) el.classList.add('logo-anim-' + mode);
+    });
   }
 
   // ============================================================
@@ -3099,14 +3101,24 @@ window.KENIOS_DEFAULT_DB = {
           </select>
         </label>
         <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
-        <label>Hiệu ứng chạy màu chữ logo
+        <label>Hiệu ứng động cho logo
           <select name="logoColorMode">
-            <option value="solid" ${c.logoColorMode === 'solid' ? 'selected' : ''}>Tắt (dùng màu ở trên)</option>
-            <option value="rainbow" ${c.logoColorMode === 'rainbow' ? 'selected' : ''}>Cầu vồng 7 màu (chạy liên tục)</option>
-            <option value="shine" ${c.logoColorMode === 'shine' ? 'selected' : ''}>Ánh kim lấp lánh</option>
+            ${[
+              ['solid', 'Tắt (dùng màu ở trên)'],
+              ['rainbow', '🌈 Cầu vồng 7 màu'],
+              ['shine', '✨ Ánh kim lấp lánh'],
+              ['gradient', '🎨 Gradient nhiều màu trôi'],
+              ['glow', '💡 Phát sáng neon'],
+              ['sparkle', '💫 Lung linh (lấp lánh vàng kim)'],
+              ['neon', '🔵 Neon chớp sáng'],
+              ['pulse', '❤️ Nhịp đập (phóng to/thu nhỏ)'],
+              ['bounce', '⬆️ Nảy lên xuống'],
+              ['wave', '🌊 Lắc lư nghiêng'],
+              ['flip', '🔄 Lật 3D'],
+            ].map(([v, label]) => `<option value="${v}" ${c.logoColorMode === v ? 'selected' : ''}>${label}</option>`).join('')}
           </select>
         </label>
-        <label>Tốc độ chạy màu (giây/vòng)
+        <label>Tốc độ hiệu ứng (giây/vòng)
           <input type="number" name="logoAnimSpeed" min="1" max="20" step="0.5" value="${c.logoAnimSpeed || 6}">
         </label>
 
