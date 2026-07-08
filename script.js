@@ -2200,11 +2200,6 @@ window.KENIOS_DEFAULT_DB = {
         <button type="button" class="btn btn-glass btn-block" id="profPasswordBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
           <span class="btn-ico">${ICONS.lock}</span> Thay đổi mật khẩu
         </button>
-        ${user.role === 'admin' ? `
-          <button type="button" class="btn btn-primary btn-block" id="profAdminBtn" style="background:linear-gradient(135deg, var(--gold), #ff8f1f);color:#1a1200;font-weight:700;justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;box-shadow:0 4px 15px rgba(255,143,31,0.25);">
-            <span class="btn-ico">${ICONS.shield}</span> Quản trị & Cấu hình Shop
-          </button>
-        ` : ''}
         <button type="button" class="btn btn-ghost btn-block" id="profLogoutBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;color:#ff5e5e;margin-top:10px;">
           <span class="btn-ico">${ICONS.logout}</span> Đăng xuất tài khoản
         </button>
@@ -2215,9 +2210,6 @@ window.KENIOS_DEFAULT_DB = {
     $('#profDepositBtn').onclick = () => { closeModal('#profileModal'); openModal('#depositModal'); };
     $('#profOrdersBtn').onclick = () => { closeModal('#profileModal'); openOrdersModal(); };
     $('#profPasswordBtn').onclick = () => { closeModal('#profileModal'); openPasswordModal(); };
-    if (user.role === 'admin') {
-      $('#profAdminBtn').onclick = () => { closeModal('#profileModal'); openAdminModal(); };
-    }
     $('#profLogoutBtn').onclick = () => { closeModal('#profileModal'); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); };
   }
 
