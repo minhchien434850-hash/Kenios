@@ -1624,9 +1624,27 @@ window.KENIOS_DEFAULT_DB = {
     $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => {
       w.classList.toggle('has-photo', hasPhoto);
       const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
+      // Không dựng lại nếu đã đúng loại + đúng src — tránh video bị reset/đứng hình
+      // mỗi khi applyBranding chạy lại (VD live-preview đổi màu/hiệu ứng logo).
+      const cur = w.firstElementChild;
+      const sameKind = cur && ((isVid && cur.tagName === 'VIDEO') || (!isVid && cur.tagName === 'IMG'));
+      if (sameKind && cur.getAttribute('src') === src) return;
       w.innerHTML = isVid
-        ? `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline></video>`
+        ? `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline preload="auto"></video>`
         : `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
+      if (isVid) {
+        const v = w.querySelector('video');
+        if (v) {
+          // BẮT BUỘC set các PROPERTY (thuộc tính HTML qua innerHTML không đủ để
+          // Chrome/iOS cho autoplay) rồi chủ động gọi play() — nếu không video
+          // sẽ đứng yên ở khung hình đầu vì autoplay bị chặn.
+          v.muted = true; v.defaultMuted = true; v.playsInline = true; v.loop = true;
+          const tryPlay = () => { const p = v.play(); if (p) p.catch(() => {}); };
+          tryPlay();
+          v.addEventListener('loadeddata', tryPlay, { once: true });
+          v.addEventListener('canplay', tryPlay, { once: true });
+        }
+      }
     });
 
     const font = cfg.logoFont || 'Be Vietnam Pro';
