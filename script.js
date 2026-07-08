@@ -1616,26 +1616,6 @@ window.KENIOS_DEFAULT_DB = {
     container.appendChild(wrap);
   }
 
-  // --- Mở khoá autoplay video logo khi người dùng tương tác lần đầu ---
-  // Vài trình duyệt / iOS ở chế độ tiết kiệm pin chặn autoplay kể cả video muted.
-  // Khi người dùng chạm/nhấp/cuộn/gõ phím lần đầu, ta chủ động phát lại mọi video
-  // logo đang bị tạm dừng, đảm bảo logo động luôn chạy.
-  const _logoVideos = new Set();
-  let _logoUnlockArmed = false;
-  function registerLogoVideo(v) {
-    _logoVideos.forEach(el => { if (!el.isConnected) _logoVideos.delete(el); });
-    _logoVideos.add(v);
-    if (_logoUnlockArmed) return;
-    _logoUnlockArmed = true;
-    const unlock = () => {
-      _logoVideos.forEach(el => {
-        if (el.isConnected && el.paused) { const p = el.play(); if (p && p.catch) p.catch(() => {}); }
-      });
-    };
-    ['touchstart', 'pointerdown', 'click', 'scroll', 'keydown'].forEach(ev =>
-      window.addEventListener(ev, unlock, { passive: true }));
-  }
-
   function applyBranding(cfg) {
     const hasPhoto = !!cfg.logoUrl; // logo ảnh riêng → hiển thị full (phủ kín khung như app-icon)
     const logoUrl = cfg.logoUrl || '';
@@ -1643,35 +1623,10 @@ window.KENIOS_DEFAULT_DB = {
     const src = logoUrl || './favicon.svg';
     $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => {
       w.classList.toggle('has-photo', hasPhoto);
-      // Không dựng lại nếu đã đúng loại + đúng src — tránh video bị reset/đứng hình
-      // mỗi khi applyBranding chạy lại (VD live-preview đổi màu/hiệu ứng logo).
-      const cur = w.firstElementChild;
-      const sameKind = cur && ((isVid && cur.tagName === 'VIDEO') || (!isVid && cur.tagName === 'IMG'));
-      if (sameKind && cur.getAttribute('src') === src) return;
-      const isMobileMark = w.classList.contains('mobile-nav-brand-mark');
-      if (isVid) {
-        // Tạo <video> bằng createElement và set muted/playsinline TRƯỚC khi gắn vào
-        // DOM — đây là thứ tự bắt buộc để iOS Safari & Chrome cho phép autoplay.
-        // (Đặt qua innerHTML không phản chiếu vào property nên autoplay bị chặn →
-        // video đứng yên ở khung hình đầu.)
-        const v = document.createElement('video');
-        v.className = 'brand-mark';
-        if (isMobileMark) v.id = 'mobileNavLogo';
-        v.muted = true; v.defaultMuted = true; v.loop = true; v.autoplay = true;
-        v.playsInline = true; v.preload = 'auto';
-        v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-        v.setAttribute('webkit-playsinline', ''); // iOS cũ
-        v.src = src;
-        w.innerHTML = '';
-        w.appendChild(v);
-        const tryPlay = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
-        v.addEventListener('loadeddata', tryPlay, { once: true });
-        v.addEventListener('canplay', tryPlay, { once: true });
-        tryPlay();
-        registerLogoVideo(v); // để mở khoá phát khi người dùng chạm lần đầu (nếu bị chặn)
-      } else {
-        w.innerHTML = `<img class="brand-mark"${isMobileMark ? ' id="mobileNavLogo"' : ''} src="${esc(src)}" alt="">`;
-      }
+      const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
+      w.innerHTML = isVid
+        ? `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline></video>`
+        : `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
     });
 
     const font = cfg.logoFont || 'Be Vietnam Pro';
