@@ -27,7 +27,89 @@ function write_db($file, $data) {
     return file_put_contents($file, $json_content, LOCK_EX) !== false;
 }
 
+// So khớp mật khẩu: hỗ trợ hash bcrypt (password_hash) và mật khẩu văn bản thuần
+// còn sót lại từ tài khoản demo cũ. Khi khớp bằng văn bản thuần, hàm trả về true
+// nhưng KHÔNG tự ý sửa dữ liệu ở đây — nơi gọi tự quyết định có nâng cấp hash hay không.
+function verify_password($input, $stored) {
+    if ($stored === '' || $stored === null) return false;
+    if (password_get_info($stored)['algo'] !== null) {
+        return password_verify($input, $stored);
+    }
+    return hash_equals($stored, $input);
+}
+
+function safe_user($u) {
+    unset($u['password']);
+    return $u;
+}
+
 switch ($action) {
+    case 'register':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $username = trim($input['username'] ?? '');
+        $password = (string)($input['password'] ?? '');
+        if ($username === '' || strlen($password) < 6) {
+            echo json_encode(["status" => "error", "message" => "Tên đăng nhập hoặc mật khẩu không hợp lệ (mật khẩu tối thiểu 6 ký tự)."]);
+            exit;
+        }
+        $db = read_db($db_file);
+        if (empty($db) || !isset($db['users'])) {
+            echo json_encode(["status" => "error", "message" => "Database not initialized"]);
+            exit;
+        }
+        foreach ($db['users'] as $u) {
+            if (strtolower($u['username'] ?? '') === strtolower($username)) {
+                echo json_encode(["status" => "error", "message" => "Tên đăng nhập đã tồn tại."]);
+                exit;
+            }
+        }
+        $user = [
+            "userId" => uniqid(),
+            "username" => $username,
+            "password" => password_hash($password, PASSWORD_BCRYPT),
+            "balance" => 0,
+            "role" => "member",
+            "status" => "active",
+            "avatar" => "https://api.dicebear.com/7.x/adventurer/svg?seed=" . urlencode($username),
+            "createdAt" => date("Y-m-d")
+        ];
+        $db['users'][] = $user;
+        if (!write_db($db_file, $db)) {
+            echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
+            exit;
+        }
+        echo json_encode(["status" => "success", "user" => safe_user($user)]);
+        break;
+
+    case 'login':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $username = trim($input['username'] ?? '');
+        $password = (string)($input['password'] ?? '');
+        $db = read_db($db_file);
+        if (empty($db) || !isset($db['users'])) {
+            echo json_encode(["status" => "error", "message" => "Database not initialized"]);
+            exit;
+        }
+        $matchedIdx = -1;
+        foreach ($db['users'] as $idx => $u) {
+            if (strtolower($u['username'] ?? '') === strtolower($username)) { $matchedIdx = $idx; break; }
+        }
+        if ($matchedIdx === -1 || !verify_password($password, $db['users'][$matchedIdx]['password'] ?? '')) {
+            echo json_encode(["status" => "error", "message" => "Sai tên đăng nhập hoặc mật khẩu."]);
+            exit;
+        }
+        if (($db['users'][$matchedIdx]['status'] ?? 'active') !== 'active') {
+            echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
+            exit;
+        }
+        // Nâng cấp mật khẩu văn bản thuần cũ lên bcrypt ngay khi đăng nhập thành công.
+        if (password_get_info($db['users'][$matchedIdx]['password'])['algo'] === null) {
+            $db['users'][$matchedIdx]['password'] = password_hash($password, PASSWORD_BCRYPT);
+            write_db($db_file, $db);
+        }
+        echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx])]);
+        break;
+
     case 'test_api':
         $bank = $_GET['bank'] ?? '';
         $token = $_GET['token'] ?? '';
@@ -74,7 +156,7 @@ switch ($action) {
         foreach ($users as $u) {
             if (($u['role'] ?? '') === 'admin'
                 && strtolower($u['username'] ?? '') === strtolower($admin_user)
-                && ($u['password'] ?? '') === $admin_pass) {
+                && verify_password($admin_pass, $u['password'] ?? '')) {
                 $authenticated = true;
                 break;
             }

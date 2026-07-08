@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api.php
+Disallow: /bank_callback.php
+Disallow: /database.json
+Disallow: /uploads/
+
+Sitemap: https://kenios.store/sitemap.xml

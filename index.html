@@ -3,10 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07070c" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="apple-touch-icon" href="./favicon.svg" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="canonical" href="https://kenios.store/" />
   <title>KENIOS.STORE — Dịch Vụ Game &amp; Thiết Kế Website</title>
   <meta name="description" content="Cửa hàng dịch vụ game & thiết kế website. Nạp tiền VietQR tự động 24/7, trợ lý ảo AI hỗ trợ." />
-  <link rel="stylesheet" href="./assets/css/style.css" />
+  <meta name="robots" content="index, follow" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="KENIOS.STORE" />
+  <meta property="og:title" content="KENIOS.STORE — Dịch Vụ Game & Thiết Kế Website" />
+  <meta property="og:description" content="Cửa hàng dịch vụ game & thiết kế website. Nạp tiền VietQR tự động 24/7, trợ lý ảo AI hỗ trợ." />
+  <meta property="og:url" content="https://kenios.store/" />
+  <meta property="og:image" content="https://kenios.store/favicon.svg" />
+  <meta property="og:locale" content="vi_VN" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="KENIOS.STORE — Dịch Vụ Game & Thiết Kế Website" />
+  <meta name="twitter:description" content="Cửa hàng dịch vụ game & thiết kế website. Nạp tiền VietQR tự động 24/7, trợ lý ảo AI hỗ trợ." />
+  <meta name="twitter:image" content="https://kenios.store/favicon.svg" />
+
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <div class="bg-mesh" aria-hidden="true"></div>
@@ -131,9 +150,9 @@
       <div>
         <h4>Chính sách</h4>
         <ul class="footer-list">
-          <li>Nạp tiền VietQR tự động 24/7</li>
-          <li>Giao key tự động sau thanh toán</li>
-          <li>Hỗ trợ setup từ A-Z</li>
+          <li><a href="#" data-legal="terms">Điều khoản dịch vụ</a></li>
+          <li><a href="#" data-legal="privacy">Chính sách bảo mật</a></li>
+          <li><a href="#" data-legal="refund">Chính sách hoàn tiền</a></li>
         </ul>
       </div>
     </div>
@@ -153,13 +172,23 @@
       <h3 id="authModalTitle" class="sr-only">Đăng nhập hoặc đăng ký</h3>
       <form id="loginForm" class="auth-form">
         <label>Tên đăng nhập <input type="text" name="username" autocomplete="username" required></label>
-        <label>Mật khẩu <input type="password" name="password" autocomplete="current-password" required></label>
+        <label>Mật khẩu
+          <span class="input-with-toggle">
+            <input type="password" name="password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle-btn" data-pw-toggle>👁</button>
+          </span>
+        </label>
         <p class="form-error" id="loginError"></p>
         <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
       </form>
       <form id="registerForm" class="auth-form" hidden>
         <label>Tên đăng nhập <input type="text" name="username" autocomplete="username" required></label>
-        <label>Mật khẩu (≥ 6 ký tự) <input type="password" name="password" minlength="6" autocomplete="new-password" required></label>
+        <label>Mật khẩu (≥ 6 ký tự)
+          <span class="input-with-toggle">
+            <input type="password" name="password" minlength="6" autocomplete="new-password" required>
+            <button type="button" class="pw-toggle-btn" data-pw-toggle>👁</button>
+          </span>
+        </label>
         <p class="form-error" id="registerError"></p>
         <button type="submit" class="btn btn-primary btn-block">Tạo tài khoản</button>
       </form>
@@ -225,6 +254,37 @@
     </div>
   </div>
 
+  <!-- ===== Modal: Quản trị hệ thống (chỉ admin) ===== -->
+  <div class="modal-overlay" id="adminModal" hidden>
+    <div class="modal modal-xl admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <h3 id="adminTitle">🛠️ Quản Trị Hệ Thống</h3>
+      <div class="admin-tabs" id="adminTabs">
+        <button class="admin-tab active" data-admin-tab="overview">Tổng quan</button>
+        <button class="admin-tab" data-admin-tab="services">Dịch vụ</button>
+        <button class="admin-tab" data-admin-tab="categories">Danh mục</button>
+        <button class="admin-tab" data-admin-tab="orders">Đơn hàng</button>
+        <button class="admin-tab" data-admin-tab="users">Người dùng</button>
+        <button class="admin-tab" data-admin-tab="config">Cấu hình</button>
+      </div>
+      <div class="admin-panel-body" id="adminPanelBody"></div>
+      <div class="admin-sync-bar">
+        <input type="password" id="adminSyncPass" placeholder="Nhập lại mật khẩu admin để đồng bộ">
+        <button type="button" class="btn btn-glass btn-sm" id="adminSyncBtn">☁️ Đồng bộ lên máy chủ</button>
+        <span class="admin-sync-msg" id="adminSyncMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Thông tin pháp lý ===== -->
+  <div class="modal-overlay" id="legalModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <h3 id="legalTitle"></h3>
+      <div class="legal-content" id="legalContent"></div>
+    </div>
+  </div>
+
   <!-- ===== Toast ===== -->
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
@@ -249,10 +309,6 @@
     </div>
   </div>
 
-  <script src="./assets/js/data.js"></script>
-  <script src="./assets/js/store.js"></script>
-  <script src="./assets/js/voice.js"></script>
-  <script src="./assets/js/effects.js"></script>
-  <script src="./assets/js/app.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
