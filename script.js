@@ -324,6 +324,27 @@ window.KENIOS_DEFAULT_DB = {
 
     // Đăng nhập bằng Google: gửi ID token (credential) lên server để xác thực thật
     // với Google rồi mới tạo/đăng nhập tài khoản. Chỉ hoạt động khi có backend PHP.
+    async changePassword(currentPassword, newPassword) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập.');
+      if ((newPassword || '').length < 6) throw new Error('Mật khẩu mới tối thiểu 6 ký tự.');
+      try {
+        const result = await this._callApi('change_password', {
+          username: user.username, currentPassword, newPassword
+        });
+        if (result.status !== 'success') throw new Error(result.message || 'Đổi mật khẩu thất bại.');
+        return true;
+      } catch (err) {
+        if (err instanceof BackendUnavailableError) {
+          if (user.password !== undefined && user.password !== currentPassword) throw new Error('Mật khẩu hiện tại không đúng.');
+          user.password = newPassword;
+          this._persistOverrides();
+          return true;
+        }
+        throw err;
+      }
+    },
+
     async loginWithGoogle(credential) {
       const result = await this._callApi('google_login', { credential });
       if (result.status !== 'success') throw new Error(result.message || 'Đăng nhập Google thất bại.');
@@ -1434,6 +1455,7 @@ window.KENIOS_DEFAULT_DB = {
   function renderContactWidgets(cfg) {
     const channels = cfg.contactChannels || [];
     renderContactWidget($('#headerContactWrap'), channels, { btnClass: 'btn btn-ghost btn-sm' });
+    renderContactWidget($('#drawerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm btn-block' });
     renderContactWidget($('#footerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm', dropUp: true });
     renderContactWidget($('#welcomeContactWrap'), channels, { btnClass: 'btn btn-primary btn-block' });
   }
@@ -1863,6 +1885,7 @@ window.KENIOS_DEFAULT_DB = {
     const user = Store.currentUser();
     $('#mobileNavAdmin').hidden = !(user && user.role === 'admin');
     if ($('#saveUiFab')) $('#saveUiFab').hidden = !(user && user.role === 'admin');
+    renderDrawerUser(user);
     if (!user) {
       area.innerHTML = `<button class="btn btn-primary btn-sm" id="openAuthBtn">Đăng nhập</button>`;
       $('#openAuthBtn').addEventListener('click', () => openModal('#authModal'));
@@ -1894,6 +1917,48 @@ window.KENIOS_DEFAULT_DB = {
     $('#ddLogout').addEventListener('click', () => { clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); });
   }
 
+  // Hộp thông tin người dùng trong menu 3 gạch: ID, số dư, đổi mật khẩu (hoặc nút đăng nhập).
+  function renderDrawerUser(user) {
+    const box = $('#drawerUserBox');
+    if (!box) return;
+    if (!user) {
+      box.innerHTML = `<button type="button" class="btn btn-primary btn-block" id="drawerLoginBtn">Đăng nhập / Đăng ký</button>`;
+      $('#drawerLoginBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#authModal'); });
+      return;
+    }
+    const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
+    box.innerHTML = `
+      <div class="drawer-user-head">
+        <img class="drawer-user-avatar" src="${avatar}" alt="">
+        <div class="drawer-user-meta">
+          <strong>${esc(user.username)}</strong>
+          <small>ID: ${esc(user.userId)}${user.role === 'admin' ? ' · Quản trị' : ''}</small>
+        </div>
+      </div>
+      <div class="drawer-user-balance"><span>Số dư</span><strong>${fmt(user.balance || 0)}</strong></div>
+      <div class="drawer-user-actions">
+        <button type="button" class="btn btn-glass btn-sm" id="drawerDepositBtn"><span class="btn-ico">${ICONS.card}</span> Nạp tiền</button>
+        <button type="button" class="btn btn-glass btn-sm" id="drawerPasswordBtn"><span class="btn-ico">${ICONS.lock}</span> Đổi mật khẩu</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="drawerLogoutBtn"><span class="btn-ico">${ICONS.logout}</span> Đăng xuất</button>
+      </div>`;
+    $('#drawerDepositBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#depositModal'); });
+    $('#drawerPasswordBtn').addEventListener('click', () => { closeMobileNavGlobal(); openPasswordModal(); });
+    $('#drawerLogoutBtn').addEventListener('click', () => { closeMobileNavGlobal(); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); });
+  }
+
+  function closeMobileNavGlobal() {
+    $('#mobileNav')?.classList.remove('open');
+    $('#mobileNavBackdrop')?.classList.remove('open');
+    $('#menuToggle')?.setAttribute('aria-expanded', 'false');
+  }
+
+  function openPasswordModal() {
+    if (!Store.currentUser()) { openModal('#authModal'); return; }
+    $('#passwordForm').reset();
+    $('#passwordError').textContent = '';
+    openModal('#passwordModal');
+  }
+
   // ============================================================
   // MODAL helpers
   // ============================================================
@@ -1908,6 +1973,26 @@ window.KENIOS_DEFAULT_DB = {
 
   function wireGlobalUI() {
     $('#saveUiFab')?.addEventListener('click', () => saveUiToServer());
+
+    // Đổi mật khẩu
+    $('#passwordForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const errEl = $('#passwordError');
+      errEl.textContent = '';
+      if (fd.get('new') !== fd.get('confirm')) { errEl.textContent = 'Mật khẩu mới nhập lại không khớp.'; return; }
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          await Store.changePassword(fd.get('current'), fd.get('new'));
+          const u = Store.currentUser();
+          if (u && u.role === 'admin') rememberAdminCreds(u.username, fd.get('new'));
+          closeModal('#passwordModal');
+          e.target.reset();
+          toast('Đã đổi mật khẩu thành công!', 'success');
+        } catch (err) { errEl.textContent = err.message; }
+      });
+    });
     $$('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal('#' + overlay.id); });
     });

@@ -84,6 +84,8 @@
         </span>
       </a>
 
+      <div id="drawerUserBox" class="drawer-user-box"></div>
+
       <div class="mobile-nav-group-label">Menu</div>
       <a href="#top" class="mobile-nav-link" data-mobile-link><span class="mnl-icon" data-icon="home"></span><span>Trang chủ</span></a>
       <button type="button" class="mobile-nav-link" id="mobileNavDeposit"><span class="mnl-icon" data-icon="card"></span><span>Nạp tiền</span><span class="mnl-badge auto">Auto</span></button>
@@ -95,6 +97,9 @@
       <a href="#services" class="mobile-nav-link" data-mobile-link><span class="mnl-icon" data-icon="gamepad"></span><span>Dịch vụ nổi bật</span></a>
       <a href="#webdesign" class="mobile-nav-link" data-mobile-link><span class="mnl-icon" data-icon="web"></span><span>Thiết kế Web</span></a>
       <a href="#posts" class="mobile-nav-link" data-mobile-link><span class="mnl-icon" data-icon="news"></span><span>Tin tức &amp; Hướng dẫn</span></a>
+
+      <div class="mobile-nav-group-label">Liên hệ</div>
+      <div id="drawerContactWrap" class="drawer-contact-wrap"></div>
     </div>
   </nav>
 
@@ -376,6 +381,27 @@
       <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
       <h3 id="ordersTitle">Đơn Hàng Của Tôi</h3>
       <div class="orders-list" id="ordersList"></div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Đổi mật khẩu ===== -->
+  <div class="modal-overlay" id="passwordModal" hidden>
+    <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <h3 id="passwordTitle">Đổi Mật Khẩu</h3>
+      <form id="passwordForm" class="auth-form">
+        <label>Mật khẩu hiện tại
+          <input type="password" name="current" autocomplete="current-password" required>
+        </label>
+        <label>Mật khẩu mới (≥ 6 ký tự)
+          <input type="password" name="new" minlength="6" autocomplete="new-password" required>
+        </label>
+        <label>Nhập lại mật khẩu mới
+          <input type="password" name="confirm" minlength="6" autocomplete="new-password" required>
+        </label>
+        <p class="form-error" id="passwordError"></p>
+        <button type="submit" class="btn btn-primary btn-block">Cập nhật mật khẩu</button>
+      </form>
     </div>
   </div>
 

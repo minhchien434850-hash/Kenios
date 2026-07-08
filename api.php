@@ -113,6 +113,35 @@ switch ($action) {
         echo json_encode(["status" => "success", "user" => safe_user($user)]);
         break;
 
+    case 'change_password':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $username = trim($input['username'] ?? '');
+        $current = (string)($input['currentPassword'] ?? '');
+        $new = (string)($input['newPassword'] ?? '');
+        if ($username === '' || strlen($new) < 6) {
+            echo json_encode(["status" => "error", "message" => "Mật khẩu mới tối thiểu 6 ký tự."]);
+            exit;
+        }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        $idx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) {
+            if (strtolower($u['username'] ?? '') === strtolower($username)) { $idx = $i; break; }
+        }
+        if ($idx === -1 || !verify_password($current, $db['users'][$idx]['password'] ?? '')) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Mật khẩu hiện tại không đúng."]);
+            exit;
+        }
+        $db['users'][$idx]['password'] = password_hash($new, PASSWORD_BCRYPT);
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "message" => "Đã đổi mật khẩu."]);
+        break;
+
     case 'login':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $username = trim($input['username'] ?? '');

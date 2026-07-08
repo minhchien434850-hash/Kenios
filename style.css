@@ -899,3 +899,29 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .media-link-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
 .media-link-row input[type=text] { flex: 1; min-width: 200px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); }
 .media-link-row select { padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); }
+
+/* ===== Hộp thông tin người dùng + liên hệ trong ngăn kéo 3 gạch ===== */
+.drawer-user-box { margin: 6px 4px 10px; }
+.drawer-user-head { display: flex; align-items: center; gap: 10px; padding: 4px 8px 8px; }
+.drawer-user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); }
+.drawer-user-meta { display: flex; flex-direction: column; }
+.drawer-user-meta strong { font-size: .92rem; }
+.drawer-user-meta small { color: var(--muted); font-size: .74rem; }
+.drawer-user-balance { display: flex; align-items: center; justify-content: space-between; margin: 4px 8px 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,183,3,.08); border: 1px solid rgba(255,183,3,.2); }
+.drawer-user-balance span { color: var(--muted); font-size: .8rem; }
+.drawer-user-balance strong { color: var(--gold-soft); font-size: 1.05rem; }
+.drawer-user-actions { display: flex; flex-direction: column; gap: 6px; padding: 0 8px; }
+.drawer-user-actions .btn { justify-content: flex-start; }
+.drawer-contact-wrap { padding: 0 8px; }
+.btn-ico { display: inline-flex; align-items: center; }
+.btn-ico svg { width: 16px; height: 16px; }
+
+/* Bảng quản trị full màn hình trên điện thoại — form chỉnh sửa rộng, cuộn thoải mái. */
+@media (max-width: 640px) {
+  #adminModal { padding: 0; }
+  #adminModal .modal.admin-modal {
+    max-width: 100%; width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; padding: 18px 16px 16px;
+  }
+  .admin-form { grid-template-columns: 1fr; }
+  .admin-form label.span-2 { grid-column: 1; }
+}
