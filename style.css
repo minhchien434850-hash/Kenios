@@ -651,12 +651,14 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .admin-sync-bar { grid-area: sync; }
 @media (max-width: 720px) {
   /* Admin toàn màn hình + cuộn cả trang (không nhét trong khung nhỏ) */
-  #adminModal.modal-overlay { padding: 0; }
-  .admin-modal {
+  #adminModal.modal-overlay { padding: 0; align-items: stretch; }
+  /* Gắn #adminModal để thắng .modal{padding:...} của mobile, đảm bảo chừa đủ chỗ
+     phía trên cho THANH TAB cố định trên MỌI máy ≤720px. */
+  #adminModal .admin-modal {
     display: block; width: 100%; max-width: 100%; height: 100%; max-height: 100%;
     border-radius: 0; border: none;
     overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
-    padding: calc(64px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));
+    padding: calc(env(safe-area-inset-top) + 76px) 16px calc(28px + env(safe-area-inset-bottom));
   }
   /* Dấu X luôn cố định ở góc trên, nằm dưới tai thỏ/thanh trạng thái, không bị cuộn mất */
   .admin-modal .modal-close {
@@ -665,23 +667,23 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
     background: var(--bg-alt); border-color: rgba(255,255,255,.25);
     box-shadow: 0 6px 18px rgba(0,0,0,.55);
   }
-  .admin-modal h3 { margin-top: 0; }
-  /* Thanh tab quản trị: 1 HÀNG NGANG vuốt được + DÍNH ở đầu khi cuộn nội dung,
-     để luôn thấy & bấm được đủ 7 tab (trước đây bị xuống dòng nhiều hàng rồi
-     trôi mất khi cuộn). */
+  /* Tiêu đề "Quản Trị Hệ Thống" ẩn trên mobile — thanh tab cố định bên dưới đã
+     đóng vai trò header, khỏi chiếm thêm chỗ. */
+  .admin-modal h3 { display: none; }
+  /* Thanh tab quản trị: THANH CỐ ĐỊNH ở đỉnh màn hình (position:fixed như nút
+     đóng), 1 hàng ngang vuốt được. KHÔNG dùng sticky vì trong modal full-screen
+     trên iOS (100vh lớn hơn vùng nhìn) nó bị đẩy khuất lên trên mép và không
+     vuốt lại được — fixed thì luôn hiển thị & bấm được đủ 7 tab. */
   .admin-tabs {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 2050;
     flex-direction: row; flex-wrap: nowrap; gap: 8px; align-items: center;
-    border-right: none; border-bottom: 1px solid var(--border);
-    /* Tràn hết bề ngang màn hình (bù padding 16px hai bên của modal) */
-    margin: 0 -16px 14px; padding: 8px 16px 12px;
+    margin: 0; padding: calc(env(safe-area-inset-top) + 8px) 62px 10px 12px;
+    border: none; border-bottom: 1px solid var(--border);
+    background: var(--bg-alt);
     overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity; scrollbar-width: none;
-    position: sticky; top: env(safe-area-inset-top); z-index: 40;
-    background: var(--bg-alt);
   }
   .admin-tabs::-webkit-scrollbar { display: none; }
-  /* Khoảng trống cuối để tab cuối vuốt qua khỏi nút X cố định ở góc phải */
-  .admin-tabs::after { content: ""; flex: 0 0 46px; }
   .admin-tab {
     border-radius: 999px; flex: 0 0 auto; white-space: nowrap;
     scroll-snap-align: center; border: 1px solid var(--border);
@@ -1137,7 +1139,12 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 @media (max-width: 640px) {
   #adminModal { padding: 0; }
   #adminModal .modal.admin-modal {
-    max-width: 100%; width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; padding: 18px 16px 16px;
+    /* Dùng 100% (khớp vùng nhìn thật) thay cho 100vh — trên iOS 100vh là viewport
+       LỚN nên modal bị tràn lên trên, đẩy thanh tab khuất khỏi màn hình.
+       padding-top đặt ở selector đặc hiệu này (thắng .modal mobile) để chừa đủ
+       chỗ cho THANH TAB cố định, tránh nội dung bị khuất sau nó. */
+    max-width: 100%; width: 100%; height: 100%; max-height: 100%; border-radius: 0;
+    padding: calc(env(safe-area-inset-top) + 76px) 16px calc(28px + env(safe-area-inset-bottom));
   }
   .admin-form { grid-template-columns: 1fr; }
   .admin-form label.span-2 { grid-column: 1; }
