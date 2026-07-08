@@ -20,6 +20,8 @@ window.KENIOS_DEFAULT_DB = {
     logoColor: "",
     logoColorMode: "rainbow",
     logoAnimSpeed: 6,
+    logoMotionMode: "none",
+    logoMotionSpeed: 2,
     accentColor: "#ffb703",
     googleClientId: "",
     welcomePopupEnabled: false,
@@ -1556,12 +1558,30 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--gold', accent);
     document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
 
-    document.documentElement.style.setProperty('--logo-anim-speed', `${cfg.logoAnimSpeed || 6}s`);
-    const mode = cfg.logoColorMode || 'solid';
+    // Hai nhóm tách biệt: MÀU CHẠY (logoColorMode) + CHUYỂN ĐỘNG (logoMotionMode), tốc độ riêng.
+    const colorSpeed = cfg.logoAnimSpeed || 6;
+    const motionSpeed = cfg.logoMotionSpeed || 2;
+    document.documentElement.style.setProperty('--logo-anim-speed', `${colorSpeed}s`);
+    document.documentElement.style.setProperty('--logo-motion-speed', `${motionSpeed}s`);
+    const colorMode = cfg.logoColorMode || 'solid';
+    const motionMode = cfg.logoMotionMode || 'none';
     // Áp hiệu ứng cho cả logo header và logo trong menu 3 gạch
     $$('#brandName, #mobileNavBrandName').forEach(el => {
-      el.classList.remove(...LOGO_FX_MODES.map(m => 'logo-anim-' + m));
-      if (LOGO_FX_MODES.includes(mode)) el.classList.add('logo-anim-' + mode);
+      el.classList.remove(
+        ...LOGO_COLOR_MODES.map(m => 'logo-color-' + m),
+        ...LOGO_MOTION_MODES.map(m => 'logo-motion-' + m)
+      );
+      const anims = [];
+      if (LOGO_COLOR_ANIM[colorMode]) {
+        el.classList.add('logo-color-' + colorMode);
+        anims.push(`${LOGO_COLOR_ANIM[colorMode][0]} ${colorSpeed}s ${LOGO_COLOR_ANIM[colorMode][1]} infinite`);
+      }
+      if (LOGO_MOTION_ANIM[motionMode]) {
+        el.classList.add('logo-motion-' + motionMode);
+        anims.push(`${LOGO_MOTION_ANIM[motionMode][0]} ${motionSpeed}s ${LOGO_MOTION_ANIM[motionMode][1]} infinite`);
+      }
+      // Gộp cả 2 animation vào 1 khai báo inline để chạy đồng thời (không đè nhau).
+      el.style.animation = anims.join(', ');
     });
   }
 
@@ -2936,25 +2956,41 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
 
-  // Danh sách hiệu ứng logo — dùng chung cho bộ chọn (admin) và khi áp dụng (applyBranding).
-  const LOGO_FX = [
+  // Hai nhóm hiệu ứng logo TÁCH BIỆT hoàn toàn: MÀU CHẠY và CHUYỂN ĐỘNG (kết hợp được).
+  const LOGO_COLOR_FX = [
     ['solid', 'Mặc định'], ['rainbow', 'Cầu vồng'], ['shine', 'Ánh kim'], ['gradient', 'Gradient'],
     ['glow', 'Phát sáng'], ['sparkle', 'Lung linh'], ['neon', 'Neon'],
     ['fire', 'Lửa'], ['ice', 'Băng giá'], ['ocean', 'Đại dương'], ['sunset', 'Hoàng hôn'],
     ['candy', 'Kẹo ngọt'], ['gold', 'Vàng kim'], ['aurora', 'Cực quang'], ['matrix', 'Ma trận'],
-    ['pulse', 'Nhịp đập'], ['bounce', 'Nảy'], ['wave', 'Lắc lư'], ['flip', 'Lật 3D'],
   ];
-  const LOGO_FX_MODES = LOGO_FX.map(([v]) => v).filter(v => v !== 'solid');
+  const LOGO_MOTION_FX = [
+    ['none', 'Không'], ['pulse', 'Nhịp đập'], ['bounce', 'Nảy'], ['wave', 'Lắc lư'], ['flip', 'Lật 3D'],
+  ];
+  const LOGO_COLOR_MODES = LOGO_COLOR_FX.map(([v]) => v).filter(v => v !== 'solid');
+  const LOGO_MOTION_MODES = LOGO_MOTION_FX.map(([v]) => v).filter(v => v !== 'none');
+  // Tên keyframe + kiểu chạy cho từng hiệu ứng (để gộp animation inline khi kết hợp màu + chuyển động).
+  const LOGO_COLOR_ANIM = {
+    rainbow: ['logoRainbowCycle', 'linear'], shine: ['logoShineSweep', 'linear'], gradient: ['logoGradientMove', 'linear'],
+    glow: ['logoGlow', 'ease-in-out'], sparkle: ['logoSparkle', 'ease-in-out'], neon: ['logoNeon', 'ease-in-out'],
+    fire: ['logoGradientMove', 'linear'], ice: ['logoGradientMove', 'linear'], ocean: ['logoGradientMove', 'linear'],
+    sunset: ['logoGradientMove', 'linear'], candy: ['logoGradientMove', 'linear'], gold: ['logoGradientMove', 'linear'],
+    aurora: ['logoGradientMove', 'linear'], matrix: ['logoMatrix', 'ease-in-out'],
+  };
+  const LOGO_MOTION_ANIM = {
+    pulse: ['logoPulse', 'ease-in-out'], bounce: ['logoBounce', 'ease-in-out'],
+    wave: ['logoWave', 'ease-in-out'], flip: ['logoFlip', 'ease-in-out'],
+  };
 
-  // Bộ chọn hiệu ứng logo: mỗi ô xem trước hiệu ứng ngay trên chữ "Kenios" (không icon máy/emoji).
-  function logoEffectPickerHtml(selected) {
-    const sel = selected || 'solid';
+  // Bộ chọn hiệu ứng: mỗi ô xem trước ngay trên chữ "Kenios" (không icon máy/emoji).
+  // prefix = 'logo-color' hoặc 'logo-motion'; noneKey = giá trị "tắt" ('solid' hoặc 'none').
+  function fxPickerHtml(list, hiddenName, selected, prefix, noneKey) {
+    const sel = selected || list[0][0];
     return `
       <div class="fx-picker" data-fx-picker>
-        <input type="hidden" name="logoColorMode" value="${esc(sel)}">
-        ${LOGO_FX.map(([v, label]) => `
+        <input type="hidden" name="${hiddenName}" value="${esc(sel)}">
+        ${list.map(([v, label]) => `
           <button type="button" class="fx-pick ${v === sel ? 'selected' : ''}" data-fx-pick="${v}" title="${esc(label)}">
-            <span class="fx-pick-demo ${v === 'solid' ? '' : 'logo-anim-' + v}">Kenios</span>
+            <span class="fx-pick-demo ${v === noneKey ? '' : prefix + '-' + v}">Kenios</span>
             <span class="fx-pick-label">${esc(label)}</span>
           </button>
         `).join('')}
@@ -3124,11 +3160,20 @@ window.KENIOS_DEFAULT_DB = {
           </select>
         </label>
         <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
-        <label class="span-2">Hiệu ứng động cho logo (bấm chọn — xem trước trực tiếp)
-          ${logoEffectPickerHtml(c.logoColorMode)}
+        <div class="admin-form-section">Hiệu ứng logo — MÀU CHẠY (tách riêng với chuyển động)</div>
+        <label class="span-2">Chọn màu chạy (bấm chọn — xem trước trực tiếp)
+          ${fxPickerHtml(LOGO_COLOR_FX, 'logoColorMode', c.logoColorMode, 'logo-color', 'solid')}
         </label>
-        <label>Tốc độ hiệu ứng (giây/vòng)
+        <label>Tốc độ màu chạy (giây/vòng)
           <input type="number" name="logoAnimSpeed" min="1" max="20" step="0.5" value="${c.logoAnimSpeed || 6}">
+        </label>
+
+        <div class="admin-form-section">Hiệu ứng logo — CHUYỂN ĐỘNG (kết hợp được với màu chạy)</div>
+        <label class="span-2">Chọn chuyển động (bấm chọn — xem trước trực tiếp)
+          ${fxPickerHtml(LOGO_MOTION_FX, 'logoMotionMode', c.logoMotionMode, 'logo-motion', 'none')}
+        </label>
+        <label>Tốc độ chuyển động (giây/vòng)
+          <input type="number" name="logoMotionSpeed" min="0.5" max="20" step="0.5" value="${c.logoMotionSpeed || 2}">
         </label>
 
         <div class="admin-form-section">Màu chủ đạo toàn trang</div>
@@ -3604,6 +3649,7 @@ window.KENIOS_DEFAULT_DB = {
         logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),
         logoUrl: fd.get('logoUrl'), logoFont: fd.get('logoFont'), logoColor: fd.get('logoColor'),
         logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
+        logoMotionMode: fd.get('logoMotionMode') || 'none', logoMotionSpeed: parseFloat(fd.get('logoMotionSpeed')) || 2,
         accentColor: fd.get('accentColor'),
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),

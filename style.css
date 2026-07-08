@@ -120,105 +120,95 @@ button { font: inherit; }
 .brand-text strong { font-size: 1.05rem; letter-spacing: .2px; font-family: var(--logo-font); color: var(--logo-color); }
 
 /* =========================================================
-   HIỆU ỨNG ĐỘNG CHO LOGO — đa dạng, chọn trong bảng quản trị.
-   Tất cả dùng biến --logo-anim-speed (giây) để chỉnh tốc độ.
-   Class đặt trực tiếp lên chữ logo (header + menu 3 gạch).
+   HIỆU ỨNG LOGO — TÁCH BIỆT HOÀN TOÀN 2 NHÓM (kết hợp được):
+   • Nhóm MÀU CHẠY   → .logo-color-*  (tốc độ --logo-anim-speed)
+   • Nhóm CHUYỂN ĐỘNG → .logo-motion-* (tốc độ --logo-motion-speed)
+   Có thể chọn 1 màu + 1 chuyển động cùng lúc; JS gộp animation inline.
 ========================================================= */
-.logo-anim { display: inline-block; }
 
-/* 1) Cầu vồng 7 màu chạy liên tục */
+/* ================= NHÓM MÀU CHẠY ================= */
 @keyframes logoRainbowCycle {
   0%   { color: #ff3b3b; } 14% { color: #ff9d3b; } 28% { color: #ffe93b; }
   42%  { color: #3bff7a; } 57% { color: #3bd4ff; } 71% { color: #8b5cf6; }
   85%  { color: #ff5fd8; } 100% { color: #ff3b3b; }
 }
-.logo-anim-rainbow { animation: logoRainbowCycle var(--logo-anim-speed, 6s) linear infinite; }
+.logo-color-rainbow { animation: logoRainbowCycle var(--logo-anim-speed, 6s) linear infinite; }
 
-/* 2) Ánh kim lấp lánh quét ngang */
 @keyframes logoShineSweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-.logo-anim-shine {
+.logo-color-shine {
   background-image: linear-gradient(100deg, var(--logo-color, #fff) 20%, #fff 50%, var(--logo-color, #fff) 80%);
   background-size: 250% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
   animation: logoShineSweep var(--logo-anim-speed, 4s) linear infinite;
 }
 
-/* 3) Gradient nhiều màu trôi (clip vào chữ) */
 @keyframes logoGradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
-.logo-anim-gradient {
+.logo-color-gradient {
   background-image: linear-gradient(90deg, #ff3b6b, #ffb703, #38d68c, #3bd4ff, #8b5cf6, #ff3b6b);
   background-size: 300% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
   animation: logoGradientMove var(--logo-anim-speed, 6s) linear infinite;
 }
 
-/* 4) Phát sáng neon nhấp nháy */
 @keyframes logoGlow {
   0%, 100% { text-shadow: 0 0 4px rgba(255,183,3,.5), 0 0 8px rgba(255,183,3,.3); }
   50%      { text-shadow: 0 0 10px rgba(255,183,3,.95), 0 0 22px rgba(255,183,3,.7), 0 0 34px rgba(139,92,246,.5); }
 }
-.logo-anim-glow { color: var(--logo-color, #ffd873); animation: logoGlow var(--logo-anim-speed, 3s) ease-in-out infinite; }
+.logo-color-glow { color: var(--logo-color, #ffd873); animation: logoGlow var(--logo-anim-speed, 3s) ease-in-out infinite; }
 
-/* 5) Nhịp đập (phóng to thu nhỏ) */
-@keyframes logoPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
-.logo-anim-pulse { display: inline-block; animation: logoPulse var(--logo-anim-speed, 2s) ease-in-out infinite; }
-
-/* 6) Nảy lên xuống */
-@keyframes logoBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-.logo-anim-bounce { display: inline-block; animation: logoBounce var(--logo-anim-speed, 1.8s) ease-in-out infinite; }
-
-/* 7) Lắc lư nghiêng qua lại */
-@keyframes logoWave { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
-.logo-anim-wave { display: inline-block; transform-origin: 50% 80%; animation: logoWave var(--logo-anim-speed, 2.4s) ease-in-out infinite; }
-
-/* 8) Lật 3D */
-@keyframes logoFlip { 0% { transform: rotateY(0); } 50% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
-.logo-anim-flip { display: inline-block; animation: logoFlip var(--logo-anim-speed, 4s) ease-in-out infinite; }
-
-/* 9) Neon nhấp nháy (chớp sáng) */
 @keyframes logoNeon {
   0%, 100% { color: #fff; text-shadow: 0 0 6px #3bd4ff, 0 0 12px #3bd4ff, 0 0 20px #8b5cf6; }
   45%      { color: #cdd6ff; text-shadow: 0 0 2px #3bd4ff; }
 }
-.logo-anim-neon { animation: logoNeon var(--logo-anim-speed, 1.8s) ease-in-out infinite; }
+.logo-color-neon { animation: logoNeon var(--logo-anim-speed, 1.8s) ease-in-out infinite; }
 
-/* 10) Lung linh — lấp lánh ánh vàng kim + toả sáng */
 @keyframes logoSparkle {
   0%   { background-position: -30% 50%; text-shadow: 0 0 3px rgba(255,216,115,.35); }
   50%  { text-shadow: 0 0 12px rgba(255,216,115,.95), 0 0 24px rgba(255,255,255,.55), 0 0 34px rgba(255,183,3,.4); }
   100% { background-position: 130% 50%; text-shadow: 0 0 3px rgba(255,216,115,.35); }
 }
-.logo-anim-sparkle {
+.logo-color-sparkle {
   background-image: linear-gradient(105deg, #ffcf5a 0%, #fff7d6 38%, #ffffff 50%, #fff7d6 62%, #ffcf5a 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   animation: logoSparkle var(--logo-anim-speed, 3s) ease-in-out infinite;
 }
 
-/* ----- Bảng màu chữ đa dạng (dải màu trôi, clip vào chữ) ----- */
-.logo-anim-fire, .logo-anim-ice, .logo-anim-ocean, .logo-anim-sunset,
-.logo-anim-candy, .logo-anim-gold, .logo-anim-aurora {
+.logo-color-fire, .logo-color-ice, .logo-color-ocean, .logo-color-sunset,
+.logo-color-candy, .logo-color-gold, .logo-color-aurora {
   background-size: 300% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   animation: logoGradientMove var(--logo-anim-speed, 6s) linear infinite;
 }
-.logo-anim-fire   { background-image: linear-gradient(90deg, #ff2d00, #ff7b00, #ffd000, #ff7b00, #ff2d00); }
-.logo-anim-ice    { background-image: linear-gradient(90deg, #8be9ff, #ffffff, #5aa9ff, #ffffff, #8be9ff); }
-.logo-anim-ocean  { background-image: linear-gradient(90deg, #0077b6, #00b4d8, #48cae4, #00b4d8, #0077b6); }
-.logo-anim-sunset { background-image: linear-gradient(90deg, #ff5f6d, #ffc371, #ff5f6d, #a86bff, #ff5f6d); }
-.logo-anim-candy  { background-image: linear-gradient(90deg, #ff6ec4, #7873f5, #4ade80, #ff6ec4); }
-.logo-anim-gold   { background-image: linear-gradient(90deg, #a67c00, #ffd700, #fff3b0, #ffd700, #a67c00); }
-.logo-anim-aurora { background-image: linear-gradient(90deg, #00ffa3, #00d4ff, #8b5cf6, #00ffa3); }
+.logo-color-fire   { background-image: linear-gradient(90deg, #ff2d00, #ff7b00, #ffd000, #ff7b00, #ff2d00); }
+.logo-color-ice    { background-image: linear-gradient(90deg, #8be9ff, #ffffff, #5aa9ff, #ffffff, #8be9ff); }
+.logo-color-ocean  { background-image: linear-gradient(90deg, #0077b6, #00b4d8, #48cae4, #00b4d8, #0077b6); }
+.logo-color-sunset { background-image: linear-gradient(90deg, #ff5f6d, #ffc371, #ff5f6d, #a86bff, #ff5f6d); }
+.logo-color-candy  { background-image: linear-gradient(90deg, #ff6ec4, #7873f5, #4ade80, #ff6ec4); }
+.logo-color-gold   { background-image: linear-gradient(90deg, #a67c00, #ffd700, #fff3b0, #ffd700, #a67c00); }
+.logo-color-aurora { background-image: linear-gradient(90deg, #00ffa3, #00d4ff, #8b5cf6, #00ffa3); }
 
-/* Ma trận — chữ xanh lá phát sáng */
 @keyframes logoMatrix {
   0%, 100% { color: #39ff14; text-shadow: 0 0 6px #39ff14, 0 0 14px #0f0; }
   50%      { color: #9dff8a; text-shadow: 0 0 2px #39ff14; }
 }
-.logo-anim-matrix { animation: logoMatrix var(--logo-anim-speed, 2s) ease-in-out infinite; }
+.logo-color-matrix { animation: logoMatrix var(--logo-anim-speed, 2s) ease-in-out infinite; }
+
+/* ================= NHÓM CHUYỂN ĐỘNG ================= */
+@keyframes logoPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+.logo-motion-pulse { display: inline-block; animation: logoPulse var(--logo-motion-speed, 2s) ease-in-out infinite; }
+
+@keyframes logoBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.logo-motion-bounce { display: inline-block; animation: logoBounce var(--logo-motion-speed, 1.8s) ease-in-out infinite; }
+
+@keyframes logoWave { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.logo-motion-wave { display: inline-block; transform-origin: 50% 80%; animation: logoWave var(--logo-motion-speed, 2.4s) ease-in-out infinite; }
+
+@keyframes logoFlip { 0% { transform: rotateY(0); } 50% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
+.logo-motion-flip { display: inline-block; animation: logoFlip var(--logo-motion-speed, 4s) ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  [class*="logo-anim-"] { animation: none !important; color: var(--logo-color) !important; }
+  [class*="logo-color-"], [class*="logo-motion-"] { animation: none !important; }
 }
 .brand-text small { color: var(--muted); font-size: .7rem; }
 .main-nav { display: flex; gap: 22px; font-size: .92rem; white-space: nowrap; }
