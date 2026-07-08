@@ -47,13 +47,36 @@ window.KENIOS_DEFAULT_DB = {
     aiName: "Trợ Lý Ảo Kenios",
     aiGreeting: "Xin chào! Tôi là trợ lý ảo của KENIOS.STORE. Tôi có thể giúp gì cho bạn hôm nay?",
     aiResponseGreeting: "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
-    aiResponseDeposit: "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
-    aiResponseProduct: "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
-    aiResponseWeb: "Bên mình có dịch vụ thiết kế website phong cách hiện đại, chuẩn SEO và tương thích tốt trên mọi thiết bị. Hãy xem mục \"Thiết Kế Web\" để biết thêm chi tiết nhé!",
     aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
-    aiResponseContact: "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
-    aiResponseThanks: "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
-    aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
+    aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này 🥲. Bạn có thể hỏi mình về: cách nạp tiền, cách mua/nhận key, bảng giá, bảo hành, thiết kế web… hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé!",
+    // Bộ câu trả lời sẵn — khách nhắn chứa từ khoá nào (cách nhau bởi dấu phẩy) thì trả lời câu tương ứng.
+    aiKnowledge: [
+      { k: "nạp tiền, nap tien, nạp, vietqr, chuyển khoản, ck, nạp thế nào", a: "Nạp tiền 100% TỰ ĐỘNG 👍: vào mục \"Nạp tiền\", nhập số tiền rồi quét mã VietQR bằng app ngân hàng. Số dư cộng NGAY sau khi chuyển khoản thành công, không cần chờ duyệt." },
+      { k: "mua key, cách mua, mua thế nào, đặt hàng, mua hàng, mua sao", a: "Cách mua: chọn sản phẩm → chọn gói → bấm \"Mua Ngay\" (trừ vào số dư). Key hiện NGAY trong mục \"Đơn hàng của tôi\", bạn copy dùng liền 🔑." },
+      { k: "bao lâu, khi nào nhận, chờ bao lâu, nhận key lâu, giao key", a: "Key giao TỰ ĐỘNG & TỨC THÌ ngay sau khi thanh toán, không phải chờ đợi. Xem trong \"Đơn hàng của tôi\" nhé." },
+      { k: "nhận key ở đâu, key đâu, lấy key ở đâu, xem key", a: "Key nằm trong mục \"Đơn hàng của tôi\" (bấm avatar hoặc menu). Mỗi đơn có nút sao chép key." },
+      { k: "bảo hành, bao hanh, key lỗi, lỗi key, không dùng được, không vào được", a: "Sản phẩm được BẢO HÀNH trong suốt thời gian gói ✅. Nếu key lỗi, bạn nhắn Admin kèm mã đơn để được kiểm tra & đổi key ngay." },
+      { k: "hoàn tiền, hoan tien, refund, trả lại tiền, đổi trả", a: "Vì là sản phẩm số cấp phát tức thì nên shop không hoàn tiền sau khi đã nhận key, trừ trường hợp lỗi từ hệ thống. Gặp sự cố hãy liên hệ Admin trong 24h nhé." },
+      { k: "an toàn, có bị khóa, khóa nick, khóa acc, ban, có an toàn không, tố", a: "Tụi mình luôn cập nhật bản MỚI & AN TOÀN nhất 🔒. Game online vẫn có rủi ro nhất định, bạn dùng đúng hướng dẫn để hạn chế tối đa. Liên Quân có bản CHỐNG TỐ riêng." },
+      { k: "cài đặt, cai dat, hướng dẫn, dùng thế nào, sử dụng, setup", a: "Sau khi mua, bạn xem hướng dẫn cài đặt đi kèm hoặc nhắn Admin để được gửi video hướng dẫn chi tiết từng bước 📹." },
+      { k: "thiết kế web, thiet ke web, website, làm web, landing", a: "Shop nhận THIẾT KẾ WEBSITE hiện đại, chuẩn SEO, chạy mượt trên mọi thiết bị 💻. Xem mục \"Thiết Kế Web\" hoặc nhắn Admin để được báo giá theo yêu cầu." },
+      { k: "uy tín, lừa đảo, scam, có thật không, tin được không, thật không", a: "Shop UY TÍN, giao dịch tự động minh bạch, có cộng đồng đông đảo ❤️. Bạn xem phần đánh giá & giao dịch gần đây trên trang để yên tâm hơn nhé." },
+      { k: "khuyến mãi, khuyen mai, giảm giá, sale, ưu đãi, mã giảm, khuyến mại", a: "Ưu đãi & mã giảm giá được cập nhật thường xuyên trong nhóm Zalo/Telegram 🎁. Tham gia nhóm ở phần Liên Hệ để không bỏ lỡ nhé!" },
+      { k: "giờ làm việc, mấy giờ, còn hoạt động, có online, làm việc lúc nào", a: "Hệ thống bán & giao key hoạt động TỰ ĐỘNG 24/7 ⏰. Admin hỗ trợ tư vấn gần như cả ngày." },
+      { k: "nhiều máy, mấy máy, mấy thiết bị, share, dùng chung", a: "Mỗi key dùng cho 1 thiết bị theo gói. Nếu cần nhiều máy, bạn mua thêm key hoặc hỏi Admin gói phù hợp nhé." },
+      { k: "gia hạn, gia han, hết hạn, renew, còn hạn", a: "Gần hết hạn, bạn chỉ cần mua lại gói tương ứng là được gia hạn. Cần hỗ trợ nhanh thì nhắn Admin nhé." },
+      { k: "thanh toán, momo, thẻ cào, the cao, ngân hàng nào, banking", a: "Shop nhận chuyển khoản VietQR của TẤT CẢ ngân hàng, cộng tiền tự động. Hình thức khác (Momo/thẻ) vui lòng hỏi Admin." },
+      { k: "số dư, so du, còn bao nhiêu tiền, kiểm tra tiền, tài khoản", a: "Số dư hiển thị ở góc trên khi đăng nhập và trong menu tài khoản. Muốn nạp thêm thì vào mục \"Nạp tiền\" nhé." },
+      { k: "đăng ký, dang ky, đăng nhập, tạo tài khoản, quên mật khẩu, login", a: "Bấm \"Đăng nhập\" để tạo tài khoản mới hoặc đăng nhập bằng Google. Quên mật khẩu thì dùng chức năng \"Quên mật khẩu\" hoặc nhắn Admin." },
+      { k: "pubg, pu bg", a: "PUBG có nhiều tool xịn: VNHAX, OASIS, KING, TIMO, VINGODL… cho cả iOS & Android 🎮. Bấm danh mục PUBG để xem giá từng gói." },
+      { k: "free fire, freefire, ff", a: "🔥 FREE FIRE: 550K/Tháng · 250K/Tuần. Bấm danh mục Free Fire để xem chi tiết và mua nhé." },
+      { k: "liên quân, lien quan, lq", a: "⚔️ LIÊN QUÂN: 250K/Tháng · 120K/Tuần (có bản CHỐNG TỐ). Xem danh mục Liên Quân để biết thêm nhé." },
+      { k: "tốc chiến, toc chien, lmht", a: "Tốc Chiến có tool hỗ trợ & mod skin. Bạn bấm danh mục Tốc Chiến để xem các gói và giá nhé." },
+      { k: "liên hệ, lien he, zalo, telegram, admin, số điện thoại, hotline, facebook", a: "Bạn liên hệ Admin qua Zalo/Telegram ở phần \"Liên Hệ & Cộng Đồng\" (kéo xuống cuối trang) hoặc nút liên hệ góc phải màn hình 💬." },
+      { k: "hỗ trợ, support, giúp, tư vấn, cần giúp", a: "Shop hỗ trợ 24/7 nhé! Bạn cứ hỏi mình ở đây, hoặc nhắn Zalo Admin để được tư vấn trực tiếp." },
+      { k: "cảm ơn, cam on, thanks, thank, tks", a: "Không có gì ạ! 😄 Chúc bạn chơi game vui vẻ, cần gì cứ nhắn shop nhé ❤️" },
+      { k: "tạm biệt, bye, tam biet, chào tạm biệt", a: "Tạm biệt bạn! 👋 Hẹn gặp lại, chúc bạn một ngày tốt lành nhé." }
+    ],
     bankId: "MBBank",
     bankAccountNo: "0822148411",
     bankAccountName: "NGUYEN TIN HAO",
@@ -192,6 +215,9 @@ window.KENIOS_DEFAULT_DB = {
     async init() {
       this.db = await this._loadDb();
       if (!Array.isArray(this.db.subcategories)) this.db.subcategories = [];
+      // Bổ sung các trường cấu hình MỚI còn thiếu từ mặc định (VD aiKnowledge) khi
+      // database.json trên máy chủ được tạo trước bản cập nhật — tránh mất tính năng mới.
+      this.db.config = Object.assign({}, global.KENIOS_DEFAULT_DB.config, this.db.config || {});
       this._mergeLocalOverrides();
       const savedSession = this._readLocal('session');
       if (savedSession && this.db.users.some(u => u.userId === savedSession.userId)) {
@@ -2619,7 +2645,9 @@ window.KENIOS_DEFAULT_DB = {
 
     const quick = [
       { icon: 'card', label: 'Nạp tiền', text: 'Cách nạp tiền' },
-      { icon: 'tag', label: 'Giá sản phẩm', text: 'Giá sản phẩm' },
+      { icon: 'tag', label: 'Bảng giá', text: 'Xem bảng giá' },
+      { icon: 'cart', label: 'Cách mua key', text: 'Cách mua key' },
+      { icon: 'shield', label: 'Bảo hành', text: 'Chính sách bảo hành' },
       { icon: 'web', label: 'Thiết kế web', text: 'Dịch vụ thiết kế web' },
       { icon: 'headset', label: 'Liên hệ Admin', text: 'Liên hệ admin' }
     ];
@@ -2696,15 +2724,19 @@ window.KENIOS_DEFAULT_DB = {
 
   function getAiReply(t) {
     const cfg = Store.db.config;
-    if (/nạp tiền|nap tien|vietqr|qr/.test(t)) return cfg.aiResponseDeposit;
+    // 1) Chào hỏi
+    if (/^(chào|hello|hi|hey|alo|xin chào|chao)\b/.test(t) || /^(hi|hello|alo)$/.test(t.trim())) return cfg.aiResponseGreeting;
+    // 2) Hỏi đúng 1 sản phẩm trong bảng giá -> trả lời riêng mục đó
     const specificPrice = matchPriceItem(t);
     if (specificPrice) return specificPrice;
-    if (/giá|gia|bảng giá|bang gia|price/.test(t)) return cfg.aiResponsePrice;
-    if (/thiết kế web|thiet ke web|landing|web shop/.test(t)) return cfg.aiResponseWeb;
-    if (/sản phẩm|san pham|pubg|liên quân|lien quan|free fire|tốc chiến|toc chien/.test(t)) return cfg.aiResponseProduct;
-    if (/admin|liên hệ|lien he|zalo|hotline/.test(t)) return cfg.aiResponseContact;
-    if (/cảm ơn|cam on|thanks/.test(t)) return cfg.aiResponseThanks;
-    if (/chào|hello|hi\b|xin chào/.test(t)) return cfg.aiResponseGreeting;
+    // 3) Hỏi chung về bảng giá -> đưa cả bảng
+    if (/bảng giá|bang gia|giá cả|xem giá|full giá|price list|có những gói/.test(t)) return cfg.aiResponsePrice;
+    // 4) Bộ câu trả lời sẵn (admin thêm được nhiều tuỳ ý)
+    for (const item of (cfg.aiKnowledge || [])) {
+      const kws = String(item.k || '').split(/[,\n]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+      if (kws.some(k => t.includes(k))) return item.a;
+    }
+    // 5) Không khớp -> câu mặc định
     return cfg.aiResponseFallback;
   }
 
@@ -3210,6 +3242,22 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
 
+  // 1 dòng câu trả lời sẵn của AI (từ khoá + câu trả lời) trong admin.
+  function aiKnowledgeRowHtml(item = {}) {
+    return `
+      <div class="ai-kb-row" data-kb-row>
+        <input data-kb-k class="ai-kb-k" value="${esc(item.k || '')}" placeholder="Từ khoá (VD: nạp tiền, nap tien, vietqr)">
+        <textarea data-kb-a class="ai-kb-a" placeholder="Câu trả lời khách sẽ nhận">${esc(item.a || '')}</textarea>
+        <button type="button" class="ai-kb-del" data-kb-remove title="Xoá câu này">✕</button>
+      </div>`;
+  }
+  function readAiKnowledgeFromEditor() {
+    return $$('#aiKnowledgeEditor [data-kb-row]').map(row => ({
+      k: row.querySelector('[data-kb-k]').value.trim(),
+      a: row.querySelector('[data-kb-a]').value.trim()
+    })).filter(x => x.k && x.a);
+  }
+
   // Đọc lại toàn bộ kênh liên hệ / nhóm từ trình soạn thảo động khi lưu cấu hình.
   function readContactChannelsFromEditor() {
     return $$('#contactChannelsEditor [data-ch-row]').map((row, i) => {
@@ -3365,15 +3413,21 @@ window.KENIOS_DEFAULT_DB = {
           </select>
         </label>
         <label>Tên trợ lý (aiName) <input name="aiName" value="${esc(c.aiName || '')}"></label>
-        <label class="span-2">Lời chào đầu tiên (aiGreeting) <textarea name="aiGreeting">${esc(c.aiGreeting || '')}</textarea></label>
-        <label class="span-2">Trả lời khi chào hỏi (aiResponseGreeting) <textarea name="aiResponseGreeting">${esc(c.aiResponseGreeting || '')}</textarea></label>
-        <label class="span-2">Trả lời về nạp tiền (aiResponseDeposit) <textarea name="aiResponseDeposit">${esc(c.aiResponseDeposit || '')}</textarea></label>
-        <label class="span-2">Trả lời về sản phẩm (aiResponseProduct) <textarea name="aiResponseProduct">${esc(c.aiResponseProduct || '')}</textarea></label>
-        <label class="span-2">Trả lời về thiết kế web (aiResponseWeb) <textarea name="aiResponseWeb">${esc(c.aiResponseWeb || '')}</textarea></label>
-        <label class="span-2">Trả lời về bảng giá (aiResponsePrice) <textarea name="aiResponsePrice">${esc(c.aiResponsePrice || '')}</textarea></label>
-        <label class="span-2">Trả lời về liên hệ (aiResponseContact) <textarea name="aiResponseContact">${esc(c.aiResponseContact || '')}</textarea></label>
-        <label class="span-2">Trả lời khi cảm ơn (aiResponseThanks) <textarea name="aiResponseThanks">${esc(c.aiResponseThanks || '')}</textarea></label>
-        <label class="span-2">Trả lời mặc định khi không hiểu (aiResponseFallback) <textarea name="aiResponseFallback">${esc(c.aiResponseFallback || '')}</textarea></label>
+        <label class="span-2">Lời chào đầu tiên khi mở khung chat (aiGreeting) <textarea name="aiGreeting">${esc(c.aiGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời khi khách chào hỏi <textarea name="aiResponseGreeting">${esc(c.aiResponseGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời khi hỏi chung về bảng giá <textarea name="aiResponsePrice">${esc(c.aiResponsePrice || '')}</textarea></label>
+        <label class="span-2">Trả lời mặc định khi không hiểu câu hỏi <textarea name="aiResponseFallback">${esc(c.aiResponseFallback || '')}</textarea></label>
+
+        <div class="admin-form-section">Bộ câu trả lời sẵn của AI (thêm bao nhiêu câu tuỳ ý)</div>
+        <div class="span-2 ai-kb-editor" id="aiKnowledgeEditor">
+          ${(c.aiKnowledge || []).map(item => aiKnowledgeRowHtml(item)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addAiKnowledgeBtn">+ Thêm câu trả lời</button>
+        </div>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Mỗi dòng gồm: <b>Từ khoá</b> (cách nhau bởi dấu phẩy — khách nhắn chứa 1 trong các từ này) và <b>Câu trả lời</b>. Khách hỏi trúng từ khoá nào thì AI trả lời câu đó. Thêm càng nhiều câu, AI trả lời càng thông minh.
+        </p>
 
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">Lưu cấu hình</button>
@@ -3557,6 +3611,15 @@ window.KENIOS_DEFAULT_DB = {
     const delCh = e.target.closest('[data-ch-remove]');
     if (delCh) { delCh.closest('[data-ch-row]')?.remove(); return; }
 
+    // ----- Thêm / xoá câu trả lời sẵn của AI -----
+    if (e.target.closest('#addAiKnowledgeBtn')) {
+      const editor = $('#aiKnowledgeEditor');
+      if (editor) { editor.insertAdjacentHTML('beforeend', aiKnowledgeRowHtml({})); editor.querySelector('.ai-kb-row:last-child [data-kb-k]')?.focus(); }
+      return;
+    }
+    const delKb = e.target.closest('[data-kb-remove]');
+    if (delKb) { delKb.closest('[data-kb-row]')?.remove(); return; }
+
     const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
     if (adjustBalance) {
       Store.adminAdjustBalance(adjustBalance.dataset.adminAdjustBalance, parseInt(adjustBalance.dataset.delta, 10));
@@ -3723,10 +3786,9 @@ window.KENIOS_DEFAULT_DB = {
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
         aiName: fd.get('aiName'), aiGreeting: fd.get('aiGreeting'),
-        aiResponseGreeting: fd.get('aiResponseGreeting'), aiResponseDeposit: fd.get('aiResponseDeposit'),
-        aiResponseProduct: fd.get('aiResponseProduct'), aiResponseWeb: fd.get('aiResponseWeb'),
-        aiResponsePrice: fd.get('aiResponsePrice'), aiResponseContact: fd.get('aiResponseContact'),
-        aiResponseThanks: fd.get('aiResponseThanks'), aiResponseFallback: fd.get('aiResponseFallback'),
+        aiResponseGreeting: fd.get('aiResponseGreeting'),
+        aiResponsePrice: fd.get('aiResponsePrice'), aiResponseFallback: fd.get('aiResponseFallback'),
+        aiKnowledge: readAiKnowledgeFromEditor(),
         bgUrl: fd.get('bgUrl'),
         contactChannels: readContactChannelsFromEditor()
       });

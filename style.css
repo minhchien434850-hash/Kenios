@@ -798,6 +798,20 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   .contact-ch-label { grid-area: label; } .contact-ch-url { grid-area: url; } .contact-ch-del { grid-area: del; }
 }
 
+/* Trình soạn thảo câu trả lời sẵn của AI (thêm/xoá động) */
+.ai-kb-editor { display: flex; flex-direction: column; gap: 8px; }
+.ai-kb-row { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 8px; align-items: start; }
+.ai-kb-row input, .ai-kb-row textarea {
+  padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .85rem; width: 100%; min-width: 0;
+}
+.ai-kb-row textarea { min-height: 46px; resize: vertical; }
+.ai-kb-del { flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: rgba(248,113,113,.1); color: #f87171; cursor: pointer; }
+.ai-kb-del:hover { background: rgba(248,113,113,.2); }
+@media (max-width: 640px) {
+  .ai-kb-row { grid-template-columns: 1fr auto; grid-template-areas: "k del" "a a"; }
+  .ai-kb-k { grid-area: k; } .ai-kb-a { grid-area: a; } .ai-kb-del { grid-area: del; }
+}
+
 /* Nhãn còn key / hết key trên từng gói ở trang mua hàng */
 .pkg-stock { display: block; font-size: .7rem; color: #6ee7b7; margin-top: 2px; }
 .pkg-stock.out { color: var(--danger); }
