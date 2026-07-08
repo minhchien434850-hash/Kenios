@@ -20,6 +20,9 @@
   --radius-sm: 12px;
   --shadow: 0 20px 60px -20px rgba(0,0,0,.6);
   --header-h: 72px;
+  --logo-font: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+  --logo-color: inherit;
+  --marquee-speed: 26s;
   font-size: 16px;
 }
 
@@ -88,9 +91,9 @@ button { font: inherit; }
 .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .header-left { display: flex; align-items: center; gap: 4px; }
 .brand { display: flex; align-items: center; gap: 10px; }
-.brand-mark { filter: drop-shadow(0 0 10px rgba(139,92,246,.5)); }
+.brand-mark { filter: drop-shadow(0 0 10px rgba(139,92,246,.5)); object-fit: contain; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.brand-text strong { font-size: 1.05rem; letter-spacing: .2px; }
+.brand-text strong { font-size: 1.05rem; letter-spacing: .2px; font-family: var(--logo-font); color: var(--logo-color); }
 .brand-text small { color: var(--muted); font-size: .7rem; }
 .main-nav { display: flex; gap: 22px; font-size: .92rem; white-space: nowrap; }
 .main-nav a { color: var(--muted); transition: color .15s ease; }
@@ -112,7 +115,7 @@ button { font: inherit; }
 
 /* ---------- Marquee ---------- */
 .marquee-bar { background: linear-gradient(90deg, rgba(255,183,3,.12), rgba(139,92,246,.12)); border-bottom: 1px solid var(--border); overflow: hidden; padding: 8px 0; }
-.marquee-track { display: flex; gap: 60px; width: max-content; animation: marquee 26s linear infinite; }
+.marquee-track { display: flex; gap: 60px; width: max-content; animation: marquee var(--marquee-speed) linear infinite; }
 .marquee-track span { font-size: .85rem; color: var(--gold-soft); font-weight: 600; white-space: nowrap; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
@@ -362,6 +365,9 @@ button { font: inherit; }
   padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .88rem; font-family: inherit;
 }
 .admin-form textarea { resize: vertical; min-height: 70px; }
+.admin-form input[type=color] { padding: 4px; height: 40px; cursor: pointer; }
+.admin-form-section { grid-column: 1 / -1; margin: 10px 0 -2px; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gold-soft); border-top: 1px solid var(--border); padding-top: 14px; }
+.admin-form-section:first-child { border-top: none; padding-top: 0; margin-top: 0; }
 .admin-form-actions { grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 4px; }
 .admin-pkg-rows { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; }
 .admin-pkg-row { display: flex; gap: 8px; align-items: center; }

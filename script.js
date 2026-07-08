@@ -15,6 +15,10 @@ window.KENIOS_DEFAULT_DB = {
     siteSubtitle: "Hệ thống phân phối phụ kiện game & dịch vụ thiết kế web hàng đầu Việt Nam. Tự động 24/24, hỗ trợ setup từ A-Z.",
     logoText: "KENIOS.STORE",
     logoSubtext: "v3.0 Premium",
+    logoUrl: "",
+    logoFont: "Be Vietnam Pro",
+    logoColor: "",
+    accentColor: "#ffb703",
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
     contactAdminName: "ADMIN SHOP",
@@ -38,6 +42,7 @@ window.KENIOS_DEFAULT_DB = {
     bannerBtn1Text: "Xem Dịch Vụ",
     bannerBtn2Text: "Nạp Tiền Ngay",
     marqueeText: "Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24",
+    marqueeSpeed: 26,
     ttsEnabled: true,
     ttsVoice: "google_female_vi",
     ttsRate: 1,
@@ -810,10 +815,39 @@ window.KENIOS_DEFAULT_DB = {
     const m = `📢 ${cfg.marqueeText}`;
     setText('#marqueeText1', m);
     setText('#marqueeText2', m);
+    document.documentElement.style.setProperty('--marquee-speed', `${cfg.marqueeSpeed || 26}s`);
+
+    applyBranding(cfg);
 
     Voice.setPrefs({ enabled: !!cfg.ttsEnabled, rate: cfg.ttsRate || 1, pitch: cfg.ttsPitch || 1 });
 
     renderPosts();
+  }
+
+  // ---- Thương hiệu: logo (ảnh/font/màu) + màu chủ đạo toàn site ----
+  const LOGO_FONTS = ['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Orbitron', 'Pacifico'];
+  const _loadedFonts = new Set(['Be Vietnam Pro']);
+
+  function ensureFontLoaded(fontName) {
+    if (_loadedFonts.has(fontName)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@400;600;700;800&display=swap`;
+    document.head.appendChild(link);
+    _loadedFonts.add(fontName);
+  }
+
+  function applyBranding(cfg) {
+    $$('.brand-mark').forEach(img => { img.src = cfg.logoUrl || './favicon.svg'; });
+
+    const font = cfg.logoFont || 'Be Vietnam Pro';
+    ensureFontLoaded(font);
+    document.documentElement.style.setProperty('--logo-font', `'${font}', 'Be Vietnam Pro', sans-serif`);
+    document.documentElement.style.setProperty('--logo-color', cfg.logoColor || 'inherit');
+
+    const accent = cfg.accentColor || '#ffb703';
+    document.documentElement.style.setProperty('--gold', accent);
+    document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
   }
 
   // ============================================================
@@ -1614,16 +1648,48 @@ window.KENIOS_DEFAULT_DB = {
     const c = Store.db.config;
     return `
       <form class="admin-form" data-admin-form="config">
+        <div class="admin-form-section">🏷️ Thương hiệu &amp; Logo</div>
+        <label>Chữ logo (logoText) <input name="logoText" value="${esc(c.logoText)}"></label>
+        <label>Dòng phụ (logoSubtext) <input name="logoSubtext" value="${esc(c.logoSubtext)}"></label>
+        <label class="span-2">Ảnh logo (logoUrl — để trống dùng icon mặc định)
+          <input name="logoUrl" value="${esc(c.logoUrl || '')}" placeholder="Dán URL ảnh (PNG/GIF/WEBP/SVG) — lấy từ tab Thư viện">
+        </label>
+        <label>Font chữ logo
+          <select name="logoFont">
+            ${LOGO_FONTS.map(f => `<option value="${esc(f)}" ${c.logoFont === f ? 'selected' : ''} style="font-family:'${esc(f)}'">${esc(f)}</option>`).join('')}
+          </select>
+        </label>
+        <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
+
+        <div class="admin-form-section">🎨 Màu chủ đạo toàn trang</div>
+        <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || '#ffb703')}"></label>
+
+        <div class="admin-form-section">🖼️ Banner / Hero</div>
+        <label class="span-2">Nhãn nhỏ trên tiêu đề (bannerTagText) <input name="bannerTagText" value="${esc(c.bannerTagText || '')}"></label>
+        <label>Nút 1 (bannerBtn1Text) <input name="bannerBtn1Text" value="${esc(c.bannerBtn1Text || '')}"></label>
+        <label>Nút 2 (bannerBtn2Text) <input name="bannerBtn2Text" value="${esc(c.bannerBtn2Text || '')}"></label>
+        <label class="span-2">Ảnh/Video nền Hero (bgUrl)
+          <input name="bgUrl" value="${esc(c.bgUrl || '')}" placeholder="Dán URL ảnh (PNG/JPEG/GIF/WEBP) hoặc video (.mp4/.webm/.ogg) — lấy từ tab Thư viện">
+        </label>
+
+        <div class="admin-form-section">📞 Liên hệ &amp; Giới thiệu</div>
         <label class="span-2">Tên website (siteTitle) <input name="siteTitle" value="${esc(c.siteTitle)}"></label>
         <label class="span-2">Mô tả ngắn (siteSubtitle) <textarea name="siteSubtitle">${esc(c.siteSubtitle)}</textarea></label>
+        <label>Tên Admin hiển thị (contactAdminName) <input name="contactAdminName" value="${esc(c.contactAdminName || '')}"></label>
+        <label>Chức danh (contactAdminSub) <input name="contactAdminSub" value="${esc(c.contactAdminSub || '')}"></label>
+        <label class="span-2">Giới thiệu (contactAdminDesc) <textarea name="contactAdminDesc">${esc(c.contactAdminDesc || '')}</textarea></label>
         <label>Hotline <input name="hotline" value="${esc(c.hotline)}"></label>
         <label>Link Zalo <input name="zaloLink" value="${esc(c.zaloLink)}"></label>
+
+        <div class="admin-form-section">🏦 Ngân hàng (VietQR)</div>
         <label>Ngân hàng (bankId) <input name="bankId" value="${esc(c.bankId)}"></label>
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
         <label class="span-2">Tên chủ tài khoản <input name="bankAccountName" value="${esc(c.bankAccountName)}"></label>
+
+        <div class="admin-form-section">📢 Chữ chạy &amp; Trợ lý ảo</div>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
-        <label class="span-2">Ảnh/Video nền Hero (bgUrl)
-          <input name="bgUrl" value="${esc(c.bgUrl || '')}" placeholder="Dán URL ảnh (.jpg/.png) hoặc video (.mp4/.webm) — lấy từ tab Thư viện">
+        <label>Tốc độ chạy (giây/vòng, càng nhỏ càng nhanh)
+          <input type="number" name="marqueeSpeed" min="6" max="60" step="1" value="${c.marqueeSpeed || 26}">
         </label>
         <label>Giọng nói trợ lý (TTS)
           <select name="ttsEnabled">
@@ -1631,6 +1697,7 @@ window.KENIOS_DEFAULT_DB = {
             <option value="0" ${!c.ttsEnabled ? 'selected' : ''}>Tắt</option>
           </select>
         </label>
+
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">💾 Lưu cấu hình</button>
         </div>
@@ -1799,10 +1866,16 @@ window.KENIOS_DEFAULT_DB = {
       toast('Đã lưu danh mục.', 'success');
     } else if (formType === 'config') {
       Store.adminUpdateConfig({
+        logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),
+        logoUrl: fd.get('logoUrl'), logoFont: fd.get('logoFont'), logoColor: fd.get('logoColor'),
+        accentColor: fd.get('accentColor'),
+        bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
+        contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
         hotline: fd.get('hotline'), zaloLink: fd.get('zaloLink'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
-        marqueeText: fd.get('marqueeText'), ttsEnabled: fd.get('ttsEnabled') === '1',
+        marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
+        ttsEnabled: fd.get('ttsEnabled') === '1',
         bgUrl: fd.get('bgUrl')
       });
       renderStatic();
