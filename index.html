@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <title>shopaccnghao.com — Dịch Vụ Game &amp; Thiết Kế Website</title>
+  <meta name="description" content="Cửa hàng dịch vụ game & thiết kế website. Nạp tiền VietQR tự động 24/7, trợ lý ảo AI hỗ trợ." />
+  <link rel="stylesheet" href="./assets/css/style.css" />
+</head>
+<body>
+  <div class="bg-mesh" aria-hidden="true"></div>
+
+  <a class="skip-link" href="#main">Bỏ qua tới nội dung chính</a>
+
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a class="brand" href="#top">
+        <img src="./favicon.svg" alt="" class="brand-mark" width="32" height="32" />
+        <span class="brand-text">
+          <strong id="brandName">shopaccnghao</strong>
+          <small id="brandSub">v3.0 Premium</small>
+        </span>
+      </a>
+
+      <nav class="main-nav" aria-label="Điều hướng chính">
+        <a href="#categories">Danh mục</a>
+        <a href="#services">Dịch vụ</a>
+        <a href="#webdesign">Thiết kế Web</a>
+        <a href="#posts">Tin tức</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="btn btn-ghost btn-sm hide-sm" id="zaloBtn" href="#" target="_blank" rel="noopener">
+          <span>💬</span> Zalo Admin
+        </a>
+        <div id="authArea"></div>
+        <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Mở menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Điều hướng di động">
+      <a href="#categories">Danh mục</a>
+      <a href="#services">Dịch vụ</a>
+      <a href="#webdesign">Thiết kế Web</a>
+      <a href="#posts">Tin tức</a>
+    </nav>
+  </header>
+
+  <div class="marquee-bar">
+    <div class="marquee-track" id="marqueeTrack">
+      <span id="marqueeText1"></span>
+      <span id="marqueeText2" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <span class="tag-pill" id="heroTag">Dịch vụ hàng đầu Việt Nam</span>
+        <h1 id="heroTitle">Cửa Hàng Dịch Vụ Game &amp; Thiết Kế Website</h1>
+        <p class="hero-sub" id="heroSub">Hệ thống phân phối phụ kiện game &amp; dịch vụ thiết kế web hàng đầu Việt Nam.</p>
+        <div class="hero-actions">
+          <a href="#services" class="btn btn-primary" id="heroBtn1">Xem Dịch Vụ</a>
+          <button class="btn btn-glass" id="heroBtn2">Nạp Tiền Ngay</button>
+        </div>
+        <div class="hero-stats" id="heroStats"></div>
+      </div>
+    </section>
+
+    <section class="section" id="categories">
+      <div class="container">
+        <div class="section-head">
+          <h2>Danh Mục Dịch Vụ</h2>
+          <p>Chọn danh mục bạn quan tâm để xem các gói dịch vụ tương ứng</p>
+        </div>
+        <div class="category-grid" id="categoryGrid"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="services">
+      <div class="container">
+        <div class="section-head">
+          <h2>Dịch Vụ Nổi Bật</h2>
+          <p>Đầy đủ gói theo ngày · tháng · vĩnh viễn, giao key tự động sau khi thanh toán</p>
+        </div>
+        <div class="filter-tabs" id="filterTabs"></div>
+        <div class="service-grid" id="serviceGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="webdesign">
+      <div class="container">
+        <div class="section-head">
+          <h2>Thiết Kế Website</h2>
+          <p>Phong cách hiện đại, kính mờ (Glassmorphism), chuẩn SEO, tối ưu mọi thiết bị</p>
+        </div>
+        <div class="service-grid" id="webdesignGrid"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="posts">
+      <div class="container">
+        <div class="section-head">
+          <h2>Tin Tức &amp; Hướng Dẫn</h2>
+        </div>
+        <div class="post-grid" id="postGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a class="brand" href="#top">
+          <img src="./favicon.svg" alt="" class="brand-mark" width="28" height="28" />
+          <strong id="footerBrand">shopaccnghao</strong>
+        </a>
+        <p class="footer-desc" id="footerDesc"></p>
+      </div>
+      <div>
+        <h4>Liên hệ</h4>
+        <ul class="footer-list">
+          <li id="footerAdminName"></li>
+          <li>Hotline: <span id="footerHotline"></span></li>
+          <li><a id="footerZalo" href="#" target="_blank" rel="noopener">Nhắn Zalo</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Chính sách</h4>
+        <ul class="footer-list">
+          <li>Nạp tiền VietQR tự động 24/7</li>
+          <li>Giao key tự động sau thanh toán</li>
+          <li>Hỗ trợ setup từ A-Z</li>
+        </ul>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© <span id="footerYear"></span> shopaccnghao.com — Bảo lưu mọi quyền.</span>
+    </div>
+  </footer>
+
+  <!-- ===== Modal: Đăng nhập / Đăng ký ===== -->
+  <div class="modal-overlay" id="authModal" hidden>
+    <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth-tab="login">Đăng nhập</button>
+        <button class="auth-tab" data-auth-tab="register">Đăng ký</button>
+      </div>
+      <h3 id="authModalTitle" class="sr-only">Đăng nhập hoặc đăng ký</h3>
+      <form id="loginForm" class="auth-form">
+        <label>Tên đăng nhập <input type="text" name="username" autocomplete="username" required></label>
+        <label>Mật khẩu <input type="password" name="password" autocomplete="current-password" required></label>
+        <p class="form-error" id="loginError"></p>
+        <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+      </form>
+      <form id="registerForm" class="auth-form" hidden>
+        <label>Tên đăng nhập <input type="text" name="username" autocomplete="username" required></label>
+        <label>Mật khẩu (≥ 6 ký tự) <input type="password" name="password" minlength="6" autocomplete="new-password" required></label>
+        <p class="form-error" id="registerError"></p>
+        <button type="submit" class="btn btn-primary btn-block">Tạo tài khoản</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Nạp tiền ===== -->
+  <div class="modal-overlay" id="depositModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="depositTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <h3 id="depositTitle">Nạp Tiền Qua VietQR</h3>
+      <div class="deposit-body">
+        <div class="deposit-form">
+          <label>Số tiền muốn nạp (đ)
+            <input type="number" id="depositAmount" min="10000" step="1000" value="50000">
+          </label>
+          <div class="quick-amounts" id="quickAmounts"></div>
+          <p class="muted">Số dư sẽ được cộng tự động ngay sau khi hệ thống xác nhận giao dịch thành công.</p>
+          <button type="button" class="btn btn-primary btn-block" id="genQrBtn">Tạo Mã QR</button>
+        </div>
+        <div class="deposit-qr" id="depositQrBox" hidden>
+          <img id="depositQrImg" alt="Mã QR chuyển khoản" width="220" height="220">
+          <ul class="qr-info">
+            <li>Ngân hàng: <strong id="qrBank"></strong></li>
+            <li>Chủ TK: <strong id="qrOwner"></strong></li>
+            <li>Số TK: <strong id="qrAccount"></strong></li>
+            <li>Số tiền: <strong id="qrAmount"></strong></li>
+            <li>Nội dung: <strong id="qrNote"></strong></li>
+          </ul>
+          <button type="button" class="btn btn-glass btn-block" id="confirmDepositBtn">Tôi đã chuyển khoản</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Chi tiết dịch vụ ===== -->
+  <div class="modal-overlay" id="serviceModal" hidden>
+    <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <div class="service-modal-body">
+        <div class="service-modal-media">
+          <img id="serviceModalImg" alt="">
+          <span class="badge" id="serviceModalBadge"></span>
+        </div>
+        <div class="service-modal-info">
+          <h3 id="serviceModalTitle"></h3>
+          <p id="serviceModalDesc"></p>
+          <ul class="feature-list" id="serviceModalFeatures"></ul>
+          <div class="package-list" id="serviceModalPackages"></div>
+          <p class="form-error" id="serviceModalError"></p>
+          <button class="btn btn-primary btn-block" id="serviceModalBuyBtn">Mua Ngay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Đơn hàng của tôi ===== -->
+  <div class="modal-overlay" id="ordersModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ordersTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <h3 id="ordersTitle">Đơn Hàng Của Tôi</h3>
+      <div class="orders-list" id="ordersList"></div>
+    </div>
+  </div>
+
+  <!-- ===== Toast ===== -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <!-- ===== Trợ lý ảo AI ===== -->
+  <div class="ai-widget" id="aiWidget">
+    <button class="ai-fab" id="aiFab" aria-label="Mở trợ lý ảo">🤖</button>
+    <div class="ai-panel" id="aiPanel" hidden>
+      <div class="ai-panel-head">
+        <img id="aiAvatar" alt="" class="ai-avatar">
+        <div>
+          <strong id="aiName">Trợ Lý Ảo</strong>
+          <small>Đang hoạt động</small>
+        </div>
+        <button class="icon-btn" id="aiClose" aria-label="Đóng trợ lý ảo">✕</button>
+      </div>
+      <div class="ai-messages" id="aiMessages"></div>
+      <div class="ai-quick-replies" id="aiQuickReplies"></div>
+      <form class="ai-input-row" id="aiForm">
+        <input type="text" id="aiInput" placeholder="Nhập câu hỏi của bạn..." autocomplete="off">
+        <button type="submit" class="btn btn-primary btn-sm">Gửi</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="./assets/js/data.js"></script>
+  <script src="./assets/js/store.js"></script>
+  <script src="./assets/js/voice.js"></script>
+  <script src="./assets/js/effects.js"></script>
+  <script src="./assets/js/app.js"></script>
+</body>
+</html>

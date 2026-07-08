@@ -1,0 +1,115 @@
+/**
+ * data.js — Dữ liệu mặc định của shop (dùng khi chưa nạp được database.json,
+ * ví dụ mở trực tiếp bằng file:// hoặc server chưa có PHP).
+ * Cùng cấu trúc với database.json để store.js dùng chung một schema.
+ */
+window.KENIOS_DEFAULT_DB = {
+  config: {
+    siteName: "shopaccnghao.com",
+    siteTitle: "SHOPACCNGHAO.COM - Cửa Hàng Dịch Vụ Game & Thiết Kế Website",
+    siteSubtitle: "Hệ thống phân phối phụ kiện game & dịch vụ thiết kế web hàng đầu Việt Nam. Tự động 24/24, hỗ trợ setup từ A-Z.",
+    logoText: "shopaccnghao",
+    logoSubtext: "v3.0 Premium",
+    hotline: "0387332523",
+    zaloLink: "https://zalo.me/0387332523",
+    contactAdminName: "ADMIN SHOP",
+    contactAdminSub: "Chủ sở hữu hệ thống",
+    contactAdminDesc: "Chuyên cung cấp phụ kiện gaming và dịch vụ thiết kế website chất lượng cao, giúp nâng tầm trải nghiệm của bạn.",
+    bgUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop",
+    aiName: "Trợ Lý Ảo Kenios",
+    aiGreeting: "Xin chào! Tôi là trợ lý ảo của shopaccnghao.com. Tôi có thể giúp gì cho bạn hôm nay?",
+    aiResponseGreeting: "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
+    aiResponseDeposit: "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
+    aiResponseProduct: "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
+    aiResponseWeb: "Bên mình có dịch vụ thiết kế website phong cách hiện đại, chuẩn SEO và tương thích tốt trên mọi thiết bị. Hãy xem mục \"Thiết Kế Web\" để biết thêm chi tiết nhé!",
+    aiResponsePrice: "Bảng giá tóm tắt:\n• PUBG ESP Radar: 25.000đ/ngày\n• PUBG Silent Aimbot: 30.000đ/ngày\n• Thiết kế Landing Page: từ 1.500.000đ\n• Thiết kế Web Shop tự động: từ 3.500.000đ\n\nNạp tiền qua VietQR để mua key và nhận ngay lập tức nhé!",
+    aiResponseContact: "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
+    aiResponseThanks: "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
+    aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
+    bankId: "MBBank",
+    bankAccountNo: "0822148411",
+    bankAccountName: "NGUYEN TIN HAO",
+    bannerTagText: "Dịch vụ hàng đầu Việt Nam",
+    bannerBtn1Text: "Xem Dịch Vụ",
+    bannerBtn2Text: "Nạp Tiền Ngay",
+    marqueeText: "Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24",
+    ttsEnabled: true,
+    ttsVoice: "google_female_vi",
+    ttsRate: 1,
+    ttsPitch: 1
+  },
+  categories: [
+    { id: "pubg", name: "PUBG", description: "Công cụ hỗ trợ & phụ kiện cho game PUBG", icon: "🎯",
+      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop" },
+    { id: "lienquan", name: "Liên Quân", description: "Mod skin, bản đồ sáng và dịch vụ hỗ trợ leo rank", icon: "🛡️",
+      image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=600&auto=format&fit=crop" },
+    { id: "freefire", name: "Free Fire", description: "Công cụ hỗ trợ, phụ kiện độc quyền cho Free Fire", icon: "🔥",
+      image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=600&auto=format&fit=crop" },
+    { id: "tocchien", name: "Tốc Chiến", description: "Phần mềm bổ trợ và mod skin cho Tốc Chiến", icon: "⚡",
+      image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop" },
+    { id: "webdesign", name: "Thiết Kế Web", description: "Thiết kế website hiện đại, Glassmorphism, chuẩn SEO", icon: "💻",
+      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop" },
+    { id: "other", name: "Khác", description: "Các sản phẩm, phần mềm và dịch vụ khác", icon: "📁",
+      image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600&auto=format&fit=crop" }
+  ],
+  services: [
+    {
+      id: "pubg-radar", categoryId: "pubg", name: "PUBG ESP Radar Premium",
+      description: "Hiển thị khung xương địch, vị trí, khoảng cách, hướng nhìn, xe cộ và hòm đồ.",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
+      features: ["Test mượt mà, không giật lag", "Cập nhật tự động", "Hỗ trợ setup từ A-Z"],
+      packages: [
+        { id: "pkg-radar-1day", name: "1 Ngày", price: 25000 },
+        { id: "pkg-radar-3day", name: "3 Ngày", price: 65000 },
+        { id: "pkg-radar-7day", name: "7 Ngày", price: 120000 },
+        { id: "pkg-radar-30day", name: "1 Tháng", price: 350000 }
+      ]
+    },
+    {
+      id: "pubg-aimbot", categoryId: "pubg", name: "PUBG Silent Aimbot Max",
+      description: "Hỗ trợ ngắm bắn mượt mà, tùy chỉnh độ nhạy và trường nhìn (FOV).",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=800&auto=format&fit=crop",
+      features: ["Tùy chỉnh FOV & độ mượt", "Cập nhật tự động"],
+      packages: [
+        { id: "pkg-aimbot-1day", name: "1 Ngày", price: 30000 },
+        { id: "pkg-aimbot-7day", name: "7 Ngày", price: 140000 },
+        { id: "pkg-aimbot-30day", name: "1 Tháng", price: 390000 }
+      ]
+    },
+    {
+      id: "kingmod", categoryId: "pubg", name: "Phụ Kiện KingMod",
+      description: "Phụ kiện hỗ trợ trải nghiệm mượt mà và leo rank dễ dàng hơn.",
+      status: "outofstock",
+      image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=800&auto=format&fit=crop",
+      features: ["Cập nhật tự động"],
+      packages: [{ id: "pkg-kingmod-1m", name: "1 Tháng", price: 200000 }]
+    },
+    {
+      id: "web-landing", categoryId: "webdesign", name: "Thiết Kế Landing Page",
+      description: "Landing Page giới thiệu sản phẩm/dịch vụ với hiệu ứng kính mờ (Glassmorphism), tải trang nhanh, chuẩn SEO.",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop",
+      features: ["Thiết kế phong cách Apple kính mờ", "Tương thích mọi thiết bị", "Chuẩn SEO Google", "Bàn giao toàn bộ mã nguồn", "Bảo hành kỹ thuật trọn đời"],
+      packages: [{ id: "pkg-landing", name: "Trọn gói", price: 1500000 }]
+    },
+    {
+      id: "web-shop", categoryId: "webdesign", name: "Thiết Kế Web Shop Tự Động",
+      description: "Website bán acc/key tích hợp nạp tiền VietQR tự động, quản trị admin thời gian thực.",
+      status: "instock",
+      image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop",
+      features: ["Nạp tiền QR tự động", "Đồng bộ thời gian thực", "Trợ lý ảo AI đàm thoại", "Quản trị Admin đầy đủ"],
+      packages: [{ id: "pkg-webshop", name: "Trọn gói", price: 3500000 }]
+    }
+  ],
+  users: [
+    { userId: "10001", username: "kenios", password: "me123456789@", balance: 0, role: "admin", status: "active", createdAt: "2026-06-13" }
+  ],
+  posts: [
+    { id: "1", title: "Hướng dẫn cài đặt an toàn 100%", summary: "Làm sao để trải nghiệm an toàn, không lo mất tài khoản chính? Xem ngay cẩm nang này.", date: "2026-06-10" },
+    { id: "2", title: "Cập nhật hệ thống nạp tiền VietQR siêu tốc", summary: "Hệ thống chính thức nâng cấp cơ chế sinh mã QR tự động theo chuẩn Napas 247.", date: "2026-06-09" }
+  ],
+  orders: [],
+  transactions: []
+};
