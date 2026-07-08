@@ -1645,8 +1645,9 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--logo-motion-speed', `${motionSpeed}s`);
     const colorMode = cfg.logoColorMode || 'solid';
     const motionMode = cfg.logoMotionMode || 'none';
-    // Áp hiệu ứng cho cả logo header và logo trong menu 3 gạch
-    $$('#brandName, #mobileNavBrandName').forEach(el => {
+    // Áp hiệu ứng cho logo header, logo menu 3 gạch VÀ logo banner hero — để hero
+    // luôn ĐỒNG BỘ (màu chạy + chuyển động) với logo chính khi admin đổi cấu hình.
+    $$('#brandName, #mobileNavBrandName, #heroBrandName').forEach(el => {
       el.classList.remove(
         ...LOGO_COLOR_MODES.map(m => 'logo-color-' + m),
         ...LOGO_MOTION_MODES.map(m => 'logo-motion-' + m)
@@ -1663,6 +1664,25 @@ window.KENIOS_DEFAULT_DB = {
       // Gộp cả 2 animation vào 1 khai báo inline để chạy đồng thời (không đè nhau).
       el.style.animation = anims.join(', ');
     });
+  }
+
+  // XEM TRƯỚC TRỰC TIẾP: đọc các lựa chọn logo/màu đang chọn trong form Cấu hình
+  // và áp NGAY lên logo thật (header, menu 3 gạch, hero) mà chưa cần bấm Lưu.
+  function liveBrandingPreview() {
+    const form = $('[data-admin-form="config"]');
+    if (!form) return;
+    const fd = new FormData(form);
+    const preview = Object.assign({}, Store.db.config, {
+      logoFont: fd.get('logoFont') || Store.db.config.logoFont,
+      logoColor: fd.get('logoColor') || Store.db.config.logoColor,
+      logoColorMode: fd.get('logoColorMode') || 'solid',
+      logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
+      logoMotionMode: fd.get('logoMotionMode') || 'none',
+      logoMotionSpeed: parseFloat(fd.get('logoMotionSpeed')) || 2,
+      accentColor: fd.get('accentColor') || Store.db.config.accentColor,
+      logoUrl: fd.get('logoUrl') != null ? fd.get('logoUrl') : Store.db.config.logoUrl,
+    });
+    applyBranding(preview);
   }
 
   // ============================================================
@@ -3601,6 +3621,8 @@ window.KENIOS_DEFAULT_DB = {
       const picker = fxPick.closest('[data-fx-picker]');
       picker.querySelector('input[type=hidden]').value = fxPick.dataset.fxPick;
       $$('.fx-pick', picker).forEach(b => b.classList.toggle('selected', b === fxPick));
+      // Áp ngay lên logo thật (font / màu chạy / chuyển động) để xem trước trực tiếp.
+      if (fxPick.closest('[data-admin-form="config"]')) liveBrandingPreview();
       return;
     }
 
@@ -3700,6 +3722,9 @@ window.KENIOS_DEFAULT_DB = {
 
   // Khi admin đổi Danh mục trong form Dịch vụ, nạp lại danh sách Thư mục con tương ứng.
   function onAdminPanelChange(e) {
+    // Đổi màu chữ / màu chủ đạo / tốc độ trong form Cấu hình → xem trước ngay.
+    if (e.target.closest('[data-admin-form="config"]')) liveBrandingPreview();
+
     const catSel = e.target.closest('#adminServiceCategory');
     if (!catSel) return;
     const sub = $('#adminServiceSubcat');

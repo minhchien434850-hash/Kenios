@@ -318,10 +318,12 @@ video.hero-banner-bg { width: 100%; height: 100%; object-fit: cover; }
   width: 60px; height: 60px; border-radius: 16px; flex-shrink: 0;
 }
 .hero-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+/* Logo hero ĐỒNG BỘ với logo chính: dùng chung biến --logo-color/--logo-font và
+   nhận cùng các class hiệu ứng .logo-color-* / .logo-motion-* (áp trong JS).
+   Không đặt gradient cứng ở đây nữa để khỏi đè lên hiệu ứng đã chọn. */
 .hero-brand-name {
   font-family: var(--logo-font); font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 800; letter-spacing: .5px;
-  background: linear-gradient(90deg, #8ec9ff, #a78bfa, #ff8fd0, #ffd873);
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  color: var(--logo-color);
 }
 .hero-brand-sub { font-size: .8rem; font-weight: 600; color: var(--gold-soft); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
 .hero-heading {
