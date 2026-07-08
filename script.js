@@ -1040,6 +1040,7 @@ window.KENIOS_DEFAULT_DB = {
     save: _svg('<path d="M5 4h11l3 3v13H5V4Z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>'),
     cloud: _svg('<path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 9.5a3.5 3.5 0 0 1 .5 8H7Z"/><path d="M12 21v-7m0 0-2.2 2.2M12 14l2.2 2.2"/>'),
     copy: _svg('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+    link: _svg('<path d="M9.5 13.5a4 4 0 0 0 5.7.3l3-3a4 4 0 0 0-5.7-5.7L11 6.6"/><path d="M14.5 10.5a4 4 0 0 0-5.7-.3l-3 3a4 4 0 0 0 5.7 5.7L13 17.4"/>'),
     upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
     trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
     // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
@@ -2860,6 +2861,7 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'orders') body.innerHTML = adminOrdersHtml();
     else if (tab === 'users') body.innerHTML = adminUsersHtml();
     else if (tab === 'media') body.innerHTML = adminMediaHtml();
+    else if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();
     else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
   }
 
@@ -3490,6 +3492,72 @@ window.KENIOS_DEFAULT_DB = {
     `;
   }
 
+  // Sao chép dự phòng cho môi trường không có navigator.clipboard (VD http, iOS cũ).
+  function fallbackCopy(text, onDone) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '-9999px';
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, (text || '').length);
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (onDone) onDone();
+    } catch (e) { toast('Không sao chép được — hãy chọn ô link rồi copy thủ công.', 'error'); }
+  }
+
+  // Chuyển đường dẫn tương đối (uploads/xxx.mp4) thành LINK ĐẦY ĐỦ dựa trên địa
+  // chỉ trang hiện tại — để copy ra link dùng/chia sẻ được ngay.
+  function absUrl(url) {
+    if (!url) return '';
+    if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    try { return new URL(url, document.baseURI).href; } catch { return url; }
+  }
+
+  // Tab "Tạo Link": tải lên ảnh/video (hoặc dán link) → tạo LINK ĐẦY ĐỦ, lưu lại
+  // (dùng chung kho db.media nên bền, đồng bộ lên máy chủ) + lịch sử + nút sao chép.
+  function adminLinkGenHtml() {
+    const media = Store.db.media || [];
+    return `
+      <div class="admin-section-title">Tạo link ảnh / video — tải lên hoặc dán link, hệ thống lưu lại &amp; cho sao chép link đầy đủ.</div>
+      <div class="media-upload-row">
+        <input type="file" id="linkGenFile" accept="image/*,video/*">
+        <button type="button" class="btn btn-primary btn-sm" id="linkGenUploadBtn">Tải lên &amp; tạo link</button>
+        <span class="muted" style="font-size:.8rem;">Ảnh hoặc video tối đa 500MB (cần máy chủ PHP cho phép upload lớn — xem .user.ini).</span>
+      </div>
+      <div class="media-link-row">
+        <input type="text" id="linkGenUrl" placeholder="Hoặc dán sẵn 1 link ảnh/video để lưu vào lịch sử">
+        <select id="linkGenType">
+          <option value="auto">Tự nhận đuôi</option>
+          <option value="video">Video (.mp4/.webm)</option>
+          <option value="image">Ảnh (.jpg/.png/.gif)</option>
+        </select>
+        <button type="button" class="btn btn-glass btn-sm" id="linkGenAddBtn">+ Lưu link</button>
+      </div>
+      <div class="admin-section-title" style="margin-top:20px;">Lịch sử link đã lưu (${media.length})</div>
+      <div class="linkgen-history">
+        ${media.length ? media.map(m => {
+          const full = absUrl(m.url);
+          return `
+          <div class="linkgen-item">
+            <div class="linkgen-thumb">${m.type === 'video'
+              ? `<video src="${esc(m.url)}" muted playsinline></video>`
+              : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>
+            <div class="linkgen-body">
+              <strong>${esc(m.name || 'media')}${m.type === 'video' ? ' · video' : ''}</strong>
+              ${m.date ? `<span class="linkgen-date">${esc(new Date(m.date).toLocaleString('vi-VN'))}</span>` : ''}
+              <input class="linkgen-link" type="text" readonly value="${esc(full)}" onclick="this.select()">
+            </div>
+            <div class="linkgen-actions">
+              <button type="button" class="btn btn-primary btn-sm" data-linkgen-copy="${esc(full)}"><span class="btn-ico">${ICONS.copy}</span> Sao chép</button>
+              <button type="button" class="btn btn-glass btn-sm danger" data-admin-delete-media="${esc(m.id)}" data-from="linkgen">Xóa</button>
+            </div>
+          </div>`;
+        }).join('') : '<p class="empty-note">Chưa có link nào. Tải lên hoặc dán link để tạo — link sẽ được lưu lại ở đây.</p>'}
+      </div>
+    `;
+  }
+
   function adminMediaHtml() {
     const media = Store.db.media || [];
     return `
@@ -3731,18 +3799,60 @@ window.KENIOS_DEFAULT_DB = {
       return;
     }
 
+    // ----- Tab "Tạo Link": tải lên / dán link → lưu lịch sử -----
+    const linkGenUploadBtn = e.target.closest('#linkGenUploadBtn');
+    if (linkGenUploadBtn) {
+      const file = $('#linkGenFile')?.files[0];
+      if (!file) { toast('Vui lòng chọn một file trước.', 'error'); return; }
+      withLoading(linkGenUploadBtn, async () => {
+        try {
+          const url = await Store.uploadFile(file);
+          const type = isVideoUrl(url) ? 'video' : 'image';
+          Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: file.name, date: new Date().toISOString() });
+          renderAdminTab('linkgen');
+          toast('Đã tạo link & lưu vào lịch sử!', 'success');
+        } catch (err) { toast(err.message, 'error'); }
+      });
+      return;
+    }
+
+    const linkGenAddBtn = e.target.closest('#linkGenAddBtn');
+    if (linkGenAddBtn) {
+      const url = $('#linkGenUrl').value.trim();
+      if (!url) { toast('Vui lòng dán link trước.', 'error'); return; }
+      let type = $('#linkGenType').value;
+      if (type === 'auto') type = isVideoUrl(url) ? 'video' : 'image';
+      Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: 'Link ' + type, date: new Date().toISOString() });
+      renderAdminTab('linkgen');
+      toast('Đã lưu link vào lịch sử.', 'success');
+      return;
+    }
+
+    const linkGenCopy = e.target.closest('[data-linkgen-copy]');
+    if (linkGenCopy) {
+      const link = linkGenCopy.dataset.linkgenCopy;
+      const done = () => toast('Đã sao chép link!', 'success');
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));
+      else fallbackCopy(link, done);
+      return;
+    }
+
     const copyMedia = e.target.closest('[data-admin-copy-media]');
     if (copyMedia) {
-      navigator.clipboard?.writeText(copyMedia.dataset.adminCopyMedia).then(() => toast('Đã sao chép link!', 'success'));
+      // Sao chép LINK ĐẦY ĐỦ (không phải đường dẫn tương đối) để dùng được ngay.
+      const link = absUrl(copyMedia.dataset.adminCopyMedia);
+      const done = () => toast('Đã sao chép link!', 'success');
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));
+      else fallbackCopy(link, done);
       return;
     }
 
     const deleteMedia = e.target.closest('[data-admin-delete-media]');
     if (deleteMedia) {
-      if (confirm('Xóa file này khỏi thư viện?')) {
+      if (confirm('Xóa file này? Link đã lưu sẽ bị gỡ khỏi lịch sử.')) {
         Store.adminDeleteMedia(deleteMedia.dataset.adminDeleteMedia);
-        renderAdminTab('media');
-        toast('Đã xóa file.', 'success');
+        renderAdminTab(deleteMedia.dataset.from === 'linkgen' ? 'linkgen' : 'media');
+        toast('Đã xóa.', 'success');
       }
       return;
     }

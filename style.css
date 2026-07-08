@@ -1028,6 +1028,33 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .media-card .media-actions { display: flex; gap: 6px; }
 .media-card .media-actions button { flex: 1; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; font-size: .74rem; }
 
+/* ---------- Tab "Tạo Link" ---------- */
+.media-link-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.media-link-row input[type="text"] { flex: 1; min-width: 180px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); }
+.media-link-row select { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); }
+.linkgen-history { display: flex; flex-direction: column; gap: 10px; }
+.linkgen-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--glass); min-width: 0;
+}
+.linkgen-thumb { width: 64px; height: 64px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: rgba(0,0,0,.35); }
+.linkgen-thumb img, .linkgen-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.linkgen-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.linkgen-body strong { font-size: .82rem; }
+.linkgen-date { font-size: .7rem; color: var(--muted); }
+.linkgen-link {
+  width: 100%; font-size: .74rem; padding: 7px 9px; border-radius: 8px;
+  border: 1px solid var(--border); background: rgba(0,0,0,.25); color: var(--gold-soft);
+}
+.linkgen-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.linkgen-actions .btn { white-space: nowrap; }
+.linkgen-actions .btn.danger { color: var(--danger); border-color: rgba(248,113,113,.3); }
+@media (max-width: 560px) {
+  .linkgen-item { flex-wrap: wrap; }
+  .linkgen-actions { flex-direction: row; width: 100%; }
+  .linkgen-actions .btn { flex: 1; justify-content: center; }
+}
+
 /* ============================================================
    HỆ THỐNG KÍCH THƯỚC MÀN HÌNH (RESPONSIVE) — nêu rõ từng cấu hình:
    ─ ≤ 380px  : Điện thoại nhỏ (iPhone SE, Galaxy Fold gập, Android mini)
