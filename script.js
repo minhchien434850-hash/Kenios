@@ -1044,6 +1044,7 @@ window.KENIOS_DEFAULT_DB = {
     history: _svg('<path d="M3 3v5h5"/><path d="M3.05 13a9 9 0 1 0 2.4-6.36L3 8"/><path d="M12 7v5l3.5 2"/>'),
     upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
     trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
+    arrowUp: _svg('<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>'),
     // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
     target: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
     fire: _svg('<path d="M12 2.5C9 6.5 7.5 8.5 7.5 12a4.5 4.5 0 0 0 9 0c0-1.7-.7-3-1.7-4.3C14.5 9 13.5 9.5 13 11c-.6-2.2-.5-4.3-1-8.5Z"/>'),
