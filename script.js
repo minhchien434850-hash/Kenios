@@ -177,7 +177,8 @@ window.KENIOS_DEFAULT_DB = {
   ],
   orders: [],
   transactions: [],
-  media: []
+  media: [],
+  reviews: []   // Đánh giá sản phẩm: { id, serviceId, userId, username, rating(1-5), text, date }
 };
 
 /**
@@ -675,6 +676,52 @@ window.KENIOS_DEFAULT_DB = {
       const user = this.currentUser();
       if (!user) return [];
       return this.db.orders.filter(o => o.userId === user.userId);
+    },
+
+    // ---- Đánh giá sản phẩm ----
+    reviewsFor(serviceId) {
+      return (this.db.reviews || []).filter(r => r.serviceId === serviceId)
+        .sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
+    },
+    avgRating(serviceId) {
+      const rs = this.reviewsFor(serviceId);
+      if (!rs.length) return 0;
+      return rs.reduce((s, r) => s + (parseInt(r.rating, 10) || 0), 0) / rs.length;
+    },
+    ratingCount(serviceId) { return this.reviewsFor(serviceId).length; },
+    // Khách đã mua sản phẩm này chưa (điều kiện để được đánh giá).
+    hasPurchased(serviceId) {
+      const user = this.currentUser();
+      if (!user) return false;
+      return (this.db.orders || []).some(o => o.userId === user.userId && o.serviceId === serviceId);
+    },
+    // Đánh giá của chính user hiện tại cho 1 sản phẩm (nếu đã đánh giá).
+    myReviewFor(serviceId) {
+      const user = this.currentUser();
+      if (!user) return null;
+      return (this.db.reviews || []).find(r => r.serviceId === serviceId && r.userId === user.userId) || null;
+    },
+    addReview(serviceId, rating, text) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập để đánh giá.');
+      if (!this.hasPurchased(serviceId)) throw new Error('Chỉ khách đã mua sản phẩm mới được đánh giá.');
+      rating = Math.max(1, Math.min(5, parseInt(rating, 10) || 0));
+      if (!this.db.reviews) this.db.reviews = [];
+      // Mỗi user 1 đánh giá / sản phẩm — có thì cập nhật, chưa có thì thêm mới.
+      const existing = this.db.reviews.find(r => r.serviceId === serviceId && r.userId === user.userId);
+      if (existing) {
+        existing.rating = rating; existing.text = (text || '').trim(); existing.date = new Date().toISOString();
+      } else {
+        this.db.reviews.unshift({
+          id: 'RV' + Date.now(), serviceId, userId: user.userId, username: user.username,
+          rating, text: (text || '').trim(), date: new Date().toISOString()
+        });
+      }
+      this._persistOverrides();
+      this._emit();
+      // Cố gắng lưu lên máy chủ (nếu có backend) để mọi khách cùng thấy.
+      this._callApi('add_review', { serviceId, userId: user.userId, username: user.username, rating, text: (text || '').trim() })
+        .catch(() => {});
     },
 
     _generateKey(service, pkg) {
@@ -1269,6 +1316,8 @@ window.KENIOS_DEFAULT_DB = {
 
   let selectedCategory = 'all';
   let selectedSub = 'all';         // lọc theo thư mục con trong mục "Dịch Vụ Nổi Bật"
+  let serviceSort = 'default';     // sắp xếp danh sách sản phẩm
+  let serviceStatusFilter = 'all'; // lọc theo trạng thái còn hàng
   let browseCategoryId = null;     // null = đang xem danh sách Danh mục; ngược lại = id danh mục đang mở
   let browseSubId = null;          // null = đang xem Thư mục con; ngược lại = id thư mục con đang mở
 
@@ -1629,6 +1678,7 @@ window.KENIOS_DEFAULT_DB = {
     wireScrollTopButton();
     wireFlashSaleBar();
     wireThemeToggle();
+    wireServiceFilters();
 
     const loader = $('#bootLoader');
     if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 500); }
@@ -2329,11 +2379,20 @@ window.KENIOS_DEFAULT_DB = {
     `).join('');
   }
 
+  // Chuỗi sao đánh giá (đầy/rỗng) cho 1 điểm trung bình.
+  function starsHtml(rating) {
+    const full = Math.round(rating);
+    let out = '';
+    for (let i = 1; i <= 5; i++) out += i <= full ? '★' : `<span class="empty">★</span>`;
+    return `<span class="review-stars">${out}</span>`;
+  }
+
   function serviceCardHtml(s) {
     const minPrice = Math.min(...(s.packages || []).map(p => p.price));
     const inStock = s.status === 'instock';
     const isVideo = isVideoUrl(s.image);
     const flash = Store.flashSaleInfo();
+    const rCount = Store.ratingCount(s.id);
     const salePrice = Store.flashSalePrice(minPrice);
     const priceHtml = flash.active && salePrice < minPrice
       ? `<span class="price"><del class="price-old">Từ ${fmt(minPrice)}</del> <b class="price-sale">Từ ${fmt(salePrice)}</b></span>`
@@ -2348,6 +2407,7 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <div class="body">
           <h3>${esc(s.name)}</h3>
+          ${rCount > 0 ? `<div class="card-rating">${starsHtml(Store.avgRating(s.id))} <small>${Store.avgRating(s.id).toFixed(1)} (${rCount})</small></div>` : ''}
           <p class="desc">${esc(s.description)}</p>
           <div class="price-row">
             ${priceHtml}
@@ -2373,16 +2433,29 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function renderServiceGrid() {
-    const list = Store.db.services.filter(s => {
+    let list = Store.db.services.filter(s => {
       if (s.categoryId === 'webdesign') return false;
       if (selectedCategory !== 'all' && s.categoryId !== selectedCategory) return false;
       if (selectedSub !== 'all' && s.subcategoryId !== selectedSub) return false;
+      if (serviceStatusFilter === 'instock' && s.status !== 'instock') return false;
       return true;
     });
+    const minP = s => Math.min(...(s.packages || [{ price: 0 }]).map(p => p.price));
+    if (serviceSort === 'price-asc') list = list.slice().sort((a, b) => minP(a) - minP(b));
+    else if (serviceSort === 'price-desc') list = list.slice().sort((a, b) => minP(b) - minP(a));
+    else if (serviceSort === 'name') list = list.slice().sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    else if (serviceSort === 'rating') list = list.slice().sort((a, b) => Store.avgRating(b.id) - Store.avgRating(a.id));
     $('#serviceGrid').innerHTML = list.length
       ? list.map(serviceCardHtml).join('')
-      : `<p class="empty-note">Chưa có dịch vụ nào trong mục này.</p>`;
+      : `<p class="empty-note">Chưa có dịch vụ nào phù hợp bộ lọc.</p>`;
     applyImageFallbacks($('#serviceGrid'));
+  }
+
+  function wireServiceFilters() {
+    const sortSel = $('#serviceSort');
+    const statusSel = $('#serviceStatusFilter');
+    if (sortSel) sortSel.addEventListener('change', () => { serviceSort = sortSel.value; renderServiceGrid(); });
+    if (statusSel) statusSel.addEventListener('change', () => { serviceStatusFilter = statusSel.value; renderServiceGrid(); });
   }
 
   function renderWebdesignGrid() {
@@ -2959,11 +3032,72 @@ window.KENIOS_DEFAULT_DB = {
     $('#serviceModalPassword').value = '';
     $('#serviceModalBuyBtn').disabled = !inStock;
     $('#serviceModalBuyBtn').textContent = inStock ? 'Mua Ngay' : 'Hết Hàng';
+    renderServiceReviews(serviceId);
     openModal('#serviceModal');
   }
 
   function syncServiceModalPasswordField() {
     $('#serviceModalPasswordRow').hidden = !Store.usesRealKeyStock(currentPackage);
+  }
+
+  // Render khu vực đánh giá trong modal sản phẩm: điểm trung bình + danh sách + form.
+  let reviewDraftRating = 5;
+  function renderServiceReviews(serviceId) {
+    const wrap = $('#serviceModalReviews');
+    if (!wrap) return;
+    const reviews = Store.reviewsFor(serviceId);
+    const avg = Store.avgRating(serviceId);
+    const canReview = Store.hasPurchased(serviceId);
+    const mine = Store.myReviewFor(serviceId);
+    reviewDraftRating = mine ? (parseInt(mine.rating, 10) || 5) : 5;
+    const head = reviews.length
+      ? `<div class="review-summary">${starsHtml(avg)} <b>${avg.toFixed(1)}</b>/5 · ${reviews.length} đánh giá</div>`
+      : `<p class="muted" style="font-size:.85rem;margin:0;">Chưa có đánh giá nào. ${canReview ? 'Hãy là người đầu tiên đánh giá!' : 'Mua sản phẩm để đánh giá.'}</p>`;
+    const list = reviews.map(r => `
+      <div class="review-item">
+        <div class="review-item-head">
+          <span class="review-item-user">${esc(r.username || 'Khách')}</span>
+          <span>${starsHtml(r.rating)}</span>
+        </div>
+        ${r.text ? `<p class="review-item-text">${esc(r.text)}</p>` : ''}
+      </div>`).join('');
+    let form = '';
+    if (canReview) {
+      const pick = [1, 2, 3, 4, 5].map(n => `<span data-star="${n}" class="${n <= reviewDraftRating ? 'on' : ''}">★</span>`).join('');
+      form = `
+        <div class="review-form">
+          <strong style="font-size:.9rem;">${mine ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn'}</strong>
+          <span class="review-star-pick" id="reviewStarPick">${pick}</span>
+          <textarea id="reviewText" rows="2" placeholder="Chia sẻ trải nghiệm của bạn (không bắt buộc)" style="width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--ink);">${mine ? esc(mine.text || '') : ''}</textarea>
+          <button type="button" class="btn btn-primary btn-sm" id="submitReviewBtn">${mine ? 'Cập nhật đánh giá' : 'Gửi đánh giá'}</button>
+        </div>`;
+    } else if (Store.currentUser()) {
+      form = `<p class="muted" style="font-size:.8rem;margin:6px 0 0;">Chỉ khách đã mua sản phẩm này mới được đánh giá.</p>`;
+    }
+    wrap.innerHTML = `
+      <h4 class="reviews-title">⭐ Đánh giá sản phẩm</h4>
+      ${head}
+      <div class="review-list">${list}</div>
+      ${form}`;
+    // Wire chọn sao
+    const pickEl = $('#reviewStarPick');
+    if (pickEl) {
+      pickEl.querySelectorAll('[data-star]').forEach(star => {
+        star.addEventListener('click', () => {
+          reviewDraftRating = parseInt(star.dataset.star, 10);
+          pickEl.querySelectorAll('[data-star]').forEach(s2 => s2.classList.toggle('on', parseInt(s2.dataset.star, 10) <= reviewDraftRating));
+        });
+      });
+    }
+    const submitBtn = $('#submitReviewBtn');
+    if (submitBtn) submitBtn.addEventListener('click', () => {
+      try {
+        Store.addReview(serviceId, reviewDraftRating, $('#reviewText').value);
+        toast('Cảm ơn bạn đã đánh giá!', 'success');
+        renderServiceReviews(serviceId);
+        renderServiceGrid();
+      } catch (err) { toast(err.message, 'error'); }
+    });
   }
 
   // ---- Đơn hàng của tôi ----

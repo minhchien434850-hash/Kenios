@@ -576,6 +576,55 @@ switch ($action) {
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
         break;
 
+    case 'add_review':
+        // Thêm/cập nhật đánh giá sản phẩm. Chỉ khách ĐÃ MUA sản phẩm mới được đánh giá.
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $serviceId = (string)($input['serviceId'] ?? '');
+        $userId = (string)($input['userId'] ?? '');
+        $username = trim((string)($input['username'] ?? ''));
+        $rating = max(1, min(5, intval($input['rating'] ?? 0)));
+        $text = trim((string)($input['text'] ?? ''));
+        if ($serviceId === '' || $userId === '') {
+            echo json_encode(["status" => "error", "message" => "Thiếu thông tin đánh giá."]);
+            exit;
+        }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]);
+            exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        // Xác minh đã mua
+        $purchased = false;
+        foreach (($db['orders'] ?? []) as $o) {
+            if (($o['userId'] ?? '') === $userId && ($o['serviceId'] ?? '') === $serviceId) { $purchased = true; break; }
+        }
+        if (!$purchased) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Chỉ khách đã mua sản phẩm mới được đánh giá."]);
+            exit;
+        }
+        if (!isset($db['reviews']) || !is_array($db['reviews'])) $db['reviews'] = [];
+        $found = false;
+        foreach ($db['reviews'] as &$rv) {
+            if (($rv['serviceId'] ?? '') === $serviceId && ($rv['userId'] ?? '') === $userId) {
+                $rv['rating'] = $rating; $rv['text'] = $text; $rv['date'] = date('c'); $found = true; break;
+            }
+        }
+        unset($rv);
+        if (!$found) {
+            array_unshift($db['reviews'], [
+                'id' => 'RV' . time() . rand(100, 999), 'serviceId' => $serviceId,
+                'userId' => $userId, 'username' => $username, 'rating' => $rating, 'text' => $text, 'date' => date('c')
+            ]);
+        }
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success"]);
+        break;
+
     case 'save_db':
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {

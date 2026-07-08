@@ -986,7 +986,13 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 
 /* Đánh giá sản phẩm (sao) */
 .review-stars { color: var(--gold); letter-spacing: 2px; }
-.review-stars .empty { color: var(--border); }
+.review-stars .empty { color: var(--muted); opacity: .35; }
+.card-rating { display: flex; align-items: center; gap: 6px; margin: -2px 0 6px; font-size: .85rem; }
+.card-rating small { color: var(--muted); font-size: .74rem; }
+.service-reviews { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 14px; }
+.reviews-title { margin: 0 0 8px; font-size: 1rem; }
+.review-summary { font-size: .9rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.review-summary b { color: var(--gold-soft); }
 .review-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 .review-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.02); }
 .review-item-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .82rem; }

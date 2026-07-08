@@ -192,6 +192,21 @@
         </div>
         <div class="filter-tabs" id="filterTabs"></div>
         <div class="filter-tabs sub-filter-tabs" id="subFilterTabs" hidden></div>
+        <div class="filter-bar" id="serviceFilterBar">
+          <span class="filter-label">Sắp xếp:</span>
+          <select id="serviceSort">
+            <option value="default">Mặc định</option>
+            <option value="price-asc">Giá thấp → cao</option>
+            <option value="price-desc">Giá cao → thấp</option>
+            <option value="name">Tên A → Z</option>
+            <option value="rating">Đánh giá cao nhất</option>
+          </select>
+          <span class="filter-label">Trạng thái:</span>
+          <select id="serviceStatusFilter">
+            <option value="all">Tất cả</option>
+            <option value="instock">Còn hàng</option>
+          </select>
+        </div>
         <div class="service-grid" id="serviceGrid"></div>
       </div>
     </section>
@@ -421,6 +436,7 @@
           </label>
           <p class="form-error" id="serviceModalError"></p>
           <button class="btn btn-primary btn-block" id="serviceModalBuyBtn">Mua Ngay</button>
+          <div class="service-reviews" id="serviceModalReviews"></div>
         </div>
       </div>
     </div>
