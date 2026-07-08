@@ -29,6 +29,15 @@ window.KENIOS_DEFAULT_DB = {
     welcomeVoiceText: "Xin chào! Chào mừng bạn đã đến với KENIOS.STORE.",
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
+    contactChannels: [
+      { id: "zalo", label: "Zalo", icon: "💬", url: "https://zalo.me/0387332523", enabled: true },
+      { id: "phone", label: "Hotline", icon: "📞", url: "tel:0387332523", enabled: false },
+      { id: "telegram", label: "Telegram", icon: "📢", url: "", enabled: false },
+      { id: "facebook", label: "Facebook", icon: "👍", url: "", enabled: false },
+      { id: "instagram", label: "Instagram", icon: "📷", url: "", enabled: false },
+      { id: "tiktok", label: "TikTok", icon: "🎵", url: "", enabled: false },
+      { id: "email", label: "Email", icon: "📧", url: "", enabled: false }
+    ],
     contactAdminName: "ADMIN SHOP",
     contactAdminSub: "Chủ sở hữu hệ thống",
     contactAdminDesc: "Chuyên cung cấp phụ kiện gaming và dịch vụ thiết kế website chất lượng cao, giúp nâng tầm trải nghiệm của bạn.",
@@ -39,7 +48,7 @@ window.KENIOS_DEFAULT_DB = {
     aiResponseDeposit: "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
     aiResponseProduct: "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
     aiResponseWeb: "Bên mình có dịch vụ thiết kế website phong cách hiện đại, chuẩn SEO và tương thích tốt trên mọi thiết bị. Hãy xem mục \"Thiết Kế Web\" để biết thêm chi tiết nhé!",
-    aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
+    aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
     aiResponseContact: "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
     aiResponseThanks: "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
     aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
@@ -843,8 +852,7 @@ window.KENIOS_DEFAULT_DB = {
     setText('#footerAdminName', `${cfg.contactAdminName} — ${cfg.contactAdminSub}`);
     setText('#footerHotline', cfg.hotline);
     setText('#footerYear', new Date().getFullYear());
-    setAttr('#footerZalo', 'href', cfg.zaloLink);
-    setAttr('#zaloBtn', 'href', cfg.zaloLink);
+    renderContactWidgets(cfg);
 
     setText('#heroTag', cfg.bannerTagText);
     setText('#heroTitle', cfg.siteTitle.replace(/^.*?-\s*/, ''));
@@ -925,6 +933,52 @@ window.KENIOS_DEFAULT_DB = {
     _loadedFonts.add(fontName);
   }
 
+  // ---- Widget liên hệ đa kênh: 1 kênh bật -> nút thẳng; nhiều kênh bật -> gộp
+  // thành 1 nút mở ra danh sách. Dùng chung cho header / footer / popup chào mừng. ----
+  function renderContactWidgets(cfg) {
+    const channels = cfg.contactChannels || [];
+    renderContactWidget($('#headerContactWrap'), channels, { btnClass: 'btn btn-ghost btn-sm' });
+    renderContactWidget($('#footerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm', dropUp: true });
+    renderContactWidget($('#welcomeContactWrap'), channels, { btnClass: 'btn btn-primary btn-block' });
+  }
+
+  function renderContactWidget(container, channels, opts = {}) {
+    if (!container) return;
+    const enabled = channels.filter(c => c.enabled && c.url);
+    container.innerHTML = '';
+    if (!enabled.length) { container.hidden = true; return; }
+    container.hidden = false;
+
+    if (enabled.length === 1) {
+      const c = enabled[0];
+      const a = document.createElement('a');
+      a.href = c.url;
+      if (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
+      a.className = opts.btnClass;
+      a.innerHTML = `<span>${c.icon}</span> ${esc(c.label)}`;
+      container.appendChild(a);
+      return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'contact-widget';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = opts.btnClass;
+    btn.innerHTML = `<span>💬</span> Liên hệ`;
+    const dropdown = document.createElement('div');
+    dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
+    dropdown.innerHTML = enabled.map(c => {
+      const targetAttrs = (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) ? 'target="_blank" rel="noopener"' : '';
+      return `<a href="${esc(c.url)}" ${targetAttrs}><span>${c.icon}</span> ${esc(c.label)}</a>`;
+    }).join('');
+    btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
+    document.addEventListener('click', () => dropdown.classList.remove('open'));
+    wrap.appendChild(btn);
+    wrap.appendChild(dropdown);
+    container.appendChild(wrap);
+  }
+
   function applyBranding(cfg) {
     $$('.brand-mark').forEach(img => { img.src = cfg.logoUrl || './favicon.svg'; });
 
@@ -957,15 +1011,25 @@ window.KENIOS_DEFAULT_DB = {
     renderWebdesignGrid();
   }
 
+  function categoryMediaHtml(c) {
+    if (!c.image) return '';
+    if (isVideoUrl(c.image)) {
+      return `<video class="category-media" src="${esc(c.image)}" muted loop autoplay playsinline></video>`;
+    }
+    return `<div class="category-media" data-fallback-bg="${esc(c.image)}" style="background-image:url('${esc(c.image)}')"></div>`;
+  }
+
   function renderCategories() {
     const grid = $('#categoryGrid');
     grid.innerHTML = Store.db.categories.map(c => `
-      <div class="category-card" data-category="${esc(c.id)}" role="button" tabindex="0">
+      <div class="category-card ${c.image ? 'has-media' : ''}" data-category="${esc(c.id)}" role="button" tabindex="0">
+        ${categoryMediaHtml(c)}
         <span class="category-icon">${c.icon}</span>
         <h3>${esc(c.name)}</h3>
         <p>${esc(c.description)}</p>
       </div>
     `).join('');
+    applyImageFallbacks(grid, '.category-media');
     grid.onclick = (e) => {
       const card = e.target.closest('.category-card');
       if (!card) return;
@@ -1119,9 +1183,11 @@ window.KENIOS_DEFAULT_DB = {
   function serviceCardHtml(s) {
     const minPrice = Math.min(...(s.packages || []).map(p => p.price));
     const inStock = s.status === 'instock';
+    const isVideo = isVideoUrl(s.image);
     return `
       <article class="service-card" data-service="${esc(s.id)}">
-        <div class="thumb" data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')">
+        <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
+          ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
           <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
         </div>
         <div class="body">
@@ -1153,8 +1219,8 @@ window.KENIOS_DEFAULT_DB = {
 
   // Ảnh minh họa lấy từ Unsplash có thể chậm/không tải được tùy mạng — khi lỗi,
   // hiển thị nền gradient thay vì để trống mảng xám khó chịu.
-  function applyImageFallbacks(root) {
-    $$('.thumb[data-fallback-bg]', root).forEach(el => {
+  function applyImageFallbacks(root, selector) {
+    $$(`${selector || '.thumb'}[data-fallback-bg]`, root).forEach(el => {
       const url = el.dataset.fallbackBg;
       if (!url) return;
       const img = new Image();
@@ -1321,6 +1387,9 @@ window.KENIOS_DEFAULT_DB = {
       $('#depositQrBox').hidden = false;
       $('#confirmDepositBtn').dataset.amount = amount;
       $('#confirmDepositBtn').dataset.note = note;
+      $('#copyAccountBtn').onclick = () => {
+        navigator.clipboard?.writeText(cfg.bankAccountNo).then(() => toast('Đã sao chép số tài khoản!', 'success'));
+      };
     });
 
     $('#confirmDepositBtn').addEventListener('click', async () => {
@@ -1370,8 +1439,18 @@ window.KENIOS_DEFAULT_DB = {
     currentServiceId = serviceId;
     currentPackage = service.packages[0] || null;
 
-    $('#serviceModalImg').src = service.image;
-    $('#serviceModalImg').alt = service.name;
+    const modalImg = $('#serviceModalImg');
+    const modalVideo = $('#serviceModalVideo');
+    if (isVideoUrl(service.image)) {
+      modalVideo.src = service.image;
+      modalVideo.hidden = false;
+      modalImg.hidden = true;
+    } else {
+      modalImg.src = service.image;
+      modalImg.alt = service.name;
+      modalImg.hidden = false;
+      modalVideo.hidden = true;
+    }
     const inStock = service.status === 'instock';
     $('#serviceModalBadge').textContent = inStock ? 'Còn hàng' : 'Hết hàng';
     $('#serviceModalBadge').className = 'badge' + (inStock ? '' : ' out');
@@ -1483,9 +1562,42 @@ window.KENIOS_DEFAULT_DB = {
     setTimeout(() => { addAiMessage(reply, 'bot'); Voice.speak(reply); }, 350);
   }
 
+  // Bảng giá theo từng mục — khách hỏi đúng mục nào thì trả lời riêng mục đó,
+  // chỉ đưa ra toàn bộ bảng giá (cfg.aiResponsePrice) khi khách hỏi chung chung.
+  const PRICE_ITEMS = [
+    { keys: ['vnhax mod skin', 'mod skin vn', 'mod skin'], text: '💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần' },
+    { keys: ['vnhax'], text: '💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần' },
+    { keys: ['oasis'], text: '💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần' },
+    { keys: ['king'], text: '💎 KING\n💰 900K/Tháng\n💰 450K/Tuần' },
+    { keys: ['timo'], text: '💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày' },
+    { keys: ['vingodl', 'vin godl'], text: '💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần' },
+    { keys: ['zolo'], text: '🤖 PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['vnb'], text: '🤖 PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['root'], text: '🤖 PUBG ANDROID — ROOT\n💰 650K/Tháng' },
+    { keys: ['mg'], text: '🤖 PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['liên quân', 'lien quan'], text: '⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500K/Tháng chống tố\n💰 250K/Tuần chống tố' },
+    { keys: ['free fire', 'freefire'], text: '🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần' },
+    { keys: ['pubg ios', 'ios'], text: '📱 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
+    { keys: ['pubg android', 'android'], text: '🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
+  ];
+
+  function matchPriceItem(t) {
+    const norm = t.toLowerCase();
+    const hasWord = (w) => new RegExp(`\\b${w}\\b`, 'i').test(norm);
+    for (const item of PRICE_ITEMS) {
+      for (const key of item.keys) {
+        const matched = key.includes(' ') ? norm.includes(key) : hasWord(key);
+        if (matched) return item.text;
+      }
+    }
+    return null;
+  }
+
   function getAiReply(t) {
     const cfg = Store.db.config;
     if (/nạp tiền|nap tien|vietqr|qr/.test(t)) return cfg.aiResponseDeposit;
+    const specificPrice = matchPriceItem(t);
+    if (specificPrice) return specificPrice;
     if (/giá|gia|bảng giá|bang gia|price/.test(t)) return cfg.aiResponsePrice;
     if (/thiết kế web|thiet ke web|landing|web shop/.test(t)) return cfg.aiResponseWeb;
     if (/sản phẩm|san pham|pubg|liên quân|lien quan|free fire|tốc chiến|toc chien/.test(t)) return cfg.aiResponseProduct;
@@ -1589,7 +1701,7 @@ window.KENIOS_DEFAULT_DB = {
           </label>
           <label class="span-2">Tên dịch vụ <input name="name" value="${esc(s.name)}" required></label>
           <label class="span-2">Mô tả <textarea name="description">${esc(s.description)}</textarea></label>
-          <label class="span-2">URL ảnh <input name="image" value="${esc(s.image)}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(s.image)}" placeholder="Lấy từ tab Thư viện"></label>
           <label>Trạng thái
             <select name="status">
               <option value="instock" ${s.status === 'instock' ? 'selected' : ''}>Còn hàng</option>
@@ -1658,7 +1770,7 @@ window.KENIOS_DEFAULT_DB = {
           <label>Icon (emoji) <input name="icon" value="${esc(c.icon)}"></label>
           <label class="span-2">Tên danh mục <input name="name" value="${esc(c.name)}" required></label>
           <label class="span-2">Mô tả <input name="description" value="${esc(c.description)}"></label>
-          <label class="span-2">URL ảnh <input name="image" value="${esc(c.image)}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(c.image)}" placeholder="Lấy từ tab Thư viện"></label>
           <div class="admin-form-actions">
             <button type="submit" class="btn btn-primary btn-sm">💾 Lưu danh mục</button>
             <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-category>Hủy</button>
@@ -1786,6 +1898,20 @@ window.KENIOS_DEFAULT_DB = {
         <label class="span-2">Giới thiệu (contactAdminDesc) <textarea name="contactAdminDesc">${esc(c.contactAdminDesc || '')}</textarea></label>
         <label>Hotline <input name="hotline" value="${esc(c.hotline)}"></label>
         <label>Link Zalo <input name="zaloLink" value="${esc(c.zaloLink)}"></label>
+
+        <div class="admin-form-section">📇 Kênh liên hệ (chọn nhiều — tự gộp thành 1 nút danh sách)</div>
+        ${(c.contactChannels || []).map(ch => `
+          <label class="span-2 contact-channel-row">
+            <span class="contact-channel-toggle">
+              <input type="checkbox" name="contact_${esc(ch.id)}_enabled" ${ch.enabled ? 'checked' : ''}>
+              ${ch.icon} ${esc(ch.label)}
+            </span>
+            <input name="contact_${esc(ch.id)}_url" value="${esc(ch.url || '')}" placeholder="${ch.id === 'phone' ? 'tel:0387332523' : ch.id === 'email' ? 'mailto:ban@kenios.store' : 'https://...'}">
+          </label>
+        `).join('')}
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Chỉ 1 kênh được bật → hiện thẳng 1 nút. Bật từ 2 kênh trở lên → tự động gộp thành 1 nút "Liên hệ" duy nhất, bấm vào sẽ mở danh sách tất cả các kênh — áp dụng đồng nhất ở header, footer và popup chào mừng.
+        </p>
 
         <div class="admin-form-section">🔑 Đăng nhập bằng Google</div>
         <label class="span-2">Google Client ID
@@ -2044,7 +2170,12 @@ window.KENIOS_DEFAULT_DB = {
         aiResponseProduct: fd.get('aiResponseProduct'), aiResponseWeb: fd.get('aiResponseWeb'),
         aiResponsePrice: fd.get('aiResponsePrice'), aiResponseContact: fd.get('aiResponseContact'),
         aiResponseThanks: fd.get('aiResponseThanks'), aiResponseFallback: fd.get('aiResponseFallback'),
-        bgUrl: fd.get('bgUrl')
+        bgUrl: fd.get('bgUrl'),
+        contactChannels: (Store.db.config.contactChannels || []).map(ch => ({
+          ...ch,
+          enabled: fd.get(`contact_${ch.id}_enabled`) === 'on',
+          url: (fd.get(`contact_${ch.id}_url`) || '').trim()
+        }))
       });
       renderStatic();
       toast('Đã lưu cấu hình. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');

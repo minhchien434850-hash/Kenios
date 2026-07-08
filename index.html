@@ -65,9 +65,7 @@
 
       <div class="header-actions">
         <button class="icon-btn" id="searchToggleBtn" aria-label="Tìm kiếm dịch vụ">🔍</button>
-        <a class="btn btn-ghost btn-sm hide-sm" id="zaloBtn" href="#" target="_blank" rel="noopener">
-          <span>💬</span> Zalo Admin
-        </a>
+        <div class="hide-sm" id="headerContactWrap"></div>
         <div id="authArea"></div>
       </div>
     </div>
@@ -178,8 +176,8 @@
         <ul class="footer-list">
           <li id="footerAdminName"></li>
           <li>Hotline: <span id="footerHotline"></span></li>
-          <li><a id="footerZalo" href="#" target="_blank" rel="noopener">Nhắn Zalo</a></li>
         </ul>
+        <div id="footerContactWrap" class="footer-contact-wrap"></div>
       </div>
       <div>
         <h4>Chính sách</h4>
@@ -260,7 +258,7 @@
           <ul class="qr-info">
             <li>Ngân hàng: <strong id="qrBank"></strong></li>
             <li>Chủ TK: <strong id="qrOwner"></strong></li>
-            <li>Số TK: <strong id="qrAccount"></strong></li>
+            <li>Số TK: <strong id="qrAccount"></strong> <button type="button" class="btn-copy-key" id="copyAccountBtn" title="Sao chép số tài khoản">📋</button></li>
             <li>Số tiền: <strong id="qrAmount"></strong></li>
             <li>Nội dung: <strong id="qrNote"></strong></li>
           </ul>
@@ -277,6 +275,7 @@
       <div class="service-modal-body">
         <div class="service-modal-media">
           <img id="serviceModalImg" alt="">
+          <video id="serviceModalVideo" hidden muted loop autoplay playsinline></video>
           <span class="badge" id="serviceModalBadge"></span>
         </div>
         <div class="service-modal-info">
@@ -340,7 +339,7 @@
       <h3 id="welcomeTitle"></h3>
       <p id="welcomeMessage"></p>
       <div class="welcome-actions">
-        <a href="#" id="welcomeContactBtn" class="btn btn-primary btn-block" target="_blank" rel="noopener">💬 Liên hệ ngay</a>
+        <div id="welcomeContactWrap" class="welcome-contact-wrap"></div>
         <button type="button" class="btn btn-ghost btn-block" data-close-modal>Đóng</button>
       </div>
     </div>
