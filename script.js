@@ -2152,14 +2152,10 @@ window.KENIOS_DEFAULT_DB = {
       <div class="drawer-user-balance"><span>Số dư</span><strong>${fmt(user.balance || 0)}</strong></div>
       <div class="drawer-user-actions">
         <button type="button" class="btn btn-glass btn-sm" id="drawerDepositBtn"><span class="btn-ico">${ICONS.card}</span> Nạp tiền</button>
-        ${user.role === 'admin' ? `<button type="button" class="btn btn-primary btn-sm" id="drawerAdminBtn" style="background:linear-gradient(135deg, var(--gold), #ff8f1f);color:#1a1200;font-weight:700;"><span class="btn-ico">${ICONS.shield}</span> Quản trị hệ thống</button>` : ''}
         <button type="button" class="btn btn-glass btn-sm" id="drawerPasswordBtn"><span class="btn-ico">${ICONS.lock}</span> Đổi mật khẩu</button>
         <button type="button" class="btn btn-ghost btn-sm" id="drawerLogoutBtn"><span class="btn-ico">${ICONS.logout}</span> Đăng xuất</button>
       </div>`;
     $('#drawerDepositBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#depositModal'); });
-    if (user.role === 'admin') {
-      $('#drawerAdminBtn')?.addEventListener('click', () => { closeMobileNavGlobal(); openAdminModal(); });
-    }
     $('#drawerPasswordBtn').addEventListener('click', () => { closeMobileNavGlobal(); openPasswordModal(); });
     $('#drawerLogoutBtn').addEventListener('click', () => { closeMobileNavGlobal(); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); });
   }
