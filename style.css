@@ -40,6 +40,7 @@ body {
 }
 h1, h2, h3, h4, .btn, .brand-text strong { font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; font-weight: 700; }
 img { max-width: 100%; display: block; }
+img, svg, video, canvas, iframe { max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 ul { list-style: none; margin: 0; padding: 0; }
 button { font: inherit; }
@@ -755,7 +756,7 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .trust-item .trust-ico svg { width: 20px; height: 20px; }
 
 /* ---------- Live feed (xếp hạng / giao dịch / nạp tiền) ---------- */
-.live-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+.live-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
 .live-card {
   background: var(--glass); border: 1px solid var(--border); border-radius: 18px;
   padding: 16px 16px 10px; overflow: hidden; position: relative;
@@ -843,6 +844,38 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .media-card .media-url { font-size: .72rem; color: var(--muted); word-break: break-all; }
 .media-card .media-actions { display: flex; gap: 6px; }
 .media-card .media-actions button { flex: 1; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; font-size: .74rem; }
+
+/* ============================================================
+   HỆ THỐNG KÍCH THƯỚC MÀN HÌNH (RESPONSIVE) — nêu rõ từng cấu hình:
+   ─ ≤ 380px  : Điện thoại nhỏ (iPhone SE, Galaxy Fold gập, Android mini)
+   ─ ≤ 480px  : Điện thoại phổ thông
+   ─ ≤ 768px  : Điện thoại lớn / iPad dọc hẹp  → 1 cột, menu 3 gạch
+   ─ 769–1024 : Máy tính bảng (iPad, Android tablet) → 2–3 cột
+   ─ 1025–1440: Laptop → bố cục đầy đủ, container 1180px
+   ─ ≥ 1441px : PC / màn hình lớn → container rộng hơn, canh giữa
+   Quy tắc chung: không tràn ngang ở mọi bề rộng 320–2560px.
+   ============================================================ */
+
+/* ---- Máy tính bảng: iPad & Android tablet (769px – 1024px) ---- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container { width: 92%; }
+  .category-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .service-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .post-grid { grid-template-columns: repeat(2, 1fr); }
+  .showcase-grid { grid-template-columns: repeat(3, 1fr); }
+  .live-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .hero-stats { grid-template-columns: repeat(4, 1fr); }
+  .footer-grid { grid-template-columns: 2fr 1fr 1fr; }
+  .hero-heading { font-size: clamp(1.9rem, 3.6vw, 2.6rem); }
+}
+
+/* ---- PC / màn hình lớn (≥ 1441px): dùng thêm không gian, canh giữa ---- */
+@media (min-width: 1441px) {
+  .container { width: min(1320px, 90%); }
+}
+@media (min-width: 1920px) {
+  .container { width: min(1480px, 86%); }
+}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
