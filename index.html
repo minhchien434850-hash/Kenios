@@ -48,7 +48,7 @@
         </button>
 
         <a class="brand" href="#top">
-          <img src="./favicon.svg" alt="" class="brand-mark" width="32" height="32" />
+          <span class="brand-mark-wrap"><img src="./favicon.svg" alt="" class="brand-mark"></span>
           <span class="brand-text">
             <strong id="brandName">KENIOS.STORE</strong>
             <small id="brandSub">v3.0 Premium</small>
@@ -168,7 +168,7 @@
     <div class="container footer-grid">
       <div>
         <a class="brand" href="#top">
-          <img src="./favicon.svg" alt="" class="brand-mark" width="28" height="28" />
+          <span class="brand-mark-wrap footer-mark"><img src="./favicon.svg" alt="" class="brand-mark"></span>
           <strong id="footerBrand">KENIOS.STORE</strong>
         </a>
         <p class="footer-desc" id="footerDesc"></p>
@@ -236,6 +236,8 @@
         <p class="form-error" id="registerError"></p>
         <button type="submit" class="btn btn-primary btn-block">Tạo tài khoản</button>
       </form>
+      <div class="auth-divider" id="authDivider" hidden><span>hoặc</span></div>
+      <div id="googleSignInBox" class="google-signin-box" hidden></div>
     </div>
   </div>
 

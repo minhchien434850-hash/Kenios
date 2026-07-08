@@ -1,7 +1,10 @@
 <?php
 // api.php - Backend Storage Sync for kenios.store
-ini_set('memory_limit', '256M');
-ini_set('max_execution_time', 60);
+ini_set('memory_limit', '640M');
+ini_set('max_execution_time', 300);
+// Lưu ý: upload_max_filesize/post_max_size KHÔNG thể chỉnh bằng ini_set() lúc
+// runtime (PHP đã đọc các giá trị này trước khi script chạy). Xem file .user.ini
+// đi kèm — hosting dùng PHP-FPM sẽ tự áp dụng; Apache/php.ini cần admin hosting chỉnh tay.
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, X-Admin-User, X-Admin-Pass");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
@@ -110,6 +113,81 @@ switch ($action) {
         echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx])]);
         break;
 
+    case 'google_login':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $credential = trim($input['credential'] ?? '');
+        if ($credential === '') {
+            echo json_encode(["status" => "error", "message" => "Thiếu credential từ Google."]);
+            exit;
+        }
+        $db = read_db($db_file);
+        $client_id = trim((string)($db['config']['googleClientId'] ?? ''));
+        if ($client_id === '') {
+            echo json_encode(["status" => "error", "message" => "Đăng nhập Google chưa được cấu hình (thiếu Google Client ID)."]);
+            exit;
+        }
+
+        // Xác thực ID token THẬT SỰ với Google (không tự tin bất kỳ payload nào gửi lên
+        // mà không kiểm tra chữ ký) bằng endpoint tokeninfo chính thức của Google.
+        $ch = curl_init('https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($credential));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $resp = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $info = $resp ? json_decode($resp, true) : null;
+
+        if ($http_code !== 200 || !$info || empty($info['email'])) {
+            echo json_encode(["status" => "error", "message" => "Không xác thực được với Google (token không hợp lệ hoặc hết hạn)."]);
+            exit;
+        }
+        if (($info['aud'] ?? '') !== $client_id) {
+            echo json_encode(["status" => "error", "message" => "Token Google không khớp với ứng dụng này."]);
+            exit;
+        }
+        if (($info['email_verified'] ?? 'false') !== 'true' && ($info['email_verified'] ?? false) !== true) {
+            echo json_encode(["status" => "error", "message" => "Email Google chưa được xác minh."]);
+            exit;
+        }
+
+        $email = strtolower($info['email']);
+        if (empty($db) || !isset($db['users'])) {
+            echo json_encode(["status" => "error", "message" => "Database not initialized"]);
+            exit;
+        }
+
+        $matchedIdx = -1;
+        foreach ($db['users'] as $idx => $u) {
+            if (strtolower($u['username'] ?? '') === $email) { $matchedIdx = $idx; break; }
+        }
+
+        if ($matchedIdx === -1) {
+            $user = [
+                "userId" => uniqid(),
+                "username" => $email,
+                "password" => password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT),
+                "balance" => 0,
+                "role" => "member",
+                "status" => "active",
+                "authProvider" => "google",
+                "avatar" => $info['picture'] ?? ("https://api.dicebear.com/7.x/adventurer/svg?seed=" . urlencode($email)),
+                "createdAt" => date("Y-m-d")
+            ];
+            $db['users'][] = $user;
+            if (!write_db($db_file, $db)) {
+                echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
+                exit;
+            }
+            echo json_encode(["status" => "success", "user" => safe_user($user)]);
+        } else {
+            if (($db['users'][$matchedIdx]['status'] ?? 'active') !== 'active') {
+                echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
+                exit;
+            }
+            echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx])]);
+        }
+        break;
+
     case 'test_api':
         $bank = $_GET['bank'] ?? '';
         $token = $_GET['token'] ?? '';
@@ -195,10 +273,16 @@ switch ($action) {
         }
         if (!isset($_FILES['file'])) {
             http_response_code(400);
-            echo json_encode(["status" => "error", "message" => "No file uploaded"]);
+            $server_limit = ini_get('post_max_size');
+            echo json_encode(["status" => "error", "message" => "Không nhận được file — có thể file vượt quá giới hạn của máy chủ (hiện tại: post_max_size=$server_limit). Xem file .user.ini để tăng giới hạn hosting."]);
             exit;
         }
         $file = $_FILES['file'];
+        if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+            $server_limit = ini_get('upload_max_filesize');
+            echo json_encode(["status" => "error", "message" => "File vượt quá giới hạn upload_max_filesize của máy chủ hosting (hiện tại: $server_limit). Cần chỉnh file .user.ini hoặc liên hệ nhà cung cấp hosting để tăng lên 500M."]);
+            exit;
+        }
         if ($file['error'] !== UPLOAD_ERR_OK) {
             echo json_encode(["status" => "error", "message" => "File upload error code: " . $file['error']]);
             exit;
@@ -211,9 +295,9 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Định dạng file không được hỗ trợ (chỉ ảnh hoặc video mp4/webm/ogg)"]);
             exit;
         }
-        $max_size = $is_video ? 25 * 1024 * 1024 : 5 * 1024 * 1024;
+        $max_size = 500 * 1024 * 1024; // 500MB cho cả ảnh và video
         if ($file['size'] > $max_size) {
-            echo json_encode(["status" => "error", "message" => "File quá lớn (tối đa " . ($is_video ? "25MB" : "5MB") . ")"]);
+            echo json_encode(["status" => "error", "message" => "File quá lớn (tối đa 500MB)"]);
             exit;
         }
         $upload_dir = __DIR__ . '/uploads/';

@@ -19,6 +19,7 @@ window.KENIOS_DEFAULT_DB = {
     logoFont: "Be Vietnam Pro",
     logoColor: "",
     accentColor: "#ffb703",
+    googleClientId: "",
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
     contactAdminName: "ADMIN SHOP",
@@ -268,6 +269,16 @@ window.KENIOS_DEFAULT_DB = {
         }
         throw err;
       }
+    },
+
+    // Đăng nhập bằng Google: gửi ID token (credential) lên server để xác thực thật
+    // với Google rồi mới tạo/đăng nhập tài khoản. Chỉ hoạt động khi có backend PHP.
+    async loginWithGoogle(credential) {
+      const result = await this._callApi('google_login', { credential });
+      if (result.status !== 'success') throw new Error(result.message || 'Đăng nhập Google thất bại.');
+      this._upsertUser(result.user);
+      this._setSession(result.user.userId);
+      return result.user;
     },
 
     // Chế độ demo cục bộ (không có máy chủ PHP): kiểm tra trực tiếp trong dữ liệu đã tải.
@@ -818,10 +829,55 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--marquee-speed', `${cfg.marqueeSpeed || 26}s`);
 
     applyBranding(cfg);
+    setupGoogleSignIn(cfg);
 
     Voice.setPrefs({ enabled: !!cfg.ttsEnabled, rate: cfg.ttsRate || 1, pitch: cfg.ttsPitch || 1 });
 
     renderPosts();
+  }
+
+  // ---- Đăng nhập bằng Google (một chạm, không cần mã xác nhận) ----
+  let _gsiScriptLoading = null;
+  function loadGoogleScript() {
+    if (window.google?.accounts?.id) return Promise.resolve();
+    if (_gsiScriptLoading) return _gsiScriptLoading;
+    _gsiScriptLoading = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = () => { _gsiScriptLoading = null; reject(new Error('Không tải được Google Sign-In script.')); };
+      document.head.appendChild(s);
+    });
+    return _gsiScriptLoading;
+  }
+
+  async function setupGoogleSignIn(cfg) {
+    const box = $('#googleSignInBox');
+    const divider = $('#authDivider');
+    if (!cfg.googleClientId) { box.hidden = true; divider.hidden = true; return; }
+    try {
+      await loadGoogleScript();
+      box.hidden = false;
+      divider.hidden = false;
+      box.innerHTML = '';
+      window.google.accounts.id.initialize({
+        client_id: cfg.googleClientId,
+        callback: handleGoogleCredential
+      });
+      window.google.accounts.id.renderButton(box, { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with', width: 280 });
+    } catch (err) {
+      console.warn(err);
+      box.hidden = true;
+      divider.hidden = true;
+    }
+  }
+
+  function handleGoogleCredential(response) {
+    Store.loginWithGoogle(response.credential).then(() => {
+      closeModal('#authModal');
+      toast('Đăng nhập bằng Google thành công!', 'success');
+    }).catch(err => toast(err.message, 'error'));
   }
 
   // ---- Thương hiệu: logo (ảnh/font/màu) + màu chủ đạo toàn site ----
@@ -1681,6 +1737,17 @@ window.KENIOS_DEFAULT_DB = {
         <label>Hotline <input name="hotline" value="${esc(c.hotline)}"></label>
         <label>Link Zalo <input name="zaloLink" value="${esc(c.zaloLink)}"></label>
 
+        <div class="admin-form-section">🔑 Đăng nhập bằng Google</div>
+        <label class="span-2">Google Client ID
+          <input name="googleClientId" value="${esc(c.googleClientId || '')}" placeholder="xxxxxxxx.apps.googleusercontent.com">
+        </label>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Lấy Client ID miễn phí tại
+          <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--gold-soft);">Google Cloud Console</a>
+          (tạo OAuth Client ID loại "Web application", thêm domain của bạn vào "Authorized JavaScript origins").
+          Để trống thì nút đăng nhập Google sẽ ẩn.
+        </p>
+
         <div class="admin-form-section">🏦 Ngân hàng (VietQR)</div>
         <label>Ngân hàng (bankId) <input name="bankId" value="${esc(c.bankId)}"></label>
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
@@ -1711,7 +1778,7 @@ window.KENIOS_DEFAULT_DB = {
       <div class="media-upload-row">
         <input type="file" id="adminMediaFile" accept="image/*,video/mp4,video/webm,video/ogg">
         <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">⬆️ Tải lên</button>
-        <span class="muted" style="font-size:.8rem;">Ảnh tối đa 5MB, video tối đa 25MB. Chỉ hoạt động khi có máy chủ PHP.</span>
+        <span class="muted" style="font-size:.8rem;">Ảnh hoặc video tối đa 500MB. Chỉ hoạt động khi có máy chủ PHP (cần hosting cho phép upload lớn — xem file .user.ini).</span>
       </div>
       <div class="media-grid">
         ${media.length ? media.map(m => `
@@ -1873,6 +1940,7 @@ window.KENIOS_DEFAULT_DB = {
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
         contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
         hotline: fd.get('hotline'), zaloLink: fd.get('zaloLink'),
+        googleClientId: fd.get('googleClientId'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
