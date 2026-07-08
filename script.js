@@ -27,10 +27,8 @@ window.KENIOS_DEFAULT_DB = {
     welcomePopupEnabled: false,
     welcomePopupTitle: "Chào mừng bạn đến với KENIOS.STORE!",
     welcomePopupMessage: "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
-    welcomeVoiceEnabled: true,
+    welcomeVoiceEnabled: false,
     welcomeAlways: true,
-    welcomeVoiceName: "",
-    welcomeVoiceText: "Xin chào! Chào mừng bạn đã đến với KENIOS.STORE.",
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
     contactChannels: [
@@ -1356,13 +1354,11 @@ window.KENIOS_DEFAULT_DB = {
     maybeShowWelcome(Store.db.config);
   }
 
-  // ---- Thông báo popup và lời chào giọng nói khi vào web — HAI tính năng tách
-  // biệt hoàn toàn: mỗi cái có công tắc bật/tắt và nội dung riêng, không dùng chung. ----
+  // ---- Thông báo popup khi vào web (đã bỏ tính năng lời chào bằng giọng nói). ----
   const WELCOME_POPUP_SHOWN_KEY = 'kenios_welcome_popup_shown_v1';
-  const WELCOME_VOICE_SHOWN_KEY = 'kenios_welcome_voice_shown_v1';
 
   function maybeShowWelcome(cfg) {
-    // welcomeAlways = bật (mặc định) thì CHÀO MỌI LẦN vào web; tắt thì chỉ 1 lần mỗi phiên.
+    // welcomeAlways = bật (mặc định) thì hiện popup MỌI LẦN vào web; tắt thì chỉ 1 lần mỗi phiên.
     const always = cfg.welcomeAlways !== false;
     if (cfg.welcomePopupEnabled && (always || !sessionStorage.getItem(WELCOME_POPUP_SHOWN_KEY))) {
       sessionStorage.setItem(WELCOME_POPUP_SHOWN_KEY, '1');
@@ -1372,24 +1368,6 @@ window.KENIOS_DEFAULT_DB = {
         setAttr('#welcomeContactBtn', 'href', cfg.zaloLink);
         openModal('#welcomeModal');
       }, 600);
-    }
-    if (cfg.welcomeVoiceEnabled && (always || !sessionStorage.getItem(WELCOME_VOICE_SHOWN_KEY))) {
-      sessionStorage.setItem(WELCOME_VOICE_SHOWN_KEY, '1');
-      if (cfg.welcomeVoiceName) Voice.setPrefs({ voiceURI: cfg.welcomeVoiceName });
-      // Thử chào ngay; nếu trình duyệt chặn âm thanh khi chưa tương tác, chào lại
-      // ở lần chạm/di chuột/nhấn phím đầu tiên — đảm bảo "ai vào cũng được chào".
-      let greeted = false;
-      const greet = () => { if (greeted) return; greeted = true; try { Voice.speak(cfg.welcomeVoiceText); } catch (e) { /* ignore */ } };
-      const timer = setTimeout(greet, 700);
-      const once = () => {
-        clearTimeout(timer); greet();
-        window.removeEventListener('pointerdown', once);
-        window.removeEventListener('keydown', once);
-        window.removeEventListener('touchstart', once);
-      };
-      window.addEventListener('pointerdown', once, { once: true });
-      window.addEventListener('keydown', once, { once: true });
-      window.addEventListener('touchstart', once, { once: true });
     }
   }
 
@@ -2750,21 +2728,6 @@ window.KENIOS_DEFAULT_DB = {
     // Wire nút Đồng bộ lên máy chủ (chỉ nằm trong tab Config)
     $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer());
 
-    // Nạp danh sách giọng nói cho lời chào + nút nghe thử.
-    const vsel = $('#welcomeVoiceSelect');
-    if (vsel) {
-      (Voice.availableVoices() || []).forEach(v => {
-        const opt = document.createElement('option');
-        opt.value = v.voiceURI; opt.textContent = `${v.name} (${v.lang})`;
-        if (Store.db.config.welcomeVoiceName === v.voiceURI) opt.selected = true;
-        vsel.appendChild(opt);
-      });
-      $('#testWelcomeVoiceBtn')?.addEventListener('click', () => {
-        Voice.setPrefs({ voiceURI: vsel.value || null, enabled: true });
-        Voice.speak($('[name=welcomeVoiceText]')?.value || 'Xin chào, chào mừng bạn đến với cửa hàng.');
-      });
-    }
-
     $('#bankWebhookUrl').value = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}bank_callback.php`;
     $('#copyWebhookUrlBtn').addEventListener('click', () => {
       navigator.clipboard?.writeText($('#bankWebhookUrl').value).then(() => toast('Đã sao chép URL webhook!', 'success'));
@@ -3298,33 +3261,12 @@ window.KENIOS_DEFAULT_DB = {
           Popup kèm nút "Liên hệ ngay" sẽ hiện 1 lần mỗi phiên truy cập. Đây là thông báo <b>chỉ hiển thị bằng chữ</b>, tách riêng hoàn toàn với lời chào giọng nói bên dưới.
         </p>
 
-        <div class="admin-form-section">Lời chào giọng nói khi vào Web</div>
-        <label>Bật lời chào giọng nói
-          <select name="welcomeVoiceEnabled">
-            <option value="1" ${c.welcomeVoiceEnabled ? 'selected' : ''}>Bật</option>
-            <option value="0" ${!c.welcomeVoiceEnabled ? 'selected' : ''}>Tắt</option>
-          </select>
-        </label>
-        <label>Chào mọi lần vào web
+        <label>Hiện popup mọi lần vào web
           <select name="welcomeAlways">
-            <option value="1" ${c.welcomeAlways !== false ? 'selected' : ''}>Có — ai vào cũng được chào</option>
+            <option value="1" ${c.welcomeAlways !== false ? 'selected' : ''}>Có — ai vào cũng thấy</option>
             <option value="0" ${c.welcomeAlways === false ? 'selected' : ''}>Chỉ 1 lần mỗi phiên</option>
           </select>
         </label>
-        <label class="span-2">Nội dung lời chào (đọc to bằng giọng nói)
-          <textarea name="welcomeVoiceText">${esc(c.welcomeVoiceText || '')}</textarea>
-        </label>
-        <label class="span-2">Chọn giọng nói
-          <select name="welcomeVoiceName" id="welcomeVoiceSelect">
-            <option value="">Tự động (ưu tiên giọng nữ tiếng Việt / Google)</option>
-          </select>
-        </label>
-        <div class="admin-form-actions" style="margin-top:0;">
-          <button type="button" class="btn btn-glass btn-sm" id="testWelcomeVoiceBtn">Nghe thử lời chào</button>
-        </div>
-        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
-          Danh sách giọng lấy từ trình duyệt. Muốn giọng "chị Google" chuẩn trên mọi máy (kể cả iPhone), hãy nhập Google Cloud TTS API Key ở mục dưới.
-        </p>
 
         <div class="admin-form-section">Chữ chạy</div>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
@@ -3684,8 +3626,7 @@ window.KENIOS_DEFAULT_DB = {
         googleClientId: fd.get('googleClientId'),
         welcomePopupEnabled: fd.get('welcomePopupEnabled') === '1',
         welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
-        welcomeVoiceEnabled: fd.get('welcomeVoiceEnabled') === '1', welcomeVoiceText: fd.get('welcomeVoiceText'),
-        welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceName: fd.get('welcomeVoiceName') || '',
+        welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceEnabled: false,
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
