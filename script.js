@@ -785,7 +785,7 @@ window.KENIOS_DEFAULT_DB = {
     init() {
       injectCSS();
       document.addEventListener('pointerdown', (e) => this._onPointer(e), { passive: true });
-      this._buildSettingsPanel();
+      // Đã bỏ nút cài đặt âm thanh nổi (loa) theo yêu cầu — âm thanh chạm vẫn hoạt động.
     },
 
     _onPointer(e) {
@@ -1508,6 +1508,23 @@ window.KENIOS_DEFAULT_DB = {
     renderCategories();
     renderServiceGrid();
     renderWebdesignGrid();
+    renderShowcase();
+  }
+
+  // Mục "Hình ảnh & Video" — độc lập với banner Hero, lấy từ Thư viện (Store.db.media).
+  function renderShowcase() {
+    const grid = $('#showcaseGrid');
+    const section = $('#showcase');
+    if (!grid || !section) return;
+    const media = (Store.db.media || []).filter(m => m.showcase !== false);
+    if (!media.length) { section.hidden = true; grid.innerHTML = ''; return; }
+    section.hidden = false;
+    grid.innerHTML = media.map(m => `
+      <div class="showcase-item">
+        ${m.type === 'video'
+          ? `<video src="${esc(m.url)}" muted loop autoplay playsinline></video>`
+          : `<img src="${esc(m.url)}" alt="${esc(m.name || '')}" loading="lazy">`}
+      </div>`).join('');
   }
 
   function categoryMediaHtml(c) {
@@ -1829,10 +1846,23 @@ window.KENIOS_DEFAULT_DB = {
     });
   }
 
+  // ---- Ghi nhớ tạm thông tin admin trong phiên để "Lưu giao diện" không cần nhập lại mật khẩu ----
+  const ADMIN_CREDS_KEY = 'kenios_admin_creds_v1';
+  function rememberAdminCreds(username, password) {
+    try { sessionStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify({ username, password })); } catch { /* ignore */ }
+  }
+  function getAdminCreds() {
+    try { return JSON.parse(sessionStorage.getItem(ADMIN_CREDS_KEY)) || null; } catch { return null; }
+  }
+  function clearAdminCreds() {
+    try { sessionStorage.removeItem(ADMIN_CREDS_KEY); } catch { /* ignore */ }
+  }
+
   function renderAuthArea() {
     const area = $('#authArea');
     const user = Store.currentUser();
     $('#mobileNavAdmin').hidden = !(user && user.role === 'admin');
+    if ($('#saveUiFab')) $('#saveUiFab').hidden = !(user && user.role === 'admin');
     if (!user) {
       area.innerHTML = `<button class="btn btn-primary btn-sm" id="openAuthBtn">Đăng nhập</button>`;
       $('#openAuthBtn').addEventListener('click', () => openModal('#authModal'));
@@ -1861,7 +1891,7 @@ window.KENIOS_DEFAULT_DB = {
     if (user.role === 'admin') {
       $('#ddAdmin').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openAdminModal(); });
     }
-    $('#ddLogout').addEventListener('click', () => { Store.logout(); toast('Đã đăng xuất.', 'success'); });
+    $('#ddLogout').addEventListener('click', () => { clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); });
   }
 
   // ============================================================
@@ -1877,6 +1907,7 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function wireGlobalUI() {
+    $('#saveUiFab')?.addEventListener('click', () => saveUiToServer());
     $$('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal('#' + overlay.id); });
     });
@@ -1948,7 +1979,8 @@ window.KENIOS_DEFAULT_DB = {
       const submitBtn = e.target.querySelector('button[type=submit]');
       withLoading(submitBtn, async () => {
         try {
-          await Store.login(fd.get('username'), fd.get('password'));
+          const u = await Store.login(fd.get('username'), fd.get('password'));
+          if (u && u.role === 'admin') rememberAdminCreds(fd.get('username'), fd.get('password'));
           closeModal('#authModal');
           e.target.reset();
           $('#loginError').textContent = '';
@@ -2124,6 +2156,8 @@ window.KENIOS_DEFAULT_DB = {
     const contact = Store.db.config.zaloLink || (Store.db.config.contactChannels || []).find(c => c.enabled && c.url)?.url || '';
     const expiry = o.expiryDate ? fmtDateTime(o.expiryDate) : 'Vĩnh viễn (không hết hạn)';
     const purchased = fmtDateTime(o.purchaseDate || o.date);
+    const svc = Store.db.services.find(s => s.id === o.serviceId);
+    const download = (svc && svc.downloadUrl) || o.downloadUrl || '';
     return `
       <div class="order-card">
         <div class="order-card-head">
@@ -2140,6 +2174,7 @@ window.KENIOS_DEFAULT_DB = {
           <code>${esc(o.key)}</code>
           <button class="btn-copy-key" data-copy-key="${esc(o.key)}" title="Sao chép key">${ICONS.copy}</button>
         </div>
+        ${download ? `<a class="btn btn-primary btn-sm btn-block order-download" href="${esc(download)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.upload || ICONS.box}</span> Tải bản game</a>` : ''}
         ${contact ? `<a class="btn btn-glass btn-sm btn-block order-contact" href="${esc(contact)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.headset}</span> Liên hệ hỗ trợ</a>` : ''}
       </div>`;
   }
@@ -2288,21 +2323,45 @@ window.KENIOS_DEFAULT_DB = {
       renderAdminTab(adminActiveTab);
     });
 
-    $('#adminSyncBtn').addEventListener('click', () => {
-      withLoading($('#adminSyncBtn'), async () => {
-        const user = Store.currentUser();
-        const pass = $('#adminSyncPass').value;
-        if (!pass) { $('#adminSyncMsg').textContent = 'Vui lòng nhập mật khẩu admin.'; return; }
-        const result = await Store.trySaveToServer(user.username, pass);
-        $('#adminSyncMsg').textContent = result.message || (result.status === 'success' ? 'Đã đồng bộ thành công!' : 'Đồng bộ thất bại.');
-        if (result.status === 'success') $('#adminSyncPass').value = '';
-      });
-    });
-
     // Ủy quyền sự kiện cho toàn bộ nội dung động bên trong bảng quản trị.
     $('#adminPanelBody').addEventListener('click', onAdminPanelClick);
     $('#adminPanelBody').addEventListener('submit', onAdminPanelSubmit);
     $('#adminPanelBody').addEventListener('change', onAdminPanelChange);
+
+    $('#adminLoadKeysBtn').addEventListener('click', () => {
+      const user = Store.currentUser();
+      const creds = getAdminCreds();
+      if (!creds) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#adminLoadKeysBtn'), async () => {
+        try {
+          await Store.fetchFullServiceKeys(user.username, creds.password);
+          renderAdminTab('services');
+          toast('Đã tải kho key đầy đủ từ máy chủ.', 'success');
+        } catch (err) { $('#adminSyncMsg').textContent = err.message; }
+      });
+    });
+  }
+
+  // Đồng bộ toàn bộ dữ liệu lên máy chủ dùng thông tin admin đã lưu trong phiên
+  // (không cần nhập lại mật khẩu). Nếu chưa có (vd. đã tải lại trang), yêu cầu đăng nhập lại.
+  async function saveUiToServer() {
+    const creds = getAdminCreds();
+    const user = Store.currentUser();
+    if (!user || user.role !== 'admin') { toast('Chỉ admin mới lưu được giao diện.', 'error'); return; }
+    if (!creds || creds.username.toLowerCase() !== user.username.toLowerCase()) {
+      toast('Vui lòng đăng nhập lại admin 1 lần để bật lưu tự động.', 'error');
+      clearAdminCreds(); Store.logout(); openModal('#authModal');
+      return;
+    }
+    await withLoading($('#saveUiFab'), async () => {
+      const result = await Store.trySaveToServer(creds.username, creds.password);
+      if (result.status === 'success') {
+        toast('Đã lưu giao diện lên máy chủ! Mọi khách truy cập sẽ thấy thay đổi.', 'success');
+        if ($('#adminSyncMsg')) $('#adminSyncMsg').textContent = 'Đã lưu lúc ' + new Date().toLocaleTimeString('vi-VN');
+      } else {
+        toast(result.message || 'Lưu thất bại. Thử đăng nhập lại admin.', 'error');
+      }
+    });
   }
 
   function renderAdminTab(tab) {
@@ -2338,26 +2397,28 @@ window.KENIOS_DEFAULT_DB = {
     });
 
     const user = Store.currentUser();
-    Store.secretsStatus(user.username, $('#adminSyncPass').value || '').then(res => {
+    const creds = getAdminCreds();
+    const pass = creds ? creds.password : '';
+    Store.secretsStatus(user.username, pass).then(res => {
       if (res.status !== 'success') {
-        $('#bankTokenStatus').textContent = '⚠️ Nhập mật khẩu admin ở thanh dưới cùng rồi mở lại tab này để xem trạng thái.';
-        $('#ttsKeyStatus').textContent = '⚠️ Nhập mật khẩu admin ở thanh dưới cùng rồi mở lại tab này để xem trạng thái.';
+        $('#bankTokenStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
+        $('#ttsKeyStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
         return;
       }
-      $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : '⚠️ Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
-      $('#ttsKeyStatus').innerHTML = res.ttsApiKeyConfigured ? '✅ Đã cấu hình API key — giọng nói dùng Google Cloud TTS thật.' : 'ℹ️ Chưa cấu hình — trang đang dùng giọng trình duyệt để dự phòng.';
+      $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
+      $('#ttsKeyStatus').innerHTML = res.ttsApiKeyConfigured ? '✅ Đã cấu hình API key — giọng nói dùng Google Cloud TTS thật.' : 'Chưa cấu hình — trang đang dùng giọng trình duyệt để dự phòng.';
     }).catch(() => {
-      $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái (cần mật khẩu admin ở thanh dưới cùng).';
-      $('#ttsKeyStatus').textContent = 'Không kiểm tra được trạng thái (cần mật khẩu admin ở thanh dưới cùng).';
+      $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái.';
+      $('#ttsKeyStatus').textContent = 'Không kiểm tra được trạng thái.';
     });
 
     $('#saveBankTokenBtn').addEventListener('click', () => {
       const token = $('#bankTokenInput').value.trim();
-      const pass = $('#adminSyncPass').value;
+      const c = getAdminCreds();
       if (!token) { toast('Vui lòng nhập token trước khi lưu.', 'error'); return; }
-      if (!pass) { toast('Vui lòng nhập mật khẩu admin ở thanh dưới cùng của bảng quản trị.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
       withLoading($('#saveBankTokenBtn'), async () => {
-        const res = await Store.saveSecrets(user.username, pass, { bankToken: token });
+        const res = await Store.saveSecrets(c.username, c.password, { bankToken: token });
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
         if (res.status === 'success') { $('#bankTokenInput').value = ''; renderAdminTab('config'); }
       });
@@ -2365,11 +2426,11 @@ window.KENIOS_DEFAULT_DB = {
 
     $('#saveTtsKeyBtn').addEventListener('click', () => {
       const key = $('#ttsApiKeyInput').value.trim();
-      const pass = $('#adminSyncPass').value;
+      const c = getAdminCreds();
       if (!key) { toast('Vui lòng nhập API key trước khi lưu.', 'error'); return; }
-      if (!pass) { toast('Vui lòng nhập mật khẩu admin ở thanh dưới cùng của bảng quản trị.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
       withLoading($('#saveTtsKeyBtn'), async () => {
-        const res = await Store.saveSecrets(user.username, pass, { ttsApiKey: key });
+        const res = await Store.saveSecrets(c.username, c.password, { ttsApiKey: key });
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
         if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
       });
@@ -2430,6 +2491,14 @@ window.KENIOS_DEFAULT_DB = {
           <label class="span-2">Tên dịch vụ <input name="name" value="${esc(s.name)}" required></label>
           <label class="span-2">Mô tả <textarea name="description">${esc(s.description)}</textarea></label>
           <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(s.image)}" placeholder="Lấy từ tab Thư viện"></label>
+          <label class="span-2">Link tải / file tải bản game (khách xem trong đơn hàng)
+            <input name="downloadUrl" id="adminServiceDownload" value="${esc(s.downloadUrl || '')}" placeholder="Dán link (Drive/MediaFire/link trực tiếp) hoặc bấm Tải file lên">
+          </label>
+          <label class="span-2 download-upload-row">
+            <input type="file" id="adminServiceFile">
+            <button type="button" class="btn btn-glass btn-sm" id="adminServiceUploadBtn">⬆ Tải file lên máy chủ</button>
+            <span class="muted" style="font-size:.75rem;">File tải lên sẽ tự điền vào ô link ở trên.</span>
+          </label>
           <label>Trạng thái
             <select name="status">
               <option value="instock" ${s.status === 'instock' ? 'selected' : ''}>Còn hàng</option>
@@ -2862,6 +2931,16 @@ window.KENIOS_DEFAULT_DB = {
         <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">⬆️ Tải lên</button>
         <span class="muted" style="font-size:.8rem;">Ảnh hoặc video tối đa 500MB. Chỉ hoạt động khi có máy chủ PHP (cần hosting cho phép upload lớn — xem file .user.ini).</span>
       </div>
+      <div class="media-link-row">
+        <input type="text" id="adminMediaUrl" placeholder="Dán link ảnh/video từ nơi khác (VD: link .mp4...)">
+        <select id="adminMediaType">
+          <option value="auto">Tự nhận đuôi</option>
+          <option value="video">Video (.mp4/.webm)</option>
+          <option value="image">Ảnh (.jpg/.png/.gif)</option>
+        </select>
+        <button type="button" class="btn btn-glass btn-sm" id="adminAddLinkBtn">+ Thêm link (tạo video/ảnh thành link)</button>
+      </div>
+      <p class="muted" style="font-size:.75rem;margin:0 0 12px;">Thư viện dùng cho ảnh sản phẩm/danh mục, nền Hero, và mục "Hình ảnh &amp; Video" trên trang chủ. Chọn đuôi (video/ảnh) khi link không rõ đuôi.</p>
       <div class="media-grid">
         ${media.length ? media.map(m => `
           <div class="media-card">
@@ -2949,23 +3028,6 @@ window.KENIOS_DEFAULT_DB = {
       refreshPkgKeyList(row, []);
       return;
     }
-    const loadKeysBtn = e.target.closest('#adminLoadKeysBtn');
-    if (loadKeysBtn) {
-      const user = Store.currentUser();
-      const pass = $('#adminSyncPass').value;
-      if (!pass) { $('#adminSyncMsg').textContent = 'Vui lòng nhập mật khẩu admin ở ô bên cạnh trước.'; return; }
-      withLoading(loadKeysBtn, async () => {
-        try {
-          await Store.fetchFullServiceKeys(user.username, pass);
-          renderAdminTab('services');
-          toast('Đã tải kho key đầy đủ từ máy chủ.', 'success');
-        } catch (err) {
-          $('#adminSyncMsg').textContent = err.message;
-        }
-      });
-      return;
-    }
-
     const newCategory = e.target.closest('[data-admin-new-category]');
     if (newCategory) { adminCategoryEditing = 'new'; renderAdminTab('categories'); return; }
 
@@ -3047,6 +3109,32 @@ window.KENIOS_DEFAULT_DB = {
       return;
     }
 
+    const svcUploadBtn = e.target.closest('#adminServiceUploadBtn');
+    if (svcUploadBtn) {
+      const file = $('#adminServiceFile').files[0];
+      if (!file) { toast('Vui lòng chọn file bản game trước.', 'error'); return; }
+      withLoading(svcUploadBtn, async () => {
+        try {
+          const url = await Store.uploadFile(file);
+          $('#adminServiceDownload').value = url;
+          toast('Đã tải file lên & điền link tải!', 'success');
+        } catch (err) { toast(err.message, 'error'); }
+      });
+      return;
+    }
+
+    const addLinkBtn = e.target.closest('#adminAddLinkBtn');
+    if (addLinkBtn) {
+      const url = $('#adminMediaUrl').value.trim();
+      if (!url) { toast('Vui lòng dán link trước.', 'error'); return; }
+      let type = $('#adminMediaType').value;
+      if (type === 'auto') type = /\.(mp4|webm|ogg)(\?|#|$)/i.test(url) ? 'video' : 'image';
+      Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: 'Link ' + type, date: new Date().toISOString() });
+      renderAdminTab('media');
+      toast('Đã thêm link vào Thư viện.', 'success');
+      return;
+    }
+
     const copyMedia = e.target.closest('[data-admin-copy-media]');
     if (copyMedia) {
       navigator.clipboard?.writeText(copyMedia.dataset.adminCopyMedia).then(() => toast('Đã sao chép link!', 'success'));
@@ -3110,6 +3198,7 @@ window.KENIOS_DEFAULT_DB = {
       Store.adminSaveService({
         id, name: fd.get('name').trim(), categoryId, subcategoryId,
         description: fd.get('description').trim(), image: fd.get('image').trim(),
+        downloadUrl: (fd.get('downloadUrl') || '').trim(),
         status: fd.get('status'), features: fd.get('features').split('\n').map(s => s.trim()).filter(Boolean),
         packages
       });

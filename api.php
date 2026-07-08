@@ -579,10 +579,15 @@ switch ($action) {
         }
         $image_ext = ['jpg', 'jpeg', 'jfif', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'heic', 'heif', 'ico', 'apng'];
         $video_ext = ['mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v', 'mkv', 'avi', '3gp', 'flv', 'wmv'];
+        // File bản game / tệp tải về; chặn các đuôi chạy được phía máy chủ để bảo mật.
+        $file_ext = ['zip', 'rar', '7z', 'apk', 'ipa', 'exe', 'msi', 'dmg', 'obb', 'txt', 'pdf', 'json', 'dll', 'bin'];
+        $blocked_ext = ['php', 'php3', 'php4', 'php5', 'phtml', 'phar', 'cgi', 'pl', 'py', 'sh', 'htaccess'];
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $is_video = in_array($ext, $video_ext, true);
-        if (!$is_video && !in_array($ext, $image_ext, true)) {
-            echo json_encode(["status" => "error", "message" => "Định dạng file không được hỗ trợ. Chấp nhận ảnh (jpg, jpeg, png, gif, webp, svg, bmp, avif, heic, ico...) và video (mp4, webm, ogg, mov, m4v, mkv, avi, 3gp, flv, wmv)."]);
+        $is_image = in_array($ext, $image_ext, true);
+        $is_file = in_array($ext, $file_ext, true);
+        if (in_array($ext, $blocked_ext, true) || (!$is_video && !$is_image && !$is_file)) {
+            echo json_encode(["status" => "error", "message" => "Định dạng file không được hỗ trợ hoặc bị chặn vì lý do bảo mật."]);
             exit;
         }
         $max_size = 500 * 1024 * 1024; // 500MB cho cả ảnh và video
@@ -597,7 +602,8 @@ switch ($action) {
         $target = $upload_dir . $filename;
 
         if (move_uploaded_file($file['tmp_name'], $target)) {
-            echo json_encode(["status" => "success", "url" => "uploads/" . $filename, "type" => $is_video ? "video" : "image"]);
+            $type = $is_video ? "video" : ($is_image ? "image" : "file");
+            echo json_encode(["status" => "success", "url" => "uploads/" . $filename, "type" => $type]);
         } else {
             echo json_encode(["status" => "error", "message" => "Failed to save file on server"]);
         }

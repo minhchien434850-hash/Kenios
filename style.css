@@ -873,3 +873,29 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   .modal { padding: 20px 16px; }
   .service-modal-media { min-height: 140px; }
 }
+
+/* ===== Bổ sung: nút Lưu giao diện, link tải, showcase, media link ===== */
+.save-ui-fab {
+  position: fixed; left: 18px; bottom: 20px; z-index: 2600;
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px;
+  border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: .88rem; color: #1a1200;
+  background: linear-gradient(135deg, var(--gold), #ff8f1f); box-shadow: 0 10px 26px -8px rgba(255,143,31,.7);
+}
+.save-ui-fab:hover { transform: translateY(-1px); }
+.save-ui-fab.is-loading { opacity: .7; pointer-events: none; }
+.save-ui-fab .btn-ico { display: inline-flex; }
+.save-ui-fab .btn-ico svg { width: 18px; height: 18px; }
+@media (max-width: 600px) { .save-ui-fab { left: 12px; bottom: 14px; padding: 10px 14px; font-size: .8rem; } }
+
+.download-upload-row { flex-direction: row !important; align-items: center; gap: 10px; flex-wrap: wrap; }
+.download-upload-row input[type=file] { flex: 1; min-width: 140px; }
+.order-download { margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.order-download .order-ico svg { width: 17px; height: 17px; }
+
+.showcase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.showcase-item { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; background: var(--glass); }
+.showcase-item img, .showcase-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.media-link-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+.media-link-row input[type=text] { flex: 1; min-width: 200px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); }
+.media-link-row select { padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); }

@@ -206,6 +206,16 @@
       </div>
     </section>
 
+    <section class="section" id="showcase" data-reveal hidden>
+      <div class="container">
+        <div class="section-head">
+          <h2>Hình Ảnh &amp; Video</h2>
+          <p>Khám phá hình ảnh và video nổi bật của shop</p>
+        </div>
+        <div class="showcase-grid" id="showcaseGrid"></div>
+      </div>
+    </section>
+
     <section class="section section-alt" id="faq" data-reveal>
       <div class="container">
         <div class="section-head">
@@ -385,13 +395,16 @@
       </div>
       <div class="admin-panel-body" id="adminPanelBody"></div>
       <div class="admin-sync-bar">
-        <input type="password" id="adminSyncPass" placeholder="Nhập lại mật khẩu admin để đồng bộ">
-        <button type="button" class="btn btn-glass btn-sm" id="adminSyncBtn">☁️ Đồng bộ lên máy chủ</button>
         <button type="button" class="btn btn-glass btn-sm" id="adminLoadKeysBtn">🔑 Tải kho key đầy đủ</button>
         <span class="admin-sync-msg" id="adminSyncMsg"></span>
       </div>
     </div>
   </div>
+
+  <!-- Nút LƯU GIAO DIỆN cố định góc dưới trái — chỉ hiện cho admin, cuộn đâu cũng thấy -->
+  <button type="button" class="save-ui-fab" id="saveUiFab" hidden>
+    <span class="btn-ico" data-icon="cloud"></span> <span>Lưu giao diện</span>
+  </button>
 
   <!-- ===== Modal: Thông tin pháp lý ===== -->
   <div class="modal-overlay" id="legalModal" hidden>
