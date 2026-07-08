@@ -106,6 +106,30 @@ button { font: inherit; }
 .brand-mark { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-text strong { font-size: 1.05rem; letter-spacing: .2px; font-family: var(--logo-font); color: var(--logo-color); }
+
+/* Hiệu ứng chạy màu logo — chạy mượt, liên tục, không khựng (điểm đầu = điểm cuối) */
+@keyframes logoRainbowCycle {
+  0%   { color: #ff3b3b; }
+  14%  { color: #ff9d3b; }
+  28%  { color: #ffe93b; }
+  42%  { color: #3bff7a; }
+  57%  { color: #3bd4ff; }
+  71%  { color: #8b5cf6; }
+  85%  { color: #ff5fd8; }
+  100% { color: #ff3b3b; }
+}
+.brand-text strong.logo-anim-rainbow { animation: logoRainbowCycle var(--logo-anim-speed, 6s) linear infinite; }
+
+@keyframes logoShineSweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+.brand-text strong.logo-anim-shine {
+  background-image: linear-gradient(100deg, var(--logo-color, #fff) 20%, #fff 50%, var(--logo-color, #fff) 80%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  animation: logoShineSweep var(--logo-anim-speed, 4s) linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-text strong.logo-anim-rainbow, .brand-text strong.logo-anim-shine { animation: none; color: var(--logo-color); }
+}
 .brand-text small { color: var(--muted); font-size: .7rem; }
 .main-nav { display: flex; gap: 22px; font-size: .92rem; white-space: nowrap; }
 .main-nav a { color: var(--muted); transition: color .15s ease; }
@@ -404,6 +428,13 @@ button { font: inherit; }
 .legal-content { font-size: .88rem; color: var(--muted); line-height: 1.7; max-height: 60vh; overflow-y: auto; }
 .legal-content h4 { color: var(--ink); margin: 16px 0 6px; }
 .legal-content h4:first-child { margin-top: 0; }
+
+/* ---------- Welcome announcement modal ---------- */
+.welcome-modal { text-align: center; }
+.welcome-icon { font-size: 2.4rem; display: block; margin-bottom: 10px; }
+.welcome-modal h3 { margin: 0 0 10px; }
+.welcome-modal p { color: var(--muted); font-size: .92rem; line-height: 1.6; margin: 0 0 22px; white-space: pre-line; }
+.welcome-actions { display: flex; flex-direction: column; gap: 10px; }
 
 /* ---------- UX polish: password toggle, button spinner, toast close ---------- */
 .input-with-toggle { position: relative; }

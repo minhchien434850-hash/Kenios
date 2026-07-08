@@ -332,6 +332,20 @@
     </div>
   </div>
 
+  <!-- ===== Modal: Thông báo chào mừng ===== -->
+  <div class="modal-overlay" id="welcomeModal" hidden>
+    <div class="modal modal-sm welcome-modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <span class="welcome-icon">📢</span>
+      <h3 id="welcomeTitle"></h3>
+      <p id="welcomeMessage"></p>
+      <div class="welcome-actions">
+        <a href="#" id="welcomeContactBtn" class="btn btn-primary btn-block" target="_blank" rel="noopener">💬 Liên hệ ngay</a>
+        <button type="button" class="btn btn-ghost btn-block" data-close-modal>Đóng</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== Toast ===== -->
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 

@@ -18,8 +18,13 @@ window.KENIOS_DEFAULT_DB = {
     logoUrl: "",
     logoFont: "Be Vietnam Pro",
     logoColor: "",
+    logoColorMode: "solid",
+    logoAnimSpeed: 6,
     accentColor: "#ffb703",
     googleClientId: "",
+    welcomeEnabled: false,
+    welcomeTitle: "Chào mừng bạn đến với KENIOS.STORE!",
+    welcomeMessage: "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
     contactAdminName: "ADMIN SHOP",
@@ -798,6 +803,23 @@ window.KENIOS_DEFAULT_DB = {
 
     const loader = $('#bootLoader');
     if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 500); }
+
+    maybeShowWelcome(Store.db.config);
+  }
+
+  // ---- Thông báo chào mừng + lời chào giọng nói (giọng Google) khi vào web ----
+  const WELCOME_SHOWN_KEY = 'kenios_welcome_shown_v1';
+  function maybeShowWelcome(cfg) {
+    if (!cfg.welcomeEnabled) return;
+    if (sessionStorage.getItem(WELCOME_SHOWN_KEY)) return;
+    sessionStorage.setItem(WELCOME_SHOWN_KEY, '1');
+    setTimeout(() => {
+      setText('#welcomeTitle', cfg.welcomeTitle);
+      setText('#welcomeMessage', cfg.welcomeMessage);
+      setAttr('#welcomeContactBtn', 'href', cfg.zaloLink);
+      openModal('#welcomeModal');
+      Voice.speak(`${cfg.welcomeTitle}. ${cfg.welcomeMessage}`);
+    }, 600);
   }
 
   // ============================================================
@@ -830,6 +852,8 @@ window.KENIOS_DEFAULT_DB = {
 
     applyBranding(cfg);
     setupGoogleSignIn(cfg);
+    setText('#aiName', cfg.aiName);
+    if ($('#aiAvatar')) $('#aiAvatar').src = cfg.aiAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=kenios-ai`;
 
     Voice.setPrefs({ enabled: !!cfg.ttsEnabled, rate: cfg.ttsRate || 1, pitch: cfg.ttsPitch || 1 });
 
@@ -904,6 +928,14 @@ window.KENIOS_DEFAULT_DB = {
     const accent = cfg.accentColor || '#ffb703';
     document.documentElement.style.setProperty('--gold', accent);
     document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
+
+    document.documentElement.style.setProperty('--logo-anim-speed', `${cfg.logoAnimSpeed || 6}s`);
+    const brandNameEl = $('#brandName');
+    if (brandNameEl) {
+      brandNameEl.classList.remove('logo-anim-rainbow', 'logo-anim-shine');
+      if (cfg.logoColorMode === 'rainbow') brandNameEl.classList.add('logo-anim-rainbow');
+      else if (cfg.logoColorMode === 'shine') brandNameEl.classList.add('logo-anim-shine');
+    }
   }
 
   // ============================================================
@@ -1716,6 +1748,16 @@ window.KENIOS_DEFAULT_DB = {
           </select>
         </label>
         <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
+        <label>Hiệu ứng chạy màu chữ logo
+          <select name="logoColorMode">
+            <option value="solid" ${c.logoColorMode === 'solid' ? 'selected' : ''}>Tắt (dùng màu ở trên)</option>
+            <option value="rainbow" ${c.logoColorMode === 'rainbow' ? 'selected' : ''}>🌈 Cầu vồng 7 màu (chạy liên tục)</option>
+            <option value="shine" ${c.logoColorMode === 'shine' ? 'selected' : ''}>✨ Ánh kim lấp lánh</option>
+          </select>
+        </label>
+        <label>Tốc độ chạy màu (giây/vòng)
+          <input type="number" name="logoAnimSpeed" min="1" max="20" step="0.5" value="${c.logoAnimSpeed || 6}">
+        </label>
 
         <div class="admin-form-section">🎨 Màu chủ đạo toàn trang</div>
         <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || '#ffb703')}"></label>
@@ -1753,17 +1795,44 @@ window.KENIOS_DEFAULT_DB = {
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
         <label class="span-2">Tên chủ tài khoản <input name="bankAccountName" value="${esc(c.bankAccountName)}"></label>
 
-        <div class="admin-form-section">📢 Chữ chạy &amp; Trợ lý ảo</div>
+        <div class="admin-form-section">📣 Thông báo &amp; Lời chào khi vào Web (giọng Google)</div>
+        <label>Bật thông báo chào mừng
+          <select name="welcomeEnabled">
+            <option value="1" ${c.welcomeEnabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!c.welcomeEnabled ? 'selected' : ''}>Tắt</option>
+          </select>
+        </label>
+        <label>Tiêu đề <input name="welcomeTitle" value="${esc(c.welcomeTitle || '')}"></label>
+        <label class="span-2">Nội dung lời chào (hiển thị + đọc bằng giọng Google)
+          <textarea name="welcomeMessage">${esc(c.welcomeMessage || '')}</textarea>
+        </label>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Thông báo kèm nút "Liên hệ ngay" sẽ hiện 1 lần mỗi phiên truy cập, đồng thời đọc to nội dung này bằng giọng nữ Google (nếu trình duyệt hỗ trợ).
+        </p>
+
+        <div class="admin-form-section">📢 Chữ chạy</div>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
         <label>Tốc độ chạy (giây/vòng, càng nhỏ càng nhanh)
           <input type="number" name="marqueeSpeed" min="6" max="60" step="1" value="${c.marqueeSpeed || 26}">
         </label>
+
+        <div class="admin-form-section">🤖 Trợ lý ảo AI</div>
         <label>Giọng nói trợ lý (TTS)
           <select name="ttsEnabled">
             <option value="1" ${c.ttsEnabled ? 'selected' : ''}>Bật</option>
             <option value="0" ${!c.ttsEnabled ? 'selected' : ''}>Tắt</option>
           </select>
         </label>
+        <label>Tên trợ lý (aiName) <input name="aiName" value="${esc(c.aiName || '')}"></label>
+        <label class="span-2">Lời chào đầu tiên (aiGreeting) <textarea name="aiGreeting">${esc(c.aiGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời khi chào hỏi (aiResponseGreeting) <textarea name="aiResponseGreeting">${esc(c.aiResponseGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời về nạp tiền (aiResponseDeposit) <textarea name="aiResponseDeposit">${esc(c.aiResponseDeposit || '')}</textarea></label>
+        <label class="span-2">Trả lời về sản phẩm (aiResponseProduct) <textarea name="aiResponseProduct">${esc(c.aiResponseProduct || '')}</textarea></label>
+        <label class="span-2">Trả lời về thiết kế web (aiResponseWeb) <textarea name="aiResponseWeb">${esc(c.aiResponseWeb || '')}</textarea></label>
+        <label class="span-2">Trả lời về bảng giá (aiResponsePrice) <textarea name="aiResponsePrice">${esc(c.aiResponsePrice || '')}</textarea></label>
+        <label class="span-2">Trả lời về liên hệ (aiResponseContact) <textarea name="aiResponseContact">${esc(c.aiResponseContact || '')}</textarea></label>
+        <label class="span-2">Trả lời khi cảm ơn (aiResponseThanks) <textarea name="aiResponseThanks">${esc(c.aiResponseThanks || '')}</textarea></label>
+        <label class="span-2">Trả lời mặc định khi không hiểu (aiResponseFallback) <textarea name="aiResponseFallback">${esc(c.aiResponseFallback || '')}</textarea></label>
 
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">💾 Lưu cấu hình</button>
@@ -1935,15 +2004,22 @@ window.KENIOS_DEFAULT_DB = {
       Store.adminUpdateConfig({
         logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),
         logoUrl: fd.get('logoUrl'), logoFont: fd.get('logoFont'), logoColor: fd.get('logoColor'),
+        logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
         accentColor: fd.get('accentColor'),
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
         contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
         hotline: fd.get('hotline'), zaloLink: fd.get('zaloLink'),
         googleClientId: fd.get('googleClientId'),
+        welcomeEnabled: fd.get('welcomeEnabled') === '1', welcomeTitle: fd.get('welcomeTitle'), welcomeMessage: fd.get('welcomeMessage'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
+        aiName: fd.get('aiName'), aiGreeting: fd.get('aiGreeting'),
+        aiResponseGreeting: fd.get('aiResponseGreeting'), aiResponseDeposit: fd.get('aiResponseDeposit'),
+        aiResponseProduct: fd.get('aiResponseProduct'), aiResponseWeb: fd.get('aiResponseWeb'),
+        aiResponsePrice: fd.get('aiResponsePrice'), aiResponseContact: fd.get('aiResponseContact'),
+        aiResponseThanks: fd.get('aiResponseThanks'), aiResponseFallback: fd.get('aiResponseFallback'),
         bgUrl: fd.get('bgUrl')
       });
       renderStatic();
