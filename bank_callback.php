@@ -100,79 +100,16 @@ if (!$is_authenticated) {
     exit;
 }
 
-// === PARSE DANH SÁCH GIAO DỊCH ===
-if (isset($data['data']) && is_array($data['data'])) {
-    $transactions = $data['data'];
-} elseif (isset($data['transactions']) && is_array($data['transactions'])) {
-    $transactions = $data['transactions'];
-} elseif (isset($data['transaction']) && is_array($data['transaction'])) {
-    $transactions = [$data['transaction']];
-} else {
-    $transactions = [$data];
-}
+// === PARSE + XỬ LÝ DANH SÁCH GIAO DỊCH (dùng chung với poll_acb) ===
+require_once __DIR__ . '/lib_bank.php';
 
 if (empty($db) || !isset($db['users'])) {
     echo json_encode(["status" => "error", "message" => "Database not initialized"]);
     exit;
 }
 
-$processed_count = 0;
-$success_logs = [];
-
-foreach ($transactions as $txn) {
-    if (!is_array($txn)) continue;
-
-    $memo = '';
-    foreach (['description', 'memo', 'addInfo', 'content', 'remarks', 'transferDescription'] as $f) {
-        if (!empty($txn[$f])) { $memo = $txn[$f]; break; }
-    }
-
-    $amount = 0;
-    foreach (['amount', 'transferAmount', 'value', 'credit', 'creditAmount'] as $f) {
-        if (isset($txn[$f]) && intval($txn[$f]) > 0) { $amount = intval($txn[$f]); break; }
-    }
-
-    $txnRef = '';
-    foreach (['transactionNumber', 'tid', 'id', 'reference', 'refNumber', 'transId', 'transactionID', 'ftNo'] as $f) {
-        if (!empty($txn[$f])) { $txnRef = strval($txn[$f]); break; }
-    }
-    if (empty($txnRef)) $txnRef = 'AUTO-' . $amount . '-' . md5($memo . $amount);
-
-    if ($amount < 1000) continue;
-
-    // Chống xử lý trùng lặp
-    $already = false;
-    foreach (($db['transactions'] ?? []) as $t) {
-        if (isset($t['bankRef']) && strval($t['bankRef']) === $txnRef) { $already = true; break; }
-    }
-    if ($already) continue;
-
-    // Khớp user: nội dung chuyển khoản phải chứa "NAP<userId>" (đúng định dạng do
-    // trang nạp tiền sinh ra), tránh khớp nhầm theo tên người dùng gây trừ/cộng sai tài khoản.
-    $memo_clean = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $memo));
-    $matchedUserIdx = -1;
-    foreach ($db['users'] as $idx => $u) {
-        $uid = isset($u['userId']) ? strval($u['userId']) : '';
-        if (empty($uid)) continue;
-        if (strpos($memo_clean, 'NAP' . $uid) !== false) { $matchedUserIdx = $idx; break; }
-    }
-    if ($matchedUserIdx === -1) continue;
-
-    $matched_user = $db['users'][$matchedUserIdx];
-    $old_balance = isset($matched_user['balance']) ? floatval($matched_user['balance']) : 0;
-    $db['users'][$matchedUserIdx]['balance'] = $old_balance + $amount;
-
-    $newTxn = [
-        "userId" => $matched_user['userId'], "username" => $matched_user['username'],
-        "type" => "deposit", "amount" => $amount, "date" => date("c"),
-        "description" => "Nạp tiền tự động VietQR ($memo)", "bankRef" => $txnRef
-    ];
-    if (!isset($db['transactions'])) $db['transactions'] = [];
-    array_unshift($db['transactions'], $newTxn);
-
-    $processed_count++;
-    $success_logs[] = "+" . number_format($amount) . "d -> user=" . $matched_user['username'] . " | Ref=$txnRef";
-}
+$transactions = bank_extract_transactions($data);
+list($processed_count, $success_logs) = bank_process_transactions($db, $transactions);
 
 if ($processed_count > 0 && write_db($db_file, $db)) {
     http_response_code(200);

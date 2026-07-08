@@ -6,6 +6,6 @@
 return [
     // Khóa API Google Cloud Text-to-Speech (https://console.cloud.google.com/apis/credentials).
     "ttsApiKey" => "",
-    // Token xác thực webhook ngân hàng tự động (Casso/SePay/ThueAPIBank/ACB...).
-    "bankToken" => "",
+    // Token xác thực webhook / lịch sử ngân hàng tự động (ThueAPIBank - ACB).
+    "bankToken" => "9ae2cbf6b50e0bc2f5814f3ce6ce7f9b",
 ];

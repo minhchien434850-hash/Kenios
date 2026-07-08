@@ -88,6 +88,15 @@ button { font: inherit; }
   background: var(--glass); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
 }
 
+/* ---------- Icon SVG (thay emoji "icon máy") ---------- */
+[data-icon] { display: inline-flex; align-items: center; justify-content: center; }
+.icon-btn svg { width: 20px; height: 20px; }
+.admin-quick-btn svg { width: 21px; height: 21px; }
+.fx-toggle-btn svg { width: 22px; height: 22px; }
+.ai-fab svg { width: 28px; height: 28px; }
+.dd-ico { display: inline-flex; align-items: center; justify-content: center; }
+.dd-ico svg { width: 17px; height: 17px; }
+
 /* ---------- Header ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 500; height: var(--header-h);
@@ -169,7 +178,8 @@ button { font: inherit; }
   text-align: left; width: 100%; cursor: pointer; text-decoration: none; transition: background .15s ease;
 }
 .mobile-nav-link:hover, .mobile-nav-link:focus-visible { background: rgba(255,255,255,.07); }
-.mobile-nav-link .mnl-icon { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
+.mobile-nav-link .mnl-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; color: var(--gold-soft); }
+.mobile-nav-link .mnl-icon svg { width: 22px; height: 22px; }
 .mobile-nav-link > span:nth-of-type(2) { flex: 1; }
 .mnl-badge {
   font-size: .66rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; flex-shrink: 0;
@@ -393,7 +403,8 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 /* ---------- AI Assistant widget ---------- */
 .ai-widget { position: fixed; bottom: 24px; right: 24px; z-index: 2500; }
 .ai-fab {
-  width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer; font-size: 1.5rem;
+  width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, var(--violet), var(--violet-soft)); box-shadow: 0 12px 30px -8px rgba(139,92,246,.6);
   color: #fff;
 }
@@ -420,7 +431,7 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .fx-toggle-btn {
   position: fixed; bottom: 24px; right: 96px; z-index: 2400; width: 50px; height: 50px; border-radius: 50%;
   border: 1px solid var(--border); background: var(--glass-strong); backdrop-filter: blur(10px); color: var(--ink);
-  font-size: 1.2rem; cursor: pointer;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
 }
 .fx-panel {
   position: fixed; bottom: 84px; right: 96px; z-index: 2400; width: 260px; background: var(--bg-alt);
@@ -456,6 +467,8 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 }
 .admin-tab:hover { background: rgba(255,255,255,.05); color: var(--ink); }
 .admin-tab.active { background: linear-gradient(135deg, var(--violet), var(--violet-soft)); color: #fff; }
+.admin-tab-ico { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; }
+.admin-tab-ico svg { width: 19px; height: 19px; }
 .admin-panel-body { grid-area: body; overflow-y: auto; padding-right: 4px; min-height: 0; min-width: 0; }
 .admin-sync-bar { grid-area: sync; }
 @media (max-width: 720px) {

@@ -224,6 +224,75 @@ switch ($action) {
         echo $response;
         break;
 
+    case 'poll_acb':
+        // Chủ động KÉO lịch sử giao dịch ACB từ ThueAPIBank rồi cộng số dư cho các nội
+        // dung chuyển khoản khớp "NAP<userId>". Token giữ bí mật trong secrets.php.
+        // Frontend gọi khi khách bấm "Tôi đã chuyển khoản" (và có thể lặp lại vài giây/lần).
+        require_once __DIR__ . '/lib_bank.php';
+        $secrets = read_secrets();
+        $token = trim((string)($secrets['bankToken'] ?? ''));
+        if ($token === '') {
+            echo json_encode(["status" => "error", "message" => "Chưa cấu hình token ThueAPIBank trong phần Cấu hình admin."]);
+            exit;
+        }
+        $body = json_decode(file_get_contents('php://input'), true) ?: [];
+        $note = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', (string)($body['note'] ?? '')));
+
+        $ch = curl_init("https://thueapibank.vn/historyapiacb/" . urlencode($token));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $response = curl_exec($ch);
+        $curl_err = curl_error($ch);
+        curl_close($ch);
+        if ($response === false) {
+            echo json_encode(["status" => "error", "message" => "Không kết nối được tới ThueAPIBank: $curl_err"]);
+            exit;
+        }
+        $parsed = json_decode($response, true);
+        if (!is_array($parsed)) {
+            echo json_encode(["status" => "error", "message" => "ThueAPIBank trả về dữ liệu không hợp lệ (kiểm tra lại token)."]);
+            exit;
+        }
+        $transactions = bank_extract_transactions($parsed);
+
+        // Khóa file khi cộng tiền để không cộng trùng khi có nhiều request cùng lúc.
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]);
+            exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        list($count, $logs) = bank_process_transactions($db, $transactions);
+        if ($count > 0) {
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            fflush($fp);
+        }
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        // Kiểm tra riêng: giao dịch của "note" (mã nạp lần này) đã được ghi nhận chưa
+        // (dù ở lần poll này hay đã cộng từ webhook trước đó) + trả về số dư mới của user.
+        $credited = false;
+        $balance = null;
+        if ($note !== '') {
+            foreach (($db['transactions'] ?? []) as $t) {
+                if (($t['type'] ?? '') !== 'deposit') continue;
+                $desc = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $t['description'] ?? ''));
+                if (strpos($desc, $note) !== false) {
+                    $credited = true;
+                    foreach (($db['users'] ?? []) as $u) {
+                        if (($u['userId'] ?? '') === ($t['userId'] ?? '~')) { $balance = $u['balance']; break; }
+                    }
+                    break;
+                }
+            }
+        }
+        echo json_encode(["status" => "success", "processed" => $count, "credited" => $credited, "balance" => $balance]);
+        break;
+
     case 'get_db':
         if (!file_exists($db_file)) {
             echo json_encode(["status" => "error", "message" => "Database file not found"]);

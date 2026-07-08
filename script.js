@@ -354,6 +354,26 @@ window.KENIOS_DEFAULT_DB = {
       this._emit();
     },
 
+    // Kiểm tra giao dịch nạp tự động: bảo máy chủ kéo lịch sử ngân hàng từ ThueAPIBank
+    // (poll_acb). Nếu máy chủ đã cộng tiền cho đúng mã nạp này (qua polling lần này hoặc
+    // webhook trước đó), đồng bộ số dư mới từ máy chủ về máy khách.
+    //   • Ném BackendUnavailableError khi KHÔNG có máy chủ PHP (nơi gọi rơi về demo cục bộ).
+    //   • Trả { serverError:true } khi CÓ máy chủ nhưng bước gọi ngân hàng lỗi (KHÔNG được
+    //     cộng tiền demo trong trường hợp này, tránh cộng tiền ảo khi bank API tạm lỗi).
+    async checkAutoDeposit(note) {
+      const res = await this._callApi('poll_acb', { note }); // BackendUnavailableError sẽ propagate ra ngoài
+      if (!res || res.status !== 'success') {
+        return { credited: false, serverError: true, message: (res && res.message) || 'Máy chủ chưa kiểm tra được giao dịch.' };
+      }
+      if (res.credited && res.balance !== null && res.balance !== undefined) {
+        const user = this.currentUser();
+        if (user) user.balance = res.balance;
+        this._persistOverrides();
+        this._emit();
+      }
+      return { credited: !!res.credited, balance: res.balance };
+    },
+
     // Gói có kho key thật (admin đã nhập key trong tab Dịch vụ) sẽ có field `keyCount`
     // (kể cả khi = 0). Với gói này, PHẢI mua qua máy chủ (redeemKeyOnServer) để rút
     // đúng 1 key thật + trừ số dư một cách xác thực, không dùng đường cũ (giả lập cục bộ).
@@ -712,7 +732,8 @@ window.KENIOS_DEFAULT_DB = {
       btn.className = 'fx-toggle-btn';
       btn.type = 'button';
       btn.setAttribute('aria-label', 'Cài đặt hiệu ứng chạm & âm thanh');
-      btn.innerHTML = '🔊';
+      // Icon SVG được điền bởi applyIcons() (gọi trong boot, sau Effects.init).
+      btn.setAttribute('data-icon', 'sound');
 
       const panel = document.createElement('div');
       panel.className = 'fx-panel';
@@ -860,6 +881,38 @@ window.KENIOS_DEFAULT_DB = {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
 
+  // ============================================================
+  // BỘ ICON SVG (thay cho emoji "icon máy" — hiển thị đồng nhất, nét mảnh, đẹp trên
+  // mọi thiết bị). Dùng qua thuộc tính data-icon="tên" trong HTML, hoặc ICONS.tên
+  // trong template JS. Tất cả vẽ bằng nét currentColor nên tự đổi màu theo chữ.
+  // ============================================================
+  const _svg = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const ICONS = {
+    home: _svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'),
+    card: _svg('<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6.5 14.5h4"/>'),
+    box: _svg('<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>'),
+    grid: _svg('<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>'),
+    gamepad: _svg('<path d="M6 8h12a4 4 0 0 1 4 4v.4a3.4 3.4 0 0 1-6.1 2.1l-.6-.9H8.7l-.6.9A3.4 3.4 0 0 1 2 12.4V12a4 4 0 0 1 4-4Z"/><path d="M7.5 11v2M6.5 12h2"/><circle cx="16" cy="11.4" r=".8" fill="currentColor" stroke="none"/><circle cx="17.6" cy="13" r=".8" fill="currentColor" stroke="none"/>'),
+    web: _svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9.7 8-2 2 2 2M14.3 8l2 2-2 2"/>'),
+    news: _svg('<path d="M4 5h13v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"/><path d="M17 8h3v10.5a1.5 1.5 0 0 1-3 0V8Z"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/>'),
+    dashboard: _svg('<path d="M4 20V10M9 20V4M14 20v-7M19 20V8"/>'),
+    users: _svg('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M17.7 20a5.6 5.6 0 0 0-2.7-4.7"/>'),
+    image: _svg('<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.7"/><path d="m4 17 4.5-4.5a2 2 0 0 1 2.7 0L20 20"/>'),
+    gear: _svg('<circle cx="12" cy="12" r="3.1"/><path d="M12 2.5v2.6M12 18.9v2.6M4.3 4.3l1.9 1.9M17.8 17.8l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.3 19.7l1.9-1.9M17.8 6.2l1.9-1.9"/>'),
+    search: _svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>'),
+    shield: _svg('<path d="M12 3 5 6v6c0 4 3 6.6 7 9 4-2.4 7-5 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>'),
+    robot: _svg('<rect x="4.5" y="8" width="15" height="11" rx="3"/><path d="M12 8V5.2"/><circle cx="12" cy="3.6" r="1.6"/><circle cx="9.2" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.8" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 16.3h5M2.5 12v3M21.5 12v3"/>'),
+    sound: _svg('<path d="M4 9v6h3.5L13 20V4L7.5 9H4Z"/><path d="M16.4 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/>'),
+    logout: _svg('<path d="M15 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4"/><path d="M10 12H3M6 8l-3 4 3 4"/>'),
+    close: _svg('<path d="M6 6l12 12M18 6 6 18"/>')
+  };
+  function applyIcons(root = document) {
+    $$('[data-icon]', root).forEach(el => {
+      const name = el.dataset.icon;
+      if (ICONS[name] && !el.dataset.iconDone) { el.innerHTML = ICONS[name]; el.dataset.iconDone = '1'; }
+    });
+  }
+
   let selectedCategory = 'all';
   let currentServiceId = null;
   let currentPackage = null;
@@ -904,6 +957,7 @@ window.KENIOS_DEFAULT_DB = {
     await Store.init();
     Store.onChange(renderDynamic);
 
+    applyIcons();
     renderStatic();
     renderDynamic();
     renderFaq();
@@ -1356,9 +1410,9 @@ window.KENIOS_DEFAULT_DB = {
           <button class="avatar-btn" id="avatarBtn"><img src="${avatar}" alt=""></button>
           <div class="user-dropdown" id="userDropdown">
             <strong style="padding:8px 12px;font-size:.85rem;">${esc(user.username)}</strong>
-            <button id="ddOrders">📦 Đơn hàng của tôi</button>
-            <button id="ddDeposit">💳 Nạp tiền</button>
-            <button id="ddLogout">🚪 Đăng xuất</button>
+            <button id="ddOrders"><span class="dd-ico">${ICONS.box}</span> Đơn hàng của tôi</button>
+            <button id="ddDeposit"><span class="dd-ico">${ICONS.card}</span> Nạp tiền</button>
+            <button id="ddLogout"><span class="dd-ico">${ICONS.logout}</span> Đăng xuất</button>
           </div>
         </div>
       </div>
@@ -1516,24 +1570,28 @@ window.KENIOS_DEFAULT_DB = {
       const amount = parseInt($('#confirmDepositBtn').dataset.amount, 10);
       const note = $('#confirmDepositBtn').dataset.note;
       await withLoading($('#confirmDepositBtn'), async () => {
-        const confirmed = await pollServerForTransaction(note);
-        Store.deposit(amount, note);
-        closeModal('#depositModal');
-        $('#depositQrBox').hidden = true;
-        toast(confirmed
-          ? `Đã xác nhận giao dịch ${fmt(amount)} từ máy chủ ngân hàng!`
-          : `Đã cộng ${fmt(amount)} vào số dư (chế độ demo cục bộ, không có máy chủ xác thực).`, 'success');
+        try {
+          const res = await Store.checkAutoDeposit(note);
+          if (res.credited) {
+            closeModal('#depositModal');
+            $('#depositQrBox').hidden = true;
+            toast('Đã nhận được chuyển khoản! Số dư của bạn đã được cộng tự động.', 'success');
+            Voice.speak('Bạn đã nạp tiền thành công. Số dư đã được cộng vào tài khoản.');
+          } else if (res.serverError) {
+            // Có máy chủ nhưng bước gọi ngân hàng lỗi — KHÔNG cộng tiền, chỉ báo lỗi.
+            toast(res.message + ' Vui lòng thử lại sau ít phút hoặc liên hệ Admin.', 'error');
+          } else {
+            toast('Chưa nhận được giao dịch. Nếu bạn vừa chuyển khoản, vui lòng đợi 10–30 giây rồi bấm lại nút này.', 'error');
+          }
+        } catch (e) {
+          // Chỉ tới đây khi KHÔNG có máy chủ PHP (chế độ demo) → cộng cục bộ để vẫn dùng thử được.
+          Store.deposit(amount, note);
+          closeModal('#depositModal');
+          $('#depositQrBox').hidden = true;
+          toast(`Đã cộng ${fmt(amount)} vào số dư (chế độ demo cục bộ, không có máy chủ xác thực).`, 'success');
+        }
       });
     });
-  }
-
-  async function pollServerForTransaction(note) {
-    try {
-      const res = await fetch(`api.php?action=get_db&t=${Date.now()}`, { cache: 'no-store' });
-      if (!res.ok) return false;
-      const json = await res.json();
-      return !!(json.transactions || []).find(t => (t.description || '').includes(note));
-    } catch { return false; }
   }
 
   // ---- Chi tiết dịch vụ ----
