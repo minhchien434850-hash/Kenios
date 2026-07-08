@@ -1025,8 +1025,20 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   let selectedCategory = 'all';
+  let selectedSub = 'all';         // lọc theo thư mục con trong mục "Dịch Vụ Nổi Bật"
   let browseCategoryId = null;     // null = đang xem danh sách Danh mục; ngược lại = id danh mục đang mở
   let browseSubId = null;          // null = đang xem Thư mục con; ngược lại = id thư mục con đang mở
+
+  // Sinh ID tự động dạng "01", "02"... cho từng bộ sưu tập (danh mục / thư mục con /
+  // sản phẩm) — MỖI bộ có chuỗi số riêng, không dùng chung. Bỏ qua các id chữ cũ.
+  function nextSeqId(arr) {
+    let max = 0;
+    (arr || []).forEach(item => {
+      const n = parseInt(String(item.id).replace(/\D/g, ''), 10);
+      if (!isNaN(n) && n > max) max = n;
+    });
+    return String(max + 1).padStart(2, '0');
+  }
   let currentServiceId = null;
   let currentPackage = null;
   let adminActiveTab = 'overview';
@@ -1121,6 +1133,8 @@ window.KENIOS_DEFAULT_DB = {
     document.title = cfg.siteTitle;
     setText('#brandName', cfg.logoText);
     setText('#brandSub', cfg.logoSubtext);
+    setText('#mobileNavBrandName', cfg.logoText);
+    setText('#mobileNavBrandSub', cfg.logoSubtext);
     setText('#footerBrand', cfg.logoText);
     setText('#footerDesc', cfg.contactAdminDesc);
     setText('#footerAdminName', `${cfg.contactAdminName} — ${cfg.contactAdminSub}`);
@@ -1259,6 +1273,7 @@ window.KENIOS_DEFAULT_DB = {
 
   function applyBranding(cfg) {
     $$('.brand-mark').forEach(img => { img.src = cfg.logoUrl || './favicon.svg'; });
+    if ($('#mobileNavLogo')) $('#mobileNavLogo').src = cfg.logoUrl || './favicon.svg';
 
     const font = cfg.logoFont || 'Be Vietnam Pro';
     ensureFontLoaded(font);
@@ -1399,7 +1414,32 @@ window.KENIOS_DEFAULT_DB = {
       const btn = e.target.closest('.filter-tab');
       if (!btn) return;
       selectedCategory = btn.dataset.filter;
+      selectedSub = 'all'; // đổi danh mục thì reset thư mục con
       $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b === btn));
+      renderSubFilterTabs();
+      renderServiceGrid();
+    };
+    renderSubFilterTabs();
+  }
+
+  // Hàng lọc thứ 2: thư mục con của danh mục đang chọn (chỉ hiện khi danh mục đó có
+  // thư mục con). Bấm danh mục ở hàng trên → hiện hàng thư mục con này để lọc tiếp.
+  function renderSubFilterTabs() {
+    const wrap = $('#subFilterTabs');
+    if (!wrap) return;
+    const subs = selectedCategory === 'all'
+      ? []
+      : (Store.db.subcategories || []).filter(s => s.categoryId === selectedCategory);
+    if (!subs.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+    wrap.hidden = false;
+    wrap.innerHTML = [`<button class="filter-tab sub ${selectedSub === 'all' ? 'active' : ''}" data-subfilter="all">Tất cả</button>`]
+      .concat(subs.map(s => `<button class="filter-tab sub ${selectedSub === s.id ? 'active' : ''}" data-subfilter="${esc(s.id)}"><span class="filter-ico">${catIcon(s.icon)}</span> ${esc(s.name)}</button>`))
+      .join('');
+    wrap.onclick = (e) => {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      selectedSub = btn.dataset.subfilter;
+      $$('.filter-tab', wrap).forEach(b => b.classList.toggle('active', b === btn));
       renderServiceGrid();
     };
   }
@@ -1553,11 +1593,15 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function renderServiceGrid() {
-    const list = Store.db.services.filter(s => s.categoryId !== 'webdesign' &&
-      (selectedCategory === 'all' || s.categoryId === selectedCategory));
+    const list = Store.db.services.filter(s => {
+      if (s.categoryId === 'webdesign') return false;
+      if (selectedCategory !== 'all' && s.categoryId !== selectedCategory) return false;
+      if (selectedSub !== 'all' && s.subcategoryId !== selectedSub) return false;
+      return true;
+    });
     $('#serviceGrid').innerHTML = list.length
       ? list.map(serviceCardHtml).join('')
-      : `<p class="empty-note">Chưa có dịch vụ nào trong danh mục này.</p>`;
+      : `<p class="empty-note">Chưa có dịch vụ nào trong mục này.</p>`;
     applyImageFallbacks($('#serviceGrid'));
   }
 
@@ -1582,7 +1626,7 @@ window.KENIOS_DEFAULT_DB = {
   function renderAuthArea() {
     const area = $('#authArea');
     const user = Store.currentUser();
-    $('#adminQuickBtn').hidden = !(user && user.role === 'admin');
+    $('#mobileNavAdmin').hidden = !(user && user.role === 'admin');
     if (!user) {
       area.innerHTML = `<button class="btn btn-primary btn-sm" id="openAuthBtn">Đăng nhập</button>`;
       $('#openAuthBtn').addEventListener('click', () => openModal('#authModal'));
@@ -1598,6 +1642,7 @@ window.KENIOS_DEFAULT_DB = {
             <strong style="padding:8px 12px;font-size:.85rem;">${esc(user.username)}</strong>
             <button id="ddOrders"><span class="dd-ico">${ICONS.box}</span> Đơn hàng của tôi</button>
             <button id="ddDeposit"><span class="dd-ico">${ICONS.card}</span> Nạp tiền</button>
+            ${user.role === 'admin' ? `<button id="ddAdmin" class="dd-admin"><span class="dd-ico">${ICONS.shield}</span> Quản trị hệ thống</button>` : ''}
             <button id="ddLogout"><span class="dd-ico">${ICONS.logout}</span> Đăng xuất</button>
           </div>
         </div>
@@ -1607,6 +1652,9 @@ window.KENIOS_DEFAULT_DB = {
     $('#avatarBtn').addEventListener('click', () => $('#userDropdown').classList.toggle('open'));
     $('#ddOrders').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openOrdersModal(); });
     $('#ddDeposit').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openModal('#depositModal'); });
+    if (user.role === 'admin') {
+      $('#ddAdmin').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openAdminModal(); });
+    }
     $('#ddLogout').addEventListener('click', () => { Store.logout(); toast('Đã đăng xuất.', 'success'); });
   }
 
@@ -1653,8 +1701,7 @@ window.KENIOS_DEFAULT_DB = {
       openModal('#depositModal');
     });
     $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
-
-    $('#adminQuickBtn').addEventListener('click', () => openAdminModal());
+    $('#mobileNavAdmin').addEventListener('click', () => { closeMobileNav(); openAdminModal(); });
 
     $('#heroBtn2').addEventListener('click', () => {
       if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
@@ -2152,7 +2199,7 @@ window.KENIOS_DEFAULT_DB = {
       formHtml = `
         <form class="admin-form" data-admin-form="service">
           <input type="hidden" name="_originalId" value="${esc(s.id)}">
-          <label>Mã dịch vụ (id, không dấu) <input name="id" value="${esc(s.id)}" ${editTarget ? 'readonly' : ''} required></label>
+          <label>Mã sản phẩm (tự động) <input class="auto-id" value="#${editTarget ? esc(s.id) : nextSeqId(services)}" readonly tabindex="-1"></label>
           <label>Danh mục
             <select name="categoryId" id="adminServiceCategory">${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
           </label>
@@ -2272,7 +2319,7 @@ window.KENIOS_DEFAULT_DB = {
       const c = cEditTarget || { id: '', name: '', icon: 'folder', description: '', image: '' };
       catForm = `
         <form class="admin-form" data-admin-form="category">
-          <label>Mã danh mục (id, không dấu) <input name="id" value="${esc(c.id)}" ${cEditTarget ? 'readonly' : ''} required></label>
+          <label>Mã danh mục (tự động) <input class="auto-id" value="#${cEditTarget ? esc(c.id) : nextSeqId(categories)}" readonly tabindex="-1"></label>
           <label class="span-2">Tên danh mục <input name="name" value="${esc(c.name)}" required></label>
           <label class="span-2">Chọn icon danh mục ${iconPickerHtml(c.icon, 'icon')}</label>
           <label class="span-2">Mô tả <input name="description" value="${esc(c.description || '')}"></label>
@@ -2292,7 +2339,7 @@ window.KENIOS_DEFAULT_DB = {
       const s = sEditTarget || { id: '', categoryId: categories[0]?.id || '', name: '', icon: 'folder', description: '', image: '' };
       subForm = `
         <form class="admin-form" data-admin-form="subcategory">
-          <label>Mã thư mục con (id, không dấu) <input name="id" value="${esc(s.id)}" ${sEditTarget ? 'readonly' : ''} required></label>
+          <label>Mã thư mục con (tự động) <input class="auto-id" value="#${sEditTarget ? esc(s.id) : nextSeqId(subcategories)}" readonly tabindex="-1"></label>
           <label>Thuộc danh mục
             <select name="categoryId" required>${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
           </label>
@@ -2803,8 +2850,8 @@ window.KENIOS_DEFAULT_DB = {
     const fd = new FormData(e.target);
 
     if (formType === 'service') {
-      const id = fd.get('id').trim();
-      if (!id) { toast('Vui lòng nhập mã dịch vụ.', 'error'); return; }
+      // ID sản phẩm sinh tự động (#01, #02...) khi thêm mới; giữ nguyên khi sửa.
+      const id = adminServiceEditing === 'new' ? nextSeqId(Store.db.services) : adminServiceEditing;
       // Giữ nguyên id gói cũ (không sinh lại mỗi lần lưu) và chỉ gửi lại field `keys`
       // khi thực sự biết rõ nội dung kho key hiện tại (đã gõ thêm, hoặc phiên này đã
       // tải đủ kho key từ máy chủ) — tránh trường hợp sửa giá/tên mà vô tình gửi kho
@@ -2838,8 +2885,7 @@ window.KENIOS_DEFAULT_DB = {
       renderAdminTab('services');
       toast('Đã lưu dịch vụ.', 'success');
     } else if (formType === 'category') {
-      const id = fd.get('id').trim();
-      if (!id) { toast('Vui lòng nhập mã danh mục.', 'error'); return; }
+      const id = adminCategoryEditing === 'new' ? nextSeqId(Store.db.categories) : adminCategoryEditing;
       Store.adminSaveCategory({
         id, name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
         description: fd.get('description').trim(), image: fd.get('image').trim()
@@ -2848,8 +2894,7 @@ window.KENIOS_DEFAULT_DB = {
       renderAdminTab('categories');
       toast('Đã lưu danh mục.', 'success');
     } else if (formType === 'subcategory') {
-      const id = fd.get('id').trim();
-      if (!id) { toast('Vui lòng nhập mã thư mục con.', 'error'); return; }
+      const id = adminSubcategoryEditing === 'new' ? nextSeqId(Store.db.subcategories || []) : adminSubcategoryEditing;
       Store.adminSaveSubcategory({
         id, categoryId: fd.get('categoryId'), name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
         description: fd.get('description').trim(), image: fd.get('image').trim()
