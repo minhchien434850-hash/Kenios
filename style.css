@@ -925,3 +925,32 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   .admin-form { grid-template-columns: 1fr; }
   .admin-form label.span-2 { grid-column: 1; }
 }
+
+/* ===== Bổ sung: viewers, downloads, auth đẹp, google ===== */
+.views-badge { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; color: var(--muted); }
+.views-badge svg { width: 15px; height: 15px; }
+.views-badge b { color: var(--gold-soft); font-weight: 700; }
+.thumb .views-badge { position: absolute; left: 10px; bottom: 10px; background: rgba(0,0,0,.55); padding: 3px 8px; border-radius: 999px; color: #fff; }
+.thumb .views-badge b { color: #fff; }
+.service-modal-meta { margin: -6px 0 10px; }
+.service-modal-download { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.service-modal-download svg { width: 16px; height: 16px; }
+
+.downloads-list { display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; }
+.download-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--glass); }
+.download-item-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.download-item-info strong { display: block; font-size: .9rem; }
+.download-item-info small { color: var(--muted); font-size: .74rem; }
+.download-ico { display: inline-flex; color: var(--gold-soft); flex-shrink: 0; }
+.download-ico svg { width: 22px; height: 22px; }
+
+.auth-head { text-align: center; margin-bottom: 18px; }
+.auth-logo { width: 52px; height: 52px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(139,92,246,.28), rgba(255,183,3,.16)); border: 1px solid rgba(139,92,246,.25); margin-bottom: 8px; }
+.auth-logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.auth-head strong { display: block; font-size: 1.15rem; font-family: var(--logo-font); }
+.auth-head .auth-sub { display: block; color: var(--muted); font-size: .8rem; margin-top: 2px; }
+.auth-link { background: none; border: none; color: var(--gold-soft); cursor: pointer; font: inherit; font-size: .82rem; text-align: center; width: 100%; padding: 6px; text-decoration: underline; }
+.google-fallback-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.google-fallback-btn .btn-ico svg { width: 18px; height: 18px; }
+.pw-toggle-btn { display: inline-flex; align-items: center; justify-content: center; }
+.pw-toggle-btn svg { width: 18px; height: 18px; }

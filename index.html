@@ -90,6 +90,7 @@
       <a href="#top" class="mobile-nav-link" data-mobile-link><span class="mnl-icon" data-icon="home"></span><span>Trang chủ</span></a>
       <button type="button" class="mobile-nav-link" id="mobileNavDeposit"><span class="mnl-icon" data-icon="card"></span><span>Nạp tiền</span><span class="mnl-badge auto">Auto</span></button>
       <button type="button" class="mobile-nav-link" id="mobileNavOrders"><span class="mnl-icon" data-icon="box"></span><span>Đơn hàng của tôi</span></button>
+      <button type="button" class="mobile-nav-link" id="mobileNavDownloads"><span class="mnl-icon" data-icon="download"></span><span>Tải xuống</span></button>
       <button type="button" class="mobile-nav-link admin-link" id="mobileNavAdmin" hidden><span class="mnl-icon" data-icon="shield"></span><span>Quản trị hệ thống</span><span class="mnl-badge admin">Admin</span></button>
 
       <div class="mobile-nav-group-label">Dịch vụ</div>
@@ -241,7 +242,7 @@
     </section>
   </main>
 
-  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Lên đầu trang" hidden>⬆</button>
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Lên đầu trang" hidden></button>
 
   <footer class="site-footer">
     <div class="container footer-grid">
@@ -286,8 +287,13 @@
 
   <!-- ===== Modal: Đăng nhập / Đăng ký ===== -->
   <div class="modal-overlay" id="authModal" hidden>
-    <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
-      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+    <div class="modal modal-sm auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="close"></button>
+      <div class="auth-head">
+        <span class="auth-logo"><img src="./favicon.svg" alt="" class="brand-mark"></span>
+        <strong id="authBrand">KENIOS.STORE</strong>
+        <span class="auth-sub">Đăng nhập để mua hàng &amp; nhận key tự động</span>
+      </div>
       <div class="auth-tabs">
         <button class="auth-tab active" data-auth-tab="login">Đăng nhập</button>
         <button class="auth-tab" data-auth-tab="register">Đăng ký</button>
@@ -298,25 +304,52 @@
         <label>Mật khẩu
           <span class="input-with-toggle">
             <input type="password" name="password" autocomplete="current-password" required>
-            <button type="button" class="pw-toggle-btn" data-pw-toggle>👁</button>
+            <button type="button" class="pw-toggle-btn" data-pw-toggle data-icon="eye"></button>
           </span>
         </label>
         <p class="form-error" id="loginError"></p>
         <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+        <button type="button" class="auth-link" id="forgotPwBtn">Quên mật khẩu?</button>
       </form>
       <form id="registerForm" class="auth-form" hidden>
         <label>Tên đăng nhập <input type="text" name="username" autocomplete="username" required></label>
         <label>Mật khẩu (≥ 6 ký tự)
           <span class="input-with-toggle">
             <input type="password" name="password" minlength="6" autocomplete="new-password" required>
-            <button type="button" class="pw-toggle-btn" data-pw-toggle>👁</button>
+            <button type="button" class="pw-toggle-btn" data-pw-toggle data-icon="eye"></button>
           </span>
+        </label>
+        <label>Email hoặc Số điện thoại <small class="muted">(tuỳ chọn — dùng để lấy lại mật khẩu)</small>
+          <input type="text" name="contact" autocomplete="email" placeholder="email@gmail.com hoặc 09xxxxxxxx">
         </label>
         <p class="form-error" id="registerError"></p>
         <button type="submit" class="btn btn-primary btn-block">Tạo tài khoản</button>
       </form>
-      <div class="auth-divider" id="authDivider" hidden><span>hoặc</span></div>
-      <div id="googleSignInBox" class="google-signin-box" hidden></div>
+      <div class="auth-divider"><span>hoặc</span></div>
+      <div id="googleSignInBox" class="google-signin-box"></div>
+      <button type="button" class="btn btn-glass btn-block google-fallback-btn" id="googleFallbackBtn">
+        <span class="btn-ico" data-icon="google"></span> Đăng nhập với Google
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Quên mật khẩu ===== -->
+  <div class="modal-overlay" id="forgotModal" hidden>
+    <div class="modal modal-sm" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="close"></button>
+      <h3>Quên Mật Khẩu</h3>
+      <form id="forgotForm" class="auth-form">
+        <label>Tên đăng nhập <input type="text" name="username" required></label>
+        <label>Email / SĐT đã đăng ký <input type="text" name="contact" required></label>
+        <label>Mật khẩu mới (≥ 6 ký tự)
+          <span class="input-with-toggle">
+            <input type="password" name="new" minlength="6" required>
+            <button type="button" class="pw-toggle-btn" data-pw-toggle data-icon="eye"></button>
+          </span>
+        </label>
+        <p class="form-error" id="forgotError"></p>
+        <button type="submit" class="btn btn-primary btn-block">Đặt lại mật khẩu</button>
+      </form>
     </div>
   </div>
 
@@ -362,7 +395,9 @@
         </div>
         <div class="service-modal-info">
           <h3 id="serviceModalTitle"></h3>
+          <div class="service-modal-meta"><span class="views-badge" id="serviceModalViews"></span></div>
           <p id="serviceModalDesc"></p>
+          <a class="btn btn-glass btn-sm service-modal-download" id="serviceModalDownload" target="_blank" rel="noopener" hidden></a>
           <ul class="feature-list" id="serviceModalFeatures"></ul>
           <div class="package-list" id="serviceModalPackages"></div>
           <label class="span-2" id="serviceModalPasswordRow" hidden>Nhập lại mật khẩu để xác nhận mua
@@ -381,6 +416,15 @@
       <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
       <h3 id="ordersTitle">Đơn Hàng Của Tôi</h3>
       <div class="orders-list" id="ordersList"></div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Tải xuống ===== -->
+  <div class="modal-overlay" id="downloadsModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="close"></button>
+      <h3>Tải Xuống</h3>
+      <div class="downloads-list" id="downloadsList"></div>
     </div>
   </div>
 
@@ -409,7 +453,7 @@
   <div class="modal-overlay" id="adminModal" hidden>
     <div class="modal modal-xl admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
-      <h3 id="adminTitle">🛠️ Quản Trị Hệ Thống</h3>
+      <h3 id="adminTitle">Quản Trị Hệ Thống</h3>
       <div class="admin-tabs" id="adminTabs">
         <button class="admin-tab active" data-admin-tab="overview"><span class="admin-tab-ico" data-icon="dashboard"></span><span>Tổng quan</span></button>
         <button class="admin-tab" data-admin-tab="services"><span class="admin-tab-ico" data-icon="gamepad"></span><span>Dịch vụ</span></button>
@@ -421,7 +465,7 @@
       </div>
       <div class="admin-panel-body" id="adminPanelBody"></div>
       <div class="admin-sync-bar">
-        <button type="button" class="btn btn-glass btn-sm" id="adminLoadKeysBtn">🔑 Tải kho key đầy đủ</button>
+        <button type="button" class="btn btn-glass btn-sm" id="adminLoadKeysBtn">Tải kho key đầy đủ</button>
         <span class="admin-sync-msg" id="adminSyncMsg"></span>
       </div>
     </div>
@@ -445,7 +489,7 @@
   <div class="modal-overlay" id="welcomeModal" hidden>
     <div class="modal modal-sm welcome-modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
       <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
-      <span class="welcome-icon">📢</span>
+      <span class="welcome-icon"></span>
       <h3 id="welcomeTitle"></h3>
       <p id="welcomeMessage"></p>
       <div class="welcome-actions">

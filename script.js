@@ -283,13 +283,14 @@ window.KENIOS_DEFAULT_DB = {
       return !!u && u.role === 'admin';
     },
 
-    async register(username, password) {
+    async register(username, password, contact) {
       username = (username || '').trim();
+      contact = (contact || '').trim();
       if (!username || (password || '').length < 6) {
         throw new Error('Tên đăng nhập không hợp lệ hoặc mật khẩu quá ngắn (tối thiểu 6 ký tự).');
       }
       try {
-        const result = await this._callApi('register', { username, password });
+        const result = await this._callApi('register', { username, password, contact });
         this.serverAvailable = true;
         if (result.status !== 'success') throw new Error(result.message || 'Đăng ký thất bại.');
         this._upsertUser(result.user);
@@ -298,10 +299,16 @@ window.KENIOS_DEFAULT_DB = {
       } catch (err) {
         if (err instanceof BackendUnavailableError) {
           this.serverAvailable = false;
-          return this._localRegister(username, password);
+          return this._localRegister(username, password, contact);
         }
         throw err;
       }
+    },
+
+    async resetPassword(username, contact, newPassword) {
+      const result = await this._callApi('reset_password', { username, contact, newPassword });
+      if (result.status !== 'success') throw new Error(result.message || 'Không đặt lại được mật khẩu.');
+      return true;
     },
 
     async login(username, password) {
@@ -354,13 +361,13 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     // Chế độ demo cục bộ (không có máy chủ PHP): kiểm tra trực tiếp trong dữ liệu đã tải.
-    _localRegister(username, password) {
+    _localRegister(username, password, contact) {
       if (this.db.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
         throw new Error('Tên đăng nhập đã tồn tại.');
       }
       const user = {
         userId: String(Date.now()),
-        username, password, balance: 0, role: 'member', status: 'active',
+        username, password, contact: contact || '', balance: 0, role: 'member', status: 'active',
         avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
         createdAt: new Date().toISOString().slice(0, 10)
       };
@@ -980,6 +987,9 @@ window.KENIOS_DEFAULT_DB = {
   // ============================================================
   const _svg = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
   const ICONS = {
+    eye: _svg('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'),
+    download: _svg('<path d="M12 3v12M8 11l4 4 4-4"/><path d="M5 19h14"/>'),
+    google: _svg('<path d="M21 12.2c0-.6-.1-1.2-.2-1.8H12v3.6h5.1a4.4 4.4 0 0 1-1.9 2.9v2.4h3.1c1.8-1.7 2.7-4.1 2.7-7.1Z" fill="currentColor" stroke="none"/><path d="M12 21c2.5 0 4.6-.8 6.1-2.2l-3.1-2.4c-.8.6-1.9.9-3 .9-2.3 0-4.3-1.6-5-3.7H3.8v2.4A9 9 0 0 0 12 21Z" fill="currentColor" stroke="none"/><path d="M7 13.6a5.4 5.4 0 0 1 0-3.4V7.8H3.8a9 9 0 0 0 0 8.1L7 13.6Z" fill="currentColor" stroke="none"/><path d="M12 6.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 3.8 7.8L7 10.2c.7-2.1 2.7-3.6 5-3.6Z" fill="currentColor" stroke="none"/>'),
     home: _svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'),
     card: _svg('<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6.5 14.5h4"/>'),
     box: _svg('<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>'),
@@ -1407,12 +1417,13 @@ window.KENIOS_DEFAULT_DB = {
 
   async function setupGoogleSignIn(cfg) {
     const box = $('#googleSignInBox');
-    const divider = $('#authDivider');
-    if (!cfg.googleClientId) { box.hidden = true; divider.hidden = true; return; }
+    const fallback = $('#googleFallbackBtn');
+    if (!box) return;
+    if (!cfg.googleClientId) { box.hidden = true; return; }
     try {
       await loadGoogleScript();
       box.hidden = false;
-      divider.hidden = false;
+      if (fallback) fallback.hidden = true;
       box.innerHTML = '';
       window.google.accounts.id.initialize({
         client_id: cfg.googleClientId,
@@ -1422,7 +1433,6 @@ window.KENIOS_DEFAULT_DB = {
     } catch (err) {
       console.warn(err);
       box.hidden = true;
-      divider.hidden = true;
     }
   }
 
@@ -1824,6 +1834,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
           ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
           <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
+          <span class="views-badge">${ICONS.eye}<b>${viewsFor(s.id)}</b></span>
         </div>
         <div class="body">
           <h3>${esc(s.name)}</h3>
@@ -1835,6 +1846,20 @@ window.KENIOS_DEFAULT_DB = {
         </div>
       </article>
     `;
+  }
+
+  const VIEWS_KEY = 'kenios_views_v1';
+  function _views() { try { return JSON.parse(localStorage.getItem(VIEWS_KEY)) || {}; } catch { return {}; } }
+  function viewsFor(id) {
+    const v = _views();
+    if (v[id] == null) { v[id] = 20 + Math.floor(Math.random() * 180); try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {} }
+    return v[id];
+  }
+  function bumpViews(id) {
+    const v = _views();
+    v[id] = (v[id] || viewsFor(id)) + 1;
+    try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {}
+    return v[id];
   }
 
   function renderServiceGrid() {
@@ -1863,7 +1888,7 @@ window.KENIOS_DEFAULT_DB = {
       const url = el.dataset.fallbackBg;
       if (!url) return;
       const img = new Image();
-      img.onerror = () => { el.classList.add('img-fallback'); el.textContent = '🖼️'; el.style.backgroundImage = 'none'; };
+      img.onerror = () => { el.classList.add('img-fallback'); el.textContent = ''; el.style.backgroundImage = 'none'; };
       img.src = url;
     });
   }
@@ -2023,6 +2048,7 @@ window.KENIOS_DEFAULT_DB = {
       openModal('#depositModal');
     });
     $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
+    $('#mobileNavDownloads').addEventListener('click', () => { closeMobileNav(); openDownloadsModal(); });
     $('#mobileNavAdmin').addEventListener('click', () => { closeMobileNav(); openAdminModal(); });
 
     $('#heroBtn2').addEventListener('click', () => {
@@ -2039,7 +2065,7 @@ window.KENIOS_DEFAULT_DB = {
         const input = pwToggle.previousElementSibling;
         const isPw = input.type === 'password';
         input.type = isPw ? 'text' : 'password';
-        pwToggle.textContent = isPw ? '🙈' : '👁';
+        pwToggle.classList.toggle('revealed', isPw);
       }
 
       const legalLink = e.target.closest('[data-legal]');
@@ -2080,13 +2106,34 @@ window.KENIOS_DEFAULT_DB = {
       const submitBtn = e.target.querySelector('button[type=submit]');
       withLoading(submitBtn, async () => {
         try {
-          await Store.register(fd.get('username'), fd.get('password'));
+          await Store.register(fd.get('username'), fd.get('password'), fd.get('contact'));
           closeModal('#authModal');
           e.target.reset();
           $('#registerError').textContent = '';
           toast('Tạo tài khoản thành công! Chào mừng bạn.', 'success');
         } catch (err) { $('#registerError').textContent = err.message; }
       });
+    });
+
+    $('#forgotPwBtn')?.addEventListener('click', () => { closeModal('#authModal'); $('#forgotForm').reset(); $('#forgotError').textContent = ''; openModal('#forgotModal'); });
+    $('#forgotForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          await Store.resetPassword(fd.get('username').trim(), fd.get('contact').trim(), fd.get('new'));
+          closeModal('#forgotModal');
+          toast('Đã đặt lại mật khẩu! Đăng nhập bằng mật khẩu mới.', 'success');
+          openModal('#authModal');
+        } catch (err) { $('#forgotError').textContent = err.message; }
+      });
+    });
+
+    $('#googleFallbackBtn')?.addEventListener('click', () => {
+      if (window.google?.accounts?.id) { window.google.accounts.id.prompt(); }
+      else if (!Store.db.config.googleClientId) { toast('Admin chưa cấu hình Google Client ID trong tab Cấu hình.', 'error'); }
+      else { toast('Đang tải Google… thử lại sau vài giây.', 'error'); }
     });
   }
 
@@ -2201,6 +2248,10 @@ window.KENIOS_DEFAULT_DB = {
     $('#serviceModalBadge').className = 'badge' + (inStock ? '' : ' out');
     setText('#serviceModalTitle', service.name);
     setText('#serviceModalDesc', service.description);
+    $('#serviceModalViews').innerHTML = `${ICONS.eye}<b>${bumpViews(serviceId)}</b> lượt xem`;
+    const dl = $('#serviceModalDownload');
+    if (service.downloadUrl) { dl.hidden = false; dl.href = service.downloadUrl; dl.innerHTML = `${ICONS.download} Tải bản game`; }
+    else { dl.hidden = true; }
     $('#serviceModalFeatures').innerHTML = (service.features || []).map(f => `<li>${esc(f)}</li>`).join('');
 
     const pkgWrap = $('#serviceModalPackages');
@@ -2278,6 +2329,22 @@ window.KENIOS_DEFAULT_DB = {
     openModal('#ordersModal');
   }
 
+  // Tải xuống — đồng bộ với link tải của từng sản phẩm.
+  function openDownloadsModal() {
+    const items = Store.db.services.filter(s => s.downloadUrl);
+    $('#downloadsList').innerHTML = items.length
+      ? items.map(s => `
+        <div class="download-item">
+          <div class="download-item-info">
+            <span class="download-ico">${ICONS.download}</span>
+            <div><strong>${esc(s.name)}</strong><small>${esc(Store.serviceOs ? Store.serviceOs(s) : '')}</small></div>
+          </div>
+          <a class="btn btn-primary btn-sm" href="${esc(s.downloadUrl)}" target="_blank" rel="noopener">Tải bản này</a>
+        </div>`).join('')
+      : '<p class="empty-note">Chưa có bản tải nào. Admin thêm link tải cho sản phẩm ở tab Dịch vụ.</p>';
+    openModal('#downloadsModal');
+  }
+
   // ---- Thông tin pháp lý ----
   function wireLegalModal() {}
   function openLegalModal(key) {
@@ -2351,14 +2418,14 @@ window.KENIOS_DEFAULT_DB = {
     { keys: ['king'], text: '💎 KING\n💰 900K/Tháng\n💰 450K/Tuần' },
     { keys: ['timo'], text: '💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày' },
     { keys: ['vingodl', 'vin godl'], text: '💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần' },
-    { keys: ['zolo'], text: '🤖 PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
-    { keys: ['vnb'], text: '🤖 PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
-    { keys: ['root'], text: '🤖 PUBG ANDROID — ROOT\n💰 650K/Tháng' },
-    { keys: ['mg'], text: '🤖 PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['zolo'], text: 'PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['vnb'], text: 'PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['root'], text: 'PUBG ANDROID — ROOT\n💰 650K/Tháng' },
+    { keys: ['mg'], text: 'PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
     { keys: ['liên quân', 'lien quan'], text: '⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500K/Tháng chống tố\n💰 250K/Tuần chống tố' },
     { keys: ['free fire', 'freefire'], text: '🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần' },
     { keys: ['pubg ios', 'ios'], text: '📱 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
-    { keys: ['pubg android', 'android'], text: '🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
+    { keys: ['pubg android', 'android'], text: 'PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
   ];
 
   function matchPriceItem(t) {
@@ -2581,7 +2648,7 @@ window.KENIOS_DEFAULT_DB = {
           </label>
           <label class="span-2 download-upload-row">
             <input type="file" id="adminServiceFile">
-            <button type="button" class="btn btn-glass btn-sm" id="adminServiceUploadBtn">⬆ Tải file lên máy chủ</button>
+            <button type="button" class="btn btn-glass btn-sm" id="adminServiceUploadBtn">Tải file lên máy chủ</button>
             <span class="muted" style="font-size:.75rem;">File tải lên sẽ tự điền vào ô link ở trên.</span>
           </label>
           <label>Trạng thái
@@ -2596,7 +2663,7 @@ window.KENIOS_DEFAULT_DB = {
           </div>
           <div class="admin-form-actions">
             <button type="button" class="btn btn-glass btn-sm" id="adminAddPkgRow">+ Thêm gói</button>
-            <button type="submit" class="btn btn-primary btn-sm">💾 Lưu dịch vụ</button>
+            <button type="submit" class="btn btn-primary btn-sm">Lưu dịch vụ</button>
             <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-service>Hủy</button>
           </div>
         </form>
@@ -2639,7 +2706,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="admin-pkg-row-main">
           <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
           <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
-          <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>🔑 Kho key (<span data-pkg-key-count>${keys.length}</span>)</button>
+          <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>Kho key (<span data-pkg-key-count>${keys.length}</span>)</button>
           <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
         </div>
         <div class="admin-pkg-keys-panel" data-pkg-keys-panel hidden>
@@ -2648,7 +2715,7 @@ window.KENIOS_DEFAULT_DB = {
           <textarea class="pkg-keys-input" data-pkg-keys-input placeholder="Dán nhiều key, mỗi dòng 1 key rồi bấm Thêm key"></textarea>
           <div class="admin-pkg-keys-actions">
             <button type="button" class="btn btn-glass btn-sm" data-add-pkg-keys>+ Thêm key</button>
-            <button type="button" class="btn btn-ghost btn-sm danger" data-clear-pkg-keys>🗑️ Xóa hết key</button>
+            <button type="button" class="btn btn-ghost btn-sm danger" data-clear-pkg-keys>Xóa hết key</button>
           </div>
         </div>
         <textarea data-pkg-keys-data hidden>${esc(keys.join('\n'))}</textarea>
@@ -2751,7 +2818,7 @@ window.KENIOS_DEFAULT_DB = {
         </table>
       </div>
 
-      <div class="admin-form-section" style="margin-top:24px;">📂 Thư mục con (Danh mục → Thư mục con → Sản phẩm)</div>
+      <div class="admin-form-section" style="margin-top:24px;">Thư mục con (Danh mục → Thư mục con → Sản phẩm)</div>
       <div class="admin-toolbar">
         <button class="btn btn-primary btn-sm" data-admin-new-subcategory>+ Thêm thư mục con</button>
       </div>
@@ -2830,7 +2897,7 @@ window.KENIOS_DEFAULT_DB = {
     const c = Store.db.config;
     return `
       <form class="admin-form" data-admin-form="config">
-        <div class="admin-form-section">🏷️ Thương hiệu &amp; Logo</div>
+        <div class="admin-form-section">Thương hiệu &amp; Logo</div>
         <label>Chữ logo (logoText) <input name="logoText" value="${esc(c.logoText)}"></label>
         <label>Dòng phụ (logoSubtext) <input name="logoSubtext" value="${esc(c.logoSubtext)}"></label>
         <label class="span-2">Ảnh logo (logoUrl — để trống dùng icon mặc định)
@@ -2845,18 +2912,18 @@ window.KENIOS_DEFAULT_DB = {
         <label>Hiệu ứng chạy màu chữ logo
           <select name="logoColorMode">
             <option value="solid" ${c.logoColorMode === 'solid' ? 'selected' : ''}>Tắt (dùng màu ở trên)</option>
-            <option value="rainbow" ${c.logoColorMode === 'rainbow' ? 'selected' : ''}>🌈 Cầu vồng 7 màu (chạy liên tục)</option>
-            <option value="shine" ${c.logoColorMode === 'shine' ? 'selected' : ''}>✨ Ánh kim lấp lánh</option>
+            <option value="rainbow" ${c.logoColorMode === 'rainbow' ? 'selected' : ''}>Cầu vồng 7 màu (chạy liên tục)</option>
+            <option value="shine" ${c.logoColorMode === 'shine' ? 'selected' : ''}>Ánh kim lấp lánh</option>
           </select>
         </label>
         <label>Tốc độ chạy màu (giây/vòng)
           <input type="number" name="logoAnimSpeed" min="1" max="20" step="0.5" value="${c.logoAnimSpeed || 6}">
         </label>
 
-        <div class="admin-form-section">🎨 Màu chủ đạo toàn trang</div>
+        <div class="admin-form-section">Màu chủ đạo toàn trang</div>
         <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || '#ffb703')}"></label>
 
-        <div class="admin-form-section">🖼️ Banner / Hero</div>
+        <div class="admin-form-section">Banner / Hero</div>
         <label class="span-2">Nhãn nhỏ trên tiêu đề (bannerTagText) <input name="bannerTagText" value="${esc(c.bannerTagText || '')}"></label>
         <label>Nút 1 (bannerBtn1Text) <input name="bannerBtn1Text" value="${esc(c.bannerBtn1Text || '')}"></label>
         <label>Nút 2 (bannerBtn2Text) <input name="bannerBtn2Text" value="${esc(c.bannerBtn2Text || '')}"></label>
@@ -2864,7 +2931,7 @@ window.KENIOS_DEFAULT_DB = {
           <input name="bgUrl" value="${esc(c.bgUrl || '')}" placeholder="Dán URL ảnh (PNG/JPEG/GIF/WEBP) hoặc video (.mp4/.webm/.ogg) — lấy từ tab Thư viện">
         </label>
 
-        <div class="admin-form-section">📞 Liên hệ &amp; Giới thiệu</div>
+        <div class="admin-form-section">Liên hệ &amp; Giới thiệu</div>
         <label class="span-2">Tên website (siteTitle) <input name="siteTitle" value="${esc(c.siteTitle)}"></label>
         <label class="span-2">Mô tả ngắn (siteSubtitle) <textarea name="siteSubtitle">${esc(c.siteSubtitle)}</textarea></label>
         <label>Tên Admin hiển thị (contactAdminName) <input name="contactAdminName" value="${esc(c.contactAdminName || '')}"></label>
@@ -2873,7 +2940,7 @@ window.KENIOS_DEFAULT_DB = {
         <label>Hotline <input name="hotline" value="${esc(c.hotline)}"></label>
         <label>Link Zalo <input name="zaloLink" value="${esc(c.zaloLink)}"></label>
 
-        <div class="admin-form-section">📇 Kênh liên hệ (chọn nhiều — tự gộp thành 1 nút danh sách)</div>
+        <div class="admin-form-section">Kênh liên hệ (chọn nhiều — tự gộp thành 1 nút danh sách)</div>
         ${(c.contactChannels || []).map(ch => `
           <label class="span-2 contact-channel-row">
             <span class="contact-channel-toggle">
@@ -2887,7 +2954,7 @@ window.KENIOS_DEFAULT_DB = {
           Chỉ 1 kênh được bật → hiện thẳng 1 nút. Bật từ 2 kênh trở lên → tự động gộp thành 1 nút "Liên hệ" duy nhất, bấm vào sẽ mở danh sách tất cả các kênh — áp dụng đồng nhất ở header, footer và popup chào mừng.
         </p>
 
-        <div class="admin-form-section">🔑 Đăng nhập bằng Google</div>
+        <div class="admin-form-section">Đăng nhập bằng Google</div>
         <label class="span-2">Google Client ID
           <input name="googleClientId" value="${esc(c.googleClientId || '')}" placeholder="xxxxxxxx.apps.googleusercontent.com">
         </label>
@@ -2898,7 +2965,7 @@ window.KENIOS_DEFAULT_DB = {
           Để trống thì nút đăng nhập Google sẽ ẩn.
         </p>
 
-        <div class="admin-form-section">🏦 Ngân hàng (VietQR) &amp; Giao dịch tự động</div>
+        <div class="admin-form-section">Ngân hàng (VietQR) &amp; Giao dịch tự động</div>
         <label>Ngân hàng
           <select name="bankId">
             ${BANK_OPTIONS.concat(BANK_OPTIONS.includes(c.bankId) ? [] : [c.bankId]).filter(Boolean).map(b => `<option value="${esc(b)}" ${c.bankId === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
@@ -2915,14 +2982,14 @@ window.KENIOS_DEFAULT_DB = {
           <label>URL Webhook — dán vào cấu hình bên SePay/Casso/ACB
             <span class="input-with-toggle">
               <input type="text" id="bankWebhookUrl" readonly>
-              <button type="button" class="pw-toggle-btn" id="copyWebhookUrlBtn" title="Sao chép">📋</button>
+              <button type="button" class="pw-toggle-btn" id="copyWebhookUrlBtn" title="Sao chép"></button>
             </span>
           </label>
           <button type="button" class="btn btn-glass btn-sm" id="saveBankTokenBtn">🔒 Lưu Token Webhook</button>
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
         </div>
 
-        <div class="admin-form-section">🔊 Giọng nói Google Cloud TTS (chạy được trên mọi trình duyệt, kể cả Safari/iPhone)</div>
+        <div class="admin-form-section">Giọng nói Google Cloud TTS (chạy được trên mọi trình duyệt, kể cả Safari/iPhone)</div>
         <div class="secret-box span-2" id="ttsKeyBox">
           <div class="secret-status" id="ttsKeyStatus">Đang kiểm tra trạng thái…</div>
           <label>Google Cloud Text-to-Speech API Key
@@ -2934,7 +3001,7 @@ window.KENIOS_DEFAULT_DB = {
           </p>
         </div>
 
-        <div class="admin-form-section">📣 Thông báo Popup khi vào Web</div>
+        <div class="admin-form-section">Thông báo Popup khi vào Web</div>
         <label>Bật thông báo popup
           <select name="welcomePopupEnabled">
             <option value="1" ${c.welcomePopupEnabled ? 'selected' : ''}>Bật</option>
@@ -2949,7 +3016,7 @@ window.KENIOS_DEFAULT_DB = {
           Popup kèm nút "Liên hệ ngay" sẽ hiện 1 lần mỗi phiên truy cập. Đây là thông báo <b>chỉ hiển thị bằng chữ</b>, tách riêng hoàn toàn với lời chào giọng nói bên dưới.
         </p>
 
-        <div class="admin-form-section">🔊 Lời chào giọng nói khi vào Web</div>
+        <div class="admin-form-section">Lời chào giọng nói khi vào Web</div>
         <label>Bật lời chào giọng nói
           <select name="welcomeVoiceEnabled">
             <option value="1" ${c.welcomeVoiceEnabled ? 'selected' : ''}>Bật</option>
@@ -2971,19 +3038,19 @@ window.KENIOS_DEFAULT_DB = {
           </select>
         </label>
         <div class="admin-form-actions" style="margin-top:0;">
-          <button type="button" class="btn btn-glass btn-sm" id="testWelcomeVoiceBtn">🔈 Nghe thử lời chào</button>
+          <button type="button" class="btn btn-glass btn-sm" id="testWelcomeVoiceBtn">Nghe thử lời chào</button>
         </div>
         <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
           Danh sách giọng lấy từ trình duyệt. Muốn giọng "chị Google" chuẩn trên mọi máy (kể cả iPhone), hãy nhập Google Cloud TTS API Key ở mục dưới.
         </p>
 
-        <div class="admin-form-section">📢 Chữ chạy</div>
+        <div class="admin-form-section">Chữ chạy</div>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
         <label>Tốc độ chạy (giây/vòng, càng nhỏ càng nhanh)
           <input type="number" name="marqueeSpeed" min="6" max="60" step="1" value="${c.marqueeSpeed || 26}">
         </label>
 
-        <div class="admin-form-section">🤖 Trợ lý ảo AI</div>
+        <div class="admin-form-section">Trợ lý ảo AI</div>
         <label>Giọng nói trợ lý (TTS)
           <select name="ttsEnabled">
             <option value="1" ${c.ttsEnabled ? 'selected' : ''}>Bật</option>
@@ -3002,7 +3069,7 @@ window.KENIOS_DEFAULT_DB = {
         <label class="span-2">Trả lời mặc định khi không hiểu (aiResponseFallback) <textarea name="aiResponseFallback">${esc(c.aiResponseFallback || '')}</textarea></label>
 
         <div class="admin-form-actions">
-          <button type="submit" class="btn btn-primary btn-sm">💾 Lưu cấu hình</button>
+          <button type="submit" class="btn btn-primary btn-sm">Lưu cấu hình</button>
         </div>
       </form>
     `;
@@ -3013,7 +3080,7 @@ window.KENIOS_DEFAULT_DB = {
     return `
       <div class="media-upload-row">
         <input type="file" id="adminMediaFile" accept="image/*,video/*">
-        <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">⬆️ Tải lên</button>
+        <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">Tải lên</button>
         <span class="muted" style="font-size:.8rem;">Ảnh hoặc video tối đa 500MB. Chỉ hoạt động khi có máy chủ PHP (cần hosting cho phép upload lớn — xem file .user.ini).</span>
       </div>
       <div class="media-link-row">
@@ -3038,7 +3105,7 @@ window.KENIOS_DEFAULT_DB = {
               <strong style="font-size:.78rem;">${esc(m.name || '')}</strong>
               <span class="media-url">${esc(m.url)}</span>
               <div class="media-actions">
-                <button type="button" data-admin-copy-media="${esc(m.url)}">📋 Sao chép</button>
+                <button type="button" data-admin-copy-media="${esc(m.url)}">Sao chép</button>
                 <button type="button" class="danger" data-admin-delete-media="${esc(m.id)}">Xóa</button>
               </div>
             </div>

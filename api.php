@@ -71,7 +71,7 @@ function verify_password($input, $stored) {
 }
 
 function safe_user($u) {
-    unset($u['password']);
+    unset($u['password'], $u['contact']);
     return $u;
 }
 
@@ -99,6 +99,7 @@ switch ($action) {
             "userId" => uniqid(),
             "username" => $username,
             "password" => password_hash($password, PASSWORD_BCRYPT),
+            "contact" => trim((string)($input['contact'] ?? '')),
             "balance" => 0,
             "role" => "member",
             "status" => "active",
@@ -111,6 +112,37 @@ switch ($action) {
             exit;
         }
         echo json_encode(["status" => "success", "user" => safe_user($user)]);
+        break;
+
+    case 'reset_password':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $username = trim($input['username'] ?? '');
+        $contact = trim((string)($input['contact'] ?? ''));
+        $new = (string)($input['newPassword'] ?? '');
+        if ($username === '' || $contact === '' || strlen($new) < 6) {
+            echo json_encode(["status" => "error", "message" => "Thiếu thông tin hoặc mật khẩu mới quá ngắn."]);
+            exit;
+        }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        $idx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) {
+            if (strtolower($u['username'] ?? '') === strtolower($username)
+                && trim((string)($u['contact'] ?? '')) !== ''
+                && strtolower(trim((string)($u['contact'] ?? ''))) === strtolower($contact)) { $idx = $i; break; }
+        }
+        if ($idx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khớp tên đăng nhập với email/SĐT đã đăng ký."]);
+            exit;
+        }
+        $db['users'][$idx]['password'] = password_hash($new, PASSWORD_BCRYPT);
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "message" => "Đã đặt lại mật khẩu."]);
         break;
 
     case 'change_password':
@@ -502,14 +534,17 @@ switch ($action) {
         // Mật khẩu (băm) không còn được gửi ra trình duyệt qua get_db, nên khi admin
         // ghi đè lại toàn bộ users, giữ nguyên password cũ theo userId thay vì để trống.
         if (isset($db['users']) && is_array($db['users']) && isset($input['users']) && is_array($input['users'])) {
-            $existingPasswords = [];
+            $existingPasswords = []; $existingContacts = [];
             foreach ($db['users'] as $u) {
-                if (!empty($u['userId'])) $existingPasswords[$u['userId']] = $u['password'] ?? '';
+                if (!empty($u['userId'])) { $existingPasswords[$u['userId']] = $u['password'] ?? ''; $existingContacts[$u['userId']] = $u['contact'] ?? ''; }
             }
             foreach ($input['users'] as $i => $u) {
                 $uid = $u['userId'] ?? null;
                 if ($uid && empty($u['password']) && isset($existingPasswords[$uid])) {
                     $input['users'][$i]['password'] = $existingPasswords[$uid];
+                }
+                if ($uid && empty($u['contact']) && !empty($existingContacts[$uid])) {
+                    $input['users'][$i]['contact'] = $existingContacts[$uid];
                 }
             }
         }
