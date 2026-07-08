@@ -1557,13 +1557,11 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
 
     document.documentElement.style.setProperty('--logo-anim-speed', `${cfg.logoAnimSpeed || 6}s`);
-    // Danh sách hiệu ứng động logo (đa dạng, chọn trong quản trị)
-    const LOGO_ANIM_MODES = ['rainbow', 'shine', 'gradient', 'glow', 'pulse', 'bounce', 'wave', 'flip', 'neon', 'sparkle'];
     const mode = cfg.logoColorMode || 'solid';
     // Áp hiệu ứng cho cả logo header và logo trong menu 3 gạch
     $$('#brandName, #mobileNavBrandName').forEach(el => {
-      el.classList.remove(...LOGO_ANIM_MODES.map(m => 'logo-anim-' + m));
-      if (LOGO_ANIM_MODES.includes(mode)) el.classList.add('logo-anim-' + mode);
+      el.classList.remove(...LOGO_FX_MODES.map(m => 'logo-anim-' + m));
+      if (LOGO_FX_MODES.includes(mode)) el.classList.add('logo-anim-' + mode);
     });
   }
 
@@ -2938,6 +2936,31 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
 
+  // Danh sách hiệu ứng logo — dùng chung cho bộ chọn (admin) và khi áp dụng (applyBranding).
+  const LOGO_FX = [
+    ['solid', 'Mặc định'], ['rainbow', 'Cầu vồng'], ['shine', 'Ánh kim'], ['gradient', 'Gradient'],
+    ['glow', 'Phát sáng'], ['sparkle', 'Lung linh'], ['neon', 'Neon'],
+    ['fire', 'Lửa'], ['ice', 'Băng giá'], ['ocean', 'Đại dương'], ['sunset', 'Hoàng hôn'],
+    ['candy', 'Kẹo ngọt'], ['gold', 'Vàng kim'], ['aurora', 'Cực quang'], ['matrix', 'Ma trận'],
+    ['pulse', 'Nhịp đập'], ['bounce', 'Nảy'], ['wave', 'Lắc lư'], ['flip', 'Lật 3D'],
+  ];
+  const LOGO_FX_MODES = LOGO_FX.map(([v]) => v).filter(v => v !== 'solid');
+
+  // Bộ chọn hiệu ứng logo: mỗi ô xem trước hiệu ứng ngay trên chữ "Kenios" (không icon máy/emoji).
+  function logoEffectPickerHtml(selected) {
+    const sel = selected || 'solid';
+    return `
+      <div class="fx-picker" data-fx-picker>
+        <input type="hidden" name="logoColorMode" value="${esc(sel)}">
+        ${LOGO_FX.map(([v, label]) => `
+          <button type="button" class="fx-pick ${v === sel ? 'selected' : ''}" data-fx-pick="${v}" title="${esc(label)}">
+            <span class="fx-pick-demo ${v === 'solid' ? '' : 'logo-anim-' + v}">Kenios</span>
+            <span class="fx-pick-label">${esc(label)}</span>
+          </button>
+        `).join('')}
+      </div>`;
+  }
+
   function adminCategoriesHtml() {
     const categories = Store.db.categories;
     const subcategories = Store.db.subcategories || [];
@@ -3101,22 +3124,8 @@ window.KENIOS_DEFAULT_DB = {
           </select>
         </label>
         <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
-        <label>Hiệu ứng động cho logo
-          <select name="logoColorMode">
-            ${[
-              ['solid', 'Tắt (dùng màu ở trên)'],
-              ['rainbow', '🌈 Cầu vồng 7 màu'],
-              ['shine', '✨ Ánh kim lấp lánh'],
-              ['gradient', '🎨 Gradient nhiều màu trôi'],
-              ['glow', '💡 Phát sáng neon'],
-              ['sparkle', '💫 Lung linh (lấp lánh vàng kim)'],
-              ['neon', '🔵 Neon chớp sáng'],
-              ['pulse', '❤️ Nhịp đập (phóng to/thu nhỏ)'],
-              ['bounce', '⬆️ Nảy lên xuống'],
-              ['wave', '🌊 Lắc lư nghiêng'],
-              ['flip', '🔄 Lật 3D'],
-            ].map(([v, label]) => `<option value="${v}" ${c.logoColorMode === v ? 'selected' : ''}>${label}</option>`).join('')}
-          </select>
+        <label class="span-2">Hiệu ứng động cho logo (bấm chọn — xem trước trực tiếp)
+          ${logoEffectPickerHtml(c.logoColorMode)}
         </label>
         <label>Tốc độ hiệu ứng (giây/vòng)
           <input type="number" name="logoAnimSpeed" min="1" max="20" step="0.5" value="${c.logoAnimSpeed || 6}">
@@ -3431,6 +3440,15 @@ window.KENIOS_DEFAULT_DB = {
       const picker = iconPick.closest('[data-icon-picker]');
       picker.querySelector('input[type=hidden]').value = iconPick.dataset.iconPick;
       $$('.icon-pick', picker).forEach(b => b.classList.toggle('selected', b === iconPick));
+      return;
+    }
+
+    // ----- Bộ chọn hiệu ứng logo -----
+    const fxPick = e.target.closest('[data-fx-pick]');
+    if (fxPick) {
+      const picker = fxPick.closest('[data-fx-picker]');
+      picker.querySelector('input[type=hidden]').value = fxPick.dataset.fxPick;
+      $$('.fx-pick', picker).forEach(b => b.classList.toggle('selected', b === fxPick));
       return;
     }
 

@@ -195,6 +195,28 @@ button { font: inherit; }
   animation: logoSparkle var(--logo-anim-speed, 3s) ease-in-out infinite;
 }
 
+/* ----- Bảng màu chữ đa dạng (dải màu trôi, clip vào chữ) ----- */
+.logo-anim-fire, .logo-anim-ice, .logo-anim-ocean, .logo-anim-sunset,
+.logo-anim-candy, .logo-anim-gold, .logo-anim-aurora {
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  animation: logoGradientMove var(--logo-anim-speed, 6s) linear infinite;
+}
+.logo-anim-fire   { background-image: linear-gradient(90deg, #ff2d00, #ff7b00, #ffd000, #ff7b00, #ff2d00); }
+.logo-anim-ice    { background-image: linear-gradient(90deg, #8be9ff, #ffffff, #5aa9ff, #ffffff, #8be9ff); }
+.logo-anim-ocean  { background-image: linear-gradient(90deg, #0077b6, #00b4d8, #48cae4, #00b4d8, #0077b6); }
+.logo-anim-sunset { background-image: linear-gradient(90deg, #ff5f6d, #ffc371, #ff5f6d, #a86bff, #ff5f6d); }
+.logo-anim-candy  { background-image: linear-gradient(90deg, #ff6ec4, #7873f5, #4ade80, #ff6ec4); }
+.logo-anim-gold   { background-image: linear-gradient(90deg, #a67c00, #ffd700, #fff3b0, #ffd700, #a67c00); }
+.logo-anim-aurora { background-image: linear-gradient(90deg, #00ffa3, #00d4ff, #8b5cf6, #00ffa3); }
+
+/* Ma trận — chữ xanh lá phát sáng */
+@keyframes logoMatrix {
+  0%, 100% { color: #39ff14; text-shadow: 0 0 6px #39ff14, 0 0 14px #0f0; }
+  50%      { color: #9dff8a; text-shadow: 0 0 2px #39ff14; }
+}
+.logo-anim-matrix { animation: logoMatrix var(--logo-anim-speed, 2s) ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   [class*="logo-anim-"] { animation: none !important; color: var(--logo-color) !important; }
 }
@@ -695,6 +717,18 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .icon-pick:hover { color: var(--ink); border-color: rgba(255,183,3,.4); }
 .icon-pick.selected { color: #1a1200; background: linear-gradient(135deg, var(--gold), #ff8f1f); border-color: transparent; }
 .admin-cell-ico { display: inline-flex; color: var(--gold-soft); }
+
+/* ----- Bộ chọn hiệu ứng logo: mỗi ô xem trước trực tiếp hiệu ứng, không dùng emoji ----- */
+.fx-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 4px; }
+.fx-pick {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px;
+  border: 1px solid var(--border); background: rgba(255,255,255,.03); cursor: pointer; transition: all .15s ease;
+}
+.fx-pick:hover { border-color: rgba(255,183,3,.45); background: rgba(255,255,255,.06); }
+.fx-pick.selected { border-color: var(--gold); background: rgba(255,183,3,.1); box-shadow: 0 0 0 1px var(--gold) inset; }
+.fx-pick-demo { font-weight: 800; font-size: 1.05rem; font-family: var(--logo-font); color: var(--logo-color, var(--ink)); line-height: 1.1; }
+.fx-pick-label { font-size: .68rem; color: var(--muted); font-weight: 600; }
+.fx-pick.selected .fx-pick-label { color: var(--gold-soft); }
 .admin-cell-ico svg { width: 20px; height: 20px; }
 .admin-cell-ico .emoji-fallback { font-size: 1.2rem; }
 .contact-channel-row { display: flex !important; flex-direction: row !important; align-items: center; gap: 12px; }
