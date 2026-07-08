@@ -8,14 +8,16 @@
     "logoUrl": "",
     "logoFont": "Be Vietnam Pro",
     "logoColor": "",
-    "logoColorMode": "solid",
+    "logoColorMode": "rainbow",
     "logoAnimSpeed": 6,
     "accentColor": "#ffb703",
     "googleClientId": "",
     "welcomePopupEnabled": false,
     "welcomePopupTitle": "Chào mừng bạn đến với KENIOS.STORE!",
     "welcomePopupMessage": "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
-    "welcomeVoiceEnabled": false,
+    "welcomeVoiceEnabled": true,
+    "welcomeAlways": true,
+    "welcomeVoiceName": "",
     "welcomeVoiceText": "Xin chào! Chào mừng bạn đã đến với KENIOS.STORE.",
     "hotline": "0387332523",
     "zaloLink": "https://zalo.me/0387332523",
@@ -42,9 +44,9 @@
     "aiResponseContact": "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
     "aiResponseThanks": "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
     "aiResponseFallback": "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
-    "bankId": "MBBank",
-    "bankAccountNo": "0822148411",
-    "bankAccountName": "NGUYEN TIN HAO",
+    "bankId": "",
+    "bankAccountNo": "",
+    "bankAccountName": "",
     "bankToken": "",
     "bannerTagText": "Dịch vụ hàng đầu Việt Nam",
     "bannerBtn1Text": "Xem Dịch Vụ",
@@ -61,172 +63,64 @@
       "id": "pubg",
       "name": "PUBG",
       "description": "Công cụ hỗ trợ & phụ kiện cho game PUBG",
-      "icon": "🎯",
+      "icon": "target",
       "image": "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop"
     },
     {
       "id": "lienquan",
       "name": "Liên Quân",
       "description": "Mod skin, bản đồ sáng và dịch vụ hỗ trợ leo rank",
-      "icon": "🛡️",
+      "icon": "shield",
       "image": "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=600&auto=format&fit=crop"
     },
     {
       "id": "freefire",
       "name": "Free Fire",
       "description": "Công cụ hỗ trợ, phụ kiện độc quyền cho Free Fire",
-      "icon": "🔥",
+      "icon": "fire",
       "image": "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=600&auto=format&fit=crop"
     },
     {
       "id": "tocchien",
       "name": "Tốc Chiến",
       "description": "Phần mềm bổ trợ và mod skin cho Tốc Chiến",
-      "icon": "⚡",
+      "icon": "bolt",
       "image": "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop"
     },
     {
       "id": "webdesign",
       "name": "Thiết Kế Web",
       "description": "Thiết kế website hiện đại, Glassmorphism, chuẩn SEO",
-      "icon": "💻",
+      "icon": "web",
       "image": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop"
     },
     {
       "id": "other",
       "name": "Khác",
       "description": "Các sản phẩm, phần mềm và dịch vụ khác",
-      "icon": "📁",
+      "icon": "folder",
       "image": "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600&auto=format&fit=crop"
     }
   ],
-  "services": [
+  "subcategories": [
     {
-      "id": "pubg-radar",
+      "id": "pubg-ios",
       "categoryId": "pubg",
-      "name": "PUBG ESP Radar Premium",
-      "description": "Hiển thị khung xương địch, vị trí, khoảng cách, hướng nhìn, xe cộ và hòm đồ.",
-      "status": "instock",
-      "image": "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
-      "features": [
-        "Test mượt mà, không giật lag",
-        "Cập nhật tự động",
-        "Hỗ trợ setup từ A-Z"
-      ],
-      "packages": [
-        {
-          "id": "pkg-radar-1day",
-          "name": "1 Ngày",
-          "price": 25000
-        },
-        {
-          "id": "pkg-radar-3day",
-          "name": "3 Ngày",
-          "price": 65000
-        },
-        {
-          "id": "pkg-radar-7day",
-          "name": "7 Ngày",
-          "price": 120000
-        },
-        {
-          "id": "pkg-radar-30day",
-          "name": "1 Tháng",
-          "price": 350000
-        }
-      ]
+      "name": "PUBG IOS",
+      "description": "Sản phẩm dành cho PUBG Mobile trên hệ điều hành iOS",
+      "icon": "diamond",
+      "image": ""
     },
     {
-      "id": "pubg-aimbot",
+      "id": "pubg-android",
       "categoryId": "pubg",
-      "name": "PUBG Silent Aimbot Max",
-      "description": "Hỗ trợ ngắm bắn mượt mà, tùy chỉnh độ nhạy và trường nhìn (FOV).",
-      "status": "instock",
-      "image": "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=800&auto=format&fit=crop",
-      "features": [
-        "Tùy chỉnh FOV & độ mượt",
-        "Cập nhật tự động"
-      ],
-      "packages": [
-        {
-          "id": "pkg-aimbot-1day",
-          "name": "1 Ngày",
-          "price": 30000
-        },
-        {
-          "id": "pkg-aimbot-7day",
-          "name": "7 Ngày",
-          "price": 140000
-        },
-        {
-          "id": "pkg-aimbot-30day",
-          "name": "1 Tháng",
-          "price": 390000
-        }
-      ]
-    },
-    {
-      "id": "kingmod",
-      "categoryId": "pubg",
-      "name": "Phụ Kiện KingMod",
-      "description": "Phụ kiện hỗ trợ trải nghiệm mượt mà và leo rank dễ dàng hơn.",
-      "status": "outofstock",
-      "image": "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=800&auto=format&fit=crop",
-      "features": [
-        "Cập nhật tự động"
-      ],
-      "packages": [
-        {
-          "id": "pkg-kingmod-1m",
-          "name": "1 Tháng",
-          "price": 200000
-        }
-      ]
-    },
-    {
-      "id": "web-landing",
-      "categoryId": "webdesign",
-      "name": "Thiết Kế Landing Page",
-      "description": "Landing Page giới thiệu sản phẩm/dịch vụ với hiệu ứng kính mờ (Glassmorphism), tải trang nhanh, chuẩn SEO.",
-      "status": "instock",
-      "image": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop",
-      "features": [
-        "Thiết kế phong cách Apple kính mờ",
-        "Tương thích mọi thiết bị",
-        "Chuẩn SEO Google",
-        "Bàn giao toàn bộ mã nguồn",
-        "Bảo hành kỹ thuật trọn đời"
-      ],
-      "packages": [
-        {
-          "id": "pkg-landing",
-          "name": "Trọn gói",
-          "price": 1500000
-        }
-      ]
-    },
-    {
-      "id": "web-shop",
-      "categoryId": "webdesign",
-      "name": "Thiết Kế Web Shop Tự Động",
-      "description": "Website bán acc/key tích hợp nạp tiền VietQR tự động, quản trị admin thời gian thực.",
-      "status": "instock",
-      "image": "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop",
-      "features": [
-        "Nạp tiền QR tự động",
-        "Đồng bộ thời gian thực",
-        "Trợ lý ảo AI đàm thoại",
-        "Quản trị Admin đầy đủ"
-      ],
-      "packages": [
-        {
-          "id": "pkg-webshop",
-          "name": "Trọn gói",
-          "price": 3500000
-        }
-      ]
+      "name": "PUBG ANDROID",
+      "description": "Sản phẩm dành cho PUBG Mobile trên hệ điều hành Android",
+      "icon": "gamepad",
+      "image": ""
     }
   ],
+  "services": [],
   "users": [
     {
       "userId": "10001",

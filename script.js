@@ -18,15 +18,17 @@ window.KENIOS_DEFAULT_DB = {
     logoUrl: "",
     logoFont: "Be Vietnam Pro",
     logoColor: "",
-    logoColorMode: "solid",
+    logoColorMode: "rainbow",
     logoAnimSpeed: 6,
+    logoMotionMode: "none",
+    logoMotionSpeed: 2,
     accentColor: "#ffb703",
     googleClientId: "",
     welcomePopupEnabled: false,
     welcomePopupTitle: "Chào mừng bạn đến với KENIOS.STORE!",
     welcomePopupMessage: "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
     welcomeVoiceEnabled: false,
-    welcomeVoiceText: "Xin chào! Chào mừng bạn đã đến với KENIOS.STORE.",
+    welcomeAlways: true,
     hotline: "0387332523",
     zaloLink: "https://zalo.me/0387332523",
     contactChannels: [
@@ -45,13 +47,36 @@ window.KENIOS_DEFAULT_DB = {
     aiName: "Trợ Lý Ảo Kenios",
     aiGreeting: "Xin chào! Tôi là trợ lý ảo của KENIOS.STORE. Tôi có thể giúp gì cho bạn hôm nay?",
     aiResponseGreeting: "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
-    aiResponseDeposit: "Nạp tiền vào tài khoản rất đơn giản và tự động 100%: vào mục \"Nạp tiền\", nhập số tiền muốn nạp rồi quét mã VietQR. Số dư sẽ được cộng tự động ngay sau khi giao dịch thành công.",
-    aiResponseProduct: "Shop đang cung cấp nhiều gói dịch vụ cho PUBG, Liên Quân, Free Fire, Tốc Chiến. Bạn có thể bấm vào danh mục tương ứng trên trang chủ để xem chi tiết và mua key.",
-    aiResponseWeb: "Bên mình có dịch vụ thiết kế website phong cách hiện đại, chuẩn SEO và tương thích tốt trên mọi thiết bị. Hãy xem mục \"Thiết Kế Web\" để biết thêm chi tiết nhé!",
     aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
-    aiResponseContact: "Bạn có thể liên hệ trực tiếp Admin qua Zalo/Hotline để được hỗ trợ setup và tư vấn chi tiết. Link liên hệ nằm ở góc phải màn hình.",
-    aiResponseThanks: "Không có gì đâu! Rất vui vì đã giúp được bạn. Nếu cần thêm thông tin gì cứ hỏi mình nhé!",
-    aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này. Bạn có thể hỏi mình về: \"cách nạp tiền\", \"giá sản phẩm\", \"dịch vụ thiết kế web\", hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé.",
+    aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này 🥲. Bạn có thể hỏi mình về: cách nạp tiền, cách mua/nhận key, bảng giá, bảo hành, thiết kế web… hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé!",
+    // Bộ câu trả lời sẵn — khách nhắn chứa từ khoá nào (cách nhau bởi dấu phẩy) thì trả lời câu tương ứng.
+    aiKnowledge: [
+      { k: "nạp tiền, nap tien, nạp, vietqr, chuyển khoản, ck, nạp thế nào", a: "Nạp tiền 100% TỰ ĐỘNG 👍: vào mục \"Nạp tiền\", nhập số tiền rồi quét mã VietQR bằng app ngân hàng. Số dư cộng NGAY sau khi chuyển khoản thành công, không cần chờ duyệt." },
+      { k: "mua key, cách mua, mua thế nào, đặt hàng, mua hàng, mua sao", a: "Cách mua: chọn sản phẩm → chọn gói → bấm \"Mua Ngay\" (trừ vào số dư). Key hiện NGAY trong mục \"Đơn hàng của tôi\", bạn copy dùng liền 🔑." },
+      { k: "bao lâu, khi nào nhận, chờ bao lâu, nhận key lâu, giao key", a: "Key giao TỰ ĐỘNG & TỨC THÌ ngay sau khi thanh toán, không phải chờ đợi. Xem trong \"Đơn hàng của tôi\" nhé." },
+      { k: "nhận key ở đâu, key đâu, lấy key ở đâu, xem key", a: "Key nằm trong mục \"Đơn hàng của tôi\" (bấm avatar hoặc menu). Mỗi đơn có nút sao chép key." },
+      { k: "bảo hành, bao hanh, key lỗi, lỗi key, không dùng được, không vào được", a: "Sản phẩm được BẢO HÀNH trong suốt thời gian gói ✅. Nếu key lỗi, bạn nhắn Admin kèm mã đơn để được kiểm tra & đổi key ngay." },
+      { k: "hoàn tiền, hoan tien, refund, trả lại tiền, đổi trả", a: "Vì là sản phẩm số cấp phát tức thì nên shop không hoàn tiền sau khi đã nhận key, trừ trường hợp lỗi từ hệ thống. Gặp sự cố hãy liên hệ Admin trong 24h nhé." },
+      { k: "an toàn, có bị khóa, khóa nick, khóa acc, ban, có an toàn không, tố", a: "Tụi mình luôn cập nhật bản MỚI & AN TOÀN nhất 🔒. Game online vẫn có rủi ro nhất định, bạn dùng đúng hướng dẫn để hạn chế tối đa. Liên Quân có bản CHỐNG TỐ riêng." },
+      { k: "cài đặt, cai dat, hướng dẫn, dùng thế nào, sử dụng, setup", a: "Sau khi mua, bạn xem hướng dẫn cài đặt đi kèm hoặc nhắn Admin để được gửi video hướng dẫn chi tiết từng bước 📹." },
+      { k: "thiết kế web, thiet ke web, website, làm web, landing", a: "Shop nhận THIẾT KẾ WEBSITE hiện đại, chuẩn SEO, chạy mượt trên mọi thiết bị 💻. Xem mục \"Thiết Kế Web\" hoặc nhắn Admin để được báo giá theo yêu cầu." },
+      { k: "uy tín, lừa đảo, scam, có thật không, tin được không, thật không", a: "Shop UY TÍN, giao dịch tự động minh bạch, có cộng đồng đông đảo ❤️. Bạn xem phần đánh giá & giao dịch gần đây trên trang để yên tâm hơn nhé." },
+      { k: "khuyến mãi, khuyen mai, giảm giá, sale, ưu đãi, mã giảm, khuyến mại", a: "Ưu đãi & mã giảm giá được cập nhật thường xuyên trong nhóm Zalo/Telegram 🎁. Tham gia nhóm ở phần Liên Hệ để không bỏ lỡ nhé!" },
+      { k: "giờ làm việc, mấy giờ, còn hoạt động, có online, làm việc lúc nào", a: "Hệ thống bán & giao key hoạt động TỰ ĐỘNG 24/7 ⏰. Admin hỗ trợ tư vấn gần như cả ngày." },
+      { k: "nhiều máy, mấy máy, mấy thiết bị, share, dùng chung", a: "Mỗi key dùng cho 1 thiết bị theo gói. Nếu cần nhiều máy, bạn mua thêm key hoặc hỏi Admin gói phù hợp nhé." },
+      { k: "gia hạn, gia han, hết hạn, renew, còn hạn", a: "Gần hết hạn, bạn chỉ cần mua lại gói tương ứng là được gia hạn. Cần hỗ trợ nhanh thì nhắn Admin nhé." },
+      { k: "thanh toán, momo, thẻ cào, the cao, ngân hàng nào, banking", a: "Shop nhận chuyển khoản VietQR của TẤT CẢ ngân hàng, cộng tiền tự động. Hình thức khác (Momo/thẻ) vui lòng hỏi Admin." },
+      { k: "số dư, so du, còn bao nhiêu tiền, kiểm tra tiền, tài khoản", a: "Số dư hiển thị ở góc trên khi đăng nhập và trong menu tài khoản. Muốn nạp thêm thì vào mục \"Nạp tiền\" nhé." },
+      { k: "đăng ký, dang ky, đăng nhập, tạo tài khoản, quên mật khẩu, login", a: "Bấm \"Đăng nhập\" để tạo tài khoản mới hoặc đăng nhập bằng Google. Quên mật khẩu thì dùng chức năng \"Quên mật khẩu\" hoặc nhắn Admin." },
+      { k: "pubg, pu bg", a: "PUBG có nhiều tool xịn: VNHAX, OASIS, KING, TIMO, VINGODL… cho cả iOS & Android 🎮. Bấm danh mục PUBG để xem giá từng gói." },
+      { k: "free fire, freefire, ff", a: "🔥 FREE FIRE: 550K/Tháng · 250K/Tuần. Bấm danh mục Free Fire để xem chi tiết và mua nhé." },
+      { k: "liên quân, lien quan, lq", a: "⚔️ LIÊN QUÂN: 250K/Tháng · 120K/Tuần (có bản CHỐNG TỐ). Xem danh mục Liên Quân để biết thêm nhé." },
+      { k: "tốc chiến, toc chien, lmht", a: "Tốc Chiến có tool hỗ trợ & mod skin. Bạn bấm danh mục Tốc Chiến để xem các gói và giá nhé." },
+      { k: "liên hệ, lien he, zalo, telegram, admin, số điện thoại, hotline, facebook", a: "Bạn liên hệ Admin qua Zalo/Telegram ở phần \"Liên Hệ & Cộng Đồng\" (kéo xuống cuối trang) hoặc nút liên hệ góc phải màn hình 💬." },
+      { k: "hỗ trợ, support, giúp, tư vấn, cần giúp", a: "Shop hỗ trợ 24/7 nhé! Bạn cứ hỏi mình ở đây, hoặc nhắn Zalo Admin để được tư vấn trực tiếp." },
+      { k: "cảm ơn, cam on, thanks, thank, tks", a: "Không có gì ạ! 😄 Chúc bạn chơi game vui vẻ, cần gì cứ nhắn shop nhé ❤️" },
+      { k: "tạm biệt, bye, tam biet, chào tạm biệt", a: "Tạm biệt bạn! 👋 Hẹn gặp lại, chúc bạn một ngày tốt lành nhé." }
+    ],
     bankId: "MBBank",
     bankAccountNo: "0822148411",
     bankAccountName: "NGUYEN TIN HAO",
@@ -160,6 +185,27 @@ window.KENIOS_DEFAULT_DB = {
   // lỗi mạng...) — phân biệt với lỗi hợp lệ mà server trả về (vd. sai mật khẩu).
   class BackendUnavailableError extends Error {}
 
+  // Suy ra số ngày sử dụng từ tên gói (VD "7 Ngày", "1 Tháng", "1 Tuần", "Vĩnh viễn").
+  // Trả về null nếu là gói vĩnh viễn / không xác định thời hạn (không tính ngày hết hạn).
+  function parseDurationDays(name) {
+    const t = (name || '').toLowerCase();
+    if (/vĩnh viễn|vinh vien|vĩnh|lifetime|forever|perm|không thời hạn|khong thoi han/.test(t)) return null;
+    const num = parseInt((t.match(/\d+/) || [])[0], 10) || 1;
+    if (/năm|nam|year/.test(t)) return num * 365;
+    if (/tháng|thang|month/.test(t)) return num * 30;
+    if (/tuần|tuan|week/.test(t)) return num * 7;
+    if (/ngày|ngay|day/.test(t)) return num;
+    return null;
+  }
+  // Tính ngày hết hạn (ISO) từ tên gói + ngày mua. Trả về null nếu gói vĩnh viễn.
+  function computeExpiryISO(packageName, fromISO) {
+    const days = parseDurationDays(packageName);
+    if (days == null) return null;
+    const d = new Date(fromISO || Date.now());
+    d.setDate(d.getDate() + days);
+    return d.toISOString();
+  }
+
   const Store = {
     db: null,
     session: null, // { userId } khi đã đăng nhập
@@ -168,6 +214,10 @@ window.KENIOS_DEFAULT_DB = {
 
     async init() {
       this.db = await this._loadDb();
+      if (!Array.isArray(this.db.subcategories)) this.db.subcategories = [];
+      // Bổ sung các trường cấu hình MỚI còn thiếu từ mặc định (VD aiKnowledge) khi
+      // database.json trên máy chủ được tạo trước bản cập nhật — tránh mất tính năng mới.
+      this.db.config = Object.assign({}, global.KENIOS_DEFAULT_DB.config, this.db.config || {});
       this._mergeLocalOverrides();
       const savedSession = this._readLocal('session');
       if (savedSession && this.db.users.some(u => u.userId === savedSession.userId)) {
@@ -180,6 +230,16 @@ window.KENIOS_DEFAULT_DB = {
     _emit() { this._listeners.forEach(fn => { try { fn(this.db); } catch (e) { console.error(e); } }); },
 
     async _loadDb() {
+      // Ưu tiên api.php?action=get_db — endpoint này đã LỌC BỎ mật khẩu (băm), key thật
+      // trong kho và token ngân hàng trước khi trả ra, nên an toàn cho khách. Chỉ khi
+      // không có backend PHP (hosting tĩnh / mở bằng file://) mới đọc thẳng database.json.
+      try {
+        const res = await fetch(`api.php?action=get_db&t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.config) return json;
+        }
+      } catch (e) { /* thử tiếp database.json */ }
       try {
         const res = await fetch(`database.json?v=${Date.now()}`, { cache: 'no-store' });
         if (res.ok) {
@@ -187,7 +247,7 @@ window.KENIOS_DEFAULT_DB = {
           if (json && json.config) return json;
         }
       } catch (e) {
-        console.warn('Không tải được database.json, dùng dữ liệu mặc định.', e);
+        console.warn('Không tải được dữ liệu, dùng dữ liệu mặc định.', e);
       }
       return JSON.parse(JSON.stringify(global.KENIOS_DEFAULT_DB));
     },
@@ -195,7 +255,7 @@ window.KENIOS_DEFAULT_DB = {
     _mergeLocalOverrides() {
       const local = this._readLocal('overrides');
       if (!local) return;
-      ['users', 'orders', 'transactions', 'categories', 'services', 'media'].forEach(key => {
+      ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'].forEach(key => {
         if (Array.isArray(local[key])) this.db[key] = local[key];
       });
       if (local.config) Object.assign(this.db.config, local.config);
@@ -207,6 +267,7 @@ window.KENIOS_DEFAULT_DB = {
         orders: this.db.orders,
         transactions: this.db.transactions,
         categories: this.db.categories,
+        subcategories: this.db.subcategories,
         services: this.db.services,
         media: this.db.media,
         config: this.db.config
@@ -248,13 +309,14 @@ window.KENIOS_DEFAULT_DB = {
       return !!u && u.role === 'admin';
     },
 
-    async register(username, password) {
+    async register(username, password, contact) {
       username = (username || '').trim();
+      contact = (contact || '').trim();
       if (!username || (password || '').length < 6) {
         throw new Error('Tên đăng nhập không hợp lệ hoặc mật khẩu quá ngắn (tối thiểu 6 ký tự).');
       }
       try {
-        const result = await this._callApi('register', { username, password });
+        const result = await this._callApi('register', { username, password, contact });
         this.serverAvailable = true;
         if (result.status !== 'success') throw new Error(result.message || 'Đăng ký thất bại.');
         this._upsertUser(result.user);
@@ -263,10 +325,16 @@ window.KENIOS_DEFAULT_DB = {
       } catch (err) {
         if (err instanceof BackendUnavailableError) {
           this.serverAvailable = false;
-          return this._localRegister(username, password);
+          return this._localRegister(username, password, contact);
         }
         throw err;
       }
+    },
+
+    async resetPassword(username, contact, newPassword) {
+      const result = await this._callApi('reset_password', { username, contact, newPassword });
+      if (result.status !== 'success') throw new Error(result.message || 'Không đặt lại được mật khẩu.');
+      return true;
     },
 
     async login(username, password) {
@@ -289,6 +357,27 @@ window.KENIOS_DEFAULT_DB = {
 
     // Đăng nhập bằng Google: gửi ID token (credential) lên server để xác thực thật
     // với Google rồi mới tạo/đăng nhập tài khoản. Chỉ hoạt động khi có backend PHP.
+    async changePassword(currentPassword, newPassword) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập.');
+      if ((newPassword || '').length < 6) throw new Error('Mật khẩu mới tối thiểu 6 ký tự.');
+      try {
+        const result = await this._callApi('change_password', {
+          username: user.username, currentPassword, newPassword
+        });
+        if (result.status !== 'success') throw new Error(result.message || 'Đổi mật khẩu thất bại.');
+        return true;
+      } catch (err) {
+        if (err instanceof BackendUnavailableError) {
+          if (user.password !== undefined && user.password !== currentPassword) throw new Error('Mật khẩu hiện tại không đúng.');
+          user.password = newPassword;
+          this._persistOverrides();
+          return true;
+        }
+        throw err;
+      }
+    },
+
     async loginWithGoogle(credential) {
       const result = await this._callApi('google_login', { credential });
       if (result.status !== 'success') throw new Error(result.message || 'Đăng nhập Google thất bại.');
@@ -298,13 +387,13 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     // Chế độ demo cục bộ (không có máy chủ PHP): kiểm tra trực tiếp trong dữ liệu đã tải.
-    _localRegister(username, password) {
+    _localRegister(username, password, contact) {
       if (this.db.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
         throw new Error('Tên đăng nhập đã tồn tại.');
       }
       const user = {
         userId: String(Date.now()),
-        username, password, balance: 0, role: 'member', status: 'active',
+        username, password, contact: contact || '', balance: 0, role: 'member', status: 'active',
         avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
         createdAt: new Date().toISOString().slice(0, 10)
       };
@@ -354,21 +443,78 @@ window.KENIOS_DEFAULT_DB = {
       this._emit();
     },
 
+    // Kiểm tra giao dịch nạp tự động: bảo máy chủ kéo lịch sử ngân hàng từ ThueAPIBank
+    // (poll_acb). Nếu máy chủ đã cộng tiền cho đúng mã nạp này (qua polling lần này hoặc
+    // webhook trước đó), đồng bộ số dư mới từ máy chủ về máy khách.
+    //   • Ném BackendUnavailableError khi KHÔNG có máy chủ PHP (nơi gọi rơi về demo cục bộ).
+    //   • Trả { serverError:true } khi CÓ máy chủ nhưng bước gọi ngân hàng lỗi (KHÔNG được
+    //     cộng tiền demo trong trường hợp này, tránh cộng tiền ảo khi bank API tạm lỗi).
+    async checkAutoDeposit(note) {
+      const res = await this._callApi('poll_acb', { note }); // BackendUnavailableError sẽ propagate ra ngoài
+      if (!res || res.status !== 'success') {
+        return { credited: false, serverError: true, message: (res && res.message) || 'Máy chủ chưa kiểm tra được giao dịch.' };
+      }
+      if (res.credited && res.balance !== null && res.balance !== undefined) {
+        const user = this.currentUser();
+        if (user) user.balance = res.balance;
+        this._persistOverrides();
+        this._emit();
+      }
+      return { credited: !!res.credited, balance: res.balance };
+    },
+
+    // Gói có kho key thật (admin đã nhập key trong tab Dịch vụ) sẽ có field `keyCount`
+    // (kể cả khi = 0). Với gói này, PHẢI mua qua máy chủ (redeemKeyOnServer) để rút
+    // đúng 1 key thật + trừ số dư một cách xác thực, không dùng đường cũ (giả lập cục bộ).
+    usesRealKeyStock(pkg) {
+      return pkg && typeof pkg.keyCount === 'number';
+    },
+
+    // Hệ điều hành / nền tảng của sản phẩm = tên thư mục con (nếu có), ngược lại tên danh mục.
+    serviceOs(service) {
+      const sub = (this.db.subcategories || []).find(s => s.id === service.subcategoryId);
+      if (sub) return sub.name;
+      const cat = this.db.categories.find(c => c.id === service.categoryId);
+      return cat ? cat.name : '';
+    },
+
+    async redeemKeyOnServer(username, password, service, pkg) {
+      const result = await this._callApi('redeem_key', {
+        username, password, serviceId: service.id, packageId: pkg.id,
+        os: this.serviceOs(service)
+      });
+      if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
+      const user = this.currentUser();
+      if (user) user.balance = result.balance;
+      this.db.orders.unshift(result.order);
+      // Giảm số key còn lại hiển thị (key đã bị rút khỏi kho trên máy chủ) để UI khớp ngay.
+      const svc = this.db.services.find(s => s.id === service.id);
+      const p = svc && (svc.packages || []).find(x => x.id === pkg.id);
+      if (p && typeof p.keyCount === 'number') p.keyCount = Math.max(0, p.keyCount - 1);
+      this._persistOverrides();
+      this._emit();
+      return result.order;
+    },
+
+    // Đường cũ (demo cục bộ): dùng cho các gói CHƯA cấu hình kho key thật, sinh key
+    // giả lập ngay trên trình duyệt — giữ lại để không phá vỡ các dịch vụ demo hiện có.
     buyPackage(service, pkg) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
       if ((user.balance || 0) < pkg.price) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
       user.balance -= pkg.price;
       const key = this._generateKey(service, pkg);
+      const purchaseDate = new Date().toISOString();
       const order = {
         id: 'DH' + Date.now(), userId: user.userId, serviceId: service.id,
         serviceName: service.name, packageName: pkg.name, price: pkg.price,
-        key, date: new Date().toISOString()
+        os: this.serviceOs(service), key, date: purchaseDate,
+        purchaseDate, expiryDate: computeExpiryISO(pkg.name, purchaseDate)
       };
       this.db.orders.unshift(order);
       this.db.transactions.unshift({
         id: 'TX' + Date.now(), userId: user.userId, amount: -pkg.price, type: 'purchase',
-        description: `Mua ${service.name} - ${pkg.name}`, date: new Date().toISOString()
+        description: `Mua ${service.name} - ${pkg.name}`, date: purchaseDate
       });
       this._persistOverrides();
       this._emit();
@@ -418,7 +564,28 @@ window.KENIOS_DEFAULT_DB = {
       if (this.db.services.some(s => s.categoryId === id)) {
         throw new Error('Không thể xóa danh mục đang có dịch vụ. Hãy xóa hoặc chuyển dịch vụ trước.');
       }
+      if ((this.db.subcategories || []).some(sc => sc.categoryId === id)) {
+        throw new Error('Không thể xóa danh mục đang có thư mục con. Hãy xóa các thư mục con trước.');
+      }
       this.db.categories = this.db.categories.filter(c => c.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminSaveSubcategory(sub) {
+      if (!this.db.subcategories) this.db.subcategories = [];
+      const idx = this.db.subcategories.findIndex(s => s.id === sub.id);
+      if (idx >= 0) this.db.subcategories[idx] = sub;
+      else this.db.subcategories.push(sub);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminDeleteSubcategory(id) {
+      if (this.db.services.some(s => s.subcategoryId === id)) {
+        throw new Error('Không thể xóa thư mục con đang có sản phẩm. Hãy xóa hoặc chuyển sản phẩm trước.');
+      }
+      this.db.subcategories = (this.db.subcategories || []).filter(s => s.id !== id);
       this._persistOverrides();
       this._emit();
     },
@@ -470,6 +637,37 @@ window.KENIOS_DEFAULT_DB = {
       return json.url;
     },
 
+    // Tải lại toàn bộ kho key thật (packages[].keys) cho tab Dịch vụ — máy chủ chỉ trả
+    // key thật khi xác thực đúng tài khoản admin, tránh lộ key cho khách vãng lai.
+    async fetchFullServiceKeys(adminUser, adminPass) {
+      const res = await fetch(`${API_URL}?action=get_db&t=${Date.now()}`, {
+        headers: { 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass }
+      });
+      const json = await res.json();
+      if (!json || !Array.isArray(json.services)) throw new Error('Không tải được dữ liệu từ máy chủ.');
+      const hasKeys = json.services.some(s => (s.packages || []).some(p => Array.isArray(p.keys)));
+      if (!hasKeys) throw new Error('Sai mật khẩu admin hoặc chưa có kho key nào.');
+      this.db.services = json.services;
+      this._persistOverrides();
+      this._emit();
+    },
+
+    async secretsStatus(adminUser, adminPass) {
+      const res = await fetch(`${API_URL}?action=secrets_status`, {
+        headers: { 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass }
+      });
+      return await res.json();
+    },
+
+    async saveSecrets(adminUser, adminPass, patch) {
+      const res = await fetch(`${API_URL}?action=save_secrets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+        body: JSON.stringify(patch)
+      });
+      return await res.json();
+    },
+
     // ---- Đồng bộ Admin lên máy chủ (chỉ hoạt động khi có backend PHP) ----
     async trySaveToServer(adminUser, adminPass) {
       try {
@@ -489,14 +687,20 @@ window.KENIOS_DEFAULT_DB = {
 })(window);
 
 /**
- * voice.js — Giọng nói trợ lý ảo, ưu tiên giọng Google (Web Speech API).
- * Thay thế toàn bộ dàn giọng "loli/anime" pitch cao trước đây bằng một giọng
- * nữ tự nhiên kiểu Google Assistant/Google Dịch, tốc độ & cao độ mặc định = bình thường.
+ * voice.js — Giọng nói trợ lý ảo.
+ * Ưu tiên gọi Google Cloud Text-to-Speech thật (qua tts.php, API key giữ bí mật ở
+ * máy chủ) để có đúng giọng nữ Google trên MỌI trình duyệt kể cả Safari/iPhone
+ * (Web Speech API của Safari không có giọng Google). Nếu chưa cấu hình API key
+ * hoặc máy chủ không phản hồi, tự động dùng lại giọng trình duyệt (Web Speech API)
+ * làm phương án dự phòng.
  */
 (function (global) {
   'use strict';
 
   const PREF_KEY = 'kenios_voice_prefs_v1';
+  const TTS_URL = './tts.php';
+  let ttsUnavailable = false; // set true sau lần gọi lỗi đầu tiên để không spam request lỗi
+  let currentAudio = null;
 
   const Voice = {
     voices: [],
@@ -534,8 +738,33 @@ window.KENIOS_DEFAULT_DB = {
         || null;
     },
 
-    speak(text) {
-      if (!this.prefs.enabled || !('speechSynthesis' in window) || !text) return;
+    async speak(text) {
+      // Giọng đọc đã bị xóa hoàn toàn theo yêu cầu
+      return;
+    },
+
+    async _speakGoogleCloud(text) {
+      try {
+        const res = await fetch(TTS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, rate: this.prefs.rate, pitch: (this.prefs.pitch - 1) * 10 })
+        });
+        const json = await res.json();
+        if (json.status !== 'success' || !json.audioContent) { ttsUnavailable = true; return false; }
+        const audio = new Audio('data:audio/mp3;base64,' + json.audioContent);
+        audio.volume = this.prefs.volume;
+        currentAudio = audio;
+        await audio.play();
+        return true;
+      } catch (e) {
+        ttsUnavailable = true;
+        return false;
+      }
+    },
+
+    _speakBrowser(text) {
+      if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       const voice = this._pickVoice();
@@ -548,6 +777,7 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     stop() {
+      if (currentAudio) { currentAudio.pause(); currentAudio = null; }
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     },
 
@@ -587,7 +817,15 @@ window.KENIOS_DEFAULT_DB = {
     click: { label: 'Click cơ học' },
     coin: { label: 'Coin (Xu)' },
     wood: { label: 'Gõ gỗ' },
-    chime: { label: 'Chuông ngân' }
+    chime: { label: 'Chuông ngân' },
+    bubble: { label: 'Bong bóng' },
+    blip: { label: 'Blip điện tử' },
+    marimba: { label: 'Marimba' },
+    bell: { label: 'Chuông cửa' },
+    success: { label: 'Báo thành công' },
+    laser: { label: 'Laser' },
+    drop: { label: 'Giọt nước' },
+    notify: { label: 'Thông báo nhẹ' }
   };
 
   const Effects = {
@@ -596,12 +834,12 @@ window.KENIOS_DEFAULT_DB = {
     init() {
       injectCSS();
       document.addEventListener('pointerdown', (e) => this._onPointer(e), { passive: true });
-      this._buildSettingsPanel();
+      // Đã bỏ nút cài đặt âm thanh nổi (loa) theo yêu cầu — âm thanh chạm vẫn hoạt động.
     },
 
     _onPointer(e) {
       if (this.prefs.touchEnabled) spawnRipple(e.clientX, e.clientY);
-      if (this.prefs.sound !== 'none') playSound(this.prefs.sound, this.prefs.volume);
+      // Đã xóa âm thanh chạm theo yêu cầu
     },
 
     setPrefs(patch) {
@@ -614,7 +852,8 @@ window.KENIOS_DEFAULT_DB = {
       btn.className = 'fx-toggle-btn';
       btn.type = 'button';
       btn.setAttribute('aria-label', 'Cài đặt hiệu ứng chạm & âm thanh');
-      btn.innerHTML = '🔊';
+      // Icon SVG được điền bởi applyIcons() (gọi trong boot, sau Effects.init).
+      btn.setAttribute('data-icon', 'sound');
 
       const panel = document.createElement('div');
       panel.className = 'fx-panel';
@@ -725,6 +964,14 @@ window.KENIOS_DEFAULT_DB = {
       case 'coin': tone(1046, 0, 0.09, 'square', 0.3); tone(1568, 0.08, 0.12, 'square', 0.25); break;
       case 'wood': tone(220, 0, 0.05, 'triangle', 0.4); tone(160, 0.02, 0.06, 'triangle', 0.25); break;
       case 'chime': tone(1318, 0, 0.35, 'sine', 0.25); tone(1976, 0.05, 0.4, 'sine', 0.18); break;
+      case 'bubble': tone(500, 0, 0.05, 'sine', 0.3); tone(900, 0.04, 0.08, 'sine', 0.25); break;
+      case 'blip': tone(2400, 0, 0.02, 'square', 0.2); tone(1200, 0.02, 0.03, 'square', 0.18); break;
+      case 'marimba': tone(784, 0, 0.2, 'sine', 0.3); tone(988, 0.03, 0.25, 'sine', 0.2); break;
+      case 'bell': tone(1568, 0, 0.5, 'sine', 0.3); tone(2093, 0.02, 0.5, 'sine', 0.15); break;
+      case 'success': tone(659, 0, 0.1, 'sine', 0.3); tone(880, 0.1, 0.1, 'sine', 0.3); tone(1318, 0.2, 0.2, 'sine', 0.3); break;
+      case 'laser': tone(1800, 0, 0.08, 'sawtooth', 0.2); tone(400, 0.05, 0.1, 'sawtooth', 0.15); break;
+      case 'drop': tone(1200, 0, 0.04, 'sine', 0.3); tone(300, 0.03, 0.15, 'sine', 0.25); break;
+      case 'notify': tone(1046, 0, 0.12, 'triangle', 0.25); tone(1568, 0.1, 0.15, 'triangle', 0.2); break;
       default: break;
     }
   }
@@ -754,12 +1001,131 @@ window.KENIOS_DEFAULT_DB = {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
 
+  // ============================================================
+  // BỘ ICON SVG (thay cho emoji "icon máy" — hiển thị đồng nhất, nét mảnh, đẹp trên
+  // mọi thiết bị). Dùng qua thuộc tính data-icon="tên" trong HTML, hoặc ICONS.tên
+  // trong template JS. Tất cả vẽ bằng nét currentColor nên tự đổi màu theo chữ.
+  // ============================================================
+  const _svg = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const ICONS = {
+    eye: _svg('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'),
+    download: _svg('<path d="M12 3v12M8 11l4 4 4-4"/><path d="M5 19h14"/>'),
+    google: _svg('<path d="M21 12.2c0-.6-.1-1.2-.2-1.8H12v3.6h5.1a4.4 4.4 0 0 1-1.9 2.9v2.4h3.1c1.8-1.7 2.7-4.1 2.7-7.1Z" fill="currentColor" stroke="none"/><path d="M12 21c2.5 0 4.6-.8 6.1-2.2l-3.1-2.4c-.8.6-1.9.9-3 .9-2.3 0-4.3-1.6-5-3.7H3.8v2.4A9 9 0 0 0 12 21Z" fill="currentColor" stroke="none"/><path d="M7 13.6a5.4 5.4 0 0 1 0-3.4V7.8H3.8a9 9 0 0 0 0 8.1L7 13.6Z" fill="currentColor" stroke="none"/><path d="M12 6.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 3.8 7.8L7 10.2c.7-2.1 2.7-3.6 5-3.6Z" fill="currentColor" stroke="none"/>'),
+    home: _svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'),
+    card: _svg('<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6.5 14.5h4"/>'),
+    box: _svg('<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>'),
+    grid: _svg('<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>'),
+    gamepad: _svg('<path d="M6 8h12a4 4 0 0 1 4 4v.4a3.4 3.4 0 0 1-6.1 2.1l-.6-.9H8.7l-.6.9A3.4 3.4 0 0 1 2 12.4V12a4 4 0 0 1 4-4Z"/><path d="M7.5 11v2M6.5 12h2"/><circle cx="16" cy="11.4" r=".8" fill="currentColor" stroke="none"/><circle cx="17.6" cy="13" r=".8" fill="currentColor" stroke="none"/>'),
+    web: _svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9.7 8-2 2 2 2M14.3 8l2 2-2 2"/>'),
+    news: _svg('<path d="M4 5h13v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"/><path d="M17 8h3v10.5a1.5 1.5 0 0 1-3 0V8Z"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/>'),
+    dashboard: _svg('<path d="M4 20V10M9 20V4M14 20v-7M19 20V8"/>'),
+    users: _svg('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M17.7 20a5.6 5.6 0 0 0-2.7-4.7"/>'),
+    image: _svg('<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.7"/><path d="m4 17 4.5-4.5a2 2 0 0 1 2.7 0L20 20"/>'),
+    gear: _svg('<circle cx="12" cy="12" r="3.1"/><path d="M12 2.5v2.6M12 18.9v2.6M4.3 4.3l1.9 1.9M17.8 17.8l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.3 19.7l1.9-1.9M17.8 6.2l1.9-1.9"/>'),
+    search: _svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>'),
+    shield: _svg('<path d="M12 3 5 6v6c0 4 3 6.6 7 9 4-2.4 7-5 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>'),
+    robot: _svg('<rect x="4.5" y="8" width="15" height="11" rx="3"/><path d="M12 8V5.2"/><circle cx="12" cy="3.6" r="1.6"/><circle cx="9.2" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.8" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 16.3h5M2.5 12v3M21.5 12v3"/>'),
+    sound: _svg('<path d="M4 9v6h3.5L13 20V4L7.5 9H4Z"/><path d="M16.4 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/>'),
+    logout: _svg('<path d="M15 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4"/><path d="M10 12H3M6 8l-3 4 3 4"/>'),
+    close: _svg('<path d="M6 6l12 12M18 6 6 18"/>'),
+    chevron: _svg('<path d="m6 9 6 6 6-6"/>'),
+    back: _svg('<path d="M15 5l-7 7 7 7"/>'),
+    lock: _svg('<rect x="4.5" y="10" width="15" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none"/>'),
+    support: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="m6 6 3.6 3.6M14.4 14.4 18 18M18 6l-3.6 3.6M9.6 14.4 6 18"/>'),
+    refresh: _svg('<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"/>'),
+    check: _svg('<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>'),
+    calendar: _svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>'),
+    clock: _svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+    save: _svg('<path d="M5 4h11l3 3v13H5V4Z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>'),
+    cloud: _svg('<path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 9.5a3.5 3.5 0 0 1 .5 8H7Z"/><path d="M12 21v-7m0 0-2.2 2.2M12 14l2.2 2.2"/>'),
+    copy: _svg('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+    upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
+    trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
+    // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
+    target: _svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
+    fire: _svg('<path d="M12 2.5C9 6.5 7.5 8.5 7.5 12a4.5 4.5 0 0 0 9 0c0-1.7-.7-3-1.7-4.3C14.5 9 13.5 9.5 13 11c-.6-2.2-.5-4.3-1-8.5Z"/>'),
+    bolt: _svg('<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>'),
+    crown: _svg('<path d="M3 8l4 3.5L12 5l5 6.5L21 8v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8Z"/><path d="M3 15h18"/>'),
+    rocket: _svg('<path d="M14.5 3.5A9 9 0 0 1 9 15l-3-3A9 9 0 0 1 17.5 6.5a10 10 0 0 0-3-3Z"/><circle cx="14.5" cy="9.5" r="1.4"/><path d="M6 15c-1.5 1-2.5 4-2.5 4s3-1 4-2.5"/>'),
+    star: _svg('<path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.9L12 16.9 6.8 19.2l1-5.9L3.5 9.2l5.9-.9L12 3Z"/>'),
+    trophy: _svg('<path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5.5H5V7a3 3 0 0 0 3 3M16 5.5h3V7a3 3 0 0 1-3 3"/><path d="M12 12v4M9 20h6M10 20l.5-4h3l.5 4"/>'),
+    sword: _svg('<path d="M14 3h7v7l-9.5 9.5-2 .5.5-2L19.5 8.5"/><path d="m5 15 4 4M4 20l2.5-2.5"/>'),
+    diamond: _svg('<path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 7 9l5 12 5-12-2-6"/>'),
+    phone: _svg('<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/>'),
+    cart: _svg('<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.2 11a1.5 1.5 0 0 0 1.5 1.2h8a1.5 1.5 0 0 0 1.5-1.2L20 8H6"/>'),
+    tag: _svg('<path d="M4 4h7.5l8.5 8.5-7.5 7.5L4 11.5V4Z"/><circle cx="8.5" cy="8.5" r="1.4"/>'),
+    gift: _svg('<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12"/><path d="M12 8S10.5 4.5 8.2 4.5A1.8 1.8 0 0 0 8 8h4Zm0 0s1.5-3.5 3.8-3.5A1.8 1.8 0 0 1 16 8h-4Z"/>'),
+    key: _svg('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8M17.5 4.5 20 7M15.5 6.5 18 9"/>'),
+    folder: _svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>'),
+    headset: _svg('<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M20 19a4 4 0 0 1-4 3h-2"/>'),
+    bulb: _svg('<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.8 10.6c.6.6.8 1.4.8 2.4h6c0-1 .2-1.8.8-2.4A6 6 0 0 0 12 3Z"/>'),
+    heart: _svg('<path d="M12 20s-7-4.3-9.2-8.5A4.6 4.6 0 0 1 12 6a4.6 4.6 0 0 1 9.2 5.5C19 15.7 12 20 12 20Z"/>'),
+    wallet: _svg('<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 13.5h1.5"/><path d="M17 6V4.5a1.5 1.5 0 0 0-1.9-1.4L5 5.5"/>'),
+    // ---- Icon SVG cho các kênh liên hệ / mạng xã hội (không dùng emoji) ----
+    zalo: _svg('<path d="M4 5h16v10h-7l-5 4v-4H4Z"/><path d="M8 9h5M8 12h3"/>'),
+    telegram: _svg('<path d="M21 4 3 11l5 2 1.5 5 2.5-3.2L17 18l4-14Z"/><path d="m8 13 8-5"/>'),
+    facebook: _svg('<path d="M14.5 8H16V5.2h-2A3.2 3.2 0 0 0 10.8 8v2H9v3h1.8v6h3v-6h2l.7-3h-2.7V8.6c0-.4.3-.6.7-.6Z"/>'),
+    instagram: _svg('<rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.6" cy="7.4" r="1" fill="currentColor" stroke="none"/>'),
+    tiktok: _svg('<path d="M13 4c.4 2.6 2 4.2 4.5 4.4v2.7c-1.6 0-3.1-.5-4.5-1.4V15a4.7 4.7 0 1 1-4.7-4.7c.3 0 .6 0 .9.1v2.8a2 2 0 1 0 1.3 1.9V4Z"/>'),
+    email: _svg('<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>'),
+    youtube: _svg('<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="m10 9.2 5 2.8-5 2.8Z" fill="currentColor" stroke="none"/>'),
+    messenger: _svg('<path d="M12 3c5 0 9 3.7 9 8.4 0 4.6-4 8.3-9 8.3-1 0-2-.2-2.9-.5L5 20.5l.3-3.4A8 8 0 0 1 3 11.4C3 6.7 7 3 12 3Z"/><path d="m7.5 13.5 3-3 2 2 3-2.5"/>'),
+    discord: _svg('<path d="M7 7a15 15 0 0 1 10 0l1.5 3.5a12 12 0 0 1 1 5l-2.5 2-1.2-2M7 7 5.5 10.5a12 12 0 0 0-1 5l2.5 2 1.2-2"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/>')
+  };
+  // Map id kênh liên hệ -> tên icon SVG ở trên (mặc định dùng headset nếu không khớp).
+  const CONTACT_ICON_MAP = {
+    zalo: 'zalo', phone: 'phone', hotline: 'phone', telegram: 'telegram', facebook: 'facebook',
+    messenger: 'messenger', instagram: 'instagram', tiktok: 'tiktok', email: 'email',
+    youtube: 'youtube', discord: 'discord', web: 'web', other: 'headset'
+  };
+  const contactChannelIcon = (type) => ICONS[CONTACT_ICON_MAP[type]] || ICONS.headset;
+  // Nền tảng liên hệ / nhóm — admin thêm bao nhiêu tuỳ ý, mỗi mục chọn 1 nền tảng.
+  const CONTACT_PLATFORMS = [
+    ['zalo', 'Zalo'], ['telegram', 'Telegram'], ['facebook', 'Facebook'], ['messenger', 'Messenger'],
+    ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['discord', 'Discord'],
+    ['phone', 'Hotline'], ['email', 'Email'], ['web', 'Website'], ['other', 'Khác']
+  ];
+  const CONTACT_PLATFORM_LABEL = Object.fromEntries(CONTACT_PLATFORMS);
+  // Kiểu nền tảng của 1 kênh (tương thích ngược: cấu hình cũ chỉ có id).
+  const chType = (ch) => ch.type || ch.id || 'other';
+  // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
+  const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
+
+  function applyIcons(root = document) {
+    $$('[data-icon]', root).forEach(el => {
+      const name = el.dataset.icon;
+      if (ICONS[name] && !el.dataset.iconDone) { el.innerHTML = ICONS[name]; el.dataset.iconDone = '1'; }
+    });
+  }
+  // Trả về SVG cho icon danh mục: ưu tiên key trong ICONS; nếu dữ liệu cũ còn là emoji
+  // thì vẫn hiển thị emoji đó (tương thích ngược), mặc định là folder.
+  function catIcon(key) {
+    if (key && ICONS[key]) return ICONS[key];
+    if (key && /[\u{1F000}-\u{1FAFF}☀-➿]/u.test(key)) return `<span class="emoji-fallback">${esc(key)}</span>`;
+    return ICONS.folder;
+  }
+
   let selectedCategory = 'all';
+  let selectedSub = 'all';         // lọc theo thư mục con trong mục "Dịch Vụ Nổi Bật"
+  let browseCategoryId = null;     // null = đang xem danh sách Danh mục; ngược lại = id danh mục đang mở
+  let browseSubId = null;          // null = đang xem Thư mục con; ngược lại = id thư mục con đang mở
+
+  // Sinh ID tự động dạng "01", "02"... cho từng bộ sưu tập (danh mục / thư mục con /
+  // sản phẩm) — MỖI bộ có chuỗi số riêng, không dùng chung. Bỏ qua các id chữ cũ.
+  function nextSeqId(arr) {
+    let max = 0;
+    (arr || []).forEach(item => {
+      const n = parseInt(String(item.id).replace(/\D/g, ''), 10);
+      if (!isNaN(n) && n > max) max = n;
+    });
+    return String(max + 1).padStart(2, '0');
+  }
   let currentServiceId = null;
   let currentPackage = null;
   let adminActiveTab = 'overview';
-  let adminServiceEditing = null;  // null | 'new' | service id
-  let adminCategoryEditing = null; // null | 'new' | category id
+  let adminServiceEditing = null;     // null | 'new' | service id
+  let adminCategoryEditing = null;    // null | 'new' | category id
+  let adminSubcategoryEditing = null; // null | 'new' | subcategory id
 
   const LEGAL_CONTENT = {
     terms: {
@@ -790,6 +1156,226 @@ window.KENIOS_DEFAULT_DB = {
     }
   };
 
+  // ============================================================
+  // LIVE FEED — Bảng xếp hạng nạp + Giao dịch/Nạp tiền gần đây.
+  // Chạy dữ liệu ẢO (nhiều tên khác nhau, đổi liên tục) để tạo social-proof.
+  // Khi có giao dịch / nạp tiền THẬT thì gộp thêm vào, KHÔNG xoá dữ liệu ảo.
+  // Sản phẩm & giá lấy từ bảng giá của trợ lý AI (cfg.aiResponsePrice).
+  // ============================================================
+  const LiveFeed = (() => {
+    const SURNAMES = ['Nguyễn','Trần','Lê','Phạm','Hoàng','Huỳnh','Phan','Vũ','Võ','Đặng','Bùi','Đỗ','Hồ','Ngô','Dương','Lý','Đinh','Tô','Cao','Mai','Trịnh','Đoàn','Lương','Tạ','Chu'];
+    const GIVENS = ['Minh','Hùng','Quân','Anh','Tuấn','Khoa','Long','Nam','Phúc','Bảo','Đạt','Huy','Kiên','Sơn','Thắng','Vinh','Duy','Tài','Lộc','Phát','Hải','Trung','Dũng','Hoàng','Nghĩa','Khánh','Thịnh','Cường','Đức','Nhân'];
+
+    let productPool = [];
+    let orders = [];      // {name, product, label, price, time}
+    let deposits = [];    // {name, amount, time}
+    let rank = {};        // name -> tổng nạp tích luỹ
+    let timer = null;
+    let seenReal = new Set();
+
+    const rndInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    function maskName() {
+      const s = pick(SURNAMES), g = pick(GIVENS);
+      switch (rndInt(0, 3)) {
+        case 0: return `${s} ${g[0]}${'*'.repeat(rndInt(2, 4))}`;
+        case 1: return `${s.slice(0, 2)}${'*'.repeat(rndInt(2, 3))} ${g}`;
+        case 2: return `${s} V.${g[0]}${'*'.repeat(2)}`;
+        default: return `${s[0]}${'*'.repeat(3)} ${g}`;
+      }
+    }
+
+    function parsePrice(str) {
+      let n = parseInt(String(str).replace(/[^\d]/g, ''), 10);
+      if (!n) return 0;
+      if (n < 1000) n *= 1000;
+      return n;
+    }
+
+    function buildProductPool(cfg) {
+      const pool = [];
+      const text = (cfg && cfg.aiResponsePrice) || '';
+      let current = '';
+      text.split('\n').forEach(raw => {
+        const line = raw.replace(/[\u{1F000}-\u{1FFFF}☀-➿←-⇿️]/gu, '').trim();
+        if (!line) return;
+        if (/https?:|zalo|telegram|linkbio|cảm ơn|bảng giá|android|ios/i.test(line) && !/\d+\s*[kK]?\s*\//.test(line)) { return; }
+        const hasPrice = /\d+\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T\b)/i.test(line);
+        if (!hasPrice) { current = line.replace(/[:\-–].*$/, '').trim(); return; }
+        let name = current;
+        const inline = line.match(/^([^:0-9]+):/);
+        if (inline) name = inline[1].trim();
+        if (!name) return;
+        const re = /(\d+)\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T)\b([^\/\d]*)/gi;
+        let m;
+        while ((m = re.exec(line))) {
+          let label = m[2]; if (/^T$/i.test(label)) label = 'Tháng';
+          const extra = (m[3] || '').replace(/[^\p{L}\s]/gu, '').trim();
+          if (extra) label += ' ' + extra;
+          pool.push({ product: name, label, price: parsePrice(m[1]) });
+        }
+      });
+      if (!pool.length) {
+        ['VNHAX','OASIS VIP','KING','TIMO VIP','FREE FIRE','LIÊN QUÂN'].forEach(p =>
+          pool.push({ product: p, label: pick(['Tháng', 'Tuần']), price: rndInt(2, 12) * 50000 }));
+      }
+      return pool;
+    }
+
+    function relTime(ts) {
+      const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+      if (s < 60) return `${s} giây trước`;
+      const m = Math.floor(s / 60);
+      if (m < 60) return `${m} phút trước`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h} giờ trước`;
+      return `${Math.floor(h / 24)} ngày trước`;
+    }
+
+    const DEPOSIT_AMOUNTS = [50000, 50000, 100000, 100000, 100000, 200000, 200000, 300000, 500000, 500000, 1000000, 2000000];
+
+    function makeFakeOrder(agoMax) {
+      const p = pick(productPool);
+      return { name: maskName(), product: p.product, label: p.label, price: p.price,
+               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+    }
+    function makeFakeDeposit(agoMax) {
+      return { name: maskName(), amount: pick(DEPOSIT_AMOUNTS),
+               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+    }
+
+    function seed() {
+      orders = []; deposits = []; rank = {};
+      // Bảng xếp hạng: một nhóm "đại gia" nạp tích luỹ lớn
+      for (let i = 0; i < 12; i++) rank[maskName()] = rndInt(6, 90) * 500000;
+      // Lịch sử gần đây
+      let t = 5;
+      for (let i = 0; i < 14; i++) { const o = makeFakeOrder(); o.time = Date.now() - t * 1000; orders.push(o); t += rndInt(20, 120); }
+      t = 8;
+      for (let i = 0; i < 14; i++) { const d = makeFakeDeposit(); d.time = Date.now() - t * 1000; deposits.push(d); rank[d.name] = (rank[d.name] || 0) + d.amount; t += rndInt(20, 120); }
+      orders.sort((a, b) => b.time - a.time);
+      deposits.sort((a, b) => b.time - a.time);
+    }
+
+    function mergeReal(db) {
+      if (!db) return;
+      // Đơn hàng thật -> giao dịch gần đây (mua)
+      (db.orders || []).forEach(o => {
+        const key = 'O' + o.id;
+        if (seenReal.has(key)) return;
+        seenReal.add(key);
+        orders.unshift({ name: 'Bạn', product: o.serviceName || 'Sản phẩm', label: (o.packageName || '').replace(/^Gói\s*/i, ''),
+                         price: o.price || 0, time: Date.parse(o.date) || Date.now(), fake: false, real: true });
+      });
+      // Nạp tiền thật -> nạp tiền gần đây + cộng bảng xếp hạng (không mất dữ liệu ảo)
+      (db.transactions || []).filter(x => x.type === 'deposit' && x.amount > 0).forEach(x => {
+        const key = 'D' + x.id;
+        if (seenReal.has(key)) return;
+        seenReal.add(key);
+        deposits.unshift({ name: 'Bạn', amount: x.amount, time: Date.parse(x.date) || Date.now(), fake: false, real: true });
+        rank['Bạn (bạn)'] = (rank['Bạn (bạn)'] || 0) + x.amount;
+      });
+      orders.sort((a, b) => b.time - a.time);
+      deposits.sort((a, b) => b.time - a.time);
+    }
+
+    function tick() {
+      // Thêm 1 mục ảo mới, cập nhật lại thời gian tương đối
+      if (Math.random() < 0.55) { orders.unshift(makeFakeOrder(6)); }
+      else { const d = makeFakeDeposit(6); deposits.unshift(d); rank[d.name] = (rank[d.name] || 0) + d.amount; }
+      // Thỉnh thoảng "đại gia" nạp thêm để bảng xếp hạng nhảy
+      if (Math.random() < 0.25) { const names = Object.keys(rank); if (names.length) { const n = pick(names); rank[n] += pick(DEPOSIT_AMOUNTS); } }
+      if (orders.length > 40) orders.length = 40;
+      if (deposits.length > 40) deposits.length = 40;
+      render();
+    }
+
+    function medal(i) { return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''; }
+
+    function render() {
+      const rankEl = $('#rankList');
+      if (rankEl) {
+        const top = Object.entries(rank).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        rankEl.innerHTML = top.map(([name, total], i) => `
+          <div class="rank-row ${medal(i)}">
+            <span class="rank-pos">${i + 1}</span>
+            <span class="rank-name">${esc(name)}</span>
+            <span class="rank-total">${fmt(total)}</span>
+          </div>`).join('');
+      }
+      const ordEl = $('#orderFeed');
+      if (ordEl) {
+        ordEl.innerHTML = orders.slice(0, 8).map(o => `
+          <div class="feed-row${o.real ? ' feed-real' : ''}">
+            <span class="feed-ava" data-icon="cart"></span>
+            <span class="feed-main"><b>${esc(o.name)}</b> mua <b>${esc(o.product)}</b>${o.label ? ` · ${esc(o.label)}` : ''}<span class="feed-time">${relTime(o.time)}</span></span>
+            <span class="feed-amt">${fmt(o.price)}</span>
+          </div>`).join('');
+        applyIcons(ordEl);
+      }
+      const depEl = $('#depositFeed');
+      if (depEl) {
+        depEl.innerHTML = deposits.slice(0, 8).map(d => `
+          <div class="feed-row${d.real ? ' feed-real' : ''}">
+            <span class="feed-ava dep" data-icon="wallet"></span>
+            <span class="feed-main"><b>${esc(d.name)}</b> đã nạp<span class="feed-time">${relTime(d.time)}</span></span>
+            <span class="feed-amt plus">+${fmt(d.amount)}</span>
+          </div>`).join('');
+        applyIcons(depEl);
+      }
+    }
+
+    function init() {
+      productPool = buildProductPool(Store.db.config);
+      seed();
+      mergeReal(Store.db);
+      render();
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, rndInt(6000, 9000));
+      Store.onChange(db => { mergeReal(db); render(); });
+    }
+
+    return { init };
+  })();
+
+  // ============================================================
+  // MARQUEE — cuộn text ngang liên tục bằng requestAnimationFrame
+  // Không phụ thuộc CSS animation, hoạt động trên mọi browser/device.
+  // ============================================================
+  let _marqueeRaf = null;
+  function startMarquee(speedSec) {
+    const track = document.getElementById('marqueeTrack');
+    if (!track) return;
+
+    // Tắt CSS animation để tránh conflict
+    track.style.animation = 'none';
+    track.style.willChange = 'transform';
+
+    if (_marqueeRaf) { cancelAnimationFrame(_marqueeRaf); _marqueeRaf = null; }
+
+    let pos = 0;
+    let lastTime = null;
+
+    function step(ts) {
+      if (!lastTime) lastTime = ts;
+      const dt = ts - lastTime;
+      lastTime = ts;
+
+      // Tốc độ px/ms = (half width) / (speedSec * 1000)
+      const half = track.scrollWidth / 2;
+      if (half > 0) {
+        const pxPerMs = half / ((speedSec || 26) * 1000);
+        pos -= pxPerMs * dt;
+        if (pos <= -half) pos += half;
+        track.style.transform = `translateX(${pos}px)`;
+      }
+      _marqueeRaf = requestAnimationFrame(step);
+    }
+
+    _marqueeRaf = requestAnimationFrame(step);
+  }
+
   document.addEventListener('DOMContentLoaded', boot);
 
   async function boot() {
@@ -798,8 +1384,10 @@ window.KENIOS_DEFAULT_DB = {
     await Store.init();
     Store.onChange(renderDynamic);
 
+    applyIcons();
     renderStatic();
     renderDynamic();
+    // LiveFeed.init(); // Đã xóa phần hoạt động trực tuyến khỏi giao diện nên không cần chạy nữa
     renderFaq();
     wireGlobalUI();
     wireAuthModal();
@@ -818,13 +1406,13 @@ window.KENIOS_DEFAULT_DB = {
     maybeShowWelcome(Store.db.config);
   }
 
-  // ---- Thông báo popup và lời chào giọng nói khi vào web — HAI tính năng tách
-  // biệt hoàn toàn: mỗi cái có công tắc bật/tắt và nội dung riêng, không dùng chung. ----
+  // ---- Thông báo popup khi vào web (đã bỏ tính năng lời chào bằng giọng nói). ----
   const WELCOME_POPUP_SHOWN_KEY = 'kenios_welcome_popup_shown_v1';
-  const WELCOME_VOICE_SHOWN_KEY = 'kenios_welcome_voice_shown_v1';
 
   function maybeShowWelcome(cfg) {
-    if (cfg.welcomePopupEnabled && !sessionStorage.getItem(WELCOME_POPUP_SHOWN_KEY)) {
+    // welcomeAlways = bật (mặc định) thì hiện popup MỌI LẦN vào web; tắt thì chỉ 1 lần mỗi phiên.
+    const always = cfg.welcomeAlways !== false;
+    if (cfg.welcomePopupEnabled && (always || !sessionStorage.getItem(WELCOME_POPUP_SHOWN_KEY))) {
       sessionStorage.setItem(WELCOME_POPUP_SHOWN_KEY, '1');
       setTimeout(() => {
         setText('#welcomeTitle', cfg.welcomePopupTitle);
@@ -832,10 +1420,6 @@ window.KENIOS_DEFAULT_DB = {
         setAttr('#welcomeContactBtn', 'href', cfg.zaloLink);
         openModal('#welcomeModal');
       }, 600);
-    }
-    if (cfg.welcomeVoiceEnabled && !sessionStorage.getItem(WELCOME_VOICE_SHOWN_KEY)) {
-      sessionStorage.setItem(WELCOME_VOICE_SHOWN_KEY, '1');
-      setTimeout(() => { Voice.speak(cfg.welcomeVoiceText); }, 600);
     }
   }
 
@@ -847,6 +1431,8 @@ window.KENIOS_DEFAULT_DB = {
     document.title = cfg.siteTitle;
     setText('#brandName', cfg.logoText);
     setText('#brandSub', cfg.logoSubtext);
+    setText('#mobileNavBrandName', cfg.logoText);
+    setText('#mobileNavBrandSub', cfg.logoSubtext);
     setText('#footerBrand', cfg.logoText);
     setText('#footerDesc', cfg.contactAdminDesc);
     setText('#footerAdminName', `${cfg.contactAdminName} — ${cfg.contactAdminSub}`);
@@ -855,6 +1441,7 @@ window.KENIOS_DEFAULT_DB = {
     renderContactWidgets(cfg);
 
     setText('#heroTag', cfg.bannerTagText);
+    setText('#heroBrandName', cfg.logoText);
     setText('#heroTitle', cfg.siteTitle.replace(/^.*?-\s*/, ''));
     setText('#heroSub', cfg.siteSubtitle);
     setText('#heroBtn1', cfg.bannerBtn1Text);
@@ -864,7 +1451,9 @@ window.KENIOS_DEFAULT_DB = {
     const m = `📢 ${cfg.marqueeText}`;
     setText('#marqueeText1', m);
     setText('#marqueeText2', m);
-    document.documentElement.style.setProperty('--marquee-speed', `${cfg.marqueeSpeed || 26}s`);
+    // Marquee chạy bằng JS requestAnimationFrame — không bị block bởi prefers-reduced-motion hay CSS cache
+    const marqueeSpeed = cfg.marqueeSpeed || 26;
+    startMarquee(marqueeSpeed);
 
     applyBranding(cfg);
     setupGoogleSignIn(cfg);
@@ -894,12 +1483,13 @@ window.KENIOS_DEFAULT_DB = {
 
   async function setupGoogleSignIn(cfg) {
     const box = $('#googleSignInBox');
-    const divider = $('#authDivider');
-    if (!cfg.googleClientId) { box.hidden = true; divider.hidden = true; return; }
+    const fallback = $('#googleFallbackBtn');
+    if (!box) return;
+    if (!cfg.googleClientId) { box.hidden = true; return; }
     try {
       await loadGoogleScript();
       box.hidden = false;
-      divider.hidden = false;
+      if (fallback) fallback.hidden = true;
       box.innerHTML = '';
       window.google.accounts.id.initialize({
         client_id: cfg.googleClientId,
@@ -909,7 +1499,6 @@ window.KENIOS_DEFAULT_DB = {
     } catch (err) {
       console.warn(err);
       box.hidden = true;
-      divider.hidden = true;
     }
   }
 
@@ -921,14 +1510,30 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Thương hiệu: logo (ảnh/font/màu) + màu chủ đạo toàn site ----
-  const LOGO_FONTS = ['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Orbitron', 'Pacifico'];
+  // Font chữ logo — gồm font chữ thường + nhiều font ĐẬM / 3D / display cho logo game.
+  // (Bungee Shade có sẵn hiệu ứng bóng 3D; Russo One/Black Ops One/Anton… kiểu chữ khối 3D.)
+  const LOGO_FONTS = [
+    'Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Pacifico',
+    'Orbitron', 'Russo One', 'Black Ops One', 'Anton', 'Staatliches', 'Archivo Black',
+    'Bungee', 'Bungee Shade', 'Bungee Inline', 'Titan One', 'Bowlby One SC',
+    'Rubik Mono One', 'Passion One', 'Luckiest Guy', 'Bangers', 'Fredoka',
+    'Righteous', 'Monoton', 'Faster One',
+  ];
+  // Font có nhiều độ đậm (nạp kèm trục wght); còn lại là font 1 độ đậm → nạp trơn.
+  const WEIGHTED_FONTS = new Set(['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Fredoka']);
+  const BANK_OPTIONS = [
+    'ACB', 'Vietcombank', 'VietinBank', 'BIDV', 'MBBank', 'Techcombank', 'VPBank',
+    'TPBank', 'Sacombank', 'HDBank', 'SHB', 'OCB', 'MSB', 'SeABank', 'VIB', 'Agribank'
+  ];
   const _loadedFonts = new Set(['Be Vietnam Pro']);
 
   function ensureFontLoaded(fontName) {
-    if (_loadedFonts.has(fontName)) return;
+    if (!fontName || _loadedFonts.has(fontName)) return;
+    // Font display 1 độ đậm sẽ lỗi nếu ép trục wght → chỉ font nhiều độ đậm mới thêm wght.
+    const spec = WEIGHTED_FONTS.has(fontName) ? ':wght@400;600;700;800' : '';
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@400;600;700;800&display=swap`;
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}${spec}&display=swap`;
     document.head.appendChild(link);
     _loadedFonts.add(fontName);
   }
@@ -938,8 +1543,40 @@ window.KENIOS_DEFAULT_DB = {
   function renderContactWidgets(cfg) {
     const channels = cfg.contactChannels || [];
     renderContactWidget($('#headerContactWrap'), channels, { btnClass: 'btn btn-ghost btn-sm' });
+    renderContactWidget($('#drawerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm btn-block' });
     renderContactWidget($('#footerContactWrap'), channels, { btnClass: 'btn btn-glass btn-sm', dropUp: true });
     renderContactWidget($('#welcomeContactWrap'), channels, { btnClass: 'btn btn-primary btn-block' });
+    renderContactSection(cfg);
+  }
+
+  // Phần "Liên Hệ & Cộng Đồng" trên trang — hiện các kênh/nhóm mạng xã hội dạng thẻ.
+  function renderContactSection(cfg) {
+    const grid = $('#contactGroups');
+    const empty = $('#contactEmpty');
+    if (!grid) return;
+    const enabled = (cfg.contactChannels || []).filter(c => c.enabled && c.url);
+    if (!enabled.length) {
+      grid.innerHTML = '';
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    grid.innerHTML = enabled.map(c => {
+      const t = chType(c);
+      const isTel = c.url.startsWith('tel:') || c.url.startsWith('mailto:');
+      const attrs = isTel ? '' : 'target="_blank" rel="noopener"';
+      const cta = /nhóm|group|zalo\.me\/g\/|t\.me\/|chat\.whatsapp|discord\.gg/i.test(c.url) ? 'Tham gia nhóm' : 'Liên hệ ngay';
+      const label = c.label || CONTACT_PLATFORM_LABEL[t] || 'Liên hệ';
+      return `
+        <a class="contact-card contact-${esc(t)}" href="${esc(c.url)}" ${attrs}>
+          <span class="contact-card-ico">${contactChannelIcon(t)}</span>
+          <span class="contact-card-body">
+            <strong>${esc(label)}</strong>
+            <small>${esc(cta)}</small>
+          </span>
+          <span class="contact-card-arrow" aria-hidden="true">${ICONS.chevron || ''}</span>
+        </a>`;
+    }).join('');
   }
 
   function renderContactWidget(container, channels, opts = {}) {
@@ -955,7 +1592,7 @@ window.KENIOS_DEFAULT_DB = {
       a.href = c.url;
       if (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
       a.className = opts.btnClass;
-      a.innerHTML = `<span>${c.icon}</span> ${esc(c.label)}`;
+      a.innerHTML = `<span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}`;
       container.appendChild(a);
       return;
     }
@@ -970,7 +1607,7 @@ window.KENIOS_DEFAULT_DB = {
     dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
     dropdown.innerHTML = enabled.map(c => {
       const targetAttrs = (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) ? 'target="_blank" rel="noopener"' : '';
-      return `<a href="${esc(c.url)}" ${targetAttrs}><span>${c.icon}</span> ${esc(c.label)}</a>`;
+      return `<a href="${esc(c.url)}" ${targetAttrs}><span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}</a>`;
     }).join('');
     btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
     document.addEventListener('click', () => dropdown.classList.remove('open'));
@@ -980,7 +1617,17 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function applyBranding(cfg) {
-    $$('.brand-mark').forEach(img => { img.src = cfg.logoUrl || './favicon.svg'; });
+    const hasPhoto = !!cfg.logoUrl; // logo ảnh riêng → hiển thị full (phủ kín khung như app-icon)
+    const logoUrl = cfg.logoUrl || '';
+    const isVid = isVideoUrl(logoUrl);           // logo là VIDEO -> dùng <video>, không phải <img>
+    const src = logoUrl || './favicon.svg';
+    $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => {
+      w.classList.toggle('has-photo', hasPhoto);
+      const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
+      w.innerHTML = isVid
+        ? `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline></video>`
+        : `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
+    });
 
     const font = cfg.logoFont || 'Be Vietnam Pro';
     ensureFontLoaded(font);
@@ -991,13 +1638,31 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--gold', accent);
     document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
 
-    document.documentElement.style.setProperty('--logo-anim-speed', `${cfg.logoAnimSpeed || 6}s`);
-    const brandNameEl = $('#brandName');
-    if (brandNameEl) {
-      brandNameEl.classList.remove('logo-anim-rainbow', 'logo-anim-shine');
-      if (cfg.logoColorMode === 'rainbow') brandNameEl.classList.add('logo-anim-rainbow');
-      else if (cfg.logoColorMode === 'shine') brandNameEl.classList.add('logo-anim-shine');
-    }
+    // Hai nhóm tách biệt: MÀU CHẠY (logoColorMode) + CHUYỂN ĐỘNG (logoMotionMode), tốc độ riêng.
+    const colorSpeed = cfg.logoAnimSpeed || 6;
+    const motionSpeed = cfg.logoMotionSpeed || 2;
+    document.documentElement.style.setProperty('--logo-anim-speed', `${colorSpeed}s`);
+    document.documentElement.style.setProperty('--logo-motion-speed', `${motionSpeed}s`);
+    const colorMode = cfg.logoColorMode || 'solid';
+    const motionMode = cfg.logoMotionMode || 'none';
+    // Áp hiệu ứng cho cả logo header và logo trong menu 3 gạch
+    $$('#brandName, #mobileNavBrandName').forEach(el => {
+      el.classList.remove(
+        ...LOGO_COLOR_MODES.map(m => 'logo-color-' + m),
+        ...LOGO_MOTION_MODES.map(m => 'logo-motion-' + m)
+      );
+      const anims = [];
+      if (LOGO_COLOR_ANIM[colorMode]) {
+        el.classList.add('logo-color-' + colorMode);
+        anims.push(`${LOGO_COLOR_ANIM[colorMode][0]} ${colorSpeed}s ${LOGO_COLOR_ANIM[colorMode][1]} infinite`);
+      }
+      if (LOGO_MOTION_ANIM[motionMode]) {
+        el.classList.add('logo-motion-' + motionMode);
+        anims.push(`${LOGO_MOTION_ANIM[motionMode][0]} ${motionSpeed}s ${LOGO_MOTION_ANIM[motionMode][1]} infinite`);
+      }
+      // Gộp cả 2 animation vào 1 khai báo inline để chạy đồng thời (không đè nhau).
+      el.style.animation = anims.join(', ');
+    });
   }
 
   // ============================================================
@@ -1007,8 +1672,26 @@ window.KENIOS_DEFAULT_DB = {
     renderAuthArea();
     renderHeroStats();
     renderCategories();
+    renderDrawerCategories();
     renderServiceGrid();
     renderWebdesignGrid();
+    renderShowcase();
+  }
+
+  // Mục "Hình ảnh & Video" — độc lập với banner Hero, lấy từ Thư viện (Store.db.media).
+  function renderShowcase() {
+    const grid = $('#showcaseGrid');
+    const section = $('#showcase');
+    if (!grid || !section) return;
+    const media = (Store.db.media || []).filter(m => m.showcase !== false);
+    if (!media.length) { section.hidden = true; grid.innerHTML = ''; return; }
+    section.hidden = false;
+    grid.innerHTML = media.map(m => `
+      <div class="showcase-item">
+        ${m.type === 'video'
+          ? `<video src="${esc(m.url)}" muted loop autoplay playsinline></video>`
+          : `<img src="${esc(m.url)}" alt="${esc(m.name || '')}" loading="lazy">`}
+      </div>`).join('');
   }
 
   function categoryMediaHtml(c) {
@@ -1019,37 +1702,228 @@ window.KENIOS_DEFAULT_DB = {
     return `<div class="category-media" data-fallback-bg="${esc(c.image)}" style="background-image:url('${esc(c.image)}')"></div>`;
   }
 
+  function categoryCardHtml(c, kind) {
+    // kind: 'category' | 'subcategory'
+    const dataAttr = kind === 'subcategory' ? `data-subcategory="${esc(c.id)}"` : `data-category="${esc(c.id)}"`;
+    return `
+      <div class="category-card ${c.image ? 'has-media' : ''}" ${dataAttr} role="button" tabindex="0">
+        ${categoryMediaHtml(c)}
+        <span class="category-icon">${catIcon(c.icon)}</span>
+        <h3>${esc(c.name)}</h3>
+        <p>${esc(c.description || '')}</p>
+      </div>`;
+  }
+
+  function renderBreadcrumb() {
+    const bc = $('#categoryBreadcrumb');
+    if (!browseCategoryId) { bc.hidden = true; bc.innerHTML = ''; return; }
+    const cat = Store.db.categories.find(c => c.id === browseCategoryId);
+    const sub = browseSubId ? (Store.db.subcategories || []).find(s => s.id === browseSubId) : null;
+    const crumbs = [
+      `<button class="crumb" data-crumb="root"><span class="crumb-ico" data-crumb-back>${ICONS.back}</span>Danh mục</button>`,
+      `<span class="crumb-sep">${ICONS.chevron}</span>`,
+      sub
+        ? `<button class="crumb" data-crumb="category">${esc(cat ? cat.name : '')}</button>`
+        : `<span class="crumb current">${esc(cat ? cat.name : '')}</span>`
+    ];
+    if (sub) {
+      crumbs.push(`<span class="crumb-sep">${ICONS.chevron}</span>`, `<span class="crumb current">${esc(sub.name)}</span>`);
+    }
+    bc.innerHTML = crumbs.join('');
+    bc.hidden = false;
+  }
+
+  // Bộ duyệt 3 cấp: Danh mục → Thư mục con → Sản phẩm.
   function renderCategories() {
     const grid = $('#categoryGrid');
-    grid.innerHTML = Store.db.categories.map(c => `
-      <div class="category-card ${c.image ? 'has-media' : ''}" data-category="${esc(c.id)}" role="button" tabindex="0">
-        ${categoryMediaHtml(c)}
-        <span class="category-icon">${c.icon}</span>
-        <h3>${esc(c.name)}</h3>
-        <p>${esc(c.description)}</p>
-      </div>
-    `).join('');
+    renderBreadcrumb();
+
+    if (!browseCategoryId) {
+      // Cấp 1: danh sách Danh mục (bỏ webdesign vì đã có mục "Thiết Kế Website" riêng).
+      const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
+      grid.innerHTML = cats.map(c => categoryCardHtml(c, 'category')).join('')
+        || '<p class="empty-note">Chưa có danh mục nào.</p>';
+    } else {
+      const subs = (Store.db.subcategories || []).filter(s => s.categoryId === browseCategoryId);
+      if (!browseSubId && subs.length) {
+        // Cấp 2: các Thư mục con của danh mục + sản phẩm gắn thẳng danh mục (nếu có).
+        const directProducts = Store.db.services.filter(s => s.categoryId === browseCategoryId && !s.subcategoryId);
+        grid.innerHTML = subs.map(s => categoryCardHtml(s, 'subcategory')).join('')
+          + directProducts.map(serviceCardHtml).join('');
+      } else {
+        // Cấp 3: sản phẩm trong thư mục con (hoặc trong danh mục nếu danh mục không có thư mục con).
+        const products = browseSubId
+          ? Store.db.services.filter(s => s.subcategoryId === browseSubId)
+          : Store.db.services.filter(s => s.categoryId === browseCategoryId);
+        grid.innerHTML = products.length
+          ? products.map(serviceCardHtml).join('')
+          : '<p class="empty-note">Chưa có sản phẩm nào trong mục này.</p>';
+      }
+    }
     applyImageFallbacks(grid, '.category-media');
+    applyImageFallbacks(grid);
+
     grid.onclick = (e) => {
-      const card = e.target.closest('.category-card');
-      if (!card) return;
-      const catId = card.dataset.category;
-      selectedCategory = catId === 'webdesign' ? 'all' : catId;
-      renderServiceGrid();
-      const target = catId === 'webdesign' ? '#webdesign' : '#services';
-      document.querySelector(target).scrollIntoView({ behavior: 'smooth' });
+      const catCard = e.target.closest('[data-category]');
+      if (catCard) {
+        browseCategoryId = catCard.dataset.category;
+        browseSubId = null;
+        renderCategories();
+        $('#categories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const subCard = e.target.closest('[data-subcategory]');
+      if (subCard) {
+        browseSubId = subCard.dataset.subcategory;
+        renderCategories();
+        $('#categories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
     };
 
+    const bc = $('#categoryBreadcrumb');
+    bc.onclick = (e) => {
+      const crumb = e.target.closest('[data-crumb]');
+      if (!crumb) return;
+      if (crumb.dataset.crumb === 'root') { browseCategoryId = null; browseSubId = null; }
+      else if (crumb.dataset.crumb === 'category') { browseSubId = null; }
+      renderCategories();
+    };
+
+    renderFilterTabs();
+  }
+
+  // Render danh mục sản phẩm động trong menu 3 gạch (drawer)
+  function renderDrawerCategories() {
+    const listEl = $('#drawerCategoriesList');
+    if (!listEl) return;
+    const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
+    listEl.innerHTML = cats.map(c => {
+      // Tìm các thư mục con (subcategories) cho danh mục này
+      const subs = (Store.db.subcategories || []).filter(s => s.categoryId === c.id);
+      
+      let subHtml = '';
+      if (subs.length > 0) {
+        subHtml = `
+          <div class="drawer-subcat-list">
+            ${subs.map(s => `
+              <button type="button" class="drawer-subcat-link" data-cat="${esc(c.id)}" data-sub="${esc(s.id)}">
+                👉 ${esc(s.name)}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="drawer-cat-item">
+          <button type="button" class="drawer-cat-btn" data-cat="${esc(c.id)}">
+            <span style="display:flex;align-items:center;gap:10px;">
+              <span class="mnl-icon">${catIcon(c.icon)}</span>
+              <span>${esc(c.name)}</span>
+            </span>
+            ${subs.length > 0 ? `<span style="font-size:0.75rem;opacity:0.6;margin-left:auto;">▼</span>` : ''}
+          </button>
+          ${subHtml}
+        </div>
+      `;
+    }).join('');
+    
+    // Wire sự kiện click cho các nút danh mục chính
+    $$('.drawer-cat-btn', listEl).forEach(btn => {
+      btn.onclick = () => {
+        const catId = btn.dataset.cat;
+        
+        // Cập nhật bộ lọc 3 cấp
+        browseCategoryId = catId;
+        browseSubId = null;
+        renderCategories();
+        
+        // Cập nhật bộ lọc tabs dịch vụ nổi bật (nếu có)
+        selectedCategory = catId;
+        selectedSub = 'all';
+        const filterWrap = $('#filterTabs');
+        if (filterWrap) {
+          $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b.dataset.filter === catId));
+        }
+        renderSubFilterTabs();
+        renderServiceGrid();
+        
+        closeMobileNavGlobal();
+        const target = $('#categories');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    });
+    
+    // Wire sự kiện click cho các nút thư mục con
+    $$('.drawer-subcat-link', listEl).forEach(link => {
+      link.onclick = () => {
+        const catId = link.dataset.cat;
+        const subId = link.dataset.sub;
+        
+        // Cập nhật bộ lọc 3 cấp
+        browseCategoryId = catId;
+        browseSubId = subId;
+        renderCategories();
+        
+        // Cập nhật bộ lọc tabs dịch vụ nổi bật (nếu có)
+        selectedCategory = catId;
+        selectedSub = subId;
+        const filterWrap = $('#filterTabs');
+        if (filterWrap) {
+          $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b.dataset.filter === catId));
+        }
+        renderSubFilterTabs();
+        const subFilterWrap = $('#subFilterTabs');
+        if (subFilterWrap) {
+          $$('.filter-tab', subFilterWrap).forEach(b => b.classList.toggle('active', b.dataset.subfilter === subId));
+        }
+        renderServiceGrid();
+        
+        closeMobileNavGlobal();
+        const target = $('#categories');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    });
+  }
+
+  function renderFilterTabs() {
     const filterWrap = $('#filterTabs');
+    if (!filterWrap) return;
     const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
     filterWrap.innerHTML = [`<button class="filter-tab ${selectedCategory === 'all' ? 'active' : ''}" data-filter="all">Tất cả</button>`]
-      .concat(cats.map(c => `<button class="filter-tab ${selectedCategory === c.id ? 'active' : ''}" data-filter="${esc(c.id)}">${c.icon} ${esc(c.name)}</button>`))
+      .concat(cats.map(c => `<button class="filter-tab ${selectedCategory === c.id ? 'active' : ''}" data-filter="${esc(c.id)}"><span class="filter-ico">${catIcon(c.icon)}</span> ${esc(c.name)}</button>`))
       .join('');
     filterWrap.onclick = (e) => {
       const btn = e.target.closest('.filter-tab');
       if (!btn) return;
       selectedCategory = btn.dataset.filter;
+      selectedSub = 'all'; // đổi danh mục thì reset thư mục con
       $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b === btn));
+      renderSubFilterTabs();
+      renderServiceGrid();
+    };
+    renderSubFilterTabs();
+  }
+
+  // Hàng lọc thứ 2: thư mục con của danh mục đang chọn (chỉ hiện khi danh mục đó có
+  // thư mục con). Bấm danh mục ở hàng trên → hiện hàng thư mục con này để lọc tiếp.
+  function renderSubFilterTabs() {
+    const wrap = $('#subFilterTabs');
+    if (!wrap) return;
+    const subs = selectedCategory === 'all'
+      ? []
+      : (Store.db.subcategories || []).filter(s => s.categoryId === selectedCategory);
+    if (!subs.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+    wrap.hidden = false;
+    wrap.innerHTML = [`<button class="filter-tab sub ${selectedSub === 'all' ? 'active' : ''}" data-subfilter="all">Tất cả</button>`]
+      .concat(subs.map(s => `<button class="filter-tab sub ${selectedSub === s.id ? 'active' : ''}" data-subfilter="${esc(s.id)}"><span class="filter-ico">${catIcon(s.icon)}</span> ${esc(s.name)}</button>`))
+      .join('');
+    wrap.onclick = (e) => {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      selectedSub = btn.dataset.subfilter;
+      $$('.filter-tab', wrap).forEach(b => b.classList.toggle('active', b === btn));
       renderServiceGrid();
     };
   }
@@ -1066,7 +1940,7 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // Nền Hero hỗ trợ cả ảnh và video (tự nhận diện qua đuôi file .mp4/.webm/.ogg).
-  function isVideoUrl(url) { return /\.(mp4|webm|ogg)(\?|#|$)/i.test(url || ''); }
+  function isVideoUrl(url) { return /\.(mp4|webm|ogg|ogv|mov|m4v|mkv|avi|3gp|flv|wmv)(\?|#|$)/i.test(url || ''); }
 
   function applyHeroBackground(url) {
     const imgEl = $('#heroBg');
@@ -1097,7 +1971,7 @@ window.KENIOS_DEFAULT_DB = {
     list.innerHTML = FAQ_ITEMS.map((item, i) => `
       <div class="faq-item" data-faq-index="${i}">
         <button class="faq-question" type="button">
-          <span>${esc(item.q)}</span><span class="chev">▾</span>
+          <span>${esc(item.q)}</span><span class="chev">${ICONS.chevron}</span>
         </button>
         <div class="faq-answer"><p>${esc(item.a)}</p></div>
       </div>
@@ -1189,6 +2063,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
           ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
           <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
+          <span class="views-badge">${ICONS.eye}<b>${viewsFor(s.id)}</b></span>
         </div>
         <div class="body">
           <h3>${esc(s.name)}</h3>
@@ -1202,12 +2077,30 @@ window.KENIOS_DEFAULT_DB = {
     `;
   }
 
+  const VIEWS_KEY = 'kenios_views_v1';
+  function _views() { try { return JSON.parse(localStorage.getItem(VIEWS_KEY)) || {}; } catch { return {}; } }
+  function viewsFor(id) {
+    const v = _views();
+    if (v[id] == null) { v[id] = 20 + Math.floor(Math.random() * 180); try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {} }
+    return v[id];
+  }
+  function bumpViews(id) {
+    const v = _views();
+    v[id] = (v[id] || viewsFor(id)) + 1;
+    try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {}
+    return v[id];
+  }
+
   function renderServiceGrid() {
-    const list = Store.db.services.filter(s => s.categoryId !== 'webdesign' &&
-      (selectedCategory === 'all' || s.categoryId === selectedCategory));
+    const list = Store.db.services.filter(s => {
+      if (s.categoryId === 'webdesign') return false;
+      if (selectedCategory !== 'all' && s.categoryId !== selectedCategory) return false;
+      if (selectedSub !== 'all' && s.subcategoryId !== selectedSub) return false;
+      return true;
+    });
     $('#serviceGrid').innerHTML = list.length
       ? list.map(serviceCardHtml).join('')
-      : `<p class="empty-note">Chưa có dịch vụ nào trong danh mục này.</p>`;
+      : `<p class="empty-note">Chưa có dịch vụ nào trong mục này.</p>`;
     applyImageFallbacks($('#serviceGrid'));
   }
 
@@ -1224,14 +2117,37 @@ window.KENIOS_DEFAULT_DB = {
       const url = el.dataset.fallbackBg;
       if (!url) return;
       const img = new Image();
-      img.onerror = () => { el.classList.add('img-fallback'); el.textContent = '🖼️'; el.style.backgroundImage = 'none'; };
+      img.onerror = () => { el.classList.add('img-fallback'); el.textContent = ''; el.style.backgroundImage = 'none'; };
       img.src = url;
     });
+  }
+
+  // ---- Ghi nhớ tạm thông tin admin trong phiên để "Lưu giao diện" không cần nhập lại mật khẩu ----
+  const ADMIN_CREDS_KEY = 'kenios_admin_creds_v1';
+  function rememberAdminCreds(username, password) {
+    try { sessionStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify({ username, password })); } catch { /* ignore */ }
+  }
+  function getAdminCreds() {
+    try { return JSON.parse(sessionStorage.getItem(ADMIN_CREDS_KEY)) || null; } catch { return null; }
+  }
+  function clearAdminCreds() {
+    try { sessionStorage.removeItem(ADMIN_CREDS_KEY); } catch { /* ignore */ }
   }
 
   function renderAuthArea() {
     const area = $('#authArea');
     const user = Store.currentUser();
+    const adminLabel = $('#mobileNavAdminLabel');
+    const adminLink = $('#mobileNavAdminLink');
+    if (user && user.role === 'admin') {
+      if (adminLabel) adminLabel.hidden = false;
+      if (adminLink) adminLink.hidden = false;
+    } else {
+      if (adminLabel) adminLabel.hidden = true;
+      if (adminLink) adminLink.hidden = true;
+    }
+    // Nút Lưu giao diện đã được chuyển vào bên trong tab Config của admin modal
+    renderDrawerUser(user);
     if (!user) {
       area.innerHTML = `<button class="btn btn-primary btn-sm" id="openAuthBtn">Đăng nhập</button>`;
       $('#openAuthBtn').addEventListener('click', () => openModal('#authModal'));
@@ -1242,25 +2158,109 @@ window.KENIOS_DEFAULT_DB = {
       <div class="auth-mini">
         <button class="balance-pill" id="balancePill">${fmt(user.balance || 0)}</button>
         <div class="user-menu">
-          <button class="avatar-btn" id="avatarBtn"><img src="${avatar}" alt=""></button>
-          <div class="user-dropdown" id="userDropdown">
-            <strong style="padding:8px 12px;font-size:.85rem;">${esc(user.username)}</strong>
-            <button id="ddOrders">📦 Đơn hàng của tôi</button>
-            <button id="ddDeposit">💳 Nạp tiền</button>
-            ${user.role === 'admin' ? '<button id="ddAdmin">🛠️ Quản trị hệ thống</button>' : ''}
-            <button id="ddLogout">🚪 Đăng xuất</button>
-          </div>
+          <button class="avatar-btn" id="avatarBtn" aria-label="Mở bảng điều khiển tài khoản"><img src="${avatar}" alt=""></button>
         </div>
       </div>
     `;
     $('#balancePill').addEventListener('click', () => openModal('#depositModal'));
-    $('#avatarBtn').addEventListener('click', () => $('#userDropdown').classList.toggle('open'));
-    $('#ddOrders').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openOrdersModal(); });
-    $('#ddDeposit').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openModal('#depositModal'); });
+    $('#avatarBtn').addEventListener('click', () => {
+      renderProfileModal();
+      openModal('#profileModal');
+    });
+  }
+
+  // Khung render thông tin cá nhân dạng Modal chuyên nghiệp khi click vào Avatar
+  function renderProfileModal() {
+    const body = $('#profileModalBody');
+    if (!body) return;
+    const user = Store.currentUser();
+    if (!user) return;
+    const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
+    
+    body.innerHTML = `
+      <div class="profile-head" style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.02);padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:20px;">
+        <img src="${avatar}" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 15px rgba(255,183,3,0.2);">
+        <div class="profile-meta" style="display:flex;flex-direction:column;gap:4px;">
+          <strong style="font-size:1.15rem;color:var(--ink);">${esc(user.username)}</strong>
+          <span style="font-size:0.8rem;color:var(--muted);">ID tài khoản: <code style="color:var(--gold-soft);">${esc(user.userId)}</code></span>
+          <span style="font-size:0.8rem;color:var(--muted);">${user.role === 'admin' ? '🛡️ Quản trị viên' : '👤 Thành viên'}</span>
+        </div>
+      </div>
+      <div class="profile-balance" style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);margin-bottom:20px;">
+        <span style="color:var(--muted);font-weight:500;">Số dư hiện tại</span>
+        <strong style="font-size:1.25rem;color:var(--gold);">${fmt(user.balance || 0)}</strong>
+      </div>
+      <div class="profile-actions" style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="btn btn-glass btn-block" id="profDepositBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
+          <span class="btn-ico">${ICONS.card}</span> Nạp tiền tự động
+        </button>
+        <button type="button" class="btn btn-glass btn-block" id="profOrdersBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
+          <span class="btn-ico">${ICONS.box}</span> Đơn hàng của tôi
+        </button>
+        <button type="button" class="btn btn-glass btn-block" id="profPasswordBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
+          <span class="btn-ico">${ICONS.lock}</span> Thay đổi mật khẩu
+        </button>
+        ${user.role === 'admin' ? `
+          <button type="button" class="btn btn-primary btn-block" id="profAdminBtn" style="background:linear-gradient(135deg, var(--gold), #ff8f1f);color:#1a1200;font-weight:700;justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;box-shadow:0 4px 15px rgba(255,143,31,0.25);">
+            <span class="btn-ico">${ICONS.shield}</span> Quản trị & Cấu hình Shop
+          </button>
+        ` : ''}
+        <button type="button" class="btn btn-ghost btn-block" id="profLogoutBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;color:#ff5e5e;margin-top:10px;">
+          <span class="btn-ico">${ICONS.logout}</span> Đăng xuất tài khoản
+        </button>
+      </div>
+    `;
+
+    // Gán sự kiện click cho các nút
+    $('#profDepositBtn').onclick = () => { closeModal('#profileModal'); openModal('#depositModal'); };
+    $('#profOrdersBtn').onclick = () => { closeModal('#profileModal'); openOrdersModal(); };
+    $('#profPasswordBtn').onclick = () => { closeModal('#profileModal'); openPasswordModal(); };
     if (user.role === 'admin') {
-      $('#ddAdmin').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openAdminModal(); });
+      $('#profAdminBtn').onclick = () => { closeModal('#profileModal'); openAdminModal(); };
     }
-    $('#ddLogout').addEventListener('click', () => { Store.logout(); toast('Đã đăng xuất.', 'success'); });
+    $('#profLogoutBtn').onclick = () => { closeModal('#profileModal'); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); };
+  }
+
+  // Hộp thông tin người dùng trong menu 3 gạch: ID, số dư, đổi mật khẩu (hoặc nút đăng nhập).
+  function renderDrawerUser(user) {
+    const box = $('#drawerUserBox');
+    if (!box) return;
+    if (!user) {
+      box.innerHTML = `<button type="button" class="btn btn-primary btn-block" id="drawerLoginBtn">Đăng nhập / Đăng ký</button>`;
+      $('#drawerLoginBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#authModal'); });
+      return;
+    }
+    const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
+    box.innerHTML = `
+      <div class="drawer-user-head">
+        <img class="drawer-user-avatar" src="${avatar}" alt="">
+        <div class="drawer-user-meta">
+          <strong>${esc(user.username)}</strong>
+          <small>ID: ${esc(user.userId)}${user.role === 'admin' ? ' · Quản trị' : ''}</small>
+        </div>
+      </div>
+      <div class="drawer-user-balance"><span>Số dư</span><strong>${fmt(user.balance || 0)}</strong></div>
+      <div class="drawer-user-actions">
+        <button type="button" class="btn btn-glass btn-sm" id="drawerDepositBtn"><span class="btn-ico">${ICONS.card}</span> Nạp tiền</button>
+        <button type="button" class="btn btn-glass btn-sm" id="drawerPasswordBtn"><span class="btn-ico">${ICONS.lock}</span> Đổi mật khẩu</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="drawerLogoutBtn"><span class="btn-ico">${ICONS.logout}</span> Đăng xuất</button>
+      </div>`;
+    $('#drawerDepositBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#depositModal'); });
+    $('#drawerPasswordBtn').addEventListener('click', () => { closeMobileNavGlobal(); openPasswordModal(); });
+    $('#drawerLogoutBtn').addEventListener('click', () => { closeMobileNavGlobal(); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); });
+  }
+
+  function closeMobileNavGlobal() {
+    $('#mobileNav')?.classList.remove('open');
+    $('#mobileNavBackdrop')?.classList.remove('open');
+    $('#menuToggle')?.setAttribute('aria-expanded', 'false');
+  }
+
+  function openPasswordModal() {
+    if (!Store.currentUser()) { openModal('#authModal'); return; }
+    $('#passwordForm').reset();
+    $('#passwordError').textContent = '';
+    openModal('#passwordModal');
   }
 
   // ============================================================
@@ -1276,6 +2276,27 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function wireGlobalUI() {
+    // Nút đồng bộ máy chủ nằm trong tab Config của admin — wire trong wireAdminConfigSecretBoxes()
+
+    // Đổi mật khẩu
+    $('#passwordForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const errEl = $('#passwordError');
+      errEl.textContent = '';
+      if (fd.get('new') !== fd.get('confirm')) { errEl.textContent = 'Mật khẩu mới nhập lại không khớp.'; return; }
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          await Store.changePassword(fd.get('current'), fd.get('new'));
+          const u = Store.currentUser();
+          if (u && u.role === 'admin') rememberAdminCreds(u.username, fd.get('new'));
+          closeModal('#passwordModal');
+          e.target.reset();
+          toast('Đã đổi mật khẩu thành công!', 'success');
+        } catch (err) { errEl.textContent = err.message; }
+      });
+    });
     $$('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal('#' + overlay.id); });
     });
@@ -1289,12 +2310,26 @@ window.KENIOS_DEFAULT_DB = {
       if (!e.target.closest('.user-menu')) $('#userDropdown')?.classList.remove('open');
     });
 
+    const closeMobileNav = () => {
+      $('#mobileNav').classList.remove('open');
+      $('#mobileNavBackdrop').classList.remove('open');
+      $('#menuToggle').setAttribute('aria-expanded', 'false');
+    };
     $('#menuToggle').addEventListener('click', () => {
-      const nav = $('#mobileNav');
-      const open = nav.classList.toggle('open');
+      const open = $('#mobileNav').classList.toggle('open');
+      $('#mobileNavBackdrop').classList.toggle('open', open);
       $('#menuToggle').setAttribute('aria-expanded', String(open));
     });
-    $$('#mobileNav a').forEach(a => a.addEventListener('click', () => $('#mobileNav').classList.remove('open')));
+    $('#mobileNavBackdrop').addEventListener('click', closeMobileNav);
+    $$('.mobile-nav-link', $('#mobileNav')).forEach(a => a.addEventListener('click', closeMobileNav));
+    $('#mobileNavDeposit').addEventListener('click', () => {
+      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
+      openModal('#depositModal');
+    });
+    $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
+    $('#mobileNavDownloads').addEventListener('click', () => { closeMobileNav(); openDownloadsModal(); });
+    const adminNavBtn2 = $('#mobileNavAdminLink');
+    if (adminNavBtn2) adminNavBtn2.addEventListener('click', () => { closeMobileNavGlobal(); openAdminModal(); });
 
     $('#heroBtn2').addEventListener('click', () => {
       if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
@@ -1310,7 +2345,7 @@ window.KENIOS_DEFAULT_DB = {
         const input = pwToggle.previousElementSibling;
         const isPw = input.type === 'password';
         input.type = isPw ? 'text' : 'password';
-        pwToggle.textContent = isPw ? '🙈' : '👁';
+        pwToggle.classList.toggle('revealed', isPw);
       }
 
       const legalLink = e.target.closest('[data-legal]');
@@ -1335,7 +2370,8 @@ window.KENIOS_DEFAULT_DB = {
       const submitBtn = e.target.querySelector('button[type=submit]');
       withLoading(submitBtn, async () => {
         try {
-          await Store.login(fd.get('username'), fd.get('password'));
+          const u = await Store.login(fd.get('username'), fd.get('password'));
+          if (u && u.role === 'admin') rememberAdminCreds(fd.get('username'), fd.get('password'));
           closeModal('#authModal');
           e.target.reset();
           $('#loginError').textContent = '';
@@ -1350,13 +2386,34 @@ window.KENIOS_DEFAULT_DB = {
       const submitBtn = e.target.querySelector('button[type=submit]');
       withLoading(submitBtn, async () => {
         try {
-          await Store.register(fd.get('username'), fd.get('password'));
+          await Store.register(fd.get('username'), fd.get('password'), fd.get('contact'));
           closeModal('#authModal');
           e.target.reset();
           $('#registerError').textContent = '';
           toast('Tạo tài khoản thành công! Chào mừng bạn.', 'success');
         } catch (err) { $('#registerError').textContent = err.message; }
       });
+    });
+
+    $('#forgotPwBtn')?.addEventListener('click', () => { closeModal('#authModal'); $('#forgotForm').reset(); $('#forgotError').textContent = ''; openModal('#forgotModal'); });
+    $('#forgotForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      withLoading(submitBtn, async () => {
+        try {
+          await Store.resetPassword(fd.get('username').trim(), fd.get('contact').trim(), fd.get('new'));
+          closeModal('#forgotModal');
+          toast('Đã đặt lại mật khẩu! Đăng nhập bằng mật khẩu mới.', 'success');
+          openModal('#authModal');
+        } catch (err) { $('#forgotError').textContent = err.message; }
+      });
+    });
+
+    $('#googleFallbackBtn')?.addEventListener('click', () => {
+      if (window.google?.accounts?.id) { window.google.accounts.id.prompt(); }
+      else if (!Store.db.config.googleClientId) { toast('Admin chưa cấu hình Google Client ID trong tab Cấu hình.', 'error'); }
+      else { toast('Đang tải Google… thử lại sau vài giây.', 'error'); }
     });
   }
 
@@ -1390,30 +2447,36 @@ window.KENIOS_DEFAULT_DB = {
       $('#copyAccountBtn').onclick = () => {
         navigator.clipboard?.writeText(cfg.bankAccountNo).then(() => toast('Đã sao chép số tài khoản!', 'success'));
       };
+      $('#copyNoteBtn').onclick = () => {
+        navigator.clipboard?.writeText(note).then(() => toast('Đã sao chép nội dung chuyển khoản!', 'success'));
+      };
     });
 
     $('#confirmDepositBtn').addEventListener('click', async () => {
       const amount = parseInt($('#confirmDepositBtn').dataset.amount, 10);
       const note = $('#confirmDepositBtn').dataset.note;
       await withLoading($('#confirmDepositBtn'), async () => {
-        const confirmed = await pollServerForTransaction(note);
-        Store.deposit(amount, note);
-        closeModal('#depositModal');
-        $('#depositQrBox').hidden = true;
-        toast(confirmed
-          ? `Đã xác nhận giao dịch ${fmt(amount)} từ máy chủ ngân hàng!`
-          : `Đã cộng ${fmt(amount)} vào số dư (chế độ demo cục bộ, không có máy chủ xác thực).`, 'success');
+        try {
+          const res = await Store.checkAutoDeposit(note);
+          if (res.credited) {
+            closeModal('#depositModal');
+            $('#depositQrBox').hidden = true;
+            toast('Đã nhận được chuyển khoản! Số dư của bạn đã được cộng tự động.', 'success');
+          } else if (res.serverError) {
+            // Có máy chủ nhưng bước gọi ngân hàng lỗi — KHÔNG cộng tiền, chỉ báo lỗi.
+            toast(res.message + ' Vui lòng thử lại sau ít phút hoặc liên hệ Admin.', 'error');
+          } else {
+            toast('Chưa nhận được giao dịch. Nếu bạn vừa chuyển khoản, vui lòng đợi 10–30 giây rồi bấm lại nút này.', 'error');
+          }
+        } catch (e) {
+          // Chỉ tới đây khi KHÔNG có máy chủ PHP (chế độ demo) → cộng cục bộ để vẫn dùng thử được.
+          Store.deposit(amount, note);
+          closeModal('#depositModal');
+          $('#depositQrBox').hidden = true;
+          toast(`Đã cộng ${fmt(amount)} vào số dư (chế độ demo cục bộ, không có máy chủ xác thực).`, 'success');
+        }
       });
     });
-  }
-
-  async function pollServerForTransaction(note) {
-    try {
-      const res = await fetch(`api.php?action=get_db&t=${Date.now()}`, { cache: 'no-store' });
-      if (!res.ok) return false;
-      const json = await res.json();
-      return !!(json.transactions || []).find(t => (t.description || '').includes(note));
-    } catch { return false; }
   }
 
   // ---- Chi tiết dịch vụ ----
@@ -1424,12 +2487,21 @@ window.KENIOS_DEFAULT_DB = {
       errEl.textContent = '';
       if (!Store.currentUser()) { errEl.textContent = 'Vui lòng đăng nhập trước khi mua.'; return; }
       if (!currentPackage) { errEl.textContent = 'Vui lòng chọn một gói.'; return; }
-      try {
-        const order = Store.buyPackage(service, currentPackage);
-        closeModal('#serviceModal');
-        toast(`Mua thành công! Key: ${order.key}`, 'success');
-        Voice.speak(`Bạn đã mua thành công gói ${order.packageName} của ${order.serviceName}.`);
-      } catch (err) { errEl.textContent = err.message; }
+
+      withLoading($('#serviceModalBuyBtn'), async () => {
+        try {
+          let order;
+          if (Store.usesRealKeyStock(currentPackage)) {
+            const password = $('#serviceModalPassword').value;
+            if (!password) { errEl.textContent = 'Vui lòng nhập lại mật khẩu để xác nhận mua hàng.'; return; }
+            order = await Store.redeemKeyOnServer(Store.currentUser().username, password, service, currentPackage);
+          } else {
+            order = Store.buyPackage(service, currentPackage);
+          }
+          closeModal('#serviceModal');
+          toast(`Mua thành công! Key: ${order.key}`, 'success');
+        } catch (err) { errEl.textContent = err.message; }
+      });
     });
   }
 
@@ -1456,12 +2528,20 @@ window.KENIOS_DEFAULT_DB = {
     $('#serviceModalBadge').className = 'badge' + (inStock ? '' : ' out');
     setText('#serviceModalTitle', service.name);
     setText('#serviceModalDesc', service.description);
+    $('#serviceModalViews').innerHTML = `${ICONS.eye}<b>${bumpViews(serviceId)}</b> lượt xem`;
+    const dl = $('#serviceModalDownload');
+    if (service.downloadUrl) { dl.hidden = false; dl.href = service.downloadUrl; dl.innerHTML = `${ICONS.download} Tải bản game`; }
+    else { dl.hidden = true; }
     $('#serviceModalFeatures').innerHTML = (service.features || []).map(f => `<li>${esc(f)}</li>`).join('');
 
     const pkgWrap = $('#serviceModalPackages');
     pkgWrap.innerHTML = service.packages.map((p, i) => `
       <div class="package-option ${i === 0 ? 'selected' : ''}" data-pkg="${esc(p.id)}">
-        <span>${esc(p.name)}</span><strong>${fmt(p.price)}</strong>
+        <span>${esc(p.name)}</span>
+        <span class="package-option-price">
+          <strong>${fmt(p.price)}</strong>
+          ${Store.usesRealKeyStock(p) ? `<small class="pkg-stock ${p.keyCount > 0 ? '' : 'out'}">${p.keyCount > 0 ? `Còn ${p.keyCount} key` : 'Hết key'}</small>` : ''}
+        </span>
       </div>
     `).join('');
     pkgWrap.querySelectorAll('.package-option').forEach(el => {
@@ -1469,32 +2549,80 @@ window.KENIOS_DEFAULT_DB = {
         pkgWrap.querySelectorAll('.package-option').forEach(o => o.classList.remove('selected'));
         el.classList.add('selected');
         currentPackage = service.packages.find(p => p.id === el.dataset.pkg);
+        syncServiceModalPasswordField();
       });
     });
 
+    syncServiceModalPasswordField();
     $('#serviceModalError').textContent = '';
+    $('#serviceModalPassword').value = '';
     $('#serviceModalBuyBtn').disabled = !inStock;
     $('#serviceModalBuyBtn').textContent = inStock ? 'Mua Ngay' : 'Hết Hàng';
     openModal('#serviceModal');
   }
 
+  function syncServiceModalPasswordField() {
+    $('#serviceModalPasswordRow').hidden = !Store.usesRealKeyStock(currentPackage);
+  }
+
   // ---- Đơn hàng của tôi ----
+  const fmtDateTime = (iso) => { try { return new Date(iso).toLocaleString('vi-VN'); } catch { return ''; } };
+
+  function orderCardHtml(o) {
+    const contact = Store.db.config.zaloLink || (Store.db.config.contactChannels || []).find(c => c.enabled && c.url)?.url || '';
+    const expiry = o.expiryDate ? fmtDateTime(o.expiryDate) : 'Vĩnh viễn (không hết hạn)';
+    const purchased = fmtDateTime(o.purchaseDate || o.date);
+    const svc = Store.db.services.find(s => s.id === o.serviceId);
+    const download = (svc && svc.downloadUrl) || o.downloadUrl || '';
+    return `
+      <div class="order-card">
+        <div class="order-card-head">
+          <strong>${esc(o.serviceName)}</strong>
+          <span class="order-price">${fmt(o.price)}</span>
+        </div>
+        <div class="order-line"><span class="order-ico">${ICONS.key}</span>
+          <span>Bạn đã mua 1 key${o.os ? ` <b>${esc(o.os)}</b>` : ''} (Thời hạn: <b>${esc(o.packageName)}</b>)</span>
+        </div>
+        <div class="order-line"><span class="order-ico">${ICONS.calendar}</span><span>Ngày mua: <b>${esc(purchased)}</b></span></div>
+        <div class="order-line"><span class="order-ico">${ICONS.clock}</span><span>Hết hạn: <b>${esc(expiry)}</b></span></div>
+        <div class="order-key-row">
+          <span class="order-ico">${ICONS.key}</span>
+          <code>${esc(o.key)}</code>
+          <button class="btn-copy-key" data-copy-key="${esc(o.key)}" title="Sao chép key">${ICONS.copy}</button>
+        </div>
+        ${download ? `<a class="btn btn-primary btn-sm btn-block order-download" href="${esc(download)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.upload || ICONS.box}</span> Tải bản game</a>` : ''}
+        ${contact ? `<a class="btn btn-glass btn-sm btn-block order-contact" href="${esc(contact)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.headset}</span> Liên hệ hỗ trợ</a>` : ''}
+      </div>`;
+  }
+
   function openOrdersModal() {
     if (!Store.currentUser()) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
     const orders = Store.myOrders();
-    $('#ordersList').innerHTML = orders.length ? orders.map(o => `
-      <div class="order-item">
-        <div class="row"><strong>${esc(o.serviceName)}</strong><span>${fmt(o.price)}</span></div>
-        <div class="row muted"><span>${esc(o.packageName)}</span><span>${new Date(o.date).toLocaleString('vi-VN')}</span></div>
-        <div class="key">${esc(o.key)} <button class="btn-copy-key" data-copy-key="${esc(o.key)}" title="Sao chép">📋</button></div>
-      </div>
-    `).join('') : `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
+    $('#ordersList').innerHTML = orders.length
+      ? orders.map(orderCardHtml).join('')
+      : `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
     $$('[data-copy-key]', $('#ordersList')).forEach(btn => {
       btn.addEventListener('click', () => {
         navigator.clipboard?.writeText(btn.dataset.copyKey).then(() => toast('Đã sao chép key!', 'success'));
       });
     });
     openModal('#ordersModal');
+  }
+
+  // Tải xuống — đồng bộ với link tải của từng sản phẩm.
+  function openDownloadsModal() {
+    const items = Store.db.services.filter(s => s.downloadUrl);
+    $('#downloadsList').innerHTML = items.length
+      ? items.map(s => `
+        <div class="download-item">
+          <div class="download-item-info">
+            <span class="download-ico">${ICONS.download}</span>
+            <div><strong>${esc(s.name)}</strong><small>${esc(Store.serviceOs ? Store.serviceOs(s) : '')}</small></div>
+          </div>
+          <a class="btn btn-primary btn-sm" href="${esc(s.downloadUrl)}" target="_blank" rel="noopener">Tải bản này</a>
+        </div>`).join('')
+      : '<p class="empty-note">Chưa có bản tải nào. Admin thêm link tải cho sản phẩm ở tab Dịch vụ.</p>';
+    openModal('#downloadsModal');
   }
 
   // ---- Thông tin pháp lý ----
@@ -1516,12 +2644,14 @@ window.KENIOS_DEFAULT_DB = {
     $('#aiAvatar').src = cfg.aiAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=kenios-ai`;
 
     const quick = [
-      { label: '💳 Nạp tiền', text: 'Cách nạp tiền' },
-      { label: '🏷️ Giá sản phẩm', text: 'Giá sản phẩm' },
-      { label: '💻 Thiết kế web', text: 'Dịch vụ thiết kế web' },
-      { label: '📞 Liên hệ Admin', text: 'Liên hệ admin' }
+      { icon: 'card', label: 'Nạp tiền', text: 'Cách nạp tiền' },
+      { icon: 'tag', label: 'Bảng giá', text: 'Xem bảng giá' },
+      { icon: 'cart', label: 'Cách mua key', text: 'Cách mua key' },
+      { icon: 'shield', label: 'Bảo hành', text: 'Chính sách bảo hành' },
+      { icon: 'web', label: 'Thiết kế web', text: 'Dịch vụ thiết kế web' },
+      { icon: 'headset', label: 'Liên hệ Admin', text: 'Liên hệ admin' }
     ];
-    $('#aiQuickReplies').innerHTML = quick.map(q => `<button data-q="${esc(q.text)}">${q.label}</button>`).join('');
+    $('#aiQuickReplies').innerHTML = quick.map(q => `<button data-q="${esc(q.text)}"><span class="qr-ico">${ICONS[q.icon]}</span>${esc(q.label)}</button>`).join('');
     $('#aiQuickReplies').addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (btn) sendAiMessage(btn.dataset.q);
@@ -1533,7 +2663,6 @@ window.KENIOS_DEFAULT_DB = {
       panel.hidden = !panel.hidden;
       if (wasHidden && !$('#aiMessages').children.length) {
         addAiMessage(cfg.aiGreeting, 'bot');
-        Voice.speak(cfg.aiGreeting);
       }
     });
     $('#aiClose').addEventListener('click', () => { $('#aiPanel').hidden = true; });
@@ -1559,7 +2688,7 @@ window.KENIOS_DEFAULT_DB = {
   function sendAiMessage(text) {
     addAiMessage(text, 'user');
     const reply = getAiReply(text.toLowerCase());
-    setTimeout(() => { addAiMessage(reply, 'bot'); Voice.speak(reply); }, 350);
+    setTimeout(() => { addAiMessage(reply, 'bot'); }, 350);
   }
 
   // Bảng giá theo từng mục — khách hỏi đúng mục nào thì trả lời riêng mục đó,
@@ -1571,14 +2700,14 @@ window.KENIOS_DEFAULT_DB = {
     { keys: ['king'], text: '💎 KING\n💰 900K/Tháng\n💰 450K/Tuần' },
     { keys: ['timo'], text: '💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày' },
     { keys: ['vingodl', 'vin godl'], text: '💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần' },
-    { keys: ['zolo'], text: '🤖 PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
-    { keys: ['vnb'], text: '🤖 PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
-    { keys: ['root'], text: '🤖 PUBG ANDROID — ROOT\n💰 650K/Tháng' },
-    { keys: ['mg'], text: '🤖 PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['zolo'], text: 'PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['vnb'], text: 'PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
+    { keys: ['root'], text: 'PUBG ANDROID — ROOT\n💰 650K/Tháng' },
+    { keys: ['mg'], text: 'PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
     { keys: ['liên quân', 'lien quan'], text: '⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500K/Tháng chống tố\n💰 250K/Tuần chống tố' },
     { keys: ['free fire', 'freefire'], text: '🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần' },
     { keys: ['pubg ios', 'ios'], text: '📱 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
-    { keys: ['pubg android', 'android'], text: '🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
+    { keys: ['pubg android', 'android'], text: 'PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
   ];
 
   function matchPriceItem(t) {
@@ -1595,15 +2724,19 @@ window.KENIOS_DEFAULT_DB = {
 
   function getAiReply(t) {
     const cfg = Store.db.config;
-    if (/nạp tiền|nap tien|vietqr|qr/.test(t)) return cfg.aiResponseDeposit;
+    // 1) Chào hỏi
+    if (/^(chào|hello|hi|hey|alo|xin chào|chao)\b/.test(t) || /^(hi|hello|alo)$/.test(t.trim())) return cfg.aiResponseGreeting;
+    // 2) Hỏi đúng 1 sản phẩm trong bảng giá -> trả lời riêng mục đó
     const specificPrice = matchPriceItem(t);
     if (specificPrice) return specificPrice;
-    if (/giá|gia|bảng giá|bang gia|price/.test(t)) return cfg.aiResponsePrice;
-    if (/thiết kế web|thiet ke web|landing|web shop/.test(t)) return cfg.aiResponseWeb;
-    if (/sản phẩm|san pham|pubg|liên quân|lien quan|free fire|tốc chiến|toc chien/.test(t)) return cfg.aiResponseProduct;
-    if (/admin|liên hệ|lien he|zalo|hotline/.test(t)) return cfg.aiResponseContact;
-    if (/cảm ơn|cam on|thanks/.test(t)) return cfg.aiResponseThanks;
-    if (/chào|hello|hi\b|xin chào/.test(t)) return cfg.aiResponseGreeting;
+    // 3) Hỏi chung về bảng giá -> đưa cả bảng
+    if (/bảng giá|bang gia|giá cả|xem giá|full giá|price list|có những gói/.test(t)) return cfg.aiResponsePrice;
+    // 4) Bộ câu trả lời sẵn (admin thêm được nhiều tuỳ ý)
+    for (const item of (cfg.aiKnowledge || [])) {
+      const kws = String(item.k || '').split(/[,\n]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+      if (kws.some(k => t.includes(k))) return item.a;
+    }
+    // 5) Không khớp -> câu mặc định
     return cfg.aiResponseFallback;
   }
 
@@ -1628,20 +2761,48 @@ window.KENIOS_DEFAULT_DB = {
       renderAdminTab(adminActiveTab);
     });
 
-    $('#adminSyncBtn').addEventListener('click', () => {
-      withLoading($('#adminSyncBtn'), async () => {
-        const user = Store.currentUser();
-        const pass = $('#adminSyncPass').value;
-        if (!pass) { $('#adminSyncMsg').textContent = 'Vui lòng nhập mật khẩu admin.'; return; }
-        const result = await Store.trySaveToServer(user.username, pass);
-        $('#adminSyncMsg').textContent = result.message || (result.status === 'success' ? 'Đã đồng bộ thành công!' : 'Đồng bộ thất bại.');
-        if (result.status === 'success') $('#adminSyncPass').value = '';
-      });
-    });
-
     // Ủy quyền sự kiện cho toàn bộ nội dung động bên trong bảng quản trị.
     $('#adminPanelBody').addEventListener('click', onAdminPanelClick);
     $('#adminPanelBody').addEventListener('submit', onAdminPanelSubmit);
+    $('#adminPanelBody').addEventListener('change', onAdminPanelChange);
+
+    $('#adminLoadKeysBtn').addEventListener('click', () => {
+      const user = Store.currentUser();
+      const creds = getAdminCreds();
+      if (!creds) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#adminLoadKeysBtn'), async () => {
+        try {
+          await Store.fetchFullServiceKeys(user.username, creds.password);
+          renderAdminTab('services');
+          toast('Đã tải kho key đầy đủ từ máy chủ.', 'success');
+        } catch (err) { $('#adminSyncMsg').textContent = err.message; }
+      });
+    });
+  }
+
+  // Đồng bộ toàn bộ dữ liệu lên máy chủ dùng thông tin admin đã lưu trong phiên
+  // (không cần nhập lại mật khẩu). Nếu chưa có (vd. đã tải lại trang), yêu cầu đăng nhập lại.
+  async function saveUiToServer() {
+    const creds = getAdminCreds();
+    const user = Store.currentUser();
+    if (!user || user.role !== 'admin') { toast('Chỉ admin mới lưu được giao diện.', 'error'); return; }
+    if (!creds || creds.username.toLowerCase() !== user.username.toLowerCase()) {
+      toast('Vui lòng đăng nhập lại admin 1 lần để bật lưu tự động.', 'error');
+      clearAdminCreds(); Store.logout(); openModal('#authModal');
+      return;
+    }
+    const btn = $('#adminSyncServerBtn');
+    const msgEl = $('#adminConfigSyncMsg');
+    await withLoading(btn || { classList: { add: () => {}, remove: () => {} }, disabled: false }, async () => {
+      const result = await Store.trySaveToServer(creds.username, creds.password);
+      if (result.status === 'success') {
+        toast('Đã lưu giao diện lên máy chủ! Mọi khách truy cập sẽ thấy thay đổi.', 'success');
+        if (msgEl) msgEl.textContent = 'Đã lưu lúc ' + new Date().toLocaleTimeString('vi-VN');
+        if ($('#adminSyncMsg')) $('#adminSyncMsg').textContent = 'Đã lưu lúc ' + new Date().toLocaleTimeString('vi-VN');
+      } else {
+        toast(result.message || 'Lưu thất bại. Thử đăng nhập lại admin.', 'error');
+      }
+    });
   }
 
   function renderAdminTab(tab) {
@@ -1652,7 +2813,57 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'orders') body.innerHTML = adminOrdersHtml();
     else if (tab === 'users') body.innerHTML = adminUsersHtml();
     else if (tab === 'media') body.innerHTML = adminMediaHtml();
-    else if (tab === 'config') body.innerHTML = adminConfigHtml();
+    else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
+  }
+
+  function wireAdminConfigSecretBoxes() {
+    // Wire nút Đồng bộ lên máy chủ (chỉ nằm trong tab Config)
+    $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer());
+
+    $('#bankWebhookUrl').value = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}bank_callback.php`;
+    $('#copyWebhookUrlBtn').addEventListener('click', () => {
+      navigator.clipboard?.writeText($('#bankWebhookUrl').value).then(() => toast('Đã sao chép URL webhook!', 'success'));
+    });
+
+    const user = Store.currentUser();
+    const creds = getAdminCreds();
+    const pass = creds ? creds.password : '';
+    Store.secretsStatus(user.username, pass).then(res => {
+      if (res.status !== 'success') {
+        $('#bankTokenStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
+        $('#ttsKeyStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
+        return;
+      }
+      $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
+      $('#ttsKeyStatus').innerHTML = res.ttsApiKeyConfigured ? '✅ Đã cấu hình API key — giọng nói dùng Google Cloud TTS thật.' : 'Chưa cấu hình — trang đang dùng giọng trình duyệt để dự phòng.';
+    }).catch(() => {
+      $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái.';
+      $('#ttsKeyStatus').textContent = 'Không kiểm tra được trạng thái.';
+    });
+
+    $('#saveBankTokenBtn').addEventListener('click', () => {
+      const token = $('#bankTokenInput').value.trim();
+      const c = getAdminCreds();
+      if (!token) { toast('Vui lòng nhập token trước khi lưu.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#saveBankTokenBtn'), async () => {
+        const res = await Store.saveSecrets(c.username, c.password, { bankToken: token });
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#bankTokenInput').value = ''; renderAdminTab('config'); }
+      });
+    });
+
+    $('#saveTtsKeyBtn').addEventListener('click', () => {
+      const key = $('#ttsApiKeyInput').value.trim();
+      const c = getAdminCreds();
+      if (!key) { toast('Vui lòng nhập API key trước khi lưu.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#saveTtsKeyBtn'), async () => {
+        const res = await Store.saveSecrets(c.username, c.password, { ttsApiKey: key });
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
+      });
+    });
   }
 
   function adminOverviewHtml() {
@@ -1691,17 +2902,32 @@ window.KENIOS_DEFAULT_DB = {
     const editTarget = editing && editing !== 'new' ? services.find(s => s.id === editing) : null;
     let formHtml = '';
     if (editing) {
-      const s = editTarget || { id: '', name: '', categoryId: categories[0]?.id || '', description: '', image: '', status: 'instock', features: [], packages: [{ name: '1 Ngày', price: 0 }] };
+      const s = editTarget || { id: '', name: '', categoryId: categories[0]?.id || '', subcategoryId: '', description: '', image: '', status: 'instock', features: [], packages: [{ name: '1 Ngày', price: 0 }] };
+      const subsForCat = (Store.db.subcategories || []).filter(sc => sc.categoryId === s.categoryId);
       formHtml = `
         <form class="admin-form" data-admin-form="service">
           <input type="hidden" name="_originalId" value="${esc(s.id)}">
-          <label>Mã dịch vụ (id, không dấu) <input name="id" value="${esc(s.id)}" ${editTarget ? 'readonly' : ''} required></label>
+          <label>Mã sản phẩm (tự động) <input class="auto-id" value="#${editTarget ? esc(s.id) : nextSeqId(services)}" readonly tabindex="-1"></label>
           <label>Danh mục
-            <select name="categoryId">${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+            <select name="categoryId" id="adminServiceCategory">${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+          </label>
+          <label>Thư mục con (tùy chọn)
+            <select name="subcategoryId" id="adminServiceSubcat">
+              <option value="">— Không thuộc thư mục con —</option>
+              ${subsForCat.map(sc => `<option value="${esc(sc.id)}" ${sc.id === s.subcategoryId ? 'selected' : ''}>${esc(sc.name)}</option>`).join('')}
+            </select>
           </label>
           <label class="span-2">Tên dịch vụ <input name="name" value="${esc(s.name)}" required></label>
           <label class="span-2">Mô tả <textarea name="description">${esc(s.description)}</textarea></label>
           <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(s.image)}" placeholder="Lấy từ tab Thư viện"></label>
+          <label class="span-2">Link tải / file tải bản game (khách xem trong đơn hàng)
+            <input name="downloadUrl" id="adminServiceDownload" value="${esc(s.downloadUrl || '')}" placeholder="Dán link (Drive/MediaFire/link trực tiếp) hoặc bấm Tải file lên">
+          </label>
+          <label class="span-2 download-upload-row">
+            <input type="file" id="adminServiceFile">
+            <button type="button" class="btn btn-glass btn-sm" id="adminServiceUploadBtn">Tải file lên máy chủ</button>
+            <span class="muted" style="font-size:.75rem;">File tải lên sẽ tự điền vào ô link ở trên.</span>
+          </label>
           <label>Trạng thái
             <select name="status">
               <option value="instock" ${s.status === 'instock' ? 'selected' : ''}>Còn hàng</option>
@@ -1714,7 +2940,7 @@ window.KENIOS_DEFAULT_DB = {
           </div>
           <div class="admin-form-actions">
             <button type="button" class="btn btn-glass btn-sm" id="adminAddPkgRow">+ Thêm gói</button>
-            <button type="submit" class="btn btn-primary btn-sm">💾 Lưu dịch vụ</button>
+            <button type="submit" class="btn btn-primary btn-sm">Lưu dịch vụ</button>
             <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-service>Hủy</button>
           </div>
         </form>
@@ -1727,20 +2953,23 @@ window.KENIOS_DEFAULT_DB = {
       ${formHtml}
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Tên</th><th>Danh mục</th><th>Giá từ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+          <thead><tr><th>Tên</th><th>Danh mục › Thư mục con</th><th>Giá từ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
           <tbody>
-            ${services.map(s => `
+            ${services.map(s => {
+              const catName = categories.find(c => c.id === s.categoryId)?.name || s.categoryId;
+              const subName = s.subcategoryId ? ((Store.db.subcategories || []).find(x => x.id === s.subcategoryId)?.name || '') : '';
+              return `
               <tr>
                 <td>${esc(s.name)}</td>
-                <td>${esc(categories.find(c => c.id === s.categoryId)?.name || s.categoryId)}</td>
+                <td>${esc(catName)}${subName ? ' › ' + esc(subName) : ''}</td>
                 <td>${fmt(Math.min(...(s.packages || [{ price: 0 }]).map(p => p.price)))}</td>
                 <td>${s.status === 'instock' ? 'Còn hàng' : 'Hết hàng'}</td>
                 <td class="admin-row-actions">
                   <button data-admin-edit-service="${esc(s.id)}">Sửa</button>
                   <button class="danger" data-admin-delete-service="${esc(s.id)}">Xóa</button>
                 </td>
-              </tr>
-            `).join('')}
+              </tr>`;
+            }).join('')}
           </tbody>
         </table>
       </div>
@@ -1748,56 +2977,202 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function adminPkgRowHtml(p) {
+    const keys = p.keys || [];
     return `
-      <div class="admin-pkg-row">
-        <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
-        <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
-        <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
+      <div class="admin-pkg-row" data-pkg-id="${esc(p.id || '')}">
+        <div class="admin-pkg-row-main">
+          <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
+          <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
+          <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>Kho key (<span data-pkg-key-count>${keys.length}</span>)</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
+        </div>
+        <div class="admin-pkg-keys-panel" data-pkg-keys-panel hidden>
+          <p class="muted" style="font-size:.75rem;margin:0 0 6px;">Mỗi dòng là 1 key. Khi khách mua gói này, hệ thống tự rút đúng 1 key ở đây và xóa khỏi kho.</p>
+          <ul class="admin-pkg-key-list" data-pkg-key-list>${pkgKeyListItems(keys)}</ul>
+          <textarea class="pkg-keys-input" data-pkg-keys-input placeholder="Dán nhiều key, mỗi dòng 1 key rồi bấm Thêm key"></textarea>
+          <div class="admin-pkg-keys-actions">
+            <button type="button" class="btn btn-glass btn-sm" data-add-pkg-keys>+ Thêm key</button>
+            <button type="button" class="btn btn-ghost btn-sm danger" data-clear-pkg-keys>Xóa hết key</button>
+          </div>
+        </div>
+        <textarea data-pkg-keys-data hidden>${esc(keys.join('\n'))}</textarea>
       </div>
     `;
   }
 
+  function pkgKeyListItems(keys) {
+    return keys.length
+      ? keys.map((k, i) => `<li><span>${esc(k)}</span><button type="button" data-remove-pkg-key="${i}" title="Xóa key này">✕</button></li>`).join('')
+      : '<li class="empty-note">Chưa có key nào trong kho.</li>';
+  }
+
+  function refreshPkgKeyList(row, keys) {
+    row.querySelector('[data-pkg-key-count]').textContent = keys.length;
+    row.querySelector('[data-pkg-key-list]').innerHTML = pkgKeyListItems(keys);
+  }
+
+  // Bộ chọn icon SVG cho Danh mục / Thư mục con (không dùng emoji "icon máy").
+  function iconPickerHtml(selectedKey, hiddenName) {
+    const sel = (selectedKey && ICONS[selectedKey]) ? selectedKey : 'folder';
+    return `
+      <div class="icon-picker" data-icon-picker>
+        <input type="hidden" name="${hiddenName}" value="${esc(sel)}">
+        ${PICKER_ICON_KEYS.map(k => `
+          <button type="button" class="icon-pick ${k === sel ? 'selected' : ''}" data-icon-pick="${k}" title="${k}" aria-label="${k}">${ICONS[k]}</button>
+        `).join('')}
+      </div>`;
+  }
+
+  // Hai nhóm hiệu ứng logo TÁCH BIỆT hoàn toàn: MÀU CHẠY và CHUYỂN ĐỘNG (kết hợp được).
+  const LOGO_COLOR_FX = [
+    ['solid', 'Mặc định'], ['rainbow', 'Cầu vồng'], ['shine', 'Ánh kim'], ['gradient', 'Gradient'],
+    ['glow', 'Phát sáng'], ['sparkle', 'Lung linh'], ['neon', 'Neon'],
+    ['fire', 'Lửa'], ['ice', 'Băng giá'], ['ocean', 'Đại dương'], ['sunset', 'Hoàng hôn'],
+    ['candy', 'Kẹo ngọt'], ['gold', 'Vàng kim'], ['aurora', 'Cực quang'], ['matrix', 'Ma trận'],
+  ];
+  const LOGO_MOTION_FX = [
+    ['none', 'Không'], ['pulse', 'Nhịp đập'], ['bounce', 'Nảy'], ['wave', 'Lắc lư'], ['flip', 'Lật 3D'],
+  ];
+  const LOGO_COLOR_MODES = LOGO_COLOR_FX.map(([v]) => v).filter(v => v !== 'solid');
+  const LOGO_MOTION_MODES = LOGO_MOTION_FX.map(([v]) => v).filter(v => v !== 'none');
+  // Tên keyframe + kiểu chạy cho từng hiệu ứng (để gộp animation inline khi kết hợp màu + chuyển động).
+  const LOGO_COLOR_ANIM = {
+    rainbow: ['logoRainbowCycle', 'linear'], shine: ['logoShineSweep', 'linear'], gradient: ['logoGradientMove', 'linear'],
+    glow: ['logoGlow', 'ease-in-out'], sparkle: ['logoSparkle', 'ease-in-out'], neon: ['logoNeon', 'ease-in-out'],
+    fire: ['logoGradientMove', 'linear'], ice: ['logoGradientMove', 'linear'], ocean: ['logoGradientMove', 'linear'],
+    sunset: ['logoGradientMove', 'linear'], candy: ['logoGradientMove', 'linear'], gold: ['logoGradientMove', 'linear'],
+    aurora: ['logoGradientMove', 'linear'], matrix: ['logoMatrix', 'ease-in-out'],
+  };
+  const LOGO_MOTION_ANIM = {
+    pulse: ['logoPulse', 'ease-in-out'], bounce: ['logoBounce', 'ease-in-out'],
+    wave: ['logoWave', 'ease-in-out'], flip: ['logoFlip', 'ease-in-out'],
+  };
+
+  // Bộ chọn hiệu ứng: mỗi ô xem trước ngay trên chữ "Kenios" (không icon máy/emoji).
+  // prefix = 'logo-color' hoặc 'logo-motion'; noneKey = giá trị "tắt" ('solid' hoặc 'none').
+  function fxPickerHtml(list, hiddenName, selected, prefix, noneKey) {
+    const sel = selected || list[0][0];
+    return `
+      <div class="fx-picker" data-fx-picker>
+        <input type="hidden" name="${hiddenName}" value="${esc(sel)}">
+        ${list.map(([v, label]) => `
+          <button type="button" class="fx-pick ${v === sel ? 'selected' : ''}" data-fx-pick="${v}" title="${esc(label)}">
+            <span class="fx-pick-demo ${v === noneKey ? '' : prefix + '-' + v}">Kenios</span>
+            <span class="fx-pick-label">${esc(label)}</span>
+          </button>
+        `).join('')}
+      </div>`;
+  }
+
+  // Bộ chọn FONT chữ logo — mỗi ô hiển thị chữ "Kenios" bằng đúng font đó để xem trước.
+  function fontPickerHtml(selected) {
+    const sel = selected || 'Be Vietnam Pro';
+    LOGO_FONTS.forEach(ensureFontLoaded); // nạp trước để xem trước đúng font
+    return `
+      <div class="fx-picker font-picker" data-fx-picker>
+        <input type="hidden" name="logoFont" value="${esc(sel)}">
+        ${LOGO_FONTS.map(f => `
+          <button type="button" class="fx-pick ${f === sel ? 'selected' : ''}" data-fx-pick="${esc(f)}" title="${esc(f)}">
+            <span class="fx-pick-demo" style="font-family:'${esc(f)}', sans-serif; font-size:1.05rem">Kenios</span>
+            <span class="fx-pick-label">${esc(f)}</span>
+          </button>
+        `).join('')}
+      </div>`;
+  }
+
   function adminCategoriesHtml() {
     const categories = Store.db.categories;
-    const editing = adminCategoryEditing;
-    const editTarget = editing && editing !== 'new' ? categories.find(c => c.id === editing) : null;
-    let formHtml = '';
-    if (editing) {
-      const c = editTarget || { id: '', name: '', icon: '📁', description: '', image: '' };
-      formHtml = `
+    const subcategories = Store.db.subcategories || [];
+
+    // ----- Form Danh mục -----
+    const cEditing = adminCategoryEditing;
+    const cEditTarget = cEditing && cEditing !== 'new' ? categories.find(c => c.id === cEditing) : null;
+    let catForm = '';
+    if (cEditing) {
+      const c = cEditTarget || { id: '', name: '', icon: 'folder', description: '', image: '' };
+      catForm = `
         <form class="admin-form" data-admin-form="category">
-          <label>Mã danh mục (id) <input name="id" value="${esc(c.id)}" ${editTarget ? 'readonly' : ''} required></label>
-          <label>Icon (emoji) <input name="icon" value="${esc(c.icon)}"></label>
+          <label>Mã danh mục (tự động) <input class="auto-id" value="#${cEditTarget ? esc(c.id) : nextSeqId(categories)}" readonly tabindex="-1"></label>
           <label class="span-2">Tên danh mục <input name="name" value="${esc(c.name)}" required></label>
-          <label class="span-2">Mô tả <input name="description" value="${esc(c.description)}"></label>
-          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(c.image)}" placeholder="Lấy từ tab Thư viện"></label>
+          <label class="span-2">Chọn icon danh mục ${iconPickerHtml(c.icon, 'icon')}</label>
+          <label class="span-2">Mô tả <input name="description" value="${esc(c.description || '')}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(c.image || '')}" placeholder="Lấy từ tab Thư viện"></label>
           <div class="admin-form-actions">
-            <button type="submit" class="btn btn-primary btn-sm">💾 Lưu danh mục</button>
+            <button type="submit" class="btn btn-primary btn-sm">Lưu danh mục</button>
             <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-category>Hủy</button>
           </div>
-        </form>
-      `;
+        </form>`;
     }
+
+    // ----- Form Thư mục con -----
+    const sEditing = adminSubcategoryEditing;
+    const sEditTarget = sEditing && sEditing !== 'new' ? subcategories.find(s => s.id === sEditing) : null;
+    let subForm = '';
+    if (sEditing) {
+      const s = sEditTarget || { id: '', categoryId: categories[0]?.id || '', name: '', icon: 'folder', description: '', image: '' };
+      subForm = `
+        <form class="admin-form" data-admin-form="subcategory">
+          <label>Mã thư mục con (tự động) <input class="auto-id" value="#${sEditTarget ? esc(s.id) : nextSeqId(subcategories)}" readonly tabindex="-1"></label>
+          <label>Thuộc danh mục
+            <select name="categoryId" required>${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+          </label>
+          <label class="span-2">Tên thư mục con (VD: PUBG IOS) <input name="name" value="${esc(s.name)}" required></label>
+          <label class="span-2">Chọn icon thư mục con ${iconPickerHtml(s.icon, 'icon')}</label>
+          <label class="span-2">Mô tả <input name="description" value="${esc(s.description || '')}"></label>
+          <label class="span-2">URL ảnh hoặc video (.mp4/.webm/.ogg) <input name="image" value="${esc(s.image || '')}" placeholder="Lấy từ tab Thư viện"></label>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Lưu thư mục con</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-admin-cancel-subcategory>Hủy</button>
+          </div>
+        </form>`;
+    }
+
     return `
       <div class="admin-toolbar">
         <button class="btn btn-primary btn-sm" data-admin-new-category>+ Thêm danh mục</button>
       </div>
-      ${formHtml}
+      ${catForm}
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Icon</th><th>Tên</th><th>Mô tả</th><th>Thao tác</th></tr></thead>
+          <thead><tr><th>Icon</th><th>Tên</th><th>Thư mục con</th><th>Mô tả</th><th>Thao tác</th></tr></thead>
           <tbody>
             ${categories.map(c => `
               <tr>
-                <td>${c.icon}</td>
+                <td><span class="admin-cell-ico">${catIcon(c.icon)}</span></td>
                 <td>${esc(c.name)}</td>
-                <td>${esc(c.description)}</td>
+                <td>${subcategories.filter(s => s.categoryId === c.id).length}</td>
+                <td>${esc(c.description || '')}</td>
                 <td class="admin-row-actions">
                   <button data-admin-edit-category="${esc(c.id)}">Sửa</button>
                   <button class="danger" data-admin-delete-category="${esc(c.id)}">Xóa</button>
                 </td>
               </tr>
             `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-form-section" style="margin-top:24px;">Thư mục con (Danh mục → Thư mục con → Sản phẩm)</div>
+      <div class="admin-toolbar">
+        <button class="btn btn-primary btn-sm" data-admin-new-subcategory>+ Thêm thư mục con</button>
+      </div>
+      ${subForm}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Icon</th><th>Tên thư mục con</th><th>Thuộc danh mục</th><th>Số sản phẩm</th><th>Thao tác</th></tr></thead>
+          <tbody>
+            ${subcategories.length ? subcategories.map(s => `
+              <tr>
+                <td><span class="admin-cell-ico">${catIcon(s.icon)}</span></td>
+                <td>${esc(s.name)}</td>
+                <td>${esc(categories.find(c => c.id === s.categoryId)?.name || s.categoryId)}</td>
+                <td>${Store.db.services.filter(x => x.subcategoryId === s.id).length}</td>
+                <td class="admin-row-actions">
+                  <button data-admin-edit-subcategory="${esc(s.id)}">Sửa</button>
+                  <button class="danger" data-admin-delete-subcategory="${esc(s.id)}">Xóa</button>
+                </td>
+              </tr>
+            `).join('') : '<tr><td colspan="5" class="empty-note">Chưa có thư mục con. VD: danh mục PUBG → thư mục con "PUBG IOS".</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -1852,37 +3227,82 @@ window.KENIOS_DEFAULT_DB = {
     `;
   }
 
+  // 1 dòng cấu hình kênh liên hệ / nhóm trong admin (thêm/xoá động).
+  function contactChannelRowHtml(ch = {}) {
+    const t = chType(ch);
+    return `
+      <div class="contact-ch-row" data-ch-row>
+        <label class="contact-ch-on" title="Bật hiển thị"><input type="checkbox" data-ch-enabled ${ch.enabled ? 'checked' : ''}></label>
+        <select data-ch-type class="contact-ch-type">
+          ${CONTACT_PLATFORMS.map(([v, label]) => `<option value="${v}" ${v === t ? 'selected' : ''}>${label}</option>`).join('')}
+        </select>
+        <input data-ch-label class="contact-ch-label" value="${esc(ch.label || '')}" placeholder="Tên hiển thị (VD: Nhóm Zalo VIP)">
+        <input data-ch-url class="contact-ch-url" value="${esc(ch.url || '')}" placeholder="https://zalo.me/g/... , https://t.me/... , tel:..., mailto:...">
+        <button type="button" class="contact-ch-del" data-ch-remove title="Xoá dòng này">✕</button>
+      </div>`;
+  }
+
+  // 1 dòng câu trả lời sẵn của AI (từ khoá + câu trả lời) trong admin.
+  function aiKnowledgeRowHtml(item = {}) {
+    return `
+      <div class="ai-kb-row" data-kb-row>
+        <input data-kb-k class="ai-kb-k" value="${esc(item.k || '')}" placeholder="Từ khoá (VD: nạp tiền, nap tien, vietqr)">
+        <textarea data-kb-a class="ai-kb-a" placeholder="Câu trả lời khách sẽ nhận">${esc(item.a || '')}</textarea>
+        <button type="button" class="ai-kb-del" data-kb-remove title="Xoá câu này">✕</button>
+      </div>`;
+  }
+  function readAiKnowledgeFromEditor() {
+    return $$('#aiKnowledgeEditor [data-kb-row]').map(row => ({
+      k: row.querySelector('[data-kb-k]').value.trim(),
+      a: row.querySelector('[data-kb-a]').value.trim()
+    })).filter(x => x.k && x.a);
+  }
+
+  // Đọc lại toàn bộ kênh liên hệ / nhóm từ trình soạn thảo động khi lưu cấu hình.
+  function readContactChannelsFromEditor() {
+    return $$('#contactChannelsEditor [data-ch-row]').map((row, i) => {
+      const type = row.querySelector('[data-ch-type]').value;
+      const label = row.querySelector('[data-ch-label]').value.trim();
+      const url = row.querySelector('[data-ch-url]').value.trim();
+      const enabled = row.querySelector('[data-ch-enabled]').checked;
+      return { id: `${type}-${i}`, type, label: label || CONTACT_PLATFORM_LABEL[type] || 'Liên hệ', url, enabled };
+    });
+  }
+
   function adminConfigHtml() {
     const c = Store.db.config;
     return `
       <form class="admin-form" data-admin-form="config">
-        <div class="admin-form-section">🏷️ Thương hiệu &amp; Logo</div>
+        <div class="admin-form-section">Thương hiệu &amp; Logo</div>
         <label>Chữ logo (logoText) <input name="logoText" value="${esc(c.logoText)}"></label>
         <label>Dòng phụ (logoSubtext) <input name="logoSubtext" value="${esc(c.logoSubtext)}"></label>
-        <label class="span-2">Ảnh logo (logoUrl — để trống dùng icon mặc định)
-          <input name="logoUrl" value="${esc(c.logoUrl || '')}" placeholder="Dán URL ảnh (PNG/GIF/WEBP/SVG) — lấy từ tab Thư viện">
+        <label class="span-2">Ảnh / Video logo (logoUrl — để trống dùng icon mặc định)
+          <input name="logoUrl" value="${esc(c.logoUrl || '')}" placeholder="Dán URL ảnh (PNG/GIF/WEBP/SVG) hoặc video (.mp4/.webm/.ogg) — logo sẽ tự phát video">
         </label>
-        <label>Font chữ logo
-          <select name="logoFont">
-            ${LOGO_FONTS.map(f => `<option value="${esc(f)}" ${c.logoFont === f ? 'selected' : ''} style="font-family:'${esc(f)}'">${esc(f)}</option>`).join('')}
-          </select>
+        <label class="span-2">Font chữ logo (bấm chọn — xem trước trực tiếp, có nhiều font đậm/3D)
+          ${fontPickerHtml(c.logoFont)}
         </label>
         <label>Màu chữ logo <input type="color" name="logoColor" value="${esc(c.logoColor || '#f3f4f6')}"></label>
-        <label>Hiệu ứng chạy màu chữ logo
-          <select name="logoColorMode">
-            <option value="solid" ${c.logoColorMode === 'solid' ? 'selected' : ''}>Tắt (dùng màu ở trên)</option>
-            <option value="rainbow" ${c.logoColorMode === 'rainbow' ? 'selected' : ''}>🌈 Cầu vồng 7 màu (chạy liên tục)</option>
-            <option value="shine" ${c.logoColorMode === 'shine' ? 'selected' : ''}>✨ Ánh kim lấp lánh</option>
-          </select>
+        <div class="admin-form-section">Hiệu ứng logo — MÀU CHẠY (tách riêng với chuyển động)</div>
+        <label class="span-2">Chọn màu chạy (bấm chọn — xem trước trực tiếp)
+          ${fxPickerHtml(LOGO_COLOR_FX, 'logoColorMode', c.logoColorMode, 'logo-color', 'solid')}
         </label>
-        <label>Tốc độ chạy màu (giây/vòng)
+        <label>Tốc độ màu chạy (giây/vòng)
           <input type="number" name="logoAnimSpeed" min="1" max="20" step="0.5" value="${c.logoAnimSpeed || 6}">
         </label>
 
-        <div class="admin-form-section">🎨 Màu chủ đạo toàn trang</div>
+        <div class="admin-form-section">Hiệu ứng logo — CHUYỂN ĐỘNG (kết hợp được với màu chạy)</div>
+        <label class="span-2">Chọn chuyển động (bấm chọn — xem trước trực tiếp)
+          ${fxPickerHtml(LOGO_MOTION_FX, 'logoMotionMode', c.logoMotionMode, 'logo-motion', 'none')}
+        </label>
+        <label>Tốc độ chuyển động (giây/vòng)
+          <input type="number" name="logoMotionSpeed" min="0.5" max="20" step="0.5" value="${c.logoMotionSpeed || 2}">
+        </label>
+
+        <div class="admin-form-section">Màu chủ đạo toàn trang</div>
         <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || '#ffb703')}"></label>
 
-        <div class="admin-form-section">🖼️ Banner / Hero</div>
+        <div class="admin-form-section">Banner / Hero</div>
         <label class="span-2">Nhãn nhỏ trên tiêu đề (bannerTagText) <input name="bannerTagText" value="${esc(c.bannerTagText || '')}"></label>
         <label>Nút 1 (bannerBtn1Text) <input name="bannerBtn1Text" value="${esc(c.bannerBtn1Text || '')}"></label>
         <label>Nút 2 (bannerBtn2Text) <input name="bannerBtn2Text" value="${esc(c.bannerBtn2Text || '')}"></label>
@@ -1890,7 +3310,7 @@ window.KENIOS_DEFAULT_DB = {
           <input name="bgUrl" value="${esc(c.bgUrl || '')}" placeholder="Dán URL ảnh (PNG/JPEG/GIF/WEBP) hoặc video (.mp4/.webm/.ogg) — lấy từ tab Thư viện">
         </label>
 
-        <div class="admin-form-section">📞 Liên hệ &amp; Giới thiệu</div>
+        <div class="admin-form-section">Liên hệ &amp; Giới thiệu</div>
         <label class="span-2">Tên website (siteTitle) <input name="siteTitle" value="${esc(c.siteTitle)}"></label>
         <label class="span-2">Mô tả ngắn (siteSubtitle) <textarea name="siteSubtitle">${esc(c.siteSubtitle)}</textarea></label>
         <label>Tên Admin hiển thị (contactAdminName) <input name="contactAdminName" value="${esc(c.contactAdminName || '')}"></label>
@@ -1899,21 +3319,18 @@ window.KENIOS_DEFAULT_DB = {
         <label>Hotline <input name="hotline" value="${esc(c.hotline)}"></label>
         <label>Link Zalo <input name="zaloLink" value="${esc(c.zaloLink)}"></label>
 
-        <div class="admin-form-section">📇 Kênh liên hệ (chọn nhiều — tự gộp thành 1 nút danh sách)</div>
-        ${(c.contactChannels || []).map(ch => `
-          <label class="span-2 contact-channel-row">
-            <span class="contact-channel-toggle">
-              <input type="checkbox" name="contact_${esc(ch.id)}_enabled" ${ch.enabled ? 'checked' : ''}>
-              ${ch.icon} ${esc(ch.label)}
-            </span>
-            <input name="contact_${esc(ch.id)}_url" value="${esc(ch.url || '')}" placeholder="${ch.id === 'phone' ? 'tel:0387332523' : ch.id === 'email' ? 'mailto:ban@kenios.store' : 'https://...'}">
-          </label>
-        `).join('')}
+        <div class="admin-form-section">Kênh liên hệ &amp; Nhóm mạng xã hội (thêm bao nhiêu tuỳ ý)</div>
+        <div class="span-2 contact-ch-editor" id="contactChannelsEditor">
+          ${(c.contactChannels || []).map(ch => contactChannelRowHtml(ch)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addContactChannelBtn"><span class="btn-ico">${ICONS.gift || ''}</span> + Thêm kênh / nhóm</button>
+        </div>
         <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
-          Chỉ 1 kênh được bật → hiện thẳng 1 nút. Bật từ 2 kênh trở lên → tự động gộp thành 1 nút "Liên hệ" duy nhất, bấm vào sẽ mở danh sách tất cả các kênh — áp dụng đồng nhất ở header, footer và popup chào mừng.
+          Bấm "+ Thêm kênh / nhóm" để tạo bao nhiêu mục tuỳ ý (nhiều nhóm Zalo, Telegram… đều được). Mỗi mục: chọn nền tảng, đặt tên, dán link, tích "Bật". Kênh nào bật + có link sẽ hiện ở phần "Liên Hệ &amp; Cộng Đồng" và nút liên hệ (từ 2 kênh trở lên tự gộp thành 1 nút danh sách).
         </p>
 
-        <div class="admin-form-section">🔑 Đăng nhập bằng Google</div>
+        <div class="admin-form-section">Đăng nhập bằng Google</div>
         <label class="span-2">Google Client ID
           <input name="googleClientId" value="${esc(c.googleClientId || '')}" placeholder="xxxxxxxx.apps.googleusercontent.com">
         </label>
@@ -1924,12 +3341,43 @@ window.KENIOS_DEFAULT_DB = {
           Để trống thì nút đăng nhập Google sẽ ẩn.
         </p>
 
-        <div class="admin-form-section">🏦 Ngân hàng (VietQR)</div>
-        <label>Ngân hàng (bankId) <input name="bankId" value="${esc(c.bankId)}"></label>
+        <div class="admin-form-section">Ngân hàng (VietQR) &amp; Giao dịch tự động</div>
+        <label>Ngân hàng
+          <select name="bankId">
+            ${BANK_OPTIONS.concat(BANK_OPTIONS.includes(c.bankId) ? [] : [c.bankId]).filter(Boolean).map(b => `<option value="${esc(b)}" ${c.bankId === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+          </select>
+        </label>
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
         <label class="span-2">Tên chủ tài khoản <input name="bankAccountName" value="${esc(c.bankAccountName)}"></label>
 
-        <div class="admin-form-section">📣 Thông báo Popup khi vào Web</div>
+        <div class="secret-box span-2" id="bankWebhookBox">
+          <div class="secret-status" id="bankTokenStatus">Đang kiểm tra trạng thái…</div>
+          <label>Webhook Token (dùng chung cho Casso / SePay / ThueAPIBank / ACB...)
+            <input type="password" id="bankTokenInput" placeholder="Để trống nếu giữ nguyên token hiện tại" autocomplete="new-password">
+          </label>
+          <label>URL Webhook — dán vào cấu hình bên SePay/Casso/ACB
+            <span class="input-with-toggle">
+              <input type="text" id="bankWebhookUrl" readonly>
+              <button type="button" class="pw-toggle-btn" id="copyWebhookUrlBtn" title="Sao chép"></button>
+            </span>
+          </label>
+          <button type="button" class="btn btn-glass btn-sm" id="saveBankTokenBtn">🔒 Lưu Token Webhook</button>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
+        </div>
+
+        <div class="admin-form-section">Giọng nói Google Cloud TTS (chạy được trên mọi trình duyệt, kể cả Safari/iPhone)</div>
+        <div class="secret-box span-2" id="ttsKeyBox">
+          <div class="secret-status" id="ttsKeyStatus">Đang kiểm tra trạng thái…</div>
+          <label>Google Cloud Text-to-Speech API Key
+            <input type="password" id="ttsApiKeyInput" placeholder="Để trống nếu giữ nguyên API key hiện tại" autocomplete="new-password">
+          </label>
+          <button type="button" class="btn btn-glass btn-sm" id="saveTtsKeyBtn">🔒 Lưu API Key</button>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">
+            Lấy API key miễn phí tại <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--gold-soft);">Google Cloud Console</a> (bật API "Cloud Text-to-Speech"). Chưa cấu hình thì trang sẽ tự dùng giọng trình duyệt để dự phòng. Khóa được lưu riêng ở máy chủ, không hiển thị lại và không gửi cho khách truy cập trang.
+          </p>
+        </div>
+
+        <div class="admin-form-section">Thông báo Popup khi vào Web</div>
         <label>Bật thông báo popup
           <select name="welcomePopupEnabled">
             <option value="1" ${c.welcomePopupEnabled ? 'selected' : ''}>Bật</option>
@@ -1944,27 +3392,20 @@ window.KENIOS_DEFAULT_DB = {
           Popup kèm nút "Liên hệ ngay" sẽ hiện 1 lần mỗi phiên truy cập. Đây là thông báo <b>chỉ hiển thị bằng chữ</b>, tách riêng hoàn toàn với lời chào giọng nói bên dưới.
         </p>
 
-        <div class="admin-form-section">🔊 Lời chào giọng nói (Google) khi vào Web</div>
-        <label>Bật lời chào giọng nói
-          <select name="welcomeVoiceEnabled">
-            <option value="1" ${c.welcomeVoiceEnabled ? 'selected' : ''}>Bật</option>
-            <option value="0" ${!c.welcomeVoiceEnabled ? 'selected' : ''}>Tắt</option>
+        <label>Hiện popup mọi lần vào web
+          <select name="welcomeAlways">
+            <option value="1" ${c.welcomeAlways !== false ? 'selected' : ''}>Có — ai vào cũng thấy</option>
+            <option value="0" ${c.welcomeAlways === false ? 'selected' : ''}>Chỉ 1 lần mỗi phiên</option>
           </select>
         </label>
-        <label class="span-2">Nội dung đọc bằng giọng Google
-          <textarea name="welcomeVoiceText">${esc(c.welcomeVoiceText || '')}</textarea>
-        </label>
-        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
-          Chỉ đọc to bằng giọng nữ Google (nếu trình duyệt hỗ trợ), <b>không hiện popup nào</b> — độc lập hoàn toàn với thông báo popup ở trên. Có thể bật riêng 1 trong 2, cả 2, hoặc tắt cả 2.
-        </p>
 
-        <div class="admin-form-section">📢 Chữ chạy</div>
+        <div class="admin-form-section">Chữ chạy</div>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
         <label>Tốc độ chạy (giây/vòng, càng nhỏ càng nhanh)
           <input type="number" name="marqueeSpeed" min="6" max="60" step="1" value="${c.marqueeSpeed || 26}">
         </label>
 
-        <div class="admin-form-section">🤖 Trợ lý ảo AI</div>
+        <div class="admin-form-section">Trợ lý ảo AI</div>
         <label>Giọng nói trợ lý (TTS)
           <select name="ttsEnabled">
             <option value="1" ${c.ttsEnabled ? 'selected' : ''}>Bật</option>
@@ -1972,18 +3413,28 @@ window.KENIOS_DEFAULT_DB = {
           </select>
         </label>
         <label>Tên trợ lý (aiName) <input name="aiName" value="${esc(c.aiName || '')}"></label>
-        <label class="span-2">Lời chào đầu tiên (aiGreeting) <textarea name="aiGreeting">${esc(c.aiGreeting || '')}</textarea></label>
-        <label class="span-2">Trả lời khi chào hỏi (aiResponseGreeting) <textarea name="aiResponseGreeting">${esc(c.aiResponseGreeting || '')}</textarea></label>
-        <label class="span-2">Trả lời về nạp tiền (aiResponseDeposit) <textarea name="aiResponseDeposit">${esc(c.aiResponseDeposit || '')}</textarea></label>
-        <label class="span-2">Trả lời về sản phẩm (aiResponseProduct) <textarea name="aiResponseProduct">${esc(c.aiResponseProduct || '')}</textarea></label>
-        <label class="span-2">Trả lời về thiết kế web (aiResponseWeb) <textarea name="aiResponseWeb">${esc(c.aiResponseWeb || '')}</textarea></label>
-        <label class="span-2">Trả lời về bảng giá (aiResponsePrice) <textarea name="aiResponsePrice">${esc(c.aiResponsePrice || '')}</textarea></label>
-        <label class="span-2">Trả lời về liên hệ (aiResponseContact) <textarea name="aiResponseContact">${esc(c.aiResponseContact || '')}</textarea></label>
-        <label class="span-2">Trả lời khi cảm ơn (aiResponseThanks) <textarea name="aiResponseThanks">${esc(c.aiResponseThanks || '')}</textarea></label>
-        <label class="span-2">Trả lời mặc định khi không hiểu (aiResponseFallback) <textarea name="aiResponseFallback">${esc(c.aiResponseFallback || '')}</textarea></label>
+        <label class="span-2">Lời chào đầu tiên khi mở khung chat (aiGreeting) <textarea name="aiGreeting">${esc(c.aiGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời khi khách chào hỏi <textarea name="aiResponseGreeting">${esc(c.aiResponseGreeting || '')}</textarea></label>
+        <label class="span-2">Trả lời khi hỏi chung về bảng giá <textarea name="aiResponsePrice">${esc(c.aiResponsePrice || '')}</textarea></label>
+        <label class="span-2">Trả lời mặc định khi không hiểu câu hỏi <textarea name="aiResponseFallback">${esc(c.aiResponseFallback || '')}</textarea></label>
+
+        <div class="admin-form-section">Bộ câu trả lời sẵn của AI (thêm bao nhiêu câu tuỳ ý)</div>
+        <div class="span-2 ai-kb-editor" id="aiKnowledgeEditor">
+          ${(c.aiKnowledge || []).map(item => aiKnowledgeRowHtml(item)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addAiKnowledgeBtn">+ Thêm câu trả lời</button>
+        </div>
+        <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
+          Mỗi dòng gồm: <b>Từ khoá</b> (cách nhau bởi dấu phẩy — khách nhắn chứa 1 trong các từ này) và <b>Câu trả lời</b>. Khách hỏi trúng từ khoá nào thì AI trả lời câu đó. Thêm càng nhiều câu, AI trả lời càng thông minh.
+        </p>
 
         <div class="admin-form-actions">
-          <button type="submit" class="btn btn-primary btn-sm">💾 Lưu cấu hình</button>
+          <button type="submit" class="btn btn-primary btn-sm">Lưu cấu hình</button>
+          <button type="button" class="btn btn-glass btn-sm" id="adminSyncServerBtn" style="gap:7px;">
+            <span class="btn-ico" data-icon="cloud"></span> Đồng bộ lên máy chủ
+          </button>
+          <span class="admin-sync-msg" id="adminConfigSyncMsg" style="font-size:.78rem;color:var(--muted);align-self:center;"></span>
         </div>
       </form>
     `;
@@ -1993,10 +3444,20 @@ window.KENIOS_DEFAULT_DB = {
     const media = Store.db.media || [];
     return `
       <div class="media-upload-row">
-        <input type="file" id="adminMediaFile" accept="image/*,video/mp4,video/webm,video/ogg">
-        <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">⬆️ Tải lên</button>
+        <input type="file" id="adminMediaFile" accept="image/*,video/*">
+        <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">Tải lên</button>
         <span class="muted" style="font-size:.8rem;">Ảnh hoặc video tối đa 500MB. Chỉ hoạt động khi có máy chủ PHP (cần hosting cho phép upload lớn — xem file .user.ini).</span>
       </div>
+      <div class="media-link-row">
+        <input type="text" id="adminMediaUrl" placeholder="Dán link ảnh/video từ nơi khác (VD: link .mp4...)">
+        <select id="adminMediaType">
+          <option value="auto">Tự nhận đuôi</option>
+          <option value="video">Video (.mp4/.webm)</option>
+          <option value="image">Ảnh (.jpg/.png/.gif)</option>
+        </select>
+        <button type="button" class="btn btn-glass btn-sm" id="adminAddLinkBtn">+ Thêm link (tạo video/ảnh thành link)</button>
+      </div>
+      <p class="muted" style="font-size:.75rem;margin:0 0 12px;">Thư viện dùng cho ảnh sản phẩm/danh mục, nền Hero, và mục "Hình ảnh &amp; Video" trên trang chủ. Chọn đuôi (video/ảnh) khi link không rõ đuôi.</p>
       <div class="media-grid">
         ${media.length ? media.map(m => `
           <div class="media-card">
@@ -2009,7 +3470,7 @@ window.KENIOS_DEFAULT_DB = {
               <strong style="font-size:.78rem;">${esc(m.name || '')}</strong>
               <span class="media-url">${esc(m.url)}</span>
               <div class="media-actions">
-                <button type="button" data-admin-copy-media="${esc(m.url)}">📋 Sao chép</button>
+                <button type="button" data-admin-copy-media="${esc(m.url)}">Sao chép</button>
                 <button type="button" class="danger" data-admin-delete-media="${esc(m.id)}">Xóa</button>
               </div>
             </div>
@@ -2047,6 +3508,43 @@ window.KENIOS_DEFAULT_DB = {
     const removePkgRow = e.target.closest('[data-remove-pkg-row]');
     if (removePkgRow) { removePkgRow.closest('.admin-pkg-row').remove(); return; }
 
+    const pkgKeysToggle = e.target.closest('[data-pkg-keys-toggle]');
+    if (pkgKeysToggle) {
+      const panel = pkgKeysToggle.closest('.admin-pkg-row').querySelector('[data-pkg-keys-panel]');
+      panel.hidden = !panel.hidden;
+      return;
+    }
+    const removePkgKey = e.target.closest('[data-remove-pkg-key]');
+    if (removePkgKey) {
+      const row = removePkgKey.closest('.admin-pkg-row');
+      const dataEl = row.querySelector('[data-pkg-keys-data]');
+      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean);
+      keys.splice(parseInt(removePkgKey.dataset.removePkgKey, 10), 1);
+      dataEl.value = keys.join('\n');
+      refreshPkgKeyList(row, keys);
+      return;
+    }
+    const addPkgKeys = e.target.closest('[data-add-pkg-keys]');
+    if (addPkgKeys) {
+      const row = addPkgKeys.closest('.admin-pkg-row');
+      const input = row.querySelector('[data-pkg-keys-input]');
+      const newKeys = input.value.split('\n').map(k => k.trim()).filter(Boolean);
+      if (!newKeys.length) return;
+      const dataEl = row.querySelector('[data-pkg-keys-data]');
+      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean).concat(newKeys);
+      dataEl.value = keys.join('\n');
+      input.value = '';
+      refreshPkgKeyList(row, keys);
+      return;
+    }
+    const clearPkgKeys = e.target.closest('[data-clear-pkg-keys]');
+    if (clearPkgKeys) {
+      if (!confirm('Xóa toàn bộ key trong kho của gói này?')) return;
+      const row = clearPkgKeys.closest('.admin-pkg-row');
+      row.querySelector('[data-pkg-keys-data]').value = '';
+      refreshPkgKeyList(row, []);
+      return;
+    }
     const newCategory = e.target.closest('[data-admin-new-category]');
     if (newCategory) { adminCategoryEditing = 'new'; renderAdminTab('categories'); return; }
 
@@ -2065,6 +3563,62 @@ window.KENIOS_DEFAULT_DB = {
       } catch (err) { toast(err.message, 'error'); }
       return;
     }
+
+    // ----- Thư mục con -----
+    const newSubcat = e.target.closest('[data-admin-new-subcategory]');
+    if (newSubcat) { adminSubcategoryEditing = 'new'; renderAdminTab('categories'); return; }
+
+    const editSubcat = e.target.closest('[data-admin-edit-subcategory]');
+    if (editSubcat) { adminSubcategoryEditing = editSubcat.dataset.adminEditSubcategory; renderAdminTab('categories'); return; }
+
+    const cancelSubcat = e.target.closest('[data-admin-cancel-subcategory]');
+    if (cancelSubcat) { adminSubcategoryEditing = null; renderAdminTab('categories'); return; }
+
+    const deleteSubcat = e.target.closest('[data-admin-delete-subcategory]');
+    if (deleteSubcat) {
+      try {
+        Store.adminDeleteSubcategory(deleteSubcat.dataset.adminDeleteSubcategory);
+        renderAdminTab('categories');
+        toast('Đã xóa thư mục con.', 'success');
+      } catch (err) { toast(err.message, 'error'); }
+      return;
+    }
+
+    // ----- Bộ chọn icon (Danh mục / Thư mục con) -----
+    const iconPick = e.target.closest('[data-icon-pick]');
+    if (iconPick) {
+      const picker = iconPick.closest('[data-icon-picker]');
+      picker.querySelector('input[type=hidden]').value = iconPick.dataset.iconPick;
+      $$('.icon-pick', picker).forEach(b => b.classList.toggle('selected', b === iconPick));
+      return;
+    }
+
+    // ----- Bộ chọn hiệu ứng logo -----
+    const fxPick = e.target.closest('[data-fx-pick]');
+    if (fxPick) {
+      const picker = fxPick.closest('[data-fx-picker]');
+      picker.querySelector('input[type=hidden]').value = fxPick.dataset.fxPick;
+      $$('.fx-pick', picker).forEach(b => b.classList.toggle('selected', b === fxPick));
+      return;
+    }
+
+    // ----- Thêm / xoá kênh liên hệ (nhóm mạng xã hội) -----
+    if (e.target.closest('#addContactChannelBtn')) {
+      const editor = $('#contactChannelsEditor');
+      if (editor) { editor.insertAdjacentHTML('beforeend', contactChannelRowHtml({ enabled: true })); }
+      return;
+    }
+    const delCh = e.target.closest('[data-ch-remove]');
+    if (delCh) { delCh.closest('[data-ch-row]')?.remove(); return; }
+
+    // ----- Thêm / xoá câu trả lời sẵn của AI -----
+    if (e.target.closest('#addAiKnowledgeBtn')) {
+      const editor = $('#aiKnowledgeEditor');
+      if (editor) { editor.insertAdjacentHTML('beforeend', aiKnowledgeRowHtml({})); editor.querySelector('.ai-kb-row:last-child [data-kb-k]')?.focus(); }
+      return;
+    }
+    const delKb = e.target.closest('[data-kb-remove]');
+    if (delKb) { delKb.closest('[data-kb-row]')?.remove(); return; }
 
     const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
     if (adjustBalance) {
@@ -2090,12 +3644,38 @@ window.KENIOS_DEFAULT_DB = {
       withLoading(uploadBtn, async () => {
         try {
           const url = await Store.uploadFile(file);
-          const type = /\.(mp4|webm|ogg)$/i.test(url) ? 'video' : 'image';
+          const type = isVideoUrl(url) ? 'video' : 'image';
           Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: file.name, date: new Date().toISOString() });
           renderAdminTab('media');
           toast('Tải lên thành công!', 'success');
         } catch (err) { toast(err.message, 'error'); }
       });
+      return;
+    }
+
+    const svcUploadBtn = e.target.closest('#adminServiceUploadBtn');
+    if (svcUploadBtn) {
+      const file = $('#adminServiceFile').files[0];
+      if (!file) { toast('Vui lòng chọn file bản game trước.', 'error'); return; }
+      withLoading(svcUploadBtn, async () => {
+        try {
+          const url = await Store.uploadFile(file);
+          $('#adminServiceDownload').value = url;
+          toast('Đã tải file lên & điền link tải!', 'success');
+        } catch (err) { toast(err.message, 'error'); }
+      });
+      return;
+    }
+
+    const addLinkBtn = e.target.closest('#adminAddLinkBtn');
+    if (addLinkBtn) {
+      const url = $('#adminMediaUrl').value.trim();
+      if (!url) { toast('Vui lòng dán link trước.', 'error'); return; }
+      let type = $('#adminMediaType').value;
+      if (type === 'auto') type = /\.(mp4|webm|ogg)(\?|#|$)/i.test(url) ? 'video' : 'image';
+      Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: 'Link ' + type, date: new Date().toISOString() });
+      renderAdminTab('media');
+      toast('Đã thêm link vào Thư viện.', 'success');
       return;
     }
 
@@ -2116,6 +3696,17 @@ window.KENIOS_DEFAULT_DB = {
     }
   }
 
+  // Khi admin đổi Danh mục trong form Dịch vụ, nạp lại danh sách Thư mục con tương ứng.
+  function onAdminPanelChange(e) {
+    const catSel = e.target.closest('#adminServiceCategory');
+    if (!catSel) return;
+    const sub = $('#adminServiceSubcat');
+    if (!sub) return;
+    const subs = (Store.db.subcategories || []).filter(s => s.categoryId === catSel.value);
+    sub.innerHTML = `<option value="">— Không thuộc thư mục con —</option>`
+      + subs.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+  }
+
   function onAdminPanelSubmit(e) {
     const formType = e.target.dataset.adminForm;
     if (!formType) return;
@@ -2123,15 +3714,35 @@ window.KENIOS_DEFAULT_DB = {
     const fd = new FormData(e.target);
 
     if (formType === 'service') {
-      const id = fd.get('id').trim();
-      if (!id) { toast('Vui lòng nhập mã dịch vụ.', 'error'); return; }
-      const names = $$('[data-pkg-name]', e.target).map(el => el.value.trim());
-      const prices = $$('[data-pkg-price]', e.target).map(el => parseInt(el.value, 10) || 0);
-      const packages = names.map((name, i) => ({ id: `pkg-${id}-${i}`, name, price: prices[i] })).filter(p => p.name);
+      // ID sản phẩm sinh tự động (#01, #02...) khi thêm mới; giữ nguyên khi sửa.
+      const id = adminServiceEditing === 'new' ? nextSeqId(Store.db.services) : adminServiceEditing;
+      // Giữ nguyên id gói cũ (không sinh lại mỗi lần lưu) và chỉ gửi lại field `keys`
+      // khi thực sự biết rõ nội dung kho key hiện tại (đã gõ thêm, hoặc phiên này đã
+      // tải đủ kho key từ máy chủ) — tránh trường hợp sửa giá/tên mà vô tình gửi kho
+      // key rỗng đè lên kho key thật trên máy chủ khi chưa bấm "Tải kho key đầy đủ".
+      const originalService = Store.db.services.find(s => s.id === id);
+      const packages = $$('.admin-pkg-row', e.target).map((row, i) => {
+        const name = row.querySelector('[data-pkg-name]').value.trim();
+        const price = parseInt(row.querySelector('[data-pkg-price]').value, 10) || 0;
+        const keys = row.querySelector('[data-pkg-keys-data]').value.split('\n').map(k => k.trim()).filter(Boolean);
+        const pkgId = row.dataset.pkgId;
+        const pkg = { id: pkgId || `pkg-${id}-${i}-${Date.now().toString(36)}`, name, price };
+        const original = pkgId && originalService ? (originalService.packages || []).find(p => p.id === pkgId) : null;
+        const knewKeysAlready = original && Array.isArray(original.keys);
+        if (keys.length || knewKeysAlready) pkg.keys = keys;
+        return pkg;
+      }).filter(p => p.name);
       if (!packages.length) { toast('Cần ít nhất một gói giá.', 'error'); return; }
+      const categoryId = fd.get('categoryId');
+      // Chỉ giữ subcategoryId nếu thư mục con đó thực sự thuộc danh mục đã chọn.
+      let subcategoryId = fd.get('subcategoryId') || '';
+      if (subcategoryId && !(Store.db.subcategories || []).some(sc => sc.id === subcategoryId && sc.categoryId === categoryId)) {
+        subcategoryId = '';
+      }
       Store.adminSaveService({
-        id, name: fd.get('name').trim(), categoryId: fd.get('categoryId'),
+        id, name: fd.get('name').trim(), categoryId, subcategoryId,
         description: fd.get('description').trim(), image: fd.get('image').trim(),
+        downloadUrl: (fd.get('downloadUrl') || '').trim(),
         status: fd.get('status'), features: fd.get('features').split('\n').map(s => s.trim()).filter(Boolean),
         packages
       });
@@ -2139,20 +3750,29 @@ window.KENIOS_DEFAULT_DB = {
       renderAdminTab('services');
       toast('Đã lưu dịch vụ.', 'success');
     } else if (formType === 'category') {
-      const id = fd.get('id').trim();
-      if (!id) { toast('Vui lòng nhập mã danh mục.', 'error'); return; }
+      const id = adminCategoryEditing === 'new' ? nextSeqId(Store.db.categories) : adminCategoryEditing;
       Store.adminSaveCategory({
-        id, name: fd.get('name').trim(), icon: fd.get('icon').trim() || '📁',
+        id, name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
         description: fd.get('description').trim(), image: fd.get('image').trim()
       });
       adminCategoryEditing = null;
       renderAdminTab('categories');
       toast('Đã lưu danh mục.', 'success');
+    } else if (formType === 'subcategory') {
+      const id = adminSubcategoryEditing === 'new' ? nextSeqId(Store.db.subcategories || []) : adminSubcategoryEditing;
+      Store.adminSaveSubcategory({
+        id, categoryId: fd.get('categoryId'), name: fd.get('name').trim(), icon: fd.get('icon') || 'folder',
+        description: fd.get('description').trim(), image: fd.get('image').trim()
+      });
+      adminSubcategoryEditing = null;
+      renderAdminTab('categories');
+      toast('Đã lưu thư mục con.', 'success');
     } else if (formType === 'config') {
       Store.adminUpdateConfig({
         logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),
         logoUrl: fd.get('logoUrl'), logoFont: fd.get('logoFont'), logoColor: fd.get('logoColor'),
         logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
+        logoMotionMode: fd.get('logoMotionMode') || 'none', logoMotionSpeed: parseFloat(fd.get('logoMotionSpeed')) || 2,
         accentColor: fd.get('accentColor'),
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
@@ -2161,21 +3781,16 @@ window.KENIOS_DEFAULT_DB = {
         googleClientId: fd.get('googleClientId'),
         welcomePopupEnabled: fd.get('welcomePopupEnabled') === '1',
         welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
-        welcomeVoiceEnabled: fd.get('welcomeVoiceEnabled') === '1', welcomeVoiceText: fd.get('welcomeVoiceText'),
+        welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceEnabled: false,
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
         aiName: fd.get('aiName'), aiGreeting: fd.get('aiGreeting'),
-        aiResponseGreeting: fd.get('aiResponseGreeting'), aiResponseDeposit: fd.get('aiResponseDeposit'),
-        aiResponseProduct: fd.get('aiResponseProduct'), aiResponseWeb: fd.get('aiResponseWeb'),
-        aiResponsePrice: fd.get('aiResponsePrice'), aiResponseContact: fd.get('aiResponseContact'),
-        aiResponseThanks: fd.get('aiResponseThanks'), aiResponseFallback: fd.get('aiResponseFallback'),
+        aiResponseGreeting: fd.get('aiResponseGreeting'),
+        aiResponsePrice: fd.get('aiResponsePrice'), aiResponseFallback: fd.get('aiResponseFallback'),
+        aiKnowledge: readAiKnowledgeFromEditor(),
         bgUrl: fd.get('bgUrl'),
-        contactChannels: (Store.db.config.contactChannels || []).map(ch => ({
-          ...ch,
-          enabled: fd.get(`contact_${ch.id}_enabled`) === 'on',
-          url: (fd.get(`contact_${ch.id}_url`) || '').trim()
-        }))
+        contactChannels: readContactChannelsFromEditor()
       });
       renderStatic();
       toast('Đã lưu cấu hình. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
