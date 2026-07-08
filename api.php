@@ -203,10 +203,17 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "File upload error code: " . $file['error']]);
             exit;
         }
-        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        $image_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        $video_ext = ['mp4', 'webm', 'ogg'];
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, $allowed_ext, true)) {
-            echo json_encode(["status" => "error", "message" => "Định dạng file không được hỗ trợ"]);
+        $is_video = in_array($ext, $video_ext, true);
+        if (!$is_video && !in_array($ext, $image_ext, true)) {
+            echo json_encode(["status" => "error", "message" => "Định dạng file không được hỗ trợ (chỉ ảnh hoặc video mp4/webm/ogg)"]);
+            exit;
+        }
+        $max_size = $is_video ? 25 * 1024 * 1024 : 5 * 1024 * 1024;
+        if ($file['size'] > $max_size) {
+            echo json_encode(["status" => "error", "message" => "File quá lớn (tối đa " . ($is_video ? "25MB" : "5MB") . ")"]);
             exit;
         }
         $upload_dir = __DIR__ . '/uploads/';
@@ -216,7 +223,7 @@ switch ($action) {
         $target = $upload_dir . $filename;
 
         if (move_uploaded_file($file['tmp_name'], $target)) {
-            echo json_encode(["status" => "success", "url" => "uploads/" . $filename]);
+            echo json_encode(["status" => "success", "url" => "uploads/" . $filename, "type" => $is_video ? "video" : "image"]);
         } else {
             echo json_encode(["status" => "error", "message" => "Failed to save file on server"]);
         }

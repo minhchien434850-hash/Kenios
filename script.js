@@ -116,7 +116,8 @@ window.KENIOS_DEFAULT_DB = {
     { id: "2", title: "Cập nhật hệ thống nạp tiền VietQR siêu tốc", summary: "Hệ thống chính thức nâng cấp cơ chế sinh mã QR tự động theo chuẩn Napas 247.", date: "2026-06-09" }
   ],
   orders: [],
-  transactions: []
+  transactions: [],
+  media: []
 };
 
 /**
@@ -172,7 +173,7 @@ window.KENIOS_DEFAULT_DB = {
     _mergeLocalOverrides() {
       const local = this._readLocal('overrides');
       if (!local) return;
-      ['users', 'orders', 'transactions', 'categories', 'services'].forEach(key => {
+      ['users', 'orders', 'transactions', 'categories', 'services', 'media'].forEach(key => {
         if (Array.isArray(local[key])) this.db[key] = local[key];
       });
       if (local.config) Object.assign(this.db.config, local.config);
@@ -185,6 +186,7 @@ window.KENIOS_DEFAULT_DB = {
         transactions: this.db.transactions,
         categories: this.db.categories,
         services: this.db.services,
+        media: this.db.media,
         config: this.db.config
       });
     },
@@ -410,6 +412,30 @@ window.KENIOS_DEFAULT_DB = {
       user.status = status;
       this._persistOverrides();
       this._emit();
+    },
+
+    adminAddMedia(item) {
+      if (!this.db.media) this.db.media = [];
+      this.db.media.unshift(item);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    adminDeleteMedia(id) {
+      this.db.media = (this.db.media || []).filter(m => m.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    // Upload file thật lên server (chỉ hoạt động khi có backend PHP với thư mục uploads/ ghi được).
+    async uploadFile(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`${API_URL}?action=upload_file`, { method: 'POST', body: fd });
+      let json;
+      try { json = await res.json(); } catch (e) { throw new Error('Không có máy chủ PHP để tải file lên (chế độ demo cục bộ không hỗ trợ upload).'); }
+      if (json.status !== 'success') throw new Error(json.message || 'Tải file thất bại.');
+      return json.url;
     },
 
     // ---- Đồng bộ Admin lên máy chủ (chỉ hoạt động khi có backend PHP) ----
@@ -742,6 +768,7 @@ window.KENIOS_DEFAULT_DB = {
 
     renderStatic();
     renderDynamic();
+    renderFaq();
     wireGlobalUI();
     wireAuthModal();
     wireDepositModal();
@@ -749,6 +776,12 @@ window.KENIOS_DEFAULT_DB = {
     wireAdminModal();
     wireLegalModal();
     wireAiWidget();
+    wireSearchModal();
+    wireScrollReveal();
+    wireScrollTopButton();
+
+    const loader = $('#bootLoader');
+    if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 500); }
   }
 
   // ============================================================
@@ -772,7 +805,7 @@ window.KENIOS_DEFAULT_DB = {
     setText('#heroSub', cfg.siteSubtitle);
     setText('#heroBtn1', cfg.bannerBtn1Text);
     setText('#heroBtn2', cfg.bannerBtn2Text);
-    if (cfg.bgUrl) $('#heroBg').style.backgroundImage = `url(${cfg.bgUrl})`;
+    applyHeroBackground(cfg.bgUrl);
 
     const m = `📢 ${cfg.marqueeText}`;
     setText('#marqueeText1', m);
@@ -836,6 +869,108 @@ window.KENIOS_DEFAULT_DB = {
         <p>${esc(p.summary)}</p>
       </article>
     `).join('');
+  }
+
+  // Nền Hero hỗ trợ cả ảnh và video (tự nhận diện qua đuôi file .mp4/.webm/.ogg).
+  function isVideoUrl(url) { return /\.(mp4|webm|ogg)(\?|#|$)/i.test(url || ''); }
+
+  function applyHeroBackground(url) {
+    const imgEl = $('#heroBg');
+    const videoEl = $('#heroBgVideo');
+    if (!url) { imgEl.style.backgroundImage = 'none'; videoEl.hidden = true; return; }
+    if (isVideoUrl(url)) {
+      videoEl.src = url;
+      videoEl.hidden = false;
+      videoEl.onerror = () => { videoEl.hidden = true; };
+      imgEl.style.backgroundImage = 'none';
+    } else {
+      videoEl.hidden = true;
+      imgEl.style.backgroundImage = `url(${url})`;
+    }
+  }
+
+  // ---- FAQ ----
+  const FAQ_ITEMS = [
+    { q: 'Nạp tiền vào tài khoản như thế nào?', a: 'Vào mục "Nạp tiền", nhập số tiền muốn nạp rồi quét mã VietQR hiển thị. Số dư được cộng tự động ngay sau khi hệ thống xác nhận giao dịch thành công, không cần chờ duyệt thủ công.' },
+    { q: 'Mua xong bao lâu thì nhận được key?', a: 'Key được cấp phát tự động ngay lập tức sau khi thanh toán, hiển thị trong mục "Đơn hàng của tôi" và có thể sao chép trực tiếp.' },
+    { q: 'Có được hoàn tiền không?', a: 'Do đây là sản phẩm số cấp phát tức thì, đơn hàng đã giao key không thể hoàn tiền trừ khi lỗi từ phía hệ thống. Vui lòng liên hệ Admin trong vòng 24 giờ nếu gặp sự cố.' },
+    { q: 'Tôi cần hỗ trợ thêm thì liên hệ ở đâu?', a: 'Bạn có thể nhắn Zalo/Hotline của Admin (góc phải header) hoặc trò chuyện trực tiếp với trợ lý ảo AI ở góc dưới màn hình, hỗ trợ 24/7.' }
+  ];
+
+  function renderFaq() {
+    const list = $('#faqList');
+    if (!list) return;
+    list.innerHTML = FAQ_ITEMS.map((item, i) => `
+      <div class="faq-item" data-faq-index="${i}">
+        <button class="faq-question" type="button">
+          <span>${esc(item.q)}</span><span class="chev">▾</span>
+        </button>
+        <div class="faq-answer"><p>${esc(item.a)}</p></div>
+      </div>
+    `).join('');
+    list.addEventListener('click', (e) => {
+      const btn = e.target.closest('.faq-question');
+      if (!btn) return;
+      btn.closest('.faq-item').classList.toggle('open');
+    });
+  }
+
+  // ---- Tìm kiếm dịch vụ ----
+  function wireSearchModal() {
+    const input = $('#searchInput');
+    $('#searchToggleBtn').addEventListener('click', () => {
+      openModal('#searchModal');
+      input.value = '';
+      renderSearchResults('');
+      setTimeout(() => input.focus(), 50);
+    });
+    input.addEventListener('input', () => renderSearchResults(input.value.trim().toLowerCase()));
+    $('#searchResults').addEventListener('click', (e) => {
+      const item = e.target.closest('[data-search-service]');
+      if (!item) return;
+      closeModal('#searchModal');
+      openServiceModal(item.dataset.searchService);
+    });
+  }
+
+  function renderSearchResults(query) {
+    const results = $('#searchResults');
+    const list = Store.db.services.filter(s => !query || s.name.toLowerCase().includes(query) || s.description.toLowerCase().includes(query));
+    if (!query) {
+      results.innerHTML = `<p class="empty-note">Nhập từ khóa để tìm dịch vụ (VD: PUBG, Landing Page, Aimbot...)</p>`;
+      return;
+    }
+    results.innerHTML = list.length ? list.map(s => {
+      const minPrice = Math.min(...s.packages.map(p => p.price));
+      return `
+        <button type="button" class="search-result-item" data-search-service="${esc(s.id)}">
+          <span>${esc(s.name)}</span><span class="price">Từ ${fmt(minPrice)}</span>
+        </button>
+      `;
+    }).join('') : `<p class="empty-note">Không tìm thấy dịch vụ phù hợp.</p>`;
+  }
+
+  // ---- Hiệu ứng cuộn hiện dần (scroll reveal) ----
+  function wireScrollReveal() {
+    const items = $$('[data-reveal]');
+    if (!items.length) return;
+    if (!('IntersectionObserver' in window)) { items.forEach(el => el.classList.add('revealed')); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { entry.target.classList.add('revealed'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.12 });
+    items.forEach(el => io.observe(el));
+  }
+
+  // ---- Nút lên đầu trang ----
+  function wireScrollTopButton() {
+    const btn = $('#scrollTopBtn');
+    window.addEventListener('scroll', () => {
+      btn.hidden = window.scrollY < 500;
+      btn.classList.toggle('visible', window.scrollY >= 500);
+    }, { passive: true });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
 
   function renderHeroStats() {
@@ -1274,6 +1409,7 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'categories') body.innerHTML = adminCategoriesHtml();
     else if (tab === 'orders') body.innerHTML = adminOrdersHtml();
     else if (tab === 'users') body.innerHTML = adminUsersHtml();
+    else if (tab === 'media') body.innerHTML = adminMediaHtml();
     else if (tab === 'config') body.innerHTML = adminConfigHtml();
   }
 
@@ -1486,6 +1622,9 @@ window.KENIOS_DEFAULT_DB = {
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
         <label class="span-2">Tên chủ tài khoản <input name="bankAccountName" value="${esc(c.bankAccountName)}"></label>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
+        <label class="span-2">Ảnh/Video nền Hero (bgUrl)
+          <input name="bgUrl" value="${esc(c.bgUrl || '')}" placeholder="Dán URL ảnh (.jpg/.png) hoặc video (.mp4/.webm) — lấy từ tab Thư viện">
+        </label>
         <label>Giọng nói trợ lý (TTS)
           <select name="ttsEnabled">
             <option value="1" ${c.ttsEnabled ? 'selected' : ''}>Bật</option>
@@ -1496,6 +1635,36 @@ window.KENIOS_DEFAULT_DB = {
           <button type="submit" class="btn btn-primary btn-sm">💾 Lưu cấu hình</button>
         </div>
       </form>
+    `;
+  }
+
+  function adminMediaHtml() {
+    const media = Store.db.media || [];
+    return `
+      <div class="media-upload-row">
+        <input type="file" id="adminMediaFile" accept="image/*,video/mp4,video/webm,video/ogg">
+        <button type="button" class="btn btn-primary btn-sm" id="adminUploadBtn">⬆️ Tải lên</button>
+        <span class="muted" style="font-size:.8rem;">Ảnh tối đa 5MB, video tối đa 25MB. Chỉ hoạt động khi có máy chủ PHP.</span>
+      </div>
+      <div class="media-grid">
+        ${media.length ? media.map(m => `
+          <div class="media-card">
+            <div class="media-preview">
+              ${m.type === 'video'
+                ? `<video src="${esc(m.url)}" muted></video>`
+                : `<img src="${esc(m.url)}" alt="">`}
+            </div>
+            <div class="media-info">
+              <strong style="font-size:.78rem;">${esc(m.name || '')}</strong>
+              <span class="media-url">${esc(m.url)}</span>
+              <div class="media-actions">
+                <button type="button" data-admin-copy-media="${esc(m.url)}">📋 Sao chép</button>
+                <button type="button" class="danger" data-admin-delete-media="${esc(m.id)}">Xóa</button>
+              </div>
+            </div>
+          </div>
+        `).join('') : '<p class="empty-note">Chưa có ảnh/video nào. Tải lên để lấy link sử dụng cho ảnh sản phẩm, danh mục hoặc nền Hero.</p>'}
+      </div>
     `;
   }
 
@@ -1561,6 +1730,39 @@ window.KENIOS_DEFAULT_DB = {
       toast('Đã cập nhật trạng thái người dùng.', 'success');
       return;
     }
+
+    const uploadBtn = e.target.closest('#adminUploadBtn');
+    if (uploadBtn) {
+      const fileInput = $('#adminMediaFile');
+      const file = fileInput.files[0];
+      if (!file) { toast('Vui lòng chọn một file trước.', 'error'); return; }
+      withLoading(uploadBtn, async () => {
+        try {
+          const url = await Store.uploadFile(file);
+          const type = /\.(mp4|webm|ogg)$/i.test(url) ? 'video' : 'image';
+          Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: file.name, date: new Date().toISOString() });
+          renderAdminTab('media');
+          toast('Tải lên thành công!', 'success');
+        } catch (err) { toast(err.message, 'error'); }
+      });
+      return;
+    }
+
+    const copyMedia = e.target.closest('[data-admin-copy-media]');
+    if (copyMedia) {
+      navigator.clipboard?.writeText(copyMedia.dataset.adminCopyMedia).then(() => toast('Đã sao chép link!', 'success'));
+      return;
+    }
+
+    const deleteMedia = e.target.closest('[data-admin-delete-media]');
+    if (deleteMedia) {
+      if (confirm('Xóa file này khỏi thư viện?')) {
+        Store.adminDeleteMedia(deleteMedia.dataset.adminDeleteMedia);
+        renderAdminTab('media');
+        toast('Đã xóa file.', 'success');
+      }
+      return;
+    }
   }
 
   function onAdminPanelSubmit(e) {
@@ -1600,7 +1802,8 @@ window.KENIOS_DEFAULT_DB = {
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
         hotline: fd.get('hotline'), zaloLink: fd.get('zaloLink'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
-        marqueeText: fd.get('marqueeText'), ttsEnabled: fd.get('ttsEnabled') === '1'
+        marqueeText: fd.get('marqueeText'), ttsEnabled: fd.get('ttsEnabled') === '1',
+        bgUrl: fd.get('bgUrl')
       });
       renderStatic();
       toast('Đã lưu cấu hình. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');

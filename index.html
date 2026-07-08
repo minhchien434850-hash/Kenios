@@ -25,9 +25,17 @@
   <meta name="twitter:description" content="Cửa hàng dịch vụ game & thiết kế website. Nạp tiền VietQR tự động 24/7, trợ lý ảo AI hỗ trợ." />
   <meta name="twitter:image" content="https://kenios.store/favicon.svg" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
+  <div class="boot-loader" id="bootLoader" aria-hidden="true">
+    <img src="./favicon.svg" alt="" class="boot-loader-mark">
+    <span class="boot-loader-spinner"></span>
+  </div>
+
   <div class="bg-mesh" aria-hidden="true"></div>
 
   <a class="skip-link" href="#main">Bỏ qua tới nội dung chính</a>
@@ -56,6 +64,7 @@
       </nav>
 
       <div class="header-actions">
+        <button class="icon-btn" id="searchToggleBtn" aria-label="Tìm kiếm dịch vụ">🔍</button>
         <a class="btn btn-ghost btn-sm hide-sm" id="zaloBtn" href="#" target="_blank" rel="noopener">
           <span>💬</span> Zalo Admin
         </a>
@@ -80,6 +89,7 @@
   <main id="main">
     <section class="hero" id="top">
       <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
+      <video class="hero-bg" id="heroBgVideo" aria-hidden="true" hidden loop muted autoplay playsinline></video>
       <div class="container hero-inner">
         <span class="tag-pill" id="heroTag">Dịch vụ hàng đầu Việt Nam</span>
         <h1 id="heroTitle">Cửa Hàng Dịch Vụ Game &amp; Thiết Kế Website</h1>
@@ -92,7 +102,16 @@
       </div>
     </section>
 
-    <section class="section" id="categories">
+    <div class="trust-strip">
+      <div class="container trust-strip-inner">
+        <div class="trust-item"><span>🔒</span> Thanh toán VietQR bảo mật</div>
+        <div class="trust-item"><span>⚡</span> Giao key tự động tức thì</div>
+        <div class="trust-item"><span>🛟</span> Hỗ trợ 24/7 qua Zalo</div>
+        <div class="trust-item"><span>🔁</span> Hoàn tiền nếu lỗi hệ thống</div>
+      </div>
+    </div>
+
+    <section class="section" id="categories" data-reveal>
       <div class="container">
         <div class="section-head">
           <h2>Danh Mục Dịch Vụ</h2>
@@ -102,7 +121,7 @@
       </div>
     </section>
 
-    <section class="section section-alt" id="services">
+    <section class="section section-alt" id="services" data-reveal>
       <div class="container">
         <div class="section-head">
           <h2>Dịch Vụ Nổi Bật</h2>
@@ -113,7 +132,7 @@
       </div>
     </section>
 
-    <section class="section" id="webdesign">
+    <section class="section" id="webdesign" data-reveal>
       <div class="container">
         <div class="section-head">
           <h2>Thiết Kế Website</h2>
@@ -123,7 +142,17 @@
       </div>
     </section>
 
-    <section class="section section-alt" id="posts">
+    <section class="section section-alt" id="faq" data-reveal>
+      <div class="container">
+        <div class="section-head">
+          <h2>Câu Hỏi Thường Gặp</h2>
+          <p>Những thắc mắc phổ biến nhất về mua hàng và thanh toán</p>
+        </div>
+        <div class="faq-list" id="faqList"></div>
+      </div>
+    </section>
+
+    <section class="section" id="posts" data-reveal>
       <div class="container">
         <div class="section-head">
           <h2>Tin Tức &amp; Hướng Dẫn</h2>
@@ -132,6 +161,8 @@
       </div>
     </section>
   </main>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Lên đầu trang" hidden>⬆</button>
 
   <footer class="site-footer">
     <div class="container footer-grid">
@@ -163,6 +194,16 @@
       <span>© <span id="footerYear"></span> KENIOS.STORE — Bảo lưu mọi quyền.</span>
     </div>
   </footer>
+
+  <!-- ===== Modal: Tìm kiếm dịch vụ ===== -->
+  <div class="modal-overlay" id="searchModal" hidden>
+    <div class="modal modal-sm search-modal" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
+      <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
+      <h3 id="searchModalTitle" class="sr-only">Tìm kiếm dịch vụ</h3>
+      <input type="text" id="searchInput" class="search-input" placeholder="Tìm dịch vụ (VD: PUBG, Landing Page...)" autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
 
   <!-- ===== Modal: Đăng nhập / Đăng ký ===== -->
   <div class="modal-overlay" id="authModal" hidden>
@@ -268,6 +309,7 @@
         <button class="admin-tab" data-admin-tab="categories">Danh mục</button>
         <button class="admin-tab" data-admin-tab="orders">Đơn hàng</button>
         <button class="admin-tab" data-admin-tab="users">Người dùng</button>
+        <button class="admin-tab" data-admin-tab="media">Thư viện</button>
         <button class="admin-tab" data-admin-tab="config">Cấu hình</button>
       </div>
       <div class="admin-panel-body" id="adminPanelBody"></div>
