@@ -659,8 +659,27 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
     box-shadow: 0 6px 18px rgba(0,0,0,.55);
   }
   .admin-modal h3 { margin-top: 0; }
-  .admin-tabs { flex-direction: row; flex-wrap: wrap; border-right: none; padding-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px; overflow: visible; }
-  .admin-tab { border-radius: 999px; }
+  /* Thanh tab quản trị: 1 HÀNG NGANG vuốt được + DÍNH ở đầu khi cuộn nội dung,
+     để luôn thấy & bấm được đủ 7 tab (trước đây bị xuống dòng nhiều hàng rồi
+     trôi mất khi cuộn). */
+  .admin-tabs {
+    flex-direction: row; flex-wrap: nowrap; gap: 8px; align-items: center;
+    border-right: none; border-bottom: 1px solid var(--border);
+    /* Tràn hết bề ngang màn hình (bù padding 16px hai bên của modal) */
+    margin: 0 -16px 14px; padding: 8px 16px 12px;
+    overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity; scrollbar-width: none;
+    position: sticky; top: env(safe-area-inset-top); z-index: 40;
+    background: var(--bg-alt);
+  }
+  .admin-tabs::-webkit-scrollbar { display: none; }
+  /* Khoảng trống cuối để tab cuối vuốt qua khỏi nút X cố định ở góc phải */
+  .admin-tabs::after { content: ""; flex: 0 0 46px; }
+  .admin-tab {
+    border-radius: 999px; flex: 0 0 auto; white-space: nowrap;
+    scroll-snap-align: center; border: 1px solid var(--border);
+  }
+  .admin-tab.active { border-color: transparent; }
   .admin-panel-body { overflow: visible; padding-right: 0; }
   .admin-sync-bar { flex-direction: column; align-items: stretch; }
   .admin-sync-bar .btn { justify-content: center; }

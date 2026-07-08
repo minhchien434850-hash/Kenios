@@ -2743,10 +2743,19 @@ window.KENIOS_DEFAULT_DB = {
   // ============================================================
   // ADMIN DASHBOARD
   // ============================================================
+  // Đưa tab đang chọn vào giữa tầm nhìn của thanh tab (khi thanh tab cuộn ngang
+  // trên mobile), tránh trường hợp tab đầu/cuối bị khuất mép.
+  function scrollAdminTabIntoView(btn) {
+    if (!btn || typeof btn.scrollIntoView !== 'function') return;
+    try { btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (_) {}
+  }
+
   function openAdminModal() {
     if (!Store.isAdmin()) { toast('Bạn không có quyền truy cập.', 'error'); return; }
     adminActiveTab = 'overview';
-    $$('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.adminTab === 'overview'));
+    const first = $('.admin-tab[data-admin-tab="overview"]');
+    $$('.admin-tab').forEach(t => t.classList.toggle('active', t === first));
+    if ($('#adminTabs')) $('#adminTabs').scrollLeft = 0; // luôn bắt đầu từ tab đầu tiên
     renderAdminTab('overview');
     $('#adminSyncMsg').textContent = '';
     openModal('#adminModal');
@@ -2758,6 +2767,7 @@ window.KENIOS_DEFAULT_DB = {
       if (!btn) return;
       adminActiveTab = btn.dataset.adminTab;
       $$('.admin-tab', $('#adminTabs')).forEach(t => t.classList.toggle('active', t === btn));
+      scrollAdminTabIntoView(btn);
       renderAdminTab(adminActiveTab);
     });
 
