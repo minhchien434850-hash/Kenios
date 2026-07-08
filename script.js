@@ -89,7 +89,11 @@ window.KENIOS_DEFAULT_DB = {
     ttsEnabled: true,
     ttsVoice: "google_female_vi",
     ttsRate: 1,
-    ttsPitch: 1
+    ttsPitch: 1,
+    // Khuyến mãi nạp tiền: nạp >= depositBonusMin sẽ được cộng thêm depositBonusPercent%.
+    depositBonusEnabled: false,
+    depositBonusPercent: 0,
+    depositBonusMin: 0
   },
   categories: [
     { id: "pubg", name: "PUBG", description: "Công cụ hỗ trợ & phụ kiện cho game PUBG", icon: "🎯",
@@ -432,13 +436,28 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     // ---- Giao dịch ----
+    // Tính tiền khuyến mãi cộng thêm khi nạp `amount` (đọc cấu hình khuyến mãi).
+    // Trả về 0 nếu tắt khuyến mãi / chưa đạt mức tối thiểu / cấu hình không hợp lệ.
+    depositBonusFor(amount) {
+      const c = this.db.config || {};
+      if (!c.depositBonusEnabled) return 0;
+      const percent = parseFloat(c.depositBonusPercent) || 0;
+      const min = parseInt(c.depositBonusMin, 10) || 0;
+      if (percent <= 0) return 0;
+      if (amount < min) return 0;
+      return Math.floor(amount * percent / 100);
+    },
+
     deposit(amount, note) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước.');
-      user.balance = (user.balance || 0) + amount;
+      const bonus = this.depositBonusFor(amount);
+      user.balance = (user.balance || 0) + amount + bonus;
+      const baseNote = note || 'Nạp tiền qua VietQR';
+      const desc = bonus > 0 ? `${baseNote} (+${bonus.toLocaleString('vi-VN')}đ khuyến mãi)` : baseNote;
       this.db.transactions.unshift({
-        id: 'TX' + Date.now(), userId: user.userId, amount, type: 'deposit',
-        description: note || 'Nạp tiền qua VietQR', date: new Date().toISOString()
+        id: 'TX' + Date.now(), userId: user.userId, amount: amount + bonus, type: 'deposit',
+        description: desc, date: new Date().toISOString()
       });
       this._persistOverrides();
       this._emit();
@@ -2306,7 +2325,7 @@ window.KENIOS_DEFAULT_DB = {
   // ============================================================
   // MODAL helpers
   // ============================================================
-  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; }
+  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; if (sel === '#depositModal') updateDepositBonusNote(); }
   function closeModal(sel) { $(sel).hidden = true; document.body.style.overflow = ''; }
 
   async function withLoading(btn, fn) {
@@ -2459,14 +2478,36 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Nạp tiền VietQR ----
+  // Cập nhật dòng thông báo khuyến mãi theo số tiền khách đang nhập.
+  function updateDepositBonusNote() {
+    const noteEl = $('#depositBonusNote');
+    if (!noteEl) return;
+    const c = Store.db.config || {};
+    const amount = parseInt($('#depositAmount')?.value, 10) || 0;
+    if (!c.depositBonusEnabled || (parseFloat(c.depositBonusPercent) || 0) <= 0) { noteEl.hidden = true; return; }
+    const percent = parseFloat(c.depositBonusPercent) || 0;
+    const min = parseInt(c.depositBonusMin, 10) || 0;
+    const bonus = Store.depositBonusFor(amount);
+    if (bonus > 0) {
+      noteEl.innerHTML = `🎁 Khuyến mãi <b>+${percent}%</b>: bạn được cộng thêm <b>${fmt(bonus)}</b> — tổng nhận <b>${fmt(amount + bonus)}</b>.`;
+    } else if (min > 0) {
+      noteEl.innerHTML = `🎁 Đang có khuyến mãi <b>+${percent}%</b> cho đơn nạp từ <b>${fmt(min)}</b> trở lên.`;
+    } else {
+      noteEl.innerHTML = `🎁 Đang có khuyến mãi nạp tiền <b>+${percent}%</b>.`;
+    }
+    noteEl.hidden = false;
+  }
+
   function wireDepositModal() {
     const quick = $('#quickAmounts');
     [50000, 100000, 200000, 500000, 1000000].forEach(v => {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = fmt(v);
-      b.addEventListener('click', () => { $('#depositAmount').value = v; });
+      b.addEventListener('click', () => { $('#depositAmount').value = v; updateDepositBonusNote(); });
       quick.appendChild(b);
     });
+    $('#depositAmount').addEventListener('input', updateDepositBonusNote);
+    updateDepositBonusNote();
 
     $('#genQrBtn').addEventListener('click', () => {
       const cfg = Store.db.config;
@@ -2889,6 +2930,7 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'users') body.innerHTML = adminUsersHtml();
     else if (tab === 'media') body.innerHTML = adminMediaHtml();
     else if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();
+    else if (tab === 'promo') { body.innerHTML = adminPromoHtml(); $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer()); }
     else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
   }
 
@@ -3343,6 +3385,48 @@ window.KENIOS_DEFAULT_DB = {
       const enabled = row.querySelector('[data-ch-enabled]').checked;
       return { id: `${type}-${i}`, type, label: label || CONTACT_PLATFORM_LABEL[type] || 'Liên hệ', url, enabled };
     });
+  }
+
+  function adminPromoHtml() {
+    const c = Store.db.config;
+    const enabled = !!c.depositBonusEnabled;
+    const percent = parseFloat(c.depositBonusPercent) || 0;
+    const min = parseInt(c.depositBonusMin, 10) || 0;
+    // Ví dụ minh hoạ để admin dễ hình dung.
+    const sample = min > 0 ? min : 100000;
+    const sampleBonus = enabled && percent > 0 ? Math.floor(sample * percent / 100) : 0;
+    return `
+      <form class="admin-form" data-admin-form="promo">
+        <div class="admin-form-section">Khuyến mãi nạp tiền</div>
+        <p class="muted" style="grid-column:1/-1;font-size:.82rem;margin:0 0 4px;">
+          Khi khách nạp tiền đạt mức tối thiểu, hệ thống sẽ tự động cộng thêm % khuyến mãi vào số dư.
+        </p>
+        <label>Bật khuyến mãi nạp tiền
+          <select name="depositBonusEnabled">
+            <option value="1" ${enabled ? 'selected' : ''}>Bật</option>
+            <option value="0" ${!enabled ? 'selected' : ''}>Tắt</option>
+          </select>
+        </label>
+        <label>Phần trăm khuyến mãi (%)
+          <input type="number" name="depositBonusPercent" min="0" max="100" step="1" value="${percent}" placeholder="VD: 10">
+        </label>
+        <label>Số tiền nạp tối thiểu để nhận khuyến mãi (đ)
+          <input type="number" name="depositBonusMin" min="0" step="1000" value="${min}" placeholder="VD: 100000">
+        </label>
+        <p class="muted" style="grid-column:1/-1;font-size:.82rem;margin:2px 0 0;">
+          ${enabled && percent > 0
+            ? `Ví dụ: khách nạp <b>${sample.toLocaleString('vi-VN')}đ</b> sẽ được cộng thêm <b>${sampleBonus.toLocaleString('vi-VN')}đ</b> (${percent}%), tổng nhận <b>${(sample + sampleBonus).toLocaleString('vi-VN')}đ</b>.`
+            : 'Đang tắt khuyến mãi — khách nạp bao nhiêu nhận đúng bấy nhiêu.'}
+        </p>
+        <div class="admin-form-actions">
+          <button type="submit" class="btn btn-primary btn-sm">Lưu khuyến mãi</button>
+          <button type="button" class="btn btn-glass btn-sm" id="adminSyncServerBtn" style="gap:7px;">
+            <span class="btn-ico" data-icon="cloud"></span> Đồng bộ lên máy chủ
+          </button>
+          <span class="admin-sync-msg" id="adminConfigSyncMsg" style="font-size:.78rem;color:var(--muted);align-self:center;"></span>
+        </div>
+      </form>
+    `;
   }
 
   function adminConfigHtml() {
@@ -3987,6 +4071,14 @@ window.KENIOS_DEFAULT_DB = {
       });
       renderStatic();
       toast('Đã lưu cấu hình. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
+    } else if (formType === 'promo') {
+      Store.adminUpdateConfig({
+        depositBonusEnabled: fd.get('depositBonusEnabled') === '1',
+        depositBonusPercent: Math.max(0, Math.min(100, parseFloat(fd.get('depositBonusPercent')) || 0)),
+        depositBonusMin: Math.max(0, parseInt(fd.get('depositBonusMin'), 10) || 0)
+      });
+      renderAdminTab('promo');
+      toast('Đã lưu khuyến mãi. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách truy cập.', 'success');
     }
   }
 

@@ -521,6 +521,8 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .qr-note-row strong { color: var(--gold-soft); word-break: break-all; }
 .deposit-hint { width: 100%; font-size: .8rem; color: var(--muted); background: rgba(255,183,3,.08); border: 1px solid rgba(255,183,3,.2); border-radius: 10px; padding: 10px 12px; margin: 0; line-height: 1.5; }
 .deposit-hint b { color: var(--gold-soft); }
+.deposit-bonus-note { width: 100%; font-size: .82rem; color: var(--ink); background: rgba(46,204,113,.1); border: 1px solid rgba(46,204,113,.28); border-radius: 10px; padding: 10px 12px; margin: 0; line-height: 1.5; }
+.deposit-bonus-note b { color: #34d399; }
 #confirmDepositBtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 #confirmDepositBtn .btn-ico { display: inline-flex; }
 #confirmDepositBtn .btn-ico svg { width: 18px; height: 18px; }

@@ -13,6 +13,18 @@ function bank_extract_transactions($data) {
     return [$data];
 }
 
+// Tính tiền khuyến mãi cộng thêm khi nạp $amount, đọc cấu hình khuyến mãi trong $db['config'].
+// Trả về 0 nếu tắt khuyến mãi / chưa đạt mức tối thiểu / cấu hình không hợp lệ.
+function bank_deposit_bonus($db, $amount) {
+    $cfg = (isset($db['config']) && is_array($db['config'])) ? $db['config'] : [];
+    if (empty($cfg['depositBonusEnabled'])) return 0;
+    $percent = floatval($cfg['depositBonusPercent'] ?? 0);
+    $min = intval($cfg['depositBonusMin'] ?? 0);
+    if ($percent <= 0) return 0;
+    if ($amount < $min) return 0;
+    return (int)floor($amount * $percent / 100);
+}
+
 // Cộng số dư cho user có nội dung chuyển khoản khớp "NAP<userId>", chống trùng bằng bankRef.
 // Hàm này thay đổi trực tiếp $db (tham chiếu) và trả về [số_giao_dịch_đã_xử_lý, mảng_log].
 function bank_process_transactions(&$db, $transactions) {
@@ -68,20 +80,27 @@ function bank_process_transactions(&$db, $transactions) {
         }
         if ($matchedIdx === -1) continue;
 
+        // Khuyến mãi nạp tiền: nạp >= depositBonusMin được cộng thêm depositBonusPercent%.
+        $bonus = bank_deposit_bonus($db, $amount);
+        $credit = $amount + $bonus;
+
         $mu = $db['users'][$matchedIdx];
         $old = isset($mu['balance']) ? floatval($mu['balance']) : 0;
-        $db['users'][$matchedIdx]['balance'] = $old + $amount;
+        $db['users'][$matchedIdx]['balance'] = $old + $credit;
 
         if (!isset($db['transactions'])) $db['transactions'] = [];
+        $desc = $bonus > 0
+            ? "Nạp tiền tự động VietQR ($memo) (+" . number_format($bonus) . "đ khuyến mãi)"
+            : "Nạp tiền tự động VietQR ($memo)";
         array_unshift($db['transactions'], [
             'id' => 'TX' . time() . rand(100, 999),
             'userId' => $mu['userId'], 'username' => $mu['username'] ?? '',
-            'type' => 'deposit', 'amount' => $amount, 'date' => date('c'),
-            'description' => "Nạp tiền tự động VietQR ($memo)", 'bankRef' => $txnRef
+            'type' => 'deposit', 'amount' => $credit, 'date' => date('c'),
+            'description' => $desc, 'bankRef' => $txnRef
         ]);
 
         $processed++;
-        $logs[] = '+' . number_format($amount) . 'd -> ' . ($mu['username'] ?? $mu['userId']) . " | Ref=$txnRef";
+        $logs[] = '+' . number_format($credit) . 'd (goc ' . number_format($amount) . ' + km ' . number_format($bonus) . ') -> ' . ($mu['username'] ?? $mu['userId']) . " | Ref=$txnRef";
     }
 
     return [$processed, $logs];
