@@ -43,6 +43,7 @@
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
       <div class="header-left">
+        <button class="admin-quick-btn" id="adminQuickBtn" aria-label="Quản trị hệ thống" hidden>🛠️</button>
         <button class="menu-toggle" id="menuToggle" aria-label="Mở menu" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
@@ -69,13 +70,25 @@
         <div id="authArea"></div>
       </div>
     </div>
-    <nav class="mobile-nav" id="mobileNav" aria-label="Điều hướng di động">
-      <a href="#categories">Danh mục</a>
-      <a href="#services">Dịch vụ</a>
-      <a href="#webdesign">Thiết kế Web</a>
-      <a href="#posts">Tin tức</a>
-    </nav>
   </header>
+
+  <!-- Đặt ngoài <header> vì header có backdrop-filter, tạo containing block riêng
+       khiến position:fixed bên trong bị giới hạn trong khung header thay vì toàn màn hình. -->
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+  <nav class="mobile-nav" id="mobileNav" aria-label="Điều hướng di động">
+    <div class="mobile-nav-inner">
+      <div class="mobile-nav-group-label">Menu</div>
+      <a href="#top" class="mobile-nav-link" data-mobile-link><span class="mnl-icon">🏠</span><span>Trang chủ</span></a>
+      <button type="button" class="mobile-nav-link" id="mobileNavDeposit"><span class="mnl-icon">💳</span><span>Nạp tiền</span><span class="mnl-badge auto">Auto</span></button>
+      <button type="button" class="mobile-nav-link" id="mobileNavOrders"><span class="mnl-icon">📦</span><span>Đơn hàng của tôi</span></button>
+
+      <div class="mobile-nav-group-label">Dịch vụ</div>
+      <a href="#categories" class="mobile-nav-link" data-mobile-link><span class="mnl-icon">🗂️</span><span>Danh mục</span></a>
+      <a href="#services" class="mobile-nav-link" data-mobile-link><span class="mnl-icon">🎮</span><span>Dịch vụ nổi bật</span></a>
+      <a href="#webdesign" class="mobile-nav-link" data-mobile-link><span class="mnl-icon">💻</span><span>Thiết kế Web</span></a>
+      <a href="#posts" class="mobile-nav-link" data-mobile-link><span class="mnl-icon">📰</span><span>Tin tức &amp; Hướng dẫn</span></a>
+    </div>
+  </nav>
 
   <div class="marquee-bar">
     <div class="marquee-track" id="marqueeTrack">
@@ -283,6 +296,9 @@
           <p id="serviceModalDesc"></p>
           <ul class="feature-list" id="serviceModalFeatures"></ul>
           <div class="package-list" id="serviceModalPackages"></div>
+          <label class="span-2" id="serviceModalPasswordRow" hidden>Nhập lại mật khẩu để xác nhận mua
+            <input type="password" id="serviceModalPassword" autocomplete="current-password">
+          </label>
           <p class="form-error" id="serviceModalError"></p>
           <button class="btn btn-primary btn-block" id="serviceModalBuyBtn">Mua Ngay</button>
         </div>
@@ -305,18 +321,19 @@
       <button class="modal-close" data-close-modal aria-label="Đóng">✕</button>
       <h3 id="adminTitle">🛠️ Quản Trị Hệ Thống</h3>
       <div class="admin-tabs" id="adminTabs">
-        <button class="admin-tab active" data-admin-tab="overview">Tổng quan</button>
-        <button class="admin-tab" data-admin-tab="services">Dịch vụ</button>
-        <button class="admin-tab" data-admin-tab="categories">Danh mục</button>
-        <button class="admin-tab" data-admin-tab="orders">Đơn hàng</button>
-        <button class="admin-tab" data-admin-tab="users">Người dùng</button>
-        <button class="admin-tab" data-admin-tab="media">Thư viện</button>
-        <button class="admin-tab" data-admin-tab="config">Cấu hình</button>
+        <button class="admin-tab active" data-admin-tab="overview">📊 <span>Tổng quan</span></button>
+        <button class="admin-tab" data-admin-tab="services">🎮 <span>Dịch vụ</span></button>
+        <button class="admin-tab" data-admin-tab="categories">🗂️ <span>Danh mục</span></button>
+        <button class="admin-tab" data-admin-tab="orders">📦 <span>Đơn hàng</span></button>
+        <button class="admin-tab" data-admin-tab="users">👥 <span>Người dùng</span></button>
+        <button class="admin-tab" data-admin-tab="media">🖼️ <span>Thư viện</span></button>
+        <button class="admin-tab" data-admin-tab="config">⚙️ <span>Cấu hình</span></button>
       </div>
       <div class="admin-panel-body" id="adminPanelBody"></div>
       <div class="admin-sync-bar">
         <input type="password" id="adminSyncPass" placeholder="Nhập lại mật khẩu admin để đồng bộ">
         <button type="button" class="btn btn-glass btn-sm" id="adminSyncBtn">☁️ Đồng bộ lên máy chủ</button>
+        <button type="button" class="btn btn-glass btn-sm" id="adminLoadKeysBtn">🔑 Tải kho key đầy đủ</button>
         <span class="admin-sync-msg" id="adminSyncMsg"></span>
       </div>
     </div>

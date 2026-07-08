@@ -48,8 +48,13 @@ if (!$data) $data = $_GET;
 if (empty($data)) $data = $_POST;
 if (!is_array($data)) $data = [];
 
+require_once __DIR__ . '/lib_secrets.php';
+
 $db = read_db($db_file);
-$configured_token = trim((string)($db['config']['bankToken'] ?? ''));
+$secrets = read_secrets();
+// Ưu tiên token trong secrets.php (không lộ qua get_db); vẫn đọc field cũ trong
+// database.json để tương thích ngược nếu chưa kịp chuyển sang secrets.php.
+$configured_token = trim((string)($secrets['bankToken'] ?? '')) ?: trim((string)($db['config']['bankToken'] ?? ''));
 
 // === XÁC THỰC ===
 // Không có token nào được cấu hình -> từ chối mọi callback thật (chỉ cho phép ping/test).

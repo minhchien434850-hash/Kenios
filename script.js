@@ -354,6 +354,28 @@ window.KENIOS_DEFAULT_DB = {
       this._emit();
     },
 
+    // Gói có kho key thật (admin đã nhập key trong tab Dịch vụ) sẽ có field `keyCount`
+    // (kể cả khi = 0). Với gói này, PHẢI mua qua máy chủ (redeemKeyOnServer) để rút
+    // đúng 1 key thật + trừ số dư một cách xác thực, không dùng đường cũ (giả lập cục bộ).
+    usesRealKeyStock(pkg) {
+      return pkg && typeof pkg.keyCount === 'number';
+    },
+
+    async redeemKeyOnServer(username, password, service, pkg) {
+      const result = await this._callApi('redeem_key', {
+        username, password, serviceId: service.id, packageId: pkg.id
+      });
+      if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
+      const user = this.currentUser();
+      if (user) user.balance = result.balance;
+      this.db.orders.unshift(result.order);
+      this._persistOverrides();
+      this._emit();
+      return result.order;
+    },
+
+    // Đường cũ (demo cục bộ): dùng cho các gói CHƯA cấu hình kho key thật, sinh key
+    // giả lập ngay trên trình duyệt — giữ lại để không phá vỡ các dịch vụ demo hiện có.
     buyPackage(service, pkg) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
@@ -470,6 +492,37 @@ window.KENIOS_DEFAULT_DB = {
       return json.url;
     },
 
+    // Tải lại toàn bộ kho key thật (packages[].keys) cho tab Dịch vụ — máy chủ chỉ trả
+    // key thật khi xác thực đúng tài khoản admin, tránh lộ key cho khách vãng lai.
+    async fetchFullServiceKeys(adminUser, adminPass) {
+      const res = await fetch(`${API_URL}?action=get_db&t=${Date.now()}`, {
+        headers: { 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass }
+      });
+      const json = await res.json();
+      if (!json || !Array.isArray(json.services)) throw new Error('Không tải được dữ liệu từ máy chủ.');
+      const hasKeys = json.services.some(s => (s.packages || []).some(p => Array.isArray(p.keys)));
+      if (!hasKeys) throw new Error('Sai mật khẩu admin hoặc chưa có kho key nào.');
+      this.db.services = json.services;
+      this._persistOverrides();
+      this._emit();
+    },
+
+    async secretsStatus(adminUser, adminPass) {
+      const res = await fetch(`${API_URL}?action=secrets_status`, {
+        headers: { 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass }
+      });
+      return await res.json();
+    },
+
+    async saveSecrets(adminUser, adminPass, patch) {
+      const res = await fetch(`${API_URL}?action=save_secrets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+        body: JSON.stringify(patch)
+      });
+      return await res.json();
+    },
+
     // ---- Đồng bộ Admin lên máy chủ (chỉ hoạt động khi có backend PHP) ----
     async trySaveToServer(adminUser, adminPass) {
       try {
@@ -489,14 +542,20 @@ window.KENIOS_DEFAULT_DB = {
 })(window);
 
 /**
- * voice.js — Giọng nói trợ lý ảo, ưu tiên giọng Google (Web Speech API).
- * Thay thế toàn bộ dàn giọng "loli/anime" pitch cao trước đây bằng một giọng
- * nữ tự nhiên kiểu Google Assistant/Google Dịch, tốc độ & cao độ mặc định = bình thường.
+ * voice.js — Giọng nói trợ lý ảo.
+ * Ưu tiên gọi Google Cloud Text-to-Speech thật (qua tts.php, API key giữ bí mật ở
+ * máy chủ) để có đúng giọng nữ Google trên MỌI trình duyệt kể cả Safari/iPhone
+ * (Web Speech API của Safari không có giọng Google). Nếu chưa cấu hình API key
+ * hoặc máy chủ không phản hồi, tự động dùng lại giọng trình duyệt (Web Speech API)
+ * làm phương án dự phòng.
  */
 (function (global) {
   'use strict';
 
   const PREF_KEY = 'kenios_voice_prefs_v1';
+  const TTS_URL = './tts.php';
+  let ttsUnavailable = false; // set true sau lần gọi lỗi đầu tiên để không spam request lỗi
+  let currentAudio = null;
 
   const Voice = {
     voices: [],
@@ -534,8 +593,38 @@ window.KENIOS_DEFAULT_DB = {
         || null;
     },
 
-    speak(text) {
-      if (!this.prefs.enabled || !('speechSynthesis' in window) || !text) return;
+    async speak(text) {
+      if (!this.prefs.enabled || !text) return;
+      this.stop();
+      if (!ttsUnavailable) {
+        const played = await this._speakGoogleCloud(text);
+        if (played) return;
+      }
+      this._speakBrowser(text);
+    },
+
+    async _speakGoogleCloud(text) {
+      try {
+        const res = await fetch(TTS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, rate: this.prefs.rate, pitch: (this.prefs.pitch - 1) * 10 })
+        });
+        const json = await res.json();
+        if (json.status !== 'success' || !json.audioContent) { ttsUnavailable = true; return false; }
+        const audio = new Audio('data:audio/mp3;base64,' + json.audioContent);
+        audio.volume = this.prefs.volume;
+        currentAudio = audio;
+        await audio.play();
+        return true;
+      } catch (e) {
+        ttsUnavailable = true;
+        return false;
+      }
+    },
+
+    _speakBrowser(text) {
+      if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       const voice = this._pickVoice();
@@ -548,6 +637,7 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     stop() {
+      if (currentAudio) { currentAudio.pause(); currentAudio = null; }
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     },
 
@@ -587,7 +677,15 @@ window.KENIOS_DEFAULT_DB = {
     click: { label: 'Click cơ học' },
     coin: { label: 'Coin (Xu)' },
     wood: { label: 'Gõ gỗ' },
-    chime: { label: 'Chuông ngân' }
+    chime: { label: 'Chuông ngân' },
+    bubble: { label: 'Bong bóng' },
+    blip: { label: 'Blip điện tử' },
+    marimba: { label: 'Marimba' },
+    bell: { label: 'Chuông cửa' },
+    success: { label: 'Báo thành công' },
+    laser: { label: 'Laser' },
+    drop: { label: 'Giọt nước' },
+    notify: { label: 'Thông báo nhẹ' }
   };
 
   const Effects = {
@@ -725,6 +823,14 @@ window.KENIOS_DEFAULT_DB = {
       case 'coin': tone(1046, 0, 0.09, 'square', 0.3); tone(1568, 0.08, 0.12, 'square', 0.25); break;
       case 'wood': tone(220, 0, 0.05, 'triangle', 0.4); tone(160, 0.02, 0.06, 'triangle', 0.25); break;
       case 'chime': tone(1318, 0, 0.35, 'sine', 0.25); tone(1976, 0.05, 0.4, 'sine', 0.18); break;
+      case 'bubble': tone(500, 0, 0.05, 'sine', 0.3); tone(900, 0.04, 0.08, 'sine', 0.25); break;
+      case 'blip': tone(2400, 0, 0.02, 'square', 0.2); tone(1200, 0.02, 0.03, 'square', 0.18); break;
+      case 'marimba': tone(784, 0, 0.2, 'sine', 0.3); tone(988, 0.03, 0.25, 'sine', 0.2); break;
+      case 'bell': tone(1568, 0, 0.5, 'sine', 0.3); tone(2093, 0.02, 0.5, 'sine', 0.15); break;
+      case 'success': tone(659, 0, 0.1, 'sine', 0.3); tone(880, 0.1, 0.1, 'sine', 0.3); tone(1318, 0.2, 0.2, 'sine', 0.3); break;
+      case 'laser': tone(1800, 0, 0.08, 'sawtooth', 0.2); tone(400, 0.05, 0.1, 'sawtooth', 0.15); break;
+      case 'drop': tone(1200, 0, 0.04, 'sine', 0.3); tone(300, 0.03, 0.15, 'sine', 0.25); break;
+      case 'notify': tone(1046, 0, 0.12, 'triangle', 0.25); tone(1568, 0.1, 0.15, 'triangle', 0.2); break;
       default: break;
     }
   }
@@ -922,6 +1028,10 @@ window.KENIOS_DEFAULT_DB = {
 
   // ---- Thương hiệu: logo (ảnh/font/màu) + màu chủ đạo toàn site ----
   const LOGO_FONTS = ['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Orbitron', 'Pacifico'];
+  const BANK_OPTIONS = [
+    'ACB', 'Vietcombank', 'VietinBank', 'BIDV', 'MBBank', 'Techcombank', 'VPBank',
+    'TPBank', 'Sacombank', 'HDBank', 'SHB', 'OCB', 'MSB', 'SeABank', 'VIB', 'Agribank'
+  ];
   const _loadedFonts = new Set(['Be Vietnam Pro']);
 
   function ensureFontLoaded(fontName) {
@@ -1232,6 +1342,7 @@ window.KENIOS_DEFAULT_DB = {
   function renderAuthArea() {
     const area = $('#authArea');
     const user = Store.currentUser();
+    $('#adminQuickBtn').hidden = !(user && user.role === 'admin');
     if (!user) {
       area.innerHTML = `<button class="btn btn-primary btn-sm" id="openAuthBtn">Đăng nhập</button>`;
       $('#openAuthBtn').addEventListener('click', () => openModal('#authModal'));
@@ -1247,7 +1358,6 @@ window.KENIOS_DEFAULT_DB = {
             <strong style="padding:8px 12px;font-size:.85rem;">${esc(user.username)}</strong>
             <button id="ddOrders">📦 Đơn hàng của tôi</button>
             <button id="ddDeposit">💳 Nạp tiền</button>
-            ${user.role === 'admin' ? '<button id="ddAdmin">🛠️ Quản trị hệ thống</button>' : ''}
             <button id="ddLogout">🚪 Đăng xuất</button>
           </div>
         </div>
@@ -1257,9 +1367,6 @@ window.KENIOS_DEFAULT_DB = {
     $('#avatarBtn').addEventListener('click', () => $('#userDropdown').classList.toggle('open'));
     $('#ddOrders').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openOrdersModal(); });
     $('#ddDeposit').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openModal('#depositModal'); });
-    if (user.role === 'admin') {
-      $('#ddAdmin').addEventListener('click', () => { $('#userDropdown').classList.remove('open'); openAdminModal(); });
-    }
     $('#ddLogout').addEventListener('click', () => { Store.logout(); toast('Đã đăng xuất.', 'success'); });
   }
 
@@ -1289,12 +1396,25 @@ window.KENIOS_DEFAULT_DB = {
       if (!e.target.closest('.user-menu')) $('#userDropdown')?.classList.remove('open');
     });
 
+    const closeMobileNav = () => {
+      $('#mobileNav').classList.remove('open');
+      $('#mobileNavBackdrop').classList.remove('open');
+      $('#menuToggle').setAttribute('aria-expanded', 'false');
+    };
     $('#menuToggle').addEventListener('click', () => {
-      const nav = $('#mobileNav');
-      const open = nav.classList.toggle('open');
+      const open = $('#mobileNav').classList.toggle('open');
+      $('#mobileNavBackdrop').classList.toggle('open', open);
       $('#menuToggle').setAttribute('aria-expanded', String(open));
     });
-    $$('#mobileNav a').forEach(a => a.addEventListener('click', () => $('#mobileNav').classList.remove('open')));
+    $('#mobileNavBackdrop').addEventListener('click', closeMobileNav);
+    $$('.mobile-nav-link', $('#mobileNav')).forEach(a => a.addEventListener('click', closeMobileNav));
+    $('#mobileNavDeposit').addEventListener('click', () => {
+      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
+      openModal('#depositModal');
+    });
+    $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
+
+    $('#adminQuickBtn').addEventListener('click', () => openAdminModal());
 
     $('#heroBtn2').addEventListener('click', () => {
       if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
@@ -1424,12 +1544,22 @@ window.KENIOS_DEFAULT_DB = {
       errEl.textContent = '';
       if (!Store.currentUser()) { errEl.textContent = 'Vui lòng đăng nhập trước khi mua.'; return; }
       if (!currentPackage) { errEl.textContent = 'Vui lòng chọn một gói.'; return; }
-      try {
-        const order = Store.buyPackage(service, currentPackage);
-        closeModal('#serviceModal');
-        toast(`Mua thành công! Key: ${order.key}`, 'success');
-        Voice.speak(`Bạn đã mua thành công gói ${order.packageName} của ${order.serviceName}.`);
-      } catch (err) { errEl.textContent = err.message; }
+
+      withLoading($('#serviceModalBuyBtn'), async () => {
+        try {
+          let order;
+          if (Store.usesRealKeyStock(currentPackage)) {
+            const password = $('#serviceModalPassword').value;
+            if (!password) { errEl.textContent = 'Vui lòng nhập lại mật khẩu để xác nhận mua hàng.'; return; }
+            order = await Store.redeemKeyOnServer(Store.currentUser().username, password, service, currentPackage);
+          } else {
+            order = Store.buyPackage(service, currentPackage);
+          }
+          closeModal('#serviceModal');
+          toast(`Mua thành công! Key: ${order.key}`, 'success');
+          Voice.speak(`Bạn đã mua thành công gói ${order.packageName} của ${order.serviceName}.`);
+        } catch (err) { errEl.textContent = err.message; }
+      });
     });
   }
 
@@ -1461,7 +1591,11 @@ window.KENIOS_DEFAULT_DB = {
     const pkgWrap = $('#serviceModalPackages');
     pkgWrap.innerHTML = service.packages.map((p, i) => `
       <div class="package-option ${i === 0 ? 'selected' : ''}" data-pkg="${esc(p.id)}">
-        <span>${esc(p.name)}</span><strong>${fmt(p.price)}</strong>
+        <span>${esc(p.name)}</span>
+        <span class="package-option-price">
+          <strong>${fmt(p.price)}</strong>
+          ${Store.usesRealKeyStock(p) ? `<small class="pkg-stock ${p.keyCount > 0 ? '' : 'out'}">${p.keyCount > 0 ? `Còn ${p.keyCount} key` : 'Hết key'}</small>` : ''}
+        </span>
       </div>
     `).join('');
     pkgWrap.querySelectorAll('.package-option').forEach(el => {
@@ -1469,13 +1603,20 @@ window.KENIOS_DEFAULT_DB = {
         pkgWrap.querySelectorAll('.package-option').forEach(o => o.classList.remove('selected'));
         el.classList.add('selected');
         currentPackage = service.packages.find(p => p.id === el.dataset.pkg);
+        syncServiceModalPasswordField();
       });
     });
 
+    syncServiceModalPasswordField();
     $('#serviceModalError').textContent = '';
+    $('#serviceModalPassword').value = '';
     $('#serviceModalBuyBtn').disabled = !inStock;
     $('#serviceModalBuyBtn').textContent = inStock ? 'Mua Ngay' : 'Hết Hàng';
     openModal('#serviceModal');
+  }
+
+  function syncServiceModalPasswordField() {
+    $('#serviceModalPasswordRow').hidden = !Store.usesRealKeyStock(currentPackage);
   }
 
   // ---- Đơn hàng của tôi ----
@@ -1652,7 +1793,52 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'orders') body.innerHTML = adminOrdersHtml();
     else if (tab === 'users') body.innerHTML = adminUsersHtml();
     else if (tab === 'media') body.innerHTML = adminMediaHtml();
-    else if (tab === 'config') body.innerHTML = adminConfigHtml();
+    else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
+  }
+
+  function wireAdminConfigSecretBoxes() {
+    $('#bankWebhookUrl').value = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}bank_callback.php`;
+    $('#copyWebhookUrlBtn').addEventListener('click', () => {
+      navigator.clipboard?.writeText($('#bankWebhookUrl').value).then(() => toast('Đã sao chép URL webhook!', 'success'));
+    });
+
+    const user = Store.currentUser();
+    Store.secretsStatus(user.username, $('#adminSyncPass').value || '').then(res => {
+      if (res.status !== 'success') {
+        $('#bankTokenStatus').textContent = '⚠️ Nhập mật khẩu admin ở thanh dưới cùng rồi mở lại tab này để xem trạng thái.';
+        $('#ttsKeyStatus').textContent = '⚠️ Nhập mật khẩu admin ở thanh dưới cùng rồi mở lại tab này để xem trạng thái.';
+        return;
+      }
+      $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : '⚠️ Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
+      $('#ttsKeyStatus').innerHTML = res.ttsApiKeyConfigured ? '✅ Đã cấu hình API key — giọng nói dùng Google Cloud TTS thật.' : 'ℹ️ Chưa cấu hình — trang đang dùng giọng trình duyệt để dự phòng.';
+    }).catch(() => {
+      $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái (cần mật khẩu admin ở thanh dưới cùng).';
+      $('#ttsKeyStatus').textContent = 'Không kiểm tra được trạng thái (cần mật khẩu admin ở thanh dưới cùng).';
+    });
+
+    $('#saveBankTokenBtn').addEventListener('click', () => {
+      const token = $('#bankTokenInput').value.trim();
+      const pass = $('#adminSyncPass').value;
+      if (!token) { toast('Vui lòng nhập token trước khi lưu.', 'error'); return; }
+      if (!pass) { toast('Vui lòng nhập mật khẩu admin ở thanh dưới cùng của bảng quản trị.', 'error'); return; }
+      withLoading($('#saveBankTokenBtn'), async () => {
+        const res = await Store.saveSecrets(user.username, pass, { bankToken: token });
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#bankTokenInput').value = ''; renderAdminTab('config'); }
+      });
+    });
+
+    $('#saveTtsKeyBtn').addEventListener('click', () => {
+      const key = $('#ttsApiKeyInput').value.trim();
+      const pass = $('#adminSyncPass').value;
+      if (!key) { toast('Vui lòng nhập API key trước khi lưu.', 'error'); return; }
+      if (!pass) { toast('Vui lòng nhập mật khẩu admin ở thanh dưới cùng của bảng quản trị.', 'error'); return; }
+      withLoading($('#saveTtsKeyBtn'), async () => {
+        const res = await Store.saveSecrets(user.username, pass, { ttsApiKey: key });
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
+      });
+    });
   }
 
   function adminOverviewHtml() {
@@ -1748,13 +1934,38 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function adminPkgRowHtml(p) {
+    const keys = p.keys || [];
     return `
-      <div class="admin-pkg-row">
-        <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
-        <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
-        <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
+      <div class="admin-pkg-row" data-pkg-id="${esc(p.id || '')}">
+        <div class="admin-pkg-row-main">
+          <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
+          <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
+          <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>🔑 Kho key (<span data-pkg-key-count>${keys.length}</span>)</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
+        </div>
+        <div class="admin-pkg-keys-panel" data-pkg-keys-panel hidden>
+          <p class="muted" style="font-size:.75rem;margin:0 0 6px;">Mỗi dòng là 1 key. Khi khách mua gói này, hệ thống tự rút đúng 1 key ở đây và xóa khỏi kho.</p>
+          <ul class="admin-pkg-key-list" data-pkg-key-list>${pkgKeyListItems(keys)}</ul>
+          <textarea class="pkg-keys-input" data-pkg-keys-input placeholder="Dán nhiều key, mỗi dòng 1 key rồi bấm Thêm key"></textarea>
+          <div class="admin-pkg-keys-actions">
+            <button type="button" class="btn btn-glass btn-sm" data-add-pkg-keys>+ Thêm key</button>
+            <button type="button" class="btn btn-ghost btn-sm danger" data-clear-pkg-keys>🗑️ Xóa hết key</button>
+          </div>
+        </div>
+        <textarea data-pkg-keys-data hidden>${esc(keys.join('\n'))}</textarea>
       </div>
     `;
+  }
+
+  function pkgKeyListItems(keys) {
+    return keys.length
+      ? keys.map((k, i) => `<li><span>${esc(k)}</span><button type="button" data-remove-pkg-key="${i}" title="Xóa key này">✕</button></li>`).join('')
+      : '<li class="empty-note">Chưa có key nào trong kho.</li>';
+  }
+
+  function refreshPkgKeyList(row, keys) {
+    row.querySelector('[data-pkg-key-count]').textContent = keys.length;
+    row.querySelector('[data-pkg-key-list]').innerHTML = pkgKeyListItems(keys);
   }
 
   function adminCategoriesHtml() {
@@ -1924,10 +2135,41 @@ window.KENIOS_DEFAULT_DB = {
           Để trống thì nút đăng nhập Google sẽ ẩn.
         </p>
 
-        <div class="admin-form-section">🏦 Ngân hàng (VietQR)</div>
-        <label>Ngân hàng (bankId) <input name="bankId" value="${esc(c.bankId)}"></label>
+        <div class="admin-form-section">🏦 Ngân hàng (VietQR) &amp; Giao dịch tự động</div>
+        <label>Ngân hàng
+          <select name="bankId">
+            ${BANK_OPTIONS.concat(BANK_OPTIONS.includes(c.bankId) ? [] : [c.bankId]).filter(Boolean).map(b => `<option value="${esc(b)}" ${c.bankId === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+          </select>
+        </label>
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
         <label class="span-2">Tên chủ tài khoản <input name="bankAccountName" value="${esc(c.bankAccountName)}"></label>
+
+        <div class="secret-box span-2" id="bankWebhookBox">
+          <div class="secret-status" id="bankTokenStatus">Đang kiểm tra trạng thái…</div>
+          <label>Webhook Token (dùng chung cho Casso / SePay / ThueAPIBank / ACB...)
+            <input type="password" id="bankTokenInput" placeholder="Để trống nếu giữ nguyên token hiện tại" autocomplete="new-password">
+          </label>
+          <label>URL Webhook — dán vào cấu hình bên SePay/Casso/ACB
+            <span class="input-with-toggle">
+              <input type="text" id="bankWebhookUrl" readonly>
+              <button type="button" class="pw-toggle-btn" id="copyWebhookUrlBtn" title="Sao chép">📋</button>
+            </span>
+          </label>
+          <button type="button" class="btn btn-glass btn-sm" id="saveBankTokenBtn">🔒 Lưu Token Webhook</button>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
+        </div>
+
+        <div class="admin-form-section">🔊 Giọng nói Google Cloud TTS (chạy được trên mọi trình duyệt, kể cả Safari/iPhone)</div>
+        <div class="secret-box span-2" id="ttsKeyBox">
+          <div class="secret-status" id="ttsKeyStatus">Đang kiểm tra trạng thái…</div>
+          <label>Google Cloud Text-to-Speech API Key
+            <input type="password" id="ttsApiKeyInput" placeholder="Để trống nếu giữ nguyên API key hiện tại" autocomplete="new-password">
+          </label>
+          <button type="button" class="btn btn-glass btn-sm" id="saveTtsKeyBtn">🔒 Lưu API Key</button>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">
+            Lấy API key miễn phí tại <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--gold-soft);">Google Cloud Console</a> (bật API "Cloud Text-to-Speech"). Chưa cấu hình thì trang sẽ tự dùng giọng trình duyệt để dự phòng. Khóa được lưu riêng ở máy chủ, không hiển thị lại và không gửi cho khách truy cập trang.
+          </p>
+        </div>
 
         <div class="admin-form-section">📣 Thông báo Popup khi vào Web</div>
         <label>Bật thông báo popup
@@ -2047,6 +2289,60 @@ window.KENIOS_DEFAULT_DB = {
     const removePkgRow = e.target.closest('[data-remove-pkg-row]');
     if (removePkgRow) { removePkgRow.closest('.admin-pkg-row').remove(); return; }
 
+    const pkgKeysToggle = e.target.closest('[data-pkg-keys-toggle]');
+    if (pkgKeysToggle) {
+      const panel = pkgKeysToggle.closest('.admin-pkg-row').querySelector('[data-pkg-keys-panel]');
+      panel.hidden = !panel.hidden;
+      return;
+    }
+    const removePkgKey = e.target.closest('[data-remove-pkg-key]');
+    if (removePkgKey) {
+      const row = removePkgKey.closest('.admin-pkg-row');
+      const dataEl = row.querySelector('[data-pkg-keys-data]');
+      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean);
+      keys.splice(parseInt(removePkgKey.dataset.removePkgKey, 10), 1);
+      dataEl.value = keys.join('\n');
+      refreshPkgKeyList(row, keys);
+      return;
+    }
+    const addPkgKeys = e.target.closest('[data-add-pkg-keys]');
+    if (addPkgKeys) {
+      const row = addPkgKeys.closest('.admin-pkg-row');
+      const input = row.querySelector('[data-pkg-keys-input]');
+      const newKeys = input.value.split('\n').map(k => k.trim()).filter(Boolean);
+      if (!newKeys.length) return;
+      const dataEl = row.querySelector('[data-pkg-keys-data]');
+      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean).concat(newKeys);
+      dataEl.value = keys.join('\n');
+      input.value = '';
+      refreshPkgKeyList(row, keys);
+      return;
+    }
+    const clearPkgKeys = e.target.closest('[data-clear-pkg-keys]');
+    if (clearPkgKeys) {
+      if (!confirm('Xóa toàn bộ key trong kho của gói này?')) return;
+      const row = clearPkgKeys.closest('.admin-pkg-row');
+      row.querySelector('[data-pkg-keys-data]').value = '';
+      refreshPkgKeyList(row, []);
+      return;
+    }
+    const loadKeysBtn = e.target.closest('#adminLoadKeysBtn');
+    if (loadKeysBtn) {
+      const user = Store.currentUser();
+      const pass = $('#adminSyncPass').value;
+      if (!pass) { $('#adminSyncMsg').textContent = 'Vui lòng nhập mật khẩu admin ở ô bên cạnh trước.'; return; }
+      withLoading(loadKeysBtn, async () => {
+        try {
+          await Store.fetchFullServiceKeys(user.username, pass);
+          renderAdminTab('services');
+          toast('Đã tải kho key đầy đủ từ máy chủ.', 'success');
+        } catch (err) {
+          $('#adminSyncMsg').textContent = err.message;
+        }
+      });
+      return;
+    }
+
     const newCategory = e.target.closest('[data-admin-new-category]');
     if (newCategory) { adminCategoryEditing = 'new'; renderAdminTab('categories'); return; }
 
@@ -2125,9 +2421,22 @@ window.KENIOS_DEFAULT_DB = {
     if (formType === 'service') {
       const id = fd.get('id').trim();
       if (!id) { toast('Vui lòng nhập mã dịch vụ.', 'error'); return; }
-      const names = $$('[data-pkg-name]', e.target).map(el => el.value.trim());
-      const prices = $$('[data-pkg-price]', e.target).map(el => parseInt(el.value, 10) || 0);
-      const packages = names.map((name, i) => ({ id: `pkg-${id}-${i}`, name, price: prices[i] })).filter(p => p.name);
+      // Giữ nguyên id gói cũ (không sinh lại mỗi lần lưu) và chỉ gửi lại field `keys`
+      // khi thực sự biết rõ nội dung kho key hiện tại (đã gõ thêm, hoặc phiên này đã
+      // tải đủ kho key từ máy chủ) — tránh trường hợp sửa giá/tên mà vô tình gửi kho
+      // key rỗng đè lên kho key thật trên máy chủ khi chưa bấm "Tải kho key đầy đủ".
+      const originalService = Store.db.services.find(s => s.id === id);
+      const packages = $$('.admin-pkg-row', e.target).map((row, i) => {
+        const name = row.querySelector('[data-pkg-name]').value.trim();
+        const price = parseInt(row.querySelector('[data-pkg-price]').value, 10) || 0;
+        const keys = row.querySelector('[data-pkg-keys-data]').value.split('\n').map(k => k.trim()).filter(Boolean);
+        const pkgId = row.dataset.pkgId;
+        const pkg = { id: pkgId || `pkg-${id}-${i}-${Date.now().toString(36)}`, name, price };
+        const original = pkgId && originalService ? (originalService.packages || []).find(p => p.id === pkgId) : null;
+        const knewKeysAlready = original && Array.isArray(original.keys);
+        if (keys.length || knewKeysAlready) pkg.keys = keys;
+        return pkg;
+      }).filter(p => p.name);
       if (!packages.length) { toast('Cần ít nhất một gói giá.', 'error'); return; }
       Store.adminSaveService({
         id, name: fd.get('name').trim(), categoryId: fd.get('categoryId'),

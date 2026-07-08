@@ -16,8 +16,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+require_once __DIR__ . '/lib_secrets.php';
+
 $db_file = __DIR__ . '/database.json';
 $action = $_GET['action'] ?? '';
+
+function admin_authenticated($db, $admin_user, $admin_pass) {
+    $users = $db['users'] ?? [];
+    if (empty($users)) return true; // Cho phép ghi lần đầu khi chưa có tài khoản nào (khởi tạo)
+    foreach ($users as $u) {
+        if (($u['role'] ?? '') === 'admin'
+            && strtolower($u['username'] ?? '') === strtolower($admin_user)
+            && verify_password($admin_pass, $u['password'] ?? '')) {
+            return true;
+        }
+    }
+    return false;
+}
 
 function read_db($file) {
     if (!file_exists($file)) return [];
@@ -214,7 +229,121 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Database file not found"]);
             exit;
         }
-        echo file_get_contents($db_file);
+        $db = read_db($db_file);
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $is_admin = !empty($admin_user) && admin_authenticated($db, $admin_user, $admin_pass);
+
+        if (isset($db['users']) && is_array($db['users'])) {
+            $db['users'] = array_map('safe_user', $db['users']);
+        }
+        // bankToken đã chuyển sang secrets.php — không trả field cũ này ra ngoài nữa.
+        if (isset($db['config']['bankToken'])) $db['config']['bankToken'] = '';
+        // Kho key thật của từng gói CHỈ trả về cho admin đã xác thực; khách thường chỉ
+        // thấy số lượng còn lại (keyCount) để tránh lộ toàn bộ key chưa bán cho bất kỳ ai ghé web.
+        if (isset($db['services']) && is_array($db['services'])) {
+            foreach ($db['services'] as $si => $s) {
+                foreach (($s['packages'] ?? []) as $pi => $p) {
+                    if (array_key_exists('keys', $p)) {
+                        $db['services'][$si]['packages'][$pi]['keyCount'] = count($p['keys']);
+                        if (!$is_admin) unset($db['services'][$si]['packages'][$pi]['keys']);
+                    }
+                }
+            }
+        }
+        echo json_encode($db, JSON_UNESCAPED_UNICODE);
+        break;
+
+    case 'redeem_key':
+        // Mua gói có kho key thật: xác thực lại tài khoản NGAY TẠI MÁY CHỦ (không tin
+        // dữ liệu phía trình duyệt), rồi rút 1 key + trừ số dư một cách nguyên tử (atomic)
+        // bằng khóa file, tránh 2 người mua cùng lúc nhận trùng 1 key.
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $username = trim((string)($input['username'] ?? ''));
+        $password = (string)($input['password'] ?? '');
+        $serviceId = (string)($input['serviceId'] ?? '');
+        $packageId = (string)($input['packageId'] ?? '');
+
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, vui lòng thử lại."]);
+            exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+
+        $userIdx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) {
+            if (strtolower($u['username'] ?? '') === strtolower($username)) { $userIdx = $i; break; }
+        }
+        if ($userIdx === -1 || !verify_password($password, $db['users'][$userIdx]['password'] ?? '')) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Sai tên đăng nhập hoặc mật khẩu."]);
+            exit;
+        }
+        if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
+            exit;
+        }
+
+        $serviceIdx = -1;
+        foreach (($db['services'] ?? []) as $i => $s) { if ($s['id'] === $serviceId) { $serviceIdx = $i; break; } }
+        if ($serviceIdx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Dịch vụ không tồn tại."]);
+            exit;
+        }
+        $service = $db['services'][$serviceIdx];
+
+        $pkgIdx = -1;
+        foreach (($service['packages'] ?? []) as $i => $p) { if ($p['id'] === $packageId) { $pkgIdx = $i; break; } }
+        if ($pkgIdx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Gói dịch vụ không tồn tại."]);
+            exit;
+        }
+        $pkg = $service['packages'][$pkgIdx];
+
+        $price = floatval($pkg['price'] ?? 0);
+        $balance = floatval($db['users'][$userIdx]['balance'] ?? 0);
+        if ($balance < $price) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Số dư không đủ. Vui lòng nạp thêm tiền."]);
+            exit;
+        }
+
+        $keys = $pkg['keys'] ?? [];
+        if (empty($keys)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Gói này tạm hết key, vui lòng liên hệ Admin hoặc chọn gói khác."]);
+            exit;
+        }
+        $key = array_shift($keys);
+        $db['services'][$serviceIdx]['packages'][$pkgIdx]['keys'] = $keys;
+        $db['users'][$userIdx]['balance'] = $balance - $price;
+
+        $order = [
+            "id" => "DH" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'],
+            "serviceId" => $serviceId, "serviceName" => $service['name'], "packageName" => $pkg['name'],
+            "price" => $price, "key" => $key, "date" => date("c")
+        ];
+        if (!isset($db['orders'])) $db['orders'] = [];
+        array_unshift($db['orders'], $order);
+        if (!isset($db['transactions'])) $db['transactions'] = [];
+        array_unshift($db['transactions'], [
+            "id" => "TX" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'], "amount" => -$price,
+            "type" => "purchase", "description" => "Mua {$service['name']} - {$pkg['name']}", "date" => date("c")
+        ]);
+
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
         break;
 
     case 'save_db':
@@ -228,19 +357,8 @@ switch ($action) {
         $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
 
         $db = read_db($db_file);
-        $users = $db['users'] ?? [];
 
-        $authenticated = empty($users); // Cho phép ghi lần đầu khi chưa có tài khoản nào (khởi tạo)
-        foreach ($users as $u) {
-            if (($u['role'] ?? '') === 'admin'
-                && strtolower($u['username'] ?? '') === strtolower($admin_user)
-                && verify_password($admin_pass, $u['password'] ?? '')) {
-                $authenticated = true;
-                break;
-            }
-        }
-
-        if (!$authenticated) {
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
             echo json_encode(["status" => "error", "message" => "Unauthorized: Admin credentials invalid"]);
             exit;
         }
@@ -258,10 +376,88 @@ switch ($action) {
             }
         }
 
+        // Mật khẩu (băm) không còn được gửi ra trình duyệt qua get_db, nên khi admin
+        // ghi đè lại toàn bộ users, giữ nguyên password cũ theo userId thay vì để trống.
+        if (isset($db['users']) && is_array($db['users']) && isset($input['users']) && is_array($input['users'])) {
+            $existingPasswords = [];
+            foreach ($db['users'] as $u) {
+                if (!empty($u['userId'])) $existingPasswords[$u['userId']] = $u['password'] ?? '';
+            }
+            foreach ($input['users'] as $i => $u) {
+                $uid = $u['userId'] ?? null;
+                if ($uid && empty($u['password']) && isset($existingPasswords[$uid])) {
+                    $input['users'][$i]['password'] = $existingPasswords[$uid];
+                }
+            }
+        }
+
+        // Kho key thật (packages[].keys) chỉ được trình duyệt biết đầy đủ SAU KHI admin
+        // bấm "Tải kho key đầy đủ" trong phiên đó. Nếu gói gửi lên KHÔNG có field `keys`
+        // (client chưa từng tải), giữ nguyên kho key đang có trên máy chủ thay vì xóa mất.
+        if (isset($db['services']) && is_array($db['services']) && isset($input['services']) && is_array($input['services'])) {
+            $oldKeysByService = [];
+            foreach ($db['services'] as $s) {
+                if (empty($s['id'])) continue;
+                foreach (($s['packages'] ?? []) as $p) {
+                    if (!empty($p['id']) && array_key_exists('keys', $p)) {
+                        $oldKeysByService[$s['id']][$p['id']] = $p['keys'];
+                    }
+                }
+            }
+            foreach ($input['services'] as $si => $s) {
+                if (empty($s['id']) || !isset($s['packages']) || !is_array($s['packages'])) continue;
+                foreach ($s['packages'] as $pi => $p) {
+                    if (empty($p['id']) || array_key_exists('keys', $p)) continue;
+                    if (isset($oldKeysByService[$s['id']][$p['id']])) {
+                        $input['services'][$si]['packages'][$pi]['keys'] = $oldKeysByService[$s['id']][$p['id']];
+                    }
+                }
+            }
+        }
+
         if (write_db($db_file, $input)) {
             echo json_encode(["status" => "success", "message" => "Database saved successfully"]);
         } else {
             echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
+        }
+        break;
+
+    case 'secrets_status':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]);
+            exit;
+        }
+        $secrets = read_secrets();
+        echo json_encode([
+            "status" => "success",
+            "ttsApiKeyConfigured" => !empty($secrets['ttsApiKey']),
+            "bankTokenConfigured" => !empty($secrets['bankToken']) || !empty($db['config']['bankToken'] ?? '')
+        ]);
+        break;
+
+    case 'save_secrets':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]);
+            exit;
+        }
+        $patch = [];
+        if (isset($input['ttsApiKey']) && trim($input['ttsApiKey']) !== '') $patch['ttsApiKey'] = trim($input['ttsApiKey']);
+        if (isset($input['bankToken']) && trim($input['bankToken']) !== '') $patch['bankToken'] = trim($input['bankToken']);
+        if (!$patch) {
+            echo json_encode(["status" => "error", "message" => "Không có gì để lưu"]);
+            exit;
+        }
+        if (write_secrets($patch)) {
+            echo json_encode(["status" => "success", "message" => "Đã lưu cấu hình bảo mật"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Không ghi được file secrets.php (kiểm tra quyền ghi file trên hosting)"]);
         }
         break;
 
