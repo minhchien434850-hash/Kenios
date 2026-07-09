@@ -1190,9 +1190,9 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .scroll-bottom-btn svg { width: 20px; height: 20px; }
 .scroll-bottom-btn.visible { opacity: 1; transform: translateY(0); }
 @media (max-width: 500px) { .scroll-bottom-btn { width: 42px; height: 42px; right: 16px; } }
-/* Đang mở modal → ẩn 2 nút cuộn trang để không đè lên nút trở về của modal. */
-body.modal-open .scroll-top-btn,
-body.modal-open .scroll-bottom-btn { display: none !important; }
+/* Đang mở modal: KHÔNG ẩn 2 nút cuộn nữa. Chỉ dời nút "xuống cuối" sang trái để
+   không đè lên nút trở về (nằm góc trên-phải của modal). */
+body.modal-open .scroll-bottom-btn { right: 74px; }
 
 /* ---------- Media library (admin) ---------- */
 .media-upload-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -1543,6 +1543,14 @@ body.modal-open .scroll-bottom-btn { display: none !important; }
   }
   .modal-sm { max-width: 100%; }
   .modal-lg { max-width: 100%; }
+
+  /* Nút trở về: CỐ ĐỊNH góc trên-phải màn hình → luôn hiện đầy đủ, không bị cắt
+     dù modal dài & cuộn. z-index cao hơn nút cuộn nên không bị đè. */
+  .modal-close {
+    position: fixed; top: calc(env(safe-area-inset-top) + 10px); right: 14px; z-index: 2700;
+    float: none; margin: 0; width: 40px; height: 40px;
+    background: var(--bg-alt); border-color: rgba(255,255,255,.28); box-shadow: 0 6px 18px rgba(0,0,0,.5);
+  }
 
   /* Auth modal — giữa màn hình trên phone */
   #authModal.modal-overlay { align-items: center; }
