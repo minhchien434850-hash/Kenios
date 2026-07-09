@@ -35,6 +35,20 @@ function duration_days_from_name($name) {
     return null;
 }
 
+// Sinh key demo phía máy chủ cho gói CHƯA cấu hình kho key thật (khớp _generateKey ở client).
+function generate_demo_key($serviceName, $pkgName) {
+    $prefix = '';
+    foreach (preg_split('/\s+/', trim((string)$serviceName)) as $w) {
+        if ($w !== '') $prefix .= mb_strtoupper(mb_substr($w, 0, 1));
+    }
+    $prefix = mb_substr($prefix, 0, 4);
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $rand = '';
+    for ($i = 0; $i < 6; $i++) $rand .= $chars[random_int(0, strlen($chars) - 1)];
+    $pkgPart = strtoupper(preg_replace('/\s+/', '', (string)$pkgName));
+    return "{$prefix}-{$pkgPart}-{$rand}";
+}
+
 function admin_authenticated($db, $admin_user, $admin_pass) {
     $users = $db['users'] ?? [];
     if (empty($users)) return true; // Cho phép ghi lần đầu khi chưa có tài khoản nào (khởi tạo)
@@ -574,6 +588,307 @@ switch ($action) {
         fclose($fp);
 
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
+        break;
+
+    case 'purchase':
+        // Mua gói CHƯA cấu hình kho key thật (không có field `keys`): TRỪ SỐ DƯ NGAY TRÊN
+        // MÁY CHỦ một cách nguyên tử (atomic) bằng khóa file, sinh key demo, tạo đơn +
+        // giao dịch. Nhờ vậy số dư đã trừ được lưu bền vững trên server — bảng quản trị
+        // hiển thị đúng số dư còn lại, và khách xóa dữ liệu web / đăng nhập lại vẫn thấy
+        // số dư đã bị trừ (không bị "hoàn tiền ảo" như đường demo cục bộ trước đây).
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $username = trim((string)($input['username'] ?? ''));
+        $serviceId = (string)($input['serviceId'] ?? '');
+        $packageId = (string)($input['packageId'] ?? '');
+        $discountCode = strtoupper(trim((string)($input['discountCode'] ?? '')));
+
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, vui lòng thử lại."]);
+            exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+
+        // Xác định người mua theo userId (ưu tiên) hoặc username. Không tin số dư phía client.
+        $userIdx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) {
+            if ($userId !== '' && ($u['userId'] ?? '') === $userId) { $userIdx = $i; break; }
+            if ($userId === '' && strtolower($u['username'] ?? '') === strtolower($username)) { $userIdx = $i; break; }
+        }
+        if ($userIdx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]);
+            exit;
+        }
+        if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
+            exit;
+        }
+
+        $serviceIdx = -1;
+        foreach (($db['services'] ?? []) as $i => $s) { if ($s['id'] === $serviceId) { $serviceIdx = $i; break; } }
+        if ($serviceIdx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Dịch vụ không tồn tại."]);
+            exit;
+        }
+        $service = $db['services'][$serviceIdx];
+
+        $pkgIdx = -1;
+        foreach (($service['packages'] ?? []) as $i => $p) { if ($p['id'] === $packageId) { $pkgIdx = $i; break; } }
+        if ($pkgIdx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Gói dịch vụ không tồn tại."]);
+            exit;
+        }
+        $pkg = $service['packages'][$pkgIdx];
+
+        // Gói CÓ kho key thật phải mua qua 'redeem_key' (cần mật khẩu + rút key thật).
+        if (array_key_exists('keys', $pkg)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Gói này cần xác nhận mật khẩu để nhận key. Vui lòng thử lại."]);
+            exit;
+        }
+
+        $basePrice = floatval($pkg['price'] ?? 0);
+        $originalPrice = $basePrice;
+        $cfg = is_array($db['config'] ?? null) ? $db['config'] : [];
+
+        // 1) Flash Sale toàn shop.
+        $flashPercent = 0;
+        $fs = is_array($cfg['flashSale'] ?? null) ? $cfg['flashSale'] : [];
+        if (!empty($fs['enabled'])) {
+            $fp_percent = floatval($fs['percent'] ?? 0);
+            $endsOk = empty($fs['endsAt']) || strtotime((string)$fs['endsAt']) > time();
+            if ($fp_percent > 0 && $endsOk) $flashPercent = $fp_percent;
+        }
+        $price = $basePrice - floor($basePrice * $flashPercent / 100);
+
+        // 2) Hạng VIP theo tổng chi tiêu.
+        $vipPercent = 0;
+        $tiers = is_array($cfg['vipTiers'] ?? null) ? $cfg['vipTiers'] : [];
+        if (!empty($tiers)) {
+            $uid = $db['users'][$userIdx]['userId'] ?? '';
+            $spent = 0;
+            foreach (($db['orders'] ?? []) as $o) { if (($o['userId'] ?? '') === $uid) $spent += floatval($o['price'] ?? 0); }
+            foreach ($tiers as $t) {
+                if (!is_array($t)) continue;
+                if ($spent >= (floatval($t['minSpent'] ?? 0)) && floatval($t['discountPercent'] ?? 0) > $vipPercent) {
+                    $vipPercent = floatval($t['discountPercent'] ?? 0);
+                }
+            }
+        }
+        $price = max(0, $price - floor($price * $vipPercent / 100));
+
+        // 3) Mã giảm giá (nếu khách nhập).
+        $discountAmount = 0;
+        $appliedCode = '';
+        $matchedCodeIdx = -1;
+        if ($discountCode !== '') {
+            $matched = null;
+            foreach (($cfg['discountCodes'] ?? []) as $ci => $dc) {
+                if (!is_array($dc)) continue;
+                if (($dc['enabled'] ?? true) === false) continue;
+                if (strtoupper(trim((string)($dc['code'] ?? ''))) === $discountCode) { $matched = $dc; $matchedCodeIdx = $ci; break; }
+            }
+            $err = '';
+            if ($matched === null) $err = "Mã giảm giá không đúng hoặc đã hết hiệu lực.";
+            elseif (!empty($matched['expiresAt']) && strtotime((string)$matched['expiresAt']) < time()) $err = "Mã giảm giá đã hết hạn sử dụng.";
+            elseif ((intval($matched['maxUses'] ?? 0) > 0) && (intval($matched['usedCount'] ?? 0) >= intval($matched['maxUses'] ?? 0))) $err = "Mã giảm giá đã hết lượt sử dụng.";
+            elseif ((intval($matched['minOrder'] ?? 0) > 0) && $price < intval($matched['minOrder'] ?? 0)) $err = "Đơn chưa đạt mức tối thiểu để dùng mã.";
+            elseif (!empty($matched['categoryId']) && ($matched['categoryId'] !== ($service['categoryId'] ?? ''))) $err = "Mã giảm giá không áp dụng cho sản phẩm này.";
+            if ($err !== '') {
+                flock($fp, LOCK_UN); fclose($fp);
+                echo json_encode(["status" => "error", "message" => $err]);
+                exit;
+            }
+            $val = floatval($matched['value'] ?? 0);
+            $discountAmount = (($matched['type'] ?? 'percent') === 'amount') ? floor($val) : floor($price * $val / 100);
+            $discountAmount = max(0, min($discountAmount, $price));
+            $appliedCode = $discountCode;
+        }
+        $price = $price - $discountAmount;
+
+        $balance = floatval($db['users'][$userIdx]['balance'] ?? 0);
+        if ($balance < $price) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Số dư không đủ. Vui lòng nạp thêm tiền."]);
+            exit;
+        }
+
+        // Trừ số dư trên máy chủ + sinh key demo.
+        $db['users'][$userIdx]['balance'] = $balance - $price;
+        $key = generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
+
+        // Hệ điều hành khách chọn: ưu tiên tên thư mục con, rồi tới tên danh mục.
+        $os = trim((string)($input['os'] ?? ''));
+        if ($os === '') {
+            $subId = $service['subcategoryId'] ?? '';
+            foreach (($db['subcategories'] ?? []) as $sc) { if (($sc['id'] ?? '') === $subId && $subId !== '') { $os = $sc['name']; break; } }
+            if ($os === '') foreach (($db['categories'] ?? []) as $c) { if (($c['id'] ?? '') === ($service['categoryId'] ?? '')) { $os = $c['name']; break; } }
+        }
+
+        if ($matchedCodeIdx >= 0) {
+            $db['config']['discountCodes'][$matchedCodeIdx]['usedCount'] = (intval($db['config']['discountCodes'][$matchedCodeIdx]['usedCount'] ?? 0)) + 1;
+        }
+        $totalDiscount = $originalPrice - $price;
+        $purchaseTs = time();
+        $days = duration_days_from_name($pkg['name']);
+        $order = [
+            "id" => "DH" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'],
+            "serviceId" => $serviceId, "serviceName" => $service['name'], "packageName" => $pkg['name'],
+            "os" => $os, "price" => $price, "originalPrice" => $originalPrice,
+            "discountCode" => $appliedCode, "discountAmount" => $totalDiscount,
+            "flashPercent" => $flashPercent, "vipPercent" => $vipPercent, "key" => $key,
+            "date" => date("c", $purchaseTs), "purchaseDate" => date("c", $purchaseTs),
+            "expiryDate" => $days === null ? null : date("c", $purchaseTs + $days * 86400)
+        ];
+        if (!isset($db['orders'])) $db['orders'] = [];
+        array_unshift($db['orders'], $order);
+        if (!isset($db['transactions'])) $db['transactions'] = [];
+        $parts = [];
+        if ($flashPercent > 0) $parts[] = "flash -{$flashPercent}%";
+        if ($vipPercent > 0) $parts[] = "VIP -{$vipPercent}%";
+        if ($appliedCode !== '') $parts[] = "mã {$appliedCode}";
+        $txDesc = count($parts) > 0
+            ? "Mua {$service['name']} - {$pkg['name']} (" . implode(', ', $parts) . " · giảm " . number_format($totalDiscount) . "đ)"
+            : "Mua {$service['name']} - {$pkg['name']}";
+        array_unshift($db['transactions'], [
+            "id" => "TX" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'], "amount" => -$price,
+            "type" => "purchase", "description" => $txDesc, "date" => date("c")
+        ]);
+
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
+        break;
+
+    case 'purchase_combo':
+        // Mua combo: TRỪ SỐ DƯ 1 LẦN theo giá combo NGAY TRÊN MÁY CHỦ (atomic), phát key
+        // + tạo đơn cho TỪNG sản phẩm trong combo. Persist bền vững như 'purchase'.
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $username = trim((string)($input['username'] ?? ''));
+        $comboId = (string)($input['comboId'] ?? '');
+
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, vui lòng thử lại."]);
+            exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+
+        $userIdx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) {
+            if ($userId !== '' && ($u['userId'] ?? '') === $userId) { $userIdx = $i; break; }
+            if ($userId === '' && strtolower($u['username'] ?? '') === strtolower($username)) { $userIdx = $i; break; }
+        }
+        if ($userIdx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]);
+            exit;
+        }
+        if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
+            exit;
+        }
+
+        $cfg = is_array($db['config'] ?? null) ? $db['config'] : [];
+        $combo = null;
+        foreach (($cfg['combos'] ?? []) as $c) { if (is_array($c) && ($c['id'] ?? '') === $comboId) { $combo = $c; break; } }
+        if ($combo === null) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy combo."]);
+            exit;
+        }
+
+        // Ghép từng item -> service + package (giữ chỉ số để rút key thật khỏi kho nếu có).
+        $resolved = [];
+        foreach (($combo['items'] ?? []) as $it) {
+            if (!is_array($it)) continue;
+            $sid = (string)($it['serviceId'] ?? '');
+            $pid = (string)($it['packageId'] ?? '');
+            $si = -1;
+            foreach (($db['services'] ?? []) as $i => $s) { if (($s['id'] ?? '') === $sid) { $si = $i; break; } }
+            if ($si === -1) continue;
+            $pi = -1;
+            foreach (($db['services'][$si]['packages'] ?? []) as $j => $p) { if (($p['id'] ?? '') === $pid) { $pi = $j; break; } }
+            if ($pi === -1) continue;
+            $resolved[] = ['si' => $si, 'pi' => $pi];
+        }
+        if (empty($resolved)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Combo chưa có sản phẩm hợp lệ."]);
+            exit;
+        }
+
+        $price = floatval($combo['price'] ?? 0);
+        $balance = floatval($db['users'][$userIdx]['balance'] ?? 0);
+        if ($balance < $price) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Số dư không đủ. Vui lòng nạp thêm tiền."]);
+            exit;
+        }
+        $db['users'][$userIdx]['balance'] = $balance - $price;
+
+        $uid = $db['users'][$userIdx]['userId'];
+        $nowTs = time();
+        $orders = [];
+        $idx = 0;
+        foreach ($resolved as $r) {
+            $service = $db['services'][$r['si']];
+            $pkg = $db['services'][$r['si']]['packages'][$r['pi']];
+            // Ưu tiên rút đúng 1 key thật khỏi kho (nếu gói có), hết kho mới sinh key demo.
+            $key = null;
+            if (array_key_exists('keys', $pkg) && !empty($pkg['keys'])) {
+                $keys = $pkg['keys'];
+                $key = array_shift($keys);
+                $db['services'][$r['si']]['packages'][$r['pi']]['keys'] = $keys;
+            } else {
+                $key = generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
+            }
+            $os = '';
+            $subId = $service['subcategoryId'] ?? '';
+            foreach (($db['subcategories'] ?? []) as $sc) { if (($sc['id'] ?? '') === $subId && $subId !== '') { $os = $sc['name']; break; } }
+            if ($os === '') foreach (($db['categories'] ?? []) as $c) { if (($c['id'] ?? '') === ($service['categoryId'] ?? '')) { $os = $c['name']; break; } }
+            $days = duration_days_from_name($pkg['name']);
+            $order = [
+                "id" => "DH" . $nowTs . $idx . rand(100, 999), "userId" => $uid,
+                "serviceId" => $service['id'], "serviceName" => $service['name'], "packageName" => $pkg['name'],
+                "price" => 0, "comboId" => $combo['id'], "comboName" => $combo['name'] ?? '',
+                "os" => $os, "key" => $key, "date" => date("c", $nowTs), "purchaseDate" => date("c", $nowTs),
+                "expiryDate" => $days === null ? null : date("c", $nowTs + $days * 86400)
+            ];
+            if (!isset($db['orders'])) $db['orders'] = [];
+            array_unshift($db['orders'], $order);
+            $orders[] = $order;
+            $idx++;
+        }
+        if (!isset($db['transactions'])) $db['transactions'] = [];
+        array_unshift($db['transactions'], [
+            "id" => "TX" . $nowTs . rand(100, 999), "userId" => $uid, "amount" => -$price,
+            "type" => "purchase", "description" => "Mua combo \"" . ($combo['name'] ?? '') . "\" (" . count($orders) . " sản phẩm)",
+            "date" => date("c")
+        ]);
+
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        echo json_encode(["status" => "success", "orders" => $orders, "balance" => $db['users'][$userIdx]['balance']]);
         break;
 
     case 'add_review':

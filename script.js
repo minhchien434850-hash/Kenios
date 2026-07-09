@@ -650,6 +650,42 @@ window.KENIOS_DEFAULT_DB = {
       return result.order;
     },
 
+    // Mua gói CHƯA có kho key thật NHƯNG QUA MÁY CHỦ: trừ số dư trực tiếp trên server
+    // (bền vững) rồi đồng bộ số dư + đơn về client. Nhờ vậy bảng quản trị và lần đăng
+    // nhập sau (kể cả khi khách đã xóa dữ liệu web) đều thấy số dư đã bị trừ đúng.
+    async purchaseOnServer(service, pkg, discountCode) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
+      const result = await this._callApi('purchase', {
+        userId: user.userId, username: user.username,
+        serviceId: service.id, packageId: pkg.id,
+        os: this.serviceOs(service), discountCode: (discountCode || '').trim()
+      });
+      if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
+      user.balance = result.balance;
+      this.db.orders.unshift(result.order);
+      this._persistOverrides();
+      this._emit();
+      return result.order;
+    },
+
+    // Mua 1 gói (không có kho key thật): ưu tiên máy chủ để trừ số dư bền vững; chỉ khi
+    // KHÔNG có backend PHP mới rơi về đường demo cục bộ (buyPackage) trên trình duyệt.
+    async purchase(service, pkg, discountCode) {
+      if (this.serverAvailable === false) return this.buyPackage(service, pkg, discountCode);
+      try {
+        const order = await this.purchaseOnServer(service, pkg, discountCode);
+        this.serverAvailable = true;
+        return order;
+      } catch (err) {
+        if (err instanceof BackendUnavailableError) {
+          this.serverAvailable = false;
+          return this.buyPackage(service, pkg, discountCode);
+        }
+        throw err;
+      }
+    },
+
     // Đường cũ (demo cục bộ): dùng cho các gói CHƯA cấu hình kho key thật, sinh key
     // giả lập ngay trên trình duyệt — giữ lại để không phá vỡ các dịch vụ demo hiện có.
     buyPackage(service, pkg, discountCode) {
@@ -748,6 +784,43 @@ window.KENIOS_DEFAULT_DB = {
       this._emit();
       return orders;
     },
+    // Mua combo qua MÁY CHỦ (trừ số dư bền vững). Chỉ rơi về buyCombo cục bộ khi không
+    // có backend PHP. Đồng bộ số dư + các đơn mới về client sau khi server xử lý xong.
+    async purchaseComboOnServer(comboId) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
+      const result = await this._callApi('purchase_combo', {
+        userId: user.userId, username: user.username, comboId
+      });
+      if (result.status !== 'success') throw new Error(result.message || 'Mua combo thất bại.');
+      user.balance = result.balance;
+      (result.orders || []).forEach(o => this.db.orders.unshift(o));
+      // Giảm số key còn lại hiển thị cho các gói vừa rút key thật khỏi kho trên máy chủ.
+      (result.orders || []).forEach(o => {
+        const svc = this.db.services.find(s => s.id === o.serviceId);
+        const p = svc && (svc.packages || []).find(x => x.name === o.packageName);
+        if (p && typeof p.keyCount === 'number' && p.keyCount > 0) p.keyCount -= 1;
+      });
+      this._persistOverrides();
+      this._emit();
+      return result.orders || [];
+    },
+
+    async purchaseCombo(comboId) {
+      if (this.serverAvailable === false) return this.buyCombo(comboId);
+      try {
+        const orders = await this.purchaseComboOnServer(comboId);
+        this.serverAvailable = true;
+        return orders;
+      } catch (err) {
+        if (err instanceof BackendUnavailableError) {
+          this.serverAvailable = false;
+          return this.buyCombo(comboId);
+        }
+        throw err;
+      }
+    },
+
     adminSaveCombo(data) {
       if (!this.db.config.combos) this.db.config.combos = [];
       const list = this.db.config.combos;
@@ -2241,11 +2314,13 @@ window.KENIOS_DEFAULT_DB = {
     const combo = Store.combos().find(c => c.id === comboId);
     if (!combo) return;
     if (!confirm(`Mua combo "${combo.name}" với giá ${fmt(combo.price)}?`)) return;
-    try {
-      Store.buyCombo(comboId);
-      toast('Mua combo thành công! Xem key trong "Đơn hàng của tôi".', 'success');
-      openOrdersModal();
-    } catch (err) { toast(err.message, 'error'); }
+    (async () => {
+      try {
+        await Store.purchaseCombo(comboId);
+        toast('Mua combo thành công! Xem key trong "Đơn hàng của tôi".', 'success');
+        openOrdersModal();
+      } catch (err) { toast(err.message, 'error'); }
+    })();
   }
 
   // Mục "Hình ảnh & Video" — độc lập với banner Hero, lấy từ Thư viện (Store.db.media).
@@ -3280,7 +3355,7 @@ window.KENIOS_DEFAULT_DB = {
             if (!password) { errEl.textContent = 'Vui lòng nhập lại mật khẩu để xác nhận mua hàng.'; return; }
             order = await Store.redeemKeyOnServer(Store.currentUser().username, password, service, currentPackage, codeStr);
           } else {
-            order = Store.buyPackage(service, currentPackage, codeStr);
+            order = await Store.purchase(service, currentPackage, codeStr);
           }
           closeModal('#serviceModal');
           const saved = order.discountAmount > 0 ? ` (đã giảm ${fmt(order.discountAmount)})` : '';
