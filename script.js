@@ -31,11 +31,11 @@ window.KENIOS_DEFAULT_DB = {
     welcomePopupMessage: "Hệ thống nạp tiền VietQR tự động 24/7, giao key tức thì sau thanh toán. Cần hỗ trợ gì cứ liên hệ Admin nhé!",
     welcomeVoiceEnabled: false,
     welcomeAlways: true,
-    hotline: "0387332523",
-    zaloLink: "https://zalo.me/0387332523",
+    hotline: "",
+    zaloLink: "",
     contactChannels: [
-      { id: "zalo", label: "Zalo", icon: "💬", url: "https://zalo.me/0387332523", enabled: true },
-      { id: "phone", label: "Hotline", icon: "📞", url: "tel:0387332523", enabled: false },
+      { id: "zalo", label: "Zalo", icon: "💬", url: "", enabled: false },
+      { id: "phone", label: "Hotline", icon: "📞", url: "", enabled: false },
       { id: "telegram", label: "Telegram", icon: "📢", url: "", enabled: false },
       { id: "facebook", label: "Facebook", icon: "👍", url: "", enabled: false },
       { id: "instagram", label: "Instagram", icon: "📷", url: "", enabled: false },
@@ -1853,6 +1853,8 @@ window.KENIOS_DEFAULT_DB = {
     setText('#footerDesc', cfg.contactAdminDesc);
     setText('#footerAdminName', `${cfg.contactAdminName} — ${cfg.contactAdminSub}`);
     setText('#footerHotline', cfg.hotline);
+    const hotlineItem = $('#footerHotlineItem');
+    if (hotlineItem) hotlineItem.hidden = !(cfg.hotline && cfg.hotline.trim());
     setText('#footerYear', new Date().getFullYear());
     renderContactWidgets(cfg);
 
