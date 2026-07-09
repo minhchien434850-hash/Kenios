@@ -482,8 +482,8 @@ switch ($action) {
         // dữ liệu phía trình duyệt), rồi rút 1 key + trừ số dư một cách nguyên tử (atomic)
         // bằng khóa file, tránh 2 người mua cùng lúc nhận trùng 1 key.
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
         $username = trim((string)($input['username'] ?? ''));
-        $password = (string)($input['password'] ?? '');
         $serviceId = (string)($input['serviceId'] ?? '');
         $packageId = (string)($input['packageId'] ?? '');
         $discountCode = strtoupper(trim((string)($input['discountCode'] ?? '')));
@@ -496,13 +496,16 @@ switch ($action) {
         $raw = stream_get_contents($fp);
         $db = $raw ? (json_decode($raw, true) ?: []) : [];
 
+        // Xác thực bằng TÀI KHOẢN ĐANG ĐĂNG NHẬP (userId, ưu tiên) hoặc username — KHÔNG
+        // bắt nhập lại mật khẩu (hoạt động cả với tài khoản đăng nhập bằng Google).
         $userIdx = -1;
         foreach (($db['users'] ?? []) as $i => $u) {
-            if (strtolower($u['username'] ?? '') === strtolower($username)) { $userIdx = $i; break; }
+            if ($userId !== '' && ($u['userId'] ?? '') === $userId) { $userIdx = $i; break; }
+            if ($userId === '' && strtolower($u['username'] ?? '') === strtolower($username)) { $userIdx = $i; break; }
         }
-        if ($userIdx === -1 || !verify_password($password, $db['users'][$userIdx]['password'] ?? '')) {
+        if ($userIdx === -1) {
             flock($fp, LOCK_UN); fclose($fp);
-            echo json_encode(["status" => "error", "message" => "Sai tên đăng nhập hoặc mật khẩu."]);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]);
             exit;
         }
         if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {

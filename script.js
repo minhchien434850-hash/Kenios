@@ -655,12 +655,13 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     async redeemKeyOnServer(username, password, service, pkg, discountCode) {
+      const user = this.currentUser();
       const result = await this._callApi('redeem_key', {
-        username, password, serviceId: service.id, packageId: pkg.id,
+        username, password, userId: user ? user.userId : '',
+        serviceId: service.id, packageId: pkg.id,
         os: this.serviceOs(service), discountCode: (discountCode || '').trim()
       });
       if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
-      const user = this.currentUser();
       if (user) user.balance = result.balance;
       this.db.orders.unshift(result.order);
       // Giảm số key còn lại hiển thị (key đã bị rút khỏi kho trên máy chủ) để UI khớp ngay.
@@ -2416,7 +2417,7 @@ window.KENIOS_DEFAULT_DB = {
     if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi mua.', 'error'); openModal('#authModal'); return; }
     const combo = Store.combos().find(c => c.id === comboId);
     if (!combo) return;
-    if (!confirm(`Mua combo "${combo.name}" với giá ${fmt(combo.price)}?`)) return;
+    // Mua thẳng, không hỏi xác nhận — trừ vào số dư như mua sản phẩm thường.
     (async () => {
       try {
         await Store.purchaseCombo(comboId);
@@ -3454,9 +3455,8 @@ window.KENIOS_DEFAULT_DB = {
         try {
           let order;
           if (Store.usesRealKeyStock(currentPackage)) {
-            const password = $('#serviceModalPassword').value;
-            if (!password) { errEl.textContent = 'Vui lòng nhập lại mật khẩu để xác nhận mua hàng.'; return; }
-            order = await Store.redeemKeyOnServer(Store.currentUser().username, password, service, currentPackage, codeStr);
+            // Không bắt nhập lại mật khẩu — xác thực bằng tài khoản đang đăng nhập.
+            order = await Store.redeemKeyOnServer(Store.currentUser().username, '', service, currentPackage, codeStr);
           } else {
             order = await Store.purchase(service, currentPackage, codeStr);
           }
@@ -3543,7 +3543,9 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function syncServiceModalPasswordField() {
-    $('#serviceModalPasswordRow').hidden = !Store.usesRealKeyStock(currentPackage);
+    // Không còn yêu cầu nhập lại mật khẩu khi mua -> luôn ẩn ô mật khẩu.
+    const row = $('#serviceModalPasswordRow');
+    if (row) row.hidden = true;
   }
 
   // Render khu vực đánh giá trong modal sản phẩm: điểm trung bình + danh sách + form.
