@@ -676,6 +676,73 @@ window.KENIOS_DEFAULT_DB = {
       return order;
     },
 
+    // ---- Combo sản phẩm ----
+    combos() { return (this.db.config && this.db.config.combos) || []; },
+    // Tổng giá gốc của các sản phẩm trong combo (để hiển thị mức tiết kiệm).
+    comboOriginalPrice(combo) {
+      return (combo.items || []).reduce((sum, it) => {
+        const svc = this.db.services.find(s => s.id === it.serviceId);
+        const pkg = svc && (svc.packages || []).find(p => p.id === it.packageId);
+        return sum + (pkg ? (pkg.price || 0) : 0);
+      }, 0);
+    },
+    // Mua combo: trừ tiền 1 lần theo giá combo, phát key + tạo đơn cho TỪNG sản phẩm.
+    buyCombo(comboId) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
+      const combo = this.combos().find(c => c.id === comboId);
+      if (!combo) throw new Error('Không tìm thấy combo.');
+      const items = (combo.items || []).map(it => {
+        const service = this.db.services.find(s => s.id === it.serviceId);
+        const pkg = service && (service.packages || []).find(p => p.id === it.packageId);
+        return service && pkg ? { service, pkg } : null;
+      }).filter(Boolean);
+      if (!items.length) throw new Error('Combo chưa có sản phẩm hợp lệ.');
+      const price = Number(combo.price) || 0;
+      if ((user.balance || 0) < price) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
+      user.balance -= price;
+      const now = new Date().toISOString();
+      const orders = items.map(({ service, pkg }, i) => {
+        const order = {
+          id: 'DH' + Date.now() + i, userId: user.userId, serviceId: service.id,
+          serviceName: service.name, packageName: pkg.name, price: 0,
+          comboId: combo.id, comboName: combo.name,
+          os: this.serviceOs(service), key: this._generateKey(service, pkg), date: now,
+          purchaseDate: now, expiryDate: computeExpiryISO(pkg.name, now)
+        };
+        this.db.orders.unshift(order);
+        return order;
+      });
+      this.db.transactions.unshift({
+        id: 'TX' + Date.now(), userId: user.userId, amount: -price, type: 'purchase',
+        description: `Mua combo "${combo.name}" (${items.length} sản phẩm)`, date: now
+      });
+      this._persistOverrides();
+      this._emit();
+      return orders;
+    },
+    adminSaveCombo(data) {
+      if (!this.db.config.combos) this.db.config.combos = [];
+      const list = this.db.config.combos;
+      const items = (data.items || []).filter(it => it.serviceId && it.packageId);
+      if (!data.name || !data.name.trim()) throw new Error('Vui lòng nhập tên combo.');
+      if (!items.length) throw new Error('Combo cần ít nhất 1 sản phẩm (đã chọn cả gói).');
+      if (data.id) {
+        const idx = list.findIndex(c => c.id === data.id);
+        if (idx !== -1) list[idx] = { ...list[idx], name: data.name.trim(), price: data.price, description: data.description, image: data.image, items };
+      } else {
+        list.unshift({ id: 'CB' + Date.now(), name: data.name.trim(), price: data.price, description: data.description, image: data.image, items });
+      }
+      this._persistOverrides();
+      this._emit();
+    },
+    adminDeleteCombo(id) {
+      if (!this.db.config.combos) return;
+      this.db.config.combos = this.db.config.combos.filter(c => c.id !== id);
+      this._persistOverrides();
+      this._emit();
+    },
+
     myOrders() {
       const user = this.currentUser();
       if (!user) return [];
@@ -1398,6 +1465,7 @@ window.KENIOS_DEFAULT_DB = {
   let adminActiveTab = 'overview';
   let adminServiceEditing = null;     // null | 'new' | service id
   let adminCategoryEditing = null;    // null | 'new' | category id
+  let adminComboEditing = null;       // null | 'new' | combo id
   let adminSubcategoryEditing = null; // null | 'new' | subcategory id
 
   const LEGAL_CONTENT = {
@@ -2038,7 +2106,57 @@ window.KENIOS_DEFAULT_DB = {
     renderServiceGrid();
     renderWebdesignGrid();
     renderShowcase();
+    renderCombos();
     if (typeof updateFlashSaleBar === 'function') updateFlashSaleBar();
+  }
+
+  // Hiển thị các combo ưu đãi ở trang chủ (ẩn section nếu chưa có combo nào).
+  function renderCombos() {
+    const section = $('#combos');
+    const grid = $('#comboGrid');
+    if (!section || !grid) return;
+    const combos = Store.combos();
+    if (!combos.length) { section.hidden = true; grid.innerHTML = ''; return; }
+    section.hidden = false;
+    grid.innerHTML = combos.map(c => {
+      const orig = Store.comboOriginalPrice(c);
+      const save = orig - (Number(c.price) || 0);
+      const mediaHtml = c.image ? (isVideoUrl(c.image)
+        ? `<video class="combo-media" src="${esc(c.image)}" muted loop autoplay playsinline></video>`
+        : `<div class="combo-media" style="background-image:url('${esc(c.image)}')"></div>`) : '';
+      const itemsHtml = (c.items || []).map(it => {
+        const svc = Store.db.services.find(s => s.id === it.serviceId);
+        const pkg = svc && (svc.packages || []).find(p => p.id === it.packageId);
+        return svc && pkg ? `<li>${esc(svc.name)} — ${esc(pkg.name)}</li>` : '';
+      }).join('');
+      return `
+        <div class="combo-card">
+          ${mediaHtml}
+          <div class="combo-card-body">
+            <h3>${esc(c.name)}</h3>
+            ${c.description ? `<p class="combo-desc">${esc(c.description)}</p>` : ''}
+            <ul class="combo-items">${itemsHtml}</ul>
+            <div class="combo-price-row">
+              <div class="combo-prices"><strong>${fmt(c.price)}</strong>${save > 0 ? `<s>${fmt(orig)}</s>` : ''}</div>
+              ${save > 0 ? `<span class="combo-save">Tiết kiệm ${fmt(save)}</span>` : ''}
+            </div>
+            <button type="button" class="btn btn-primary btn-block combo-buy" data-buy-combo="${esc(c.id)}">Mua combo</button>
+          </div>
+        </div>`;
+    }).join('');
+    $$('[data-buy-combo]', grid).forEach(btn => { btn.onclick = () => buyComboFlow(btn.dataset.buyCombo); });
+  }
+
+  function buyComboFlow(comboId) {
+    if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi mua.', 'error'); openModal('#authModal'); return; }
+    const combo = Store.combos().find(c => c.id === comboId);
+    if (!combo) return;
+    if (!confirm(`Mua combo "${combo.name}" với giá ${fmt(combo.price)}?`)) return;
+    try {
+      Store.buyCombo(comboId);
+      toast('Mua combo thành công! Xem key trong "Đơn hàng của tôi".', 'success');
+      openOrdersModal();
+    } catch (err) { toast(err.message, 'error'); }
   }
 
   // Mục "Hình ảnh & Video" — độc lập với banner Hero, lấy từ Thư viện (Store.db.media).
@@ -3492,6 +3610,7 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'users') body.innerHTML = adminUsersHtml();
     else if (tab === 'media') body.innerHTML = adminMediaHtml();
     else if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();
+    else if (tab === 'combos') body.innerHTML = adminCombosHtml();
     else if (tab === 'promo') { body.innerHTML = adminPromoHtml(); $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer()); }
     else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
   }
@@ -4368,6 +4487,76 @@ window.KENIOS_DEFAULT_DB = {
     `;
   }
 
+  // ---- Admin: Combo sản phẩm ----
+  function comboPackageOptions(serviceId, selectedPkgId) {
+    const svc = Store.db.services.find(s => s.id === serviceId);
+    const pkgs = (svc && svc.packages) || [];
+    return ['<option value="">— Chọn gói —</option>']
+      .concat(pkgs.map(p => `<option value="${esc(p.id)}" ${p.id === selectedPkgId ? 'selected' : ''}>${esc(p.name)} · ${fmt(p.price)}</option>`))
+      .join('');
+  }
+  function comboItemRowHtml(item) {
+    item = item || {};
+    const svcOptions = ['<option value="">— Chọn sản phẩm —</option>']
+      .concat(Store.db.services.map(s => `<option value="${esc(s.id)}" ${s.id === item.serviceId ? 'selected' : ''}>${esc(s.name)}</option>`))
+      .join('');
+    return `
+      <div class="combo-item-row" data-combo-item>
+        <select data-combo-service class="combo-item-service">${svcOptions}</select>
+        <select data-combo-package class="combo-item-package">${comboPackageOptions(item.serviceId, item.packageId)}</select>
+        <button type="button" class="btn btn-glass btn-sm danger" data-combo-item-remove aria-label="Xoá sản phẩm">✕</button>
+      </div>`;
+  }
+  function adminCombosHtml() {
+    const combos = Store.combos();
+    const editing = adminComboEditing;
+    const editTarget = editing && editing !== 'new' ? combos.find(c => c.id === editing) : null;
+    let form = '';
+    if (editing) {
+      const c = editTarget || { id: '', name: '', price: 0, description: '', image: '', items: [{}] };
+      const items = (c.items && c.items.length) ? c.items : [{}];
+      form = `
+        <form class="admin-form" data-admin-form="combo">
+          <label class="span-2">Tên combo <input name="name" value="${esc(c.name || '')}" required></label>
+          <label>Giá combo (đồng) <input type="number" name="price" min="0" step="1000" value="${Number(c.price) || 0}" required></label>
+          <label class="span-2">Mô tả ngắn <input name="description" value="${esc(c.description || '')}"></label>
+          <label class="span-2">URL ảnh/video (tuỳ chọn) <input name="image" value="${esc(c.image || '')}" placeholder="Lấy từ tab Thư viện"></label>
+          <div class="span-2">
+            <div class="admin-section-title" style="margin:6px 0 8px;">Sản phẩm trong combo (chọn sản phẩm → gói)</div>
+            <div id="comboItemsEditor">${items.map(comboItemRowHtml).join('')}</div>
+            <button type="button" class="btn btn-glass btn-sm" id="addComboItemBtn">+ Thêm sản phẩm</button>
+          </div>
+          <div class="admin-form-actions span-2">
+            <button type="submit" class="btn btn-primary btn-sm">Lưu combo</button>
+            <button type="button" class="btn btn-glass btn-sm" data-admin-cancel-combo>Huỷ</button>
+          </div>
+        </form>`;
+    }
+    return `
+      <div class="admin-toolbar">
+        <button type="button" class="btn btn-primary btn-sm" data-admin-new-combo>+ Tạo combo mới</button>
+      </div>
+      ${form}
+      <div class="combo-admin-list">
+        ${combos.length ? combos.map(c => {
+          const orig = Store.comboOriginalPrice(c);
+          const save = orig - (Number(c.price) || 0);
+          return `
+          <div class="combo-admin-card">
+            <div class="combo-admin-info">
+              <strong>${esc(c.name)}</strong>
+              <span>${fmt(c.price)} ${save > 0 ? `<s>${fmt(orig)}</s> · tiết kiệm ${fmt(save)}` : ''} · ${(c.items || []).length} sản phẩm</span>
+            </div>
+            <div class="admin-row-actions">
+              <button type="button" data-admin-edit-combo="${esc(c.id)}">Sửa</button>
+              <button type="button" class="danger" data-admin-delete-combo="${esc(c.id)}">Xoá</button>
+            </div>
+          </div>`;
+        }).join('') : '<p class="empty-note">Chưa có combo nào. Bấm "Tạo combo mới" để gộp nhiều sản phẩm với giá ưu đãi.</p>'}
+      </div>
+    `;
+  }
+
   // Sao chép dự phòng cho môi trường không có navigator.clipboard (VD http, iOS cũ).
   function fallbackCopy(text, onDone) {
     try {
@@ -4475,6 +4664,28 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function onAdminPanelClick(e) {
+    // ----- Combo -----
+    if (e.target.closest('[data-admin-new-combo]')) { adminComboEditing = 'new'; renderAdminTab('combos'); return; }
+    const editCombo = e.target.closest('[data-admin-edit-combo]');
+    if (editCombo) { adminComboEditing = editCombo.dataset.adminEditCombo; renderAdminTab('combos'); return; }
+    if (e.target.closest('[data-admin-cancel-combo]')) { adminComboEditing = null; renderAdminTab('combos'); return; }
+    const delCombo = e.target.closest('[data-admin-delete-combo]');
+    if (delCombo) {
+      if (confirm('Xoá combo này?')) { Store.adminDeleteCombo(delCombo.dataset.adminDeleteCombo); adminComboEditing = null; renderAdminTab('combos'); toast('Đã xoá combo.', 'success'); }
+      return;
+    }
+    if (e.target.closest('#addComboItemBtn')) {
+      $('#comboItemsEditor')?.insertAdjacentHTML('beforeend', comboItemRowHtml({}));
+      return;
+    }
+    const rmComboItem = e.target.closest('[data-combo-item-remove]');
+    if (rmComboItem) {
+      const editor = $('#comboItemsEditor');
+      if (editor && editor.querySelectorAll('[data-combo-item]').length > 1) rmComboItem.closest('[data-combo-item]').remove();
+      else toast('Combo cần ít nhất 1 sản phẩm.', 'error');
+      return;
+    }
+
     const newService = e.target.closest('[data-admin-new-service]');
     if (newService) { adminServiceEditing = 'new'; renderAdminTab('services'); return; }
 
@@ -4757,6 +4968,15 @@ window.KENIOS_DEFAULT_DB = {
     // Đổi màu chữ / màu chủ đạo / tốc độ trong form Cấu hình → xem trước ngay.
     if (e.target.closest('[data-admin-form="config"]')) liveBrandingPreview();
 
+    // Đổi sản phẩm trong 1 dòng combo → nạp lại danh sách gói tương ứng.
+    const comboSvc = e.target.closest('[data-combo-service]');
+    if (comboSvc) {
+      const row = comboSvc.closest('[data-combo-item]');
+      const pkgSel = row?.querySelector('[data-combo-package]');
+      if (pkgSel) pkgSel.innerHTML = comboPackageOptions(comboSvc.value, '');
+      return;
+    }
+
     const catSel = e.target.closest('#adminServiceCategory');
     if (!catSel) return;
     const sub = $('#adminServiceSubcat');
@@ -4771,6 +4991,24 @@ window.KENIOS_DEFAULT_DB = {
     if (!formType) return;
     e.preventDefault();
     const fd = new FormData(e.target);
+
+    if (formType === 'combo') {
+      const items = $$('[data-combo-item]', e.target).map(row => ({
+        serviceId: row.querySelector('[data-combo-service]')?.value || '',
+        packageId: row.querySelector('[data-combo-package]')?.value || ''
+      }));
+      try {
+        Store.adminSaveCombo({
+          id: adminComboEditing && adminComboEditing !== 'new' ? adminComboEditing : '',
+          name: fd.get('name'), price: parseInt(fd.get('price'), 10) || 0,
+          description: fd.get('description') || '', image: fd.get('image') || '', items
+        });
+        adminComboEditing = null;
+        renderAdminTab('combos');
+        toast('Đã lưu combo!', 'success');
+      } catch (err) { toast(err.message, 'error'); }
+      return;
+    }
 
     if (formType === 'service') {
       // ID sản phẩm sinh tự động (#01, #02...) khi thêm mới; giữ nguyên khi sửa.

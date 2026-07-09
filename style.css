@@ -1360,6 +1360,32 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .download-ico { display: inline-flex; color: var(--gold-soft); flex-shrink: 0; }
 .download-ico svg { width: 22px; height: 22px; }
 
+/* ---------- Combo sản phẩm ---------- */
+.combo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.combo-card { border: 1px solid var(--border); border-radius: 16px; background: var(--glass); overflow: hidden; display: flex; flex-direction: column; }
+.combo-media { width: 100%; height: 150px; object-fit: cover; background-size: cover; background-position: center; display: block; }
+.combo-card-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.combo-card-body h3 { margin: 0; font-size: 1.05rem; }
+.combo-desc { color: var(--muted); font-size: .84rem; margin: 0; }
+.combo-items { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; }
+.combo-items li { font-size: .82rem; color: var(--ink); padding-left: 18px; position: relative; }
+.combo-items li::before { content: "✔"; position: absolute; left: 0; color: #6ee7b7; font-size: .78rem; }
+.combo-price-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; flex-wrap: wrap; }
+.combo-prices { display: flex; align-items: baseline; gap: 8px; }
+.combo-prices strong { font-size: 1.25rem; color: var(--gold); }
+.combo-prices s { color: var(--muted); font-size: .84rem; }
+.combo-save { font-size: .74rem; font-weight: 700; color: #1a1200; background: var(--gold-soft); padding: 3px 8px; border-radius: 999px; }
+.combo-buy { margin-top: 4px; }
+.combo-item-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.combo-item-row select { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); }
+.combo-item-row .btn { flex-shrink: 0; }
+.combo-admin-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.combo-admin-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--glass); }
+.combo-admin-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.combo-admin-info strong { font-size: .92rem; }
+.combo-admin-info span { font-size: .78rem; color: var(--muted); }
+.combo-admin-info s { color: var(--muted); }
+
 /* ---------- Giới thiệu bạn bè (profile) ---------- */
 .profile-referral {
   padding: 14px 16px; border-radius: 12px; margin-bottom: 20px;
