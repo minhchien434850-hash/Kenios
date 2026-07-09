@@ -719,9 +719,12 @@ switch ($action) {
             exit;
         }
 
-        // Trừ số dư trên máy chủ + sinh key demo.
+        // Trừ số dư trên máy chủ + giao key.
         $db['users'][$userIdx]['balance'] = $balance - $price;
-        $key = generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
+        // Ưu tiên GIAO ĐÚNG key admin đã nhập (client gửi lên từ kho, giữ nguyên chuỗi,
+        // KHÔNG thêm bất kỳ đuôi nào). Chỉ khi không có key thật mới sinh key demo.
+        $providedKey = trim((string)($input['key'] ?? ''));
+        $key = $providedKey !== '' ? $providedKey : generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
 
         // Hệ điều hành khách chọn: ưu tiên tên thư mục con, rồi tới tên danh mục.
         $os = trim((string)($input['os'] ?? ''));
@@ -824,8 +827,11 @@ switch ($action) {
             $pi = -1;
             foreach (($db['services'][$si]['packages'] ?? []) as $j => $p) { if (($p['id'] ?? '') === $pid) { $pi = $j; break; } }
             if ($pi === -1) continue;
-            $resolved[] = ['si' => $si, 'pi' => $pi];
+            $resolved[] = ['si' => $si, 'pi' => $pi, 'sid' => $sid, 'pid' => $pid];
         }
+        // Key thật admin đã nhập (client gửi lên từ kho cục bộ) theo từng sản phẩm, để
+        // giao ĐÚNG chuỗi key — không thêm đuôi — khi máy chủ chưa có kho key của gói.
+        $itemKeys = is_array($input['itemKeys'] ?? null) ? $input['itemKeys'] : [];
         if (empty($resolved)) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Combo chưa có sản phẩm hợp lệ."]);
@@ -848,14 +854,18 @@ switch ($action) {
         foreach ($resolved as $r) {
             $service = $db['services'][$r['si']];
             $pkg = $db['services'][$r['si']]['packages'][$r['pi']];
-            // Ưu tiên rút đúng 1 key thật khỏi kho (nếu gói có), hết kho mới sinh key demo.
+            // Ưu tiên rút đúng 1 key thật khỏi kho máy chủ (nếu gói có). Nếu máy chủ chưa
+            // có kho nhưng client gửi lên key thật của gói (admin đã nhập) thì giao đúng
+            // key đó. Cuối cùng, hết mọi nguồn key thật mới sinh key demo.
             $key = null;
             if (array_key_exists('keys', $pkg) && !empty($pkg['keys'])) {
                 $keys = $pkg['keys'];
                 $key = array_shift($keys);
                 $db['services'][$r['si']]['packages'][$r['pi']]['keys'] = $keys;
             } else {
-                $key = generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
+                $mapKey = $r['sid'] . '::' . $r['pid'];
+                $provided = isset($itemKeys[$mapKey]) ? trim((string)$itemKeys[$mapKey]) : '';
+                $key = $provided !== '' ? $provided : generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
             }
             $os = '';
             $subId = $service['subcategoryId'] ?? '';

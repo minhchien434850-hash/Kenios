@@ -656,12 +656,23 @@ window.KENIOS_DEFAULT_DB = {
     async purchaseOnServer(service, pkg, discountCode) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
+      // Xem trước ĐÚNG key admin đã nhập trong kho (client) để gửi lên máy chủ giao
+      // nguyên chuỗi — KHÔNG thêm đuôi. Chỉ rút hẳn khỏi kho SAU khi server nhận.
+      const svc = this.db.services.find(s => s.id === service.id);
+      const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
+      const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
+      const chosenKey = (stock && stock.length) ? stock[0] : '';
       const result = await this._callApi('purchase', {
         userId: user.userId, username: user.username,
         serviceId: service.id, packageId: pkg.id,
-        os: this.serviceOs(service), discountCode: (discountCode || '').trim()
+        os: this.serviceOs(service), discountCode: (discountCode || '').trim(),
+        key: chosenKey
       });
       if (result.status !== 'success') throw new Error(result.message || 'Mua hàng thất bại.');
+      // Server đã nhận & giao đúng key thật -> rút key đó khỏi kho local để không phát lại.
+      if (chosenKey && stock && stock[0] === chosenKey && result.order && result.order.key === chosenKey) {
+        stock.shift();
+      }
       user.balance = result.balance;
       this.db.orders.unshift(result.order);
       this._persistOverrides();
@@ -789,17 +800,32 @@ window.KENIOS_DEFAULT_DB = {
     async purchaseComboOnServer(comboId) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
+      // Gom ĐÚNG key admin đã nhập trong kho (client) cho từng sản phẩm để giao nguyên
+      // chuỗi — không thêm đuôi — khi máy chủ chưa có kho key của gói đó.
+      const combo = this.combos().find(c => c.id === comboId);
+      const itemKeys = {};
+      if (combo) {
+        (combo.items || []).forEach(it => {
+          const svc = this.db.services.find(s => s.id === it.serviceId);
+          const p = svc && (svc.packages || []).find(x => x.id === it.packageId);
+          const stock = (p && Array.isArray(p.keys)) ? p.keys : null;
+          const mapKey = it.serviceId + '::' + it.packageId;
+          if (stock && stock.length && !(mapKey in itemKeys)) itemKeys[mapKey] = stock[0];
+        });
+      }
       const result = await this._callApi('purchase_combo', {
-        userId: user.userId, username: user.username, comboId
+        userId: user.userId, username: user.username, comboId, itemKeys
       });
       if (result.status !== 'success') throw new Error(result.message || 'Mua combo thất bại.');
       user.balance = result.balance;
       (result.orders || []).forEach(o => this.db.orders.unshift(o));
-      // Giảm số key còn lại hiển thị cho các gói vừa rút key thật khỏi kho trên máy chủ.
+      // Rút khỏi kho local những key thật vừa được giao (khớp đầu kho) + giảm keyCount hiển thị.
       (result.orders || []).forEach(o => {
         const svc = this.db.services.find(s => s.id === o.serviceId);
         const p = svc && (svc.packages || []).find(x => x.name === o.packageName);
-        if (p && typeof p.keyCount === 'number' && p.keyCount > 0) p.keyCount -= 1;
+        if (!p) return;
+        if (Array.isArray(p.keys) && p.keys.length && p.keys[0] === o.key) p.keys.shift();
+        if (typeof p.keyCount === 'number' && p.keyCount > 0) p.keyCount -= 1;
       });
       this._persistOverrides();
       this._emit();
