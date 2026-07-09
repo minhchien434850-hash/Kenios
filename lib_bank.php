@@ -76,7 +76,10 @@ function bank_process_transactions(&$db, $transactions) {
         foreach ($db['users'] as $idx => $u) {
             $uid = isset($u['userId']) ? strval($u['userId']) : '';
             if ($uid === '') continue;
-            if (strpos($memo_clean, 'NAP' . $uid) !== false) { $matchedIdx = $idx; break; }
+            // memo_clean đã viết hoa -> PHẢI viết hoa cả userId khi so khớp, nếu không tài
+            // khoản có userId chứa chữ cái (khách đăng ký/Google dùng uniqid) sẽ khớp trượt
+            // và không được cộng tiền, trong khi admin (userId toàn số) thì vẫn khớp.
+            if (strpos($memo_clean, 'NAP' . strtoupper($uid)) !== false) { $matchedIdx = $idx; break; }
         }
         if ($matchedIdx === -1) continue;
 
