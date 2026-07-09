@@ -270,6 +270,10 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     _mergeLocalOverrides() {
+      // CHỈ áp bản ghi đè cục bộ khi có thay đổi CHƯA đồng bộ lên server. Nếu không
+      // (bản cũ / đã đồng bộ rồi), LUÔN ưu tiên dữ liệu server — tránh bản localStorage
+      // cũ đè lên khiến media/dịch vụ mới vừa lưu trên server không hiện lại.
+      if (!this._readLocal('overrides_dirty')) return;
       const local = this._readLocal('overrides');
       if (!local) return;
       ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'].forEach(key => {
@@ -289,6 +293,13 @@ window.KENIOS_DEFAULT_DB = {
         media: this.db.media,
         config: this.db.config
       });
+      this._writeLocal('overrides_dirty', 1); // đánh dấu có thay đổi chưa đồng bộ
+    },
+    _clearLocalOverrides() {
+      try {
+        localStorage.removeItem(`${LS_KEY}:overrides`);
+        localStorage.removeItem(`${LS_KEY}:overrides_dirty`);
+      } catch (e) { /* ignore */ }
     },
 
     _readLocal(key) {
@@ -1027,7 +1038,15 @@ window.KENIOS_DEFAULT_DB = {
           headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
           body: JSON.stringify(this.db)
         });
-        return await res.json();
+        const json = await res.json();
+        // Đồng bộ THÀNH CÔNG → toàn bộ dữ liệu (kể cả Thư viện/Tạo Link) đã nằm trên
+        // server. Xóa bản ghi đè cục bộ (localStorage) để lần mở web sau LẤY DỮ LIỆU
+        // MỚI TỪ SERVER — trước đây bản localStorage cũ đè lên khiến media vừa lưu
+        // không hiện lại khi tải trang.
+        if (json && json.status === 'success') {
+          this._clearLocalOverrides();
+        }
+        return json;
       } catch (e) {
         return { status: 'error', message: 'Không có kết nối tới máy chủ PHP (chế độ demo cục bộ).' };
       }
