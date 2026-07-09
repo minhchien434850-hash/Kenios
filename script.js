@@ -23,6 +23,8 @@ window.KENIOS_DEFAULT_DB = {
     logoMotionMode: "none",
     logoMotionSpeed: 2,
     accentColor: "#ffb703",
+    referralEnabled: true,
+    referralBonus: 20000,
     googleClientId: "",
     welcomePopupEnabled: false,
     welcomePopupTitle: "Chào mừng bạn đến với KENIOS.STORE!",
@@ -579,6 +581,7 @@ window.KENIOS_DEFAULT_DB = {
       });
       this._persistOverrides();
       this._emit();
+      this.processReferralReward(user.userId); // thưởng giới thiệu nếu là lần nạp đầu
     },
 
     // Kiểm tra giao dịch nạp tự động: bảo máy chủ kéo lịch sử ngân hàng từ ThueAPIBank
@@ -597,6 +600,7 @@ window.KENIOS_DEFAULT_DB = {
         if (user) user.balance = res.balance;
         this._persistOverrides();
         this._emit();
+        if (user) this.processReferralReward(user.userId); // thưởng giới thiệu nếu là lần nạp đầu
       }
       return { credited: !!res.credited, balance: res.balance };
     },
@@ -722,6 +726,63 @@ window.KENIOS_DEFAULT_DB = {
       // Cố gắng lưu lên máy chủ (nếu có backend) để mọi khách cùng thấy.
       this._callApi('add_review', { serviceId, userId: user.userId, username: user.username, rating, text: (text || '').trim() })
         .catch(() => {});
+    },
+    // ---- Giới thiệu bạn bè ----
+    // Sinh & lưu mã giới thiệu cố định cho 1 user (nếu chưa có).
+    ensureRefCode(user) {
+      if (!user) return '';
+      if (!user.refCode) {
+        let code;
+        do { code = 'KEN' + Math.random().toString(36).slice(2, 7).toUpperCase(); }
+        while (this.db.users.some(u => u.refCode === code));
+        user.refCode = code;
+        this._persistOverrides();
+      }
+      return user.refCode;
+    },
+    findByRefCode(code) {
+      code = (code || '').trim().toUpperCase();
+      if (!code) return null;
+      return this.db.users.find(u => (u.refCode || '').toUpperCase() === code) || null;
+    },
+    // Gắn người giới thiệu cho tài khoản vừa tạo (gọi sau khi đăng ký).
+    applyReferralCode(refereeUserId, code) {
+      if (this.db.config.referralEnabled === false) return;
+      const referee = this.db.users.find(u => u.userId === refereeUserId);
+      const referrer = this.findByRefCode(code);
+      if (!referee || !referrer || referrer.userId === referee.userId) return;
+      if (referee.referredBy) return; // đã có người giới thiệu
+      referee.referredBy = referrer.refCode;
+      this._persistOverrides(); this._emit();
+    },
+    // Thưởng khi người được giới thiệu NẠP TIỀN lần đầu — cả 2 bên +referralBonus.
+    processReferralReward(refereeUserId) {
+      const cfg = this.db.config;
+      if (cfg.referralEnabled === false) return;
+      const bonus = Number(cfg.referralBonus) || 0;
+      const referee = this.db.users.find(u => u.userId === refereeUserId);
+      if (!referee || referee.referralRewarded || !referee.referredBy) return;
+      const referrer = this.findByRefCode(referee.referredBy);
+      referee.referralRewarded = true; // đánh dấu để chỉ thưởng 1 lần dù có tìm thấy người mời hay không
+      if (bonus > 0 && referrer && referrer.userId !== referee.userId) {
+        referee.balance = (referee.balance || 0) + bonus;
+        referrer.balance = (referrer.balance || 0) + bonus;
+        const now = new Date().toISOString();
+        this.db.transactions.unshift({ id: 'TXR' + Date.now(), userId: referee.userId, amount: bonus, type: 'referral', description: 'Thưởng giới thiệu (bạn được mời)', date: now });
+        this.db.transactions.unshift({ id: 'TXR' + (Date.now() + 1), userId: referrer.userId, amount: bonus, type: 'referral', description: 'Thưởng giới thiệu bạn ' + (referee.username || ''), date: now });
+      }
+      this._persistOverrides(); this._emit();
+    },
+    // Thống kê giới thiệu của user hiện tại.
+    myReferralStats() {
+      const user = this.currentUser();
+      if (!user) return null;
+      const code = this.ensureRefCode(user);
+      const invited = this.db.users.filter(u => u.referredBy === code);
+      const earned = (this.db.transactions || [])
+        .filter(t => t.userId === user.userId && t.type === 'referral')
+        .reduce((s, t) => s + (t.amount || 0), 0);
+      return { code, count: invited.length, earned };
     },
 
     _generateKey(service, pkg) {
@@ -2575,6 +2636,19 @@ window.KENIOS_DEFAULT_DB = {
         <strong style="font-size:1.25rem;color:var(--gold);">${fmt(user.balance || 0)}</strong>
       </div>
       ${vipBadgeHtml(user)}
+      ${Store.db.config.referralEnabled !== false ? (() => {
+        const st = Store.myReferralStats();
+        const bonus = Number(Store.db.config.referralBonus) || 0;
+        return `
+      <div class="profile-referral">
+        <div class="pr-head"><span>🎁</span> Giới thiệu bạn bè${bonus > 0 ? ` — cả hai +<b>${fmt(bonus)}</b> khi bạn của bạn nạp tiền lần đầu` : ''}</div>
+        <div class="pr-code-row">
+          <input id="profRefCode" type="text" readonly value="${esc(st.code)}" onclick="this.select()">
+          <button type="button" class="btn btn-primary btn-sm" id="profRefCopy"><span class="btn-ico">${ICONS.copy}</span> Sao chép mã</button>
+        </div>
+        <div class="pr-stats"><span>Đã mời: <b>${st.count}</b></span><span>Thưởng đã nhận: <b>${fmt(st.earned)}</b></span></div>
+      </div>`;
+      })() : ''}
       <div class="profile-actions" style="display:flex;flex-direction:column;gap:10px;">
         <button type="button" class="btn btn-glass btn-block" id="profDepositBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
           <span class="btn-ico">${ICONS.card}</span> Nạp tiền tự động
@@ -2595,6 +2669,13 @@ window.KENIOS_DEFAULT_DB = {
     $('#profDepositBtn').onclick = () => { closeModal('#profileModal'); openModal('#depositModal'); };
     $('#profOrdersBtn').onclick = () => { closeModal('#profileModal'); openOrdersModal(); };
     $('#profPasswordBtn').onclick = () => { closeModal('#profileModal'); openPasswordModal(); };
+    const refCopyBtn = $('#profRefCopy');
+    if (refCopyBtn) refCopyBtn.onclick = () => {
+      const code = $('#profRefCode')?.value || '';
+      const done = () => toast('Đã sao chép mã giới thiệu!', 'success');
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done));
+      else fallbackCopy(code, done);
+    };
     $('#profLogoutBtn').onclick = () => { closeModal('#profileModal'); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); };
   }
 
@@ -2764,7 +2845,9 @@ window.KENIOS_DEFAULT_DB = {
       const submitBtn = e.target.querySelector('button[type=submit]');
       withLoading(submitBtn, async () => {
         try {
-          await Store.register(fd.get('username'), fd.get('password'), fd.get('contact'));
+          const newUser = await Store.register(fd.get('username'), fd.get('password'), fd.get('contact'));
+          const refCode = (fd.get('refCode') || '').trim();
+          if (newUser && refCode) Store.applyReferralCode(newUser.userId, refCode);
           closeModal('#authModal');
           e.target.reset();
           $('#registerError').textContent = '';
@@ -4137,6 +4220,10 @@ window.KENIOS_DEFAULT_DB = {
           <input type="number" name="logoMotionSpeed" min="0.5" max="20" step="0.5" value="${c.logoMotionSpeed || 2}">
         </label>
 
+        <div class="admin-form-section">Giới thiệu bạn bè</div>
+        <label class="admin-check-label"><input type="checkbox" name="referralEnabled" ${c.referralEnabled !== false ? 'checked' : ''}> Bật chương trình giới thiệu (mỗi người có 1 mã, cả hai nhận thưởng khi người mới nạp lần đầu)</label>
+        <label>Tiền thưởng mỗi bên (đồng) <input type="number" name="referralBonus" min="0" step="1000" value="${Number(c.referralBonus) || 0}"></label>
+
         <div class="admin-form-section">Màu chủ đạo toàn trang</div>
         <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || '#ffb703')}"></label>
 
@@ -4746,6 +4833,8 @@ window.KENIOS_DEFAULT_DB = {
         logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
         logoMotionMode: fd.get('logoMotionMode') || 'none', logoMotionSpeed: parseFloat(fd.get('logoMotionSpeed')) || 2,
         accentColor: fd.get('accentColor'),
+        referralEnabled: fd.get('referralEnabled') === 'on',
+        referralBonus: parseInt(fd.get('referralBonus'), 10) || 0,
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
         contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
