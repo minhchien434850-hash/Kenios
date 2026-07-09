@@ -74,7 +74,6 @@
 
       <div class="header-actions">
         <button class="icon-btn" id="searchToggleBtn" aria-label="Tìm kiếm dịch vụ" data-icon="search"></button>
-        <button class="icon-btn" id="themeToggleBtn" aria-label="Chuyển chế độ sáng/tối"></button>
         <div class="hide-sm" id="headerContactWrap"></div>
         <div id="authArea"></div>
       </div>
@@ -86,13 +85,16 @@
   <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
   <nav class="mobile-nav" id="mobileNav" aria-label="Điều hướng di động">
     <div class="mobile-nav-inner">
-      <a href="#top" class="mobile-nav-brand" data-mobile-link>
-        <span class="mobile-nav-brand-mark"><img src="./favicon.svg" alt="" id="mobileNavLogo"></span>
-        <span class="mobile-nav-brand-text">
-          <strong id="mobileNavBrandName">KENIOS.STORE</strong>
-          <small id="mobileNavBrandSub">v3.0 Premium</small>
-        </span>
-      </a>
+      <div class="mobile-nav-top">
+        <a href="#top" class="mobile-nav-brand" data-mobile-link>
+          <span class="mobile-nav-brand-mark"><img src="./favicon.svg" alt="" id="mobileNavLogo"></span>
+          <span class="mobile-nav-brand-text">
+            <strong id="mobileNavBrandName">KENIOS.STORE</strong>
+            <small id="mobileNavBrandSub">v3.0 Premium</small>
+          </span>
+        </a>
+        <button class="icon-btn drawer-theme-btn" id="themeToggleBtn" data-theme-toggle aria-label="Chuyển chế độ sáng/tối" title="Chuyển chế độ sáng/tối"></button>
+      </div>
 
       <div id="drawerUserBox" class="drawer-user-box"></div>
 

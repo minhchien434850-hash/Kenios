@@ -1769,24 +1769,24 @@ window.KENIOS_DEFAULT_DB = {
   function applyTheme(theme) {
     const t = theme === 'light' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', t);
-    const btn = $('#themeToggleBtn');
-    if (btn) {
-      btn.innerHTML = t === 'light' ? ICONS.moon || '🌙' : ICONS.sun || '☀️';
+    // Cập nhật MỌI nút chuyển sáng/tối (hiện chỉ còn 1 nút trong menu 3 gạch).
+    $$('[data-theme-toggle]').forEach(btn => {
+      btn.innerHTML = t === 'light' ? (ICONS.moon || '🌙') : (ICONS.sun || '☀️');
       btn.setAttribute('aria-label', t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng');
       btn.title = t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng';
-    }
+    });
   }
   function wireThemeToggle() {
     let saved = 'dark';
     try { saved = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
     applyTheme(saved);
-    const btn = $('#themeToggleBtn');
-    if (btn) btn.addEventListener('click', () => {
+    $$('[data-theme-toggle]').forEach(btn => btn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
       const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
       const next = cur === 'light' ? 'dark' : 'light';
       applyTheme(next);
       try { localStorage.setItem(THEME_KEY, next); } catch {}
-    });
+    }));
   }
 
   document.addEventListener('DOMContentLoaded', boot);

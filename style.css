@@ -265,10 +265,16 @@ button { font: inherit; }
   display: flex; flex-direction: column; gap: 2px;
 }
 /* Logo đầu ngăn kéo (giống mẫu: banner thương hiệu trên cùng) */
-.mobile-nav-brand {
-  display: flex; align-items: center; gap: 12px; padding: 10px 12px 16px; margin-bottom: 6px;
-  border-bottom: 1px solid var(--border); text-decoration: none;
+/* Hàng đầu ngăn kéo: logo bên trái + nút chuyển sáng/tối bên phải (cạnh logo). */
+.mobile-nav-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-bottom: 10px; margin-bottom: 6px; border-bottom: 1px solid var(--border);
 }
+.mobile-nav-brand {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; text-decoration: none;
+  flex: 1; min-width: 0;
+}
+.drawer-theme-btn { flex-shrink: 0; width: 40px; height: 40px; }
 .mobile-nav-brand-mark {
   width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
