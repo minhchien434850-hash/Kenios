@@ -945,6 +945,24 @@ window.KENIOS_DEFAULT_DB = {
       this._emit();
     },
 
+    // Đặt vai trò: 'member' | 'ctv' (cộng tác viên) | 'admin'.
+    adminSetRole(userId, role) {
+      const valid = ['member', 'ctv', 'admin'];
+      if (!valid.includes(role)) return;
+      const user = this.db.users.find(u => u.userId === userId);
+      if (!user) throw new Error('Không tìm thấy người dùng.');
+      const me = this.currentUser();
+      if (me && me.userId === userId && me.role === 'admin' && role !== 'admin') {
+        throw new Error('Không thể tự hạ vai trò admin của chính bạn (tránh tự khóa mình khỏi quản trị).');
+      }
+      user.role = role;
+      this._persistOverrides();
+      this._emit();
+    },
+    // Quyền mở trang quản trị: admin (đầy đủ) hoặc CTV (giới hạn).
+    canAccessAdmin() { const u = this.currentUser(); return !!u && (u.role === 'admin' || u.role === 'ctv'); },
+    isCtv() { const u = this.currentUser(); return !!u && u.role === 'ctv'; },
+
     adminAddMedia(item) {
       if (!this.db.media) this.db.media = [];
       this.db.media.unshift(item);
@@ -2681,9 +2699,9 @@ window.KENIOS_DEFAULT_DB = {
     const user = Store.currentUser();
     const adminLabel = $('#mobileNavAdminLabel');
     const adminLink = $('#mobileNavAdminLink');
-    if (user && user.role === 'admin') {
+    if (user && (user.role === 'admin' || user.role === 'ctv')) {
       if (adminLabel) adminLabel.hidden = false;
-      if (adminLink) adminLink.hidden = false;
+      if (adminLink) { adminLink.hidden = false; adminLink.querySelector('span:last-child').textContent = user.role === 'ctv' ? 'Trang Cộng tác viên' : 'Cấu hình & Quản trị Shop'; }
     } else {
       if (adminLabel) adminLabel.hidden = true;
       if (adminLink) adminLink.hidden = true;
@@ -2755,7 +2773,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="profile-meta" style="display:flex;flex-direction:column;gap:4px;">
           <strong style="font-size:1.15rem;color:var(--ink);">${esc(user.username)}</strong>
           <span style="font-size:0.8rem;color:var(--muted);">ID tài khoản: <code style="color:var(--gold-soft);">${esc(user.userId)}</code></span>
-          <span style="font-size:0.8rem;color:var(--muted);">${user.role === 'admin' ? '🛡️ Quản trị viên' : '👤 Thành viên'}</span>
+          <span style="font-size:0.8rem;color:var(--muted);">${user.role === 'admin' ? '🛡️ Quản trị viên' : user.role === 'ctv' ? '🤝 Cộng tác viên' : '👤 Thành viên'}</span>
         </div>
       </div>
       <div class="profile-balance" style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);margin-bottom:12px;">
@@ -2821,7 +2839,7 @@ window.KENIOS_DEFAULT_DB = {
         <img class="drawer-user-avatar" src="${avatar}" alt="">
         <div class="drawer-user-meta">
           <strong>${esc(user.username)}</strong>
-          <small>ID: ${esc(user.userId)}${user.role === 'admin' ? ' · Quản trị' : ''}</small>
+          <small>ID: ${esc(user.userId)}${user.role === 'admin' ? ' · Quản trị' : user.role === 'ctv' ? ' · Cộng tác viên' : ''}</small>
         </div>
       </div>
       <div class="drawer-user-balance"><span>Số dư</span><strong>${fmt(user.balance || 0)}</strong></div>
@@ -3545,8 +3563,15 @@ window.KENIOS_DEFAULT_DB = {
     try { btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (_) {}
   }
 
+  // Các tab Cộng tác viên được phép xem (an toàn — không đụng Cấu hình, kho key,
+  // ngân hàng, hay đổi vai trò/số dư người khác). Có thể mở rộng theo yêu cầu.
+  const CTV_TABS = ['overview', 'orders'];
+
   function openAdminModal() {
-    if (!Store.isAdmin()) { toast('Bạn không có quyền truy cập.', 'error'); return; }
+    if (!Store.canAccessAdmin()) { toast('Bạn không có quyền truy cập.', 'error'); return; }
+    const ctv = Store.isCtv();
+    // Ẩn các tab nhạy cảm với CTV; admin thấy đủ.
+    $$('.admin-tab').forEach(t => { t.hidden = ctv && !CTV_TABS.includes(t.dataset.adminTab); });
     adminActiveTab = 'overview';
     const first = $('.admin-tab[data-admin-tab="overview"]');
     $$('.admin-tab').forEach(t => t.classList.toggle('active', t === first));
@@ -3612,6 +3637,11 @@ window.KENIOS_DEFAULT_DB = {
 
   function renderAdminTab(tab) {
     const body = $('#adminPanelBody');
+    // Chốt chặn: Cộng tác viên chỉ được xem các tab cho phép.
+    if (Store.isCtv() && !CTV_TABS.includes(tab)) {
+      body.innerHTML = '<p class="empty-note">Bạn (Cộng tác viên) không có quyền xem mục này.</p>';
+      return;
+    }
     if (tab === 'overview') body.innerHTML = adminOverviewHtml();
     else if (tab === 'services') body.innerHTML = adminServicesHtml();
     else if (tab === 'categories') body.innerHTML = adminCategoriesHtml();
@@ -4086,7 +4116,13 @@ window.KENIOS_DEFAULT_DB = {
             ${users.map(u => `
               <tr>
                 <td>${esc(u.username)}</td>
-                <td>${u.role === 'admin' ? 'Admin' : 'Thành viên'}</td>
+                <td>
+                  <select class="user-role-select" data-admin-set-role="${esc(u.userId)}" title="Đổi vai trò">
+                    <option value="member" ${u.role !== 'admin' && u.role !== 'ctv' ? 'selected' : ''}>Thành viên</option>
+                    <option value="ctv" ${u.role === 'ctv' ? 'selected' : ''}>Cộng tác viên</option>
+                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                  </select>
+                </td>
                 <td>${fmt(u.balance || 0)}</td>
                 <td>${u.status === 'banned' ? 'Đã khóa' : 'Hoạt động'}</td>
                 <td>${esc(u.createdAt || '')}</td>
@@ -4974,6 +5010,17 @@ window.KENIOS_DEFAULT_DB = {
 
   // Khi admin đổi Danh mục trong form Dịch vụ, nạp lại danh sách Thư mục con tương ứng.
   function onAdminPanelChange(e) {
+    // Đổi VAI TRÒ người dùng (Thành viên / Cộng tác viên / Admin).
+    const roleSel = e.target.closest('[data-admin-set-role]');
+    if (roleSel) {
+      try {
+        Store.adminSetRole(roleSel.dataset.adminSetRole, roleSel.value);
+        renderAdminTab('users');
+        toast('Đã cập nhật vai trò.', 'success');
+      } catch (err) { toast(err.message, 'error'); renderAdminTab('users'); }
+      return;
+    }
+
     // Đổi màu chữ / màu chủ đạo / tốc độ trong form Cấu hình → xem trước ngay.
     if (e.target.closest('[data-admin-form="config"]')) liveBrandingPreview();
 

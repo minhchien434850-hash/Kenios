@@ -1408,6 +1408,9 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .combo-admin-info span { font-size: .78rem; color: var(--muted); }
 .combo-admin-info s { color: var(--muted); }
 
+/* Ô chọn vai trò trong tab Người dùng */
+.user-role-select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); font-size: .78rem; cursor: pointer; }
+
 /* ---------- Giới thiệu bạn bè (profile) ---------- */
 .profile-referral {
   padding: 14px 16px; border-radius: 12px; margin-bottom: 20px;
