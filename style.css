@@ -275,6 +275,10 @@ button { font: inherit; }
   flex: 1; min-width: 0;
 }
 .drawer-theme-btn { flex-shrink: 0; width: 40px; height: 40px; }
+/* Nút theme ở header CHỈ hiện trên desktop (≥992px); trên mobile/tablet dùng nút
+   trong menu 3 gạch để không làm chật header. */
+.header-theme-btn { display: none; }
+@media (min-width: 992px) { .header-theme-btn { display: inline-flex; } }
 .mobile-nav-brand-mark {
   width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
