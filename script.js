@@ -2888,8 +2888,8 @@ window.KENIOS_DEFAULT_DB = {
   // ============================================================
   // MODAL helpers
   // ============================================================
-  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; if (sel === '#depositModal') updateDepositBonusNote(); }
-  function closeModal(sel) { $(sel).hidden = true; document.body.style.overflow = ''; }
+  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; document.body.classList.add('modal-open'); if (sel === '#depositModal') updateDepositBonusNote(); }
+  function closeModal(sel) { $(sel).hidden = true; document.body.style.overflow = ''; if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open'); }
 
   async function withLoading(btn, fn) {
     btn.classList.add('is-loading');

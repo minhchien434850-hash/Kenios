@@ -1190,6 +1190,9 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .scroll-bottom-btn svg { width: 20px; height: 20px; }
 .scroll-bottom-btn.visible { opacity: 1; transform: translateY(0); }
 @media (max-width: 500px) { .scroll-bottom-btn { width: 42px; height: 42px; right: 16px; } }
+/* Đang mở modal → ẩn 2 nút cuộn trang để không đè lên nút trở về của modal. */
+body.modal-open .scroll-top-btn,
+body.modal-open .scroll-bottom-btn { display: none !important; }
 
 /* ---------- Media library (admin) ---------- */
 .media-upload-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
