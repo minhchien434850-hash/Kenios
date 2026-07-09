@@ -1262,6 +1262,18 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   .fx-panel { width: min(260px, calc(100vw - 32px)); }
   .ai-panel { width: min(320px, calc(100vw - 32px)); }
 }
+/* Điện thoại LỚN (iPhone Pro Max, Android lớn 401–500px): thu gọn hàng header
+   để KHÔNG bị tràn/cắt avatar. Trước đây các rule thu nhỏ chỉ ≤400px nên máy
+   428px (12/14 Pro Max) vẫn dùng header cỡ lớn → avatar bị cắt ở mép phải. */
+@media (max-width: 500px) {
+  .header-inner { gap: 8px; }
+  .header-actions { gap: 6px; }
+  .header-actions .icon-btn { width: 34px; height: 34px; }
+  .header-actions .icon-btn svg { width: 18px; height: 18px; }
+  .balance-pill { padding: 7px 9px; font-size: .74rem; }
+  .avatar-btn { width: 34px; height: 34px; }
+  .brand-text small { display: none; }
+}
 /* Điện thoại rất nhỏ (iPhone SE, Galaxy Fold gập, Android cỡ nhỏ 320-400px) */
 @media (max-width: 400px) {
   :root { font-size: 15px; }
