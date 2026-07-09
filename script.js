@@ -1182,6 +1182,25 @@ window.KENIOS_DEFAULT_DB = {
       return json.url;
     },
 
+    // Khách tự đổi ảnh đại diện của MÌNH — lưu bền vững trên máy chủ (theo userId).
+    async updateAvatar(url) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập.');
+      url = (url || '').trim();
+      if (!url) throw new Error('Chưa có ảnh để cập nhật.');
+      try {
+        const res = await this._callApi('update_avatar', { userId: user.userId, avatar: url });
+        if (res.status !== 'success') throw new Error(res.message || 'Không đổi được ảnh đại diện.');
+        user.avatar = res.avatar || url;
+      } catch (e) {
+        if (!(e instanceof BackendUnavailableError)) throw e;
+        user.avatar = url; // chế độ demo không có máy chủ: đổi cục bộ
+      }
+      this._persistOverrides();
+      this._emit();
+      return user.avatar;
+    },
+
     // Tải lại toàn bộ kho key thật (packages[].keys) cho tab Dịch vụ — máy chủ chỉ trả
     // key thật khi xác thực đúng tài khoản admin, tránh lộ key cho khách vãng lai.
     async fetchFullServiceKeys(adminUser, adminPass) {
@@ -2417,7 +2436,8 @@ window.KENIOS_DEFAULT_DB = {
     if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi mua.', 'error'); openModal('#authModal'); return; }
     const combo = Store.combos().find(c => c.id === comboId);
     if (!combo) return;
-    // Mua thẳng, không hỏi xác nhận — trừ vào số dư như mua sản phẩm thường.
+    // Nhắc nhẹ trước khi mua combo (tránh bấm nhầm mất tiền).
+    if (!confirm(`Mua combo "${combo.name}" với giá ${fmt(combo.price)}? Số tiền sẽ trừ vào số dư của bạn.`)) return;
     (async () => {
       try {
         await Store.purchaseCombo(comboId);
@@ -3045,7 +3065,13 @@ window.KENIOS_DEFAULT_DB = {
     
     body.innerHTML = `
       <div class="profile-head" style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.02);padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:20px;">
-        <img src="${avatar}" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 15px rgba(255,183,3,0.2);">
+        <label id="profAvatarEdit" title="Bấm để đổi ảnh đại diện" style="position:relative;flex-shrink:0;cursor:pointer;width:64px;height:64px;">
+          <img id="profAvatarImg" src="${avatar}" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 15px rgba(255,183,3,0.2);object-fit:cover;">
+          <span style="position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#1a1200;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-alt);">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.2"/></svg>
+          </span>
+          <input type="file" id="profAvatarInput" accept="image/*" hidden>
+        </label>
         <div class="profile-meta" style="display:flex;flex-direction:column;gap:4px;">
           <strong style="font-size:1.15rem;color:var(--ink);">${esc(user.username)}</strong>
           <span style="font-size:0.8rem;color:var(--muted);">ID tài khoản: <code style="color:var(--gold-soft);">${esc(user.userId)}</code></span>
@@ -3085,6 +3111,26 @@ window.KENIOS_DEFAULT_DB = {
         </button>
       </div>
     `;
+
+    // Khách tự đổi ảnh đại diện: chọn ảnh → tải lên máy chủ → lưu vào tài khoản.
+    const avatarInput = $('#profAvatarInput');
+    if (avatarInput) avatarInput.onchange = async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type || !file.type.startsWith('image/')) { toast('Vui lòng chọn file ảnh.', 'error'); e.target.value = ''; return; }
+      if (file.size > 5 * 1024 * 1024) { toast('Ảnh đại diện tối đa 5MB.', 'error'); e.target.value = ''; return; }
+      const editLabel = $('#profAvatarEdit');
+      if (editLabel) editLabel.style.opacity = '.5';
+      try {
+        const url = await Store.uploadFile(file);
+        await Store.updateAvatar(url);
+        renderProfileModal();
+        toast('Đã đổi ảnh đại diện!', 'success');
+      } catch (err) {
+        toast(err.message || 'Đổi ảnh thất bại.', 'error');
+        if (editLabel) editLabel.style.opacity = '1';
+      }
+    };
 
     // Gán sự kiện click cho các nút
     $('#profDepositBtn').onclick = () => { closeModal('#profileModal'); openModal('#depositModal'); };

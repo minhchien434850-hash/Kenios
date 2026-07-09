@@ -1199,6 +1199,37 @@ switch ($action) {
         echo json_encode(["status" => "success"]);
         break;
 
+    // Khách tự đổi ảnh đại diện của MÌNH (xác thực bằng userId của tài khoản đang đăng nhập).
+    case 'update_avatar':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $avatar = trim((string)($input['avatar'] ?? ''));
+        if ($userId === '' || $avatar === '') {
+            echo json_encode(["status" => "error", "message" => "Thiếu thông tin ảnh đại diện."]); exit;
+        }
+        if (mb_strlen($avatar) > 2000) {
+            echo json_encode(["status" => "error", "message" => "Đường dẫn ảnh quá dài."]); exit;
+        }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]); exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        $uidx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $userId) { $uidx = $i; break; } }
+        if ($uidx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]); exit;
+        }
+        $db['users'][$uidx]['avatar'] = $avatar;
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "avatar" => $avatar]);
+        break;
+
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
     case 'backup_db':
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
