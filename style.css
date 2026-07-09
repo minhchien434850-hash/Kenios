@@ -1053,6 +1053,15 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .footer-contact-wrap { margin-top: 14px; }
 .footer-contact-wrap .contact-dropdown { left: 0; right: auto; }
 
+/* Danh sách liên hệ trong menu 3 gạch: full chiều rộng, MỞ LÊN TRÊN (vì nút nằm
+   gần đáy drawer), có thể cuộn — tránh bị tràn/cắt khỏi màn hình. */
+.drawer-contact-wrap .contact-widget { display: block; }
+.drawer-contact-wrap .contact-widget > .btn { width: 100%; }
+.drawer-contact-wrap .contact-dropdown {
+  left: 0; right: 0; min-width: 0; top: auto; bottom: calc(100% + 8px);
+  max-height: 45vh; overflow-y: auto;
+}
+
 /* ---------- UX polish: password toggle, button spinner, toast close ---------- */
 .input-with-toggle { position: relative; }
 .input-with-toggle input { width: 100%; padding-right: 40px; }
@@ -1193,6 +1202,9 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 /* Đang mở modal: KHÔNG ẩn 2 nút cuộn nữa. Chỉ dời nút "xuống cuối" sang trái để
    không đè lên nút trở về (nằm góc trên-phải của modal). */
 body.modal-open .scroll-bottom-btn { right: 74px; }
+/* Mở menu 3 gạch → ẩn 2 nút cuộn (tránh đè lên danh sách liên hệ / nội dung drawer). */
+body.drawer-open .scroll-top-btn,
+body.drawer-open .scroll-bottom-btn { display: none !important; }
 
 /* ---------- Media library (admin) ---------- */
 .media-upload-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }

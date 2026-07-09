@@ -2893,6 +2893,7 @@ window.KENIOS_DEFAULT_DB = {
   function closeMobileNavGlobal() {
     $('#mobileNav')?.classList.remove('open');
     $('#mobileNavBackdrop')?.classList.remove('open');
+    document.body.classList.remove('drawer-open');
     $('#menuToggle')?.setAttribute('aria-expanded', 'false');
   }
 
@@ -2953,11 +2954,13 @@ window.KENIOS_DEFAULT_DB = {
     const closeMobileNav = () => {
       $('#mobileNav').classList.remove('open');
       $('#mobileNavBackdrop').classList.remove('open');
+      document.body.classList.remove('drawer-open');
       $('#menuToggle').setAttribute('aria-expanded', 'false');
     };
     $('#menuToggle').addEventListener('click', () => {
       const open = $('#mobileNav').classList.toggle('open');
       $('#mobileNavBackdrop').classList.toggle('open', open);
+      document.body.classList.toggle('drawer-open', open);
       $('#menuToggle').setAttribute('aria-expanded', String(open));
     });
     $('#mobileNavBackdrop').addEventListener('click', closeMobileNav);
