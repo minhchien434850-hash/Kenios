@@ -2990,15 +2990,15 @@ window.KENIOS_DEFAULT_DB = {
       return;
     }
     const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
+    // Không hiển thị số dư ở header ngoài nữa — số dư chỉ hiện trong menu 3 gạch (drawer)
+    // và trong hồ sơ tài khoản (bấm avatar).
     area.innerHTML = `
       <div class="auth-mini">
-        <button class="balance-pill" id="balancePill">${fmt(user.balance || 0)}</button>
         <div class="user-menu">
           <button class="avatar-btn" id="avatarBtn" aria-label="Mở bảng điều khiển tài khoản"><img src="${avatar}" alt=""></button>
         </div>
       </div>
     `;
-    $('#balancePill').addEventListener('click', () => openModal('#depositModal'));
     $('#avatarBtn').addEventListener('click', () => {
       renderProfileModal();
       openModal('#profileModal');
