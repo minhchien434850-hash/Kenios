@@ -3813,7 +3813,7 @@ window.KENIOS_DEFAULT_DB = {
         if (res.exists) {
           const when = res.time ? new Date(res.time).toLocaleString('vi-VN') : '(không rõ thời gian)';
           const kb = res.size ? ' · ' + Math.max(1, Math.round(res.size / 1024)) + ' KB' : '';
-          infoEl.innerHTML = '✅ Có bản sao lưu trên máy chủ · Cập nhật: ' + esc(when) + kb;
+          infoEl.innerHTML = '<span class="backup-ok-ico">' + ICONS.check + '</span> Có bản sao lưu trên máy chủ · Cập nhật: ' + esc(when) + kb;
         } else {
           infoEl.textContent = 'Chưa có bản sao lưu. Bấm "Sao lưu ngay" hoặc "Đồng bộ lên máy chủ" để tạo.';
         }
@@ -4744,16 +4744,16 @@ window.KENIOS_DEFAULT_DB = {
 
           <div class="backup-card-grid">
             <div class="backup-card">
-              <div class="backup-card-title">☁️ Trên máy chủ</div>
+              <div class="backup-card-title"><span class="backup-card-ico">${ICONS.cloud}</span> Trên máy chủ</div>
               <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Lưu / lấy lại dữ liệu ngay trên hosting.</p>
-              <button type="button" class="btn btn-primary btn-sm" id="backupNowBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico" data-icon="cloud"></span> Sao lưu ngay lên máy chủ</button>
-              <button type="button" class="btn btn-glass btn-sm" id="backupRestoreBtn" style="width:100%;">♻️ Khôi phục từ máy chủ</button>
+              <button type="button" class="btn btn-primary btn-sm" id="backupNowBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico">${ICONS.cloud}</span> Sao lưu ngay lên máy chủ</button>
+              <button type="button" class="btn btn-glass btn-sm" id="backupRestoreBtn" style="width:100%;"><span class="btn-ico">${ICONS.refresh}</span> Khôi phục từ máy chủ</button>
             </div>
             <div class="backup-card">
-              <div class="backup-card-title">💻 Trên thiết bị</div>
+              <div class="backup-card-title"><span class="backup-card-ico">${ICONS.web}</span> Trên thiết bị</div>
               <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Giữ thêm 1 bản trên máy để phòng khi cần.</p>
-              <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn" style="width:100%;margin-bottom:8px;">⬇️ Tải bản sao lưu về máy</button>
-              <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn" style="width:100%;">⬆️ Phục hồi từ file trên máy</button>
+              <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico">${ICONS.download}</span> Tải bản sao lưu về máy</button>
+              <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn" style="width:100%;"><span class="btn-ico">${ICONS.upload}</span> Phục hồi từ file trên máy</button>
               <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
             </div>
           </div>

@@ -827,7 +827,12 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .backup-box .secret-status { margin-bottom: 14px; }
 .backup-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .backup-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: rgba(255,255,255,.03); }
-.backup-card-title { font-weight: 700; font-size: .92rem; margin-bottom: 4px; color: var(--ink); }
+.backup-card-title { font-weight: 700; font-size: .92rem; margin-bottom: 4px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.backup-card-ico { display: inline-flex; width: 20px; height: 20px; color: var(--gold-soft); }
+.backup-card-ico svg { width: 20px; height: 20px; }
+.backup-ok-ico { display: inline-flex; width: 16px; height: 16px; vertical-align: -3px; color: #22c55e; }
+.backup-ok-ico svg { width: 16px; height: 16px; }
+.backup-card .btn-ico svg { width: 16px; height: 16px; }
 .backup-steps ol { margin: 0; }
 .backup-steps code, .admin-backup-page code { background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 5px; font-size: .82em; }
 @media (max-width: 560px) {
