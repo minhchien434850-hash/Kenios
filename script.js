@@ -728,18 +728,14 @@ window.KENIOS_DEFAULT_DB = {
       if (discountCode && discountCode.trim() && !p.codeValid) throw new Error(p.codeReason || 'Mã giảm giá không hợp lệ.');
       const finalPrice = p.final;
       if ((user.balance || 0) < finalPrice) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
-      user.balance -= finalPrice;
-      // Ưu tiên phát ĐÚNG key admin đã nhập trong kho của gói (không thêm bất kỳ đuôi nào).
-      // Chỉ khi gói chưa có kho key nào thì mới sinh key giả lập để demo.
+      // Phát ĐÚNG key admin đã nhập trong kho của gói (không thêm bất kỳ đuôi nào). KHÔNG
+      // sinh key demo: hết key thì báo lỗi & KHÔNG trừ tiền.
       const svc = this.db.services.find(s => s.id === service.id);
       const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
       const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
-      let key;
-      if (stock && stock.length) {
-        key = stock.shift(); // rút đúng 1 key thật khỏi kho, giữ nguyên chuỗi khách nhập
-      } else {
-        key = this._generateKey(service, pkg);
-      }
+      if (!stock || !stock.length) throw new Error('Gói này tạm hết key trong kho, vui lòng liên hệ Admin.');
+      const key = stock.shift(); // rút đúng 1 key thật khỏi kho, giữ nguyên chuỗi
+      user.balance -= finalPrice;
       const purchaseDate = new Date().toISOString();
       const order = {
         id: 'DH' + Date.now(), userId: user.userId, serviceId: service.id,
@@ -791,14 +787,19 @@ window.KENIOS_DEFAULT_DB = {
       if (!items.length) throw new Error('Combo chưa có sản phẩm hợp lệ.');
       const price = Number(combo.price) || 0;
       if ((user.balance || 0) < price) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
+      // Xác định kho key TỪNG sản phẩm trước; nếu 1 sản phẩm hết key thì báo lỗi & KHÔNG
+      // trừ tiền. KHÔNG sinh key demo.
+      const stocks = items.map(({ service, pkg }) => {
+        const svc = this.db.services.find(s => s.id === service.id);
+        const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
+        return (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
+      });
+      if (stocks.some(st => !st || !st.length)) throw new Error('Một sản phẩm trong combo tạm hết key, vui lòng liên hệ Admin.');
       user.balance -= price;
       const now = new Date().toISOString();
       const orders = items.map(({ service, pkg }, i) => {
-        // Phát đúng key admin đã nhập trong kho của gói; hết kho mới sinh key giả lập.
-        const svc = this.db.services.find(s => s.id === service.id);
-        const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
-        const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
-        const key = (stock && stock.length) ? stock.shift() : this._generateKey(service, pkg);
+        // Phát đúng key admin đã nhập trong kho của gói (đã kiểm tra còn key ở trên).
+        const key = stocks[i].shift();
         const order = {
           id: 'DH' + Date.now() + i, userId: user.userId, serviceId: service.id,
           serviceName: service.name, packageName: pkg.name, price: 0,
@@ -1005,12 +1006,6 @@ window.KENIOS_DEFAULT_DB = {
         .filter(t => t.userId === user.userId && t.type === 'referral')
         .reduce((s, t) => s + (t.amount || 0), 0);
       return { code, count: invited.length, earned };
-    },
-
-    _generateKey(service, pkg) {
-      const prefix = service.name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 4);
-      const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-      return `${prefix}-${pkg.name.replace(/\s+/g, '').toUpperCase()}-${rand}`;
     },
 
     // ============================================================

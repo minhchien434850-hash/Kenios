@@ -35,20 +35,6 @@ function duration_days_from_name($name) {
     return null;
 }
 
-// Sinh key demo phía máy chủ cho gói CHƯA cấu hình kho key thật (khớp _generateKey ở client).
-function generate_demo_key($serviceName, $pkgName) {
-    $prefix = '';
-    foreach (preg_split('/\s+/', trim((string)$serviceName)) as $w) {
-        if ($w !== '') $prefix .= mb_strtoupper(mb_substr($w, 0, 1));
-    }
-    $prefix = mb_substr($prefix, 0, 4);
-    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    $rand = '';
-    for ($i = 0; $i < 6; $i++) $rand .= $chars[random_int(0, strlen($chars) - 1)];
-    $pkgPart = strtoupper(preg_replace('/\s+/', '', (string)$pkgName));
-    return "{$prefix}-{$pkgPart}-{$rand}";
-}
-
 function admin_authenticated($db, $admin_user, $admin_pass) {
     $users = $db['users'] ?? [];
     if (empty($users)) return true; // Cho phép ghi lần đầu khi chưa có tài khoản nào (khởi tạo)
@@ -799,12 +785,18 @@ switch ($action) {
             exit;
         }
 
-        // Trừ số dư trên máy chủ + giao key.
-        $db['users'][$userIdx]['balance'] = $balance - $price;
-        // Ưu tiên GIAO ĐÚNG key admin đã nhập (client gửi lên từ kho, giữ nguyên chuỗi,
-        // KHÔNG thêm bất kỳ đuôi nào). Chỉ khi không có key thật mới sinh key demo.
+        // GIAO ĐÚNG key admin đã nhập (client gửi lên từ kho, giữ nguyên chuỗi, KHÔNG
+        // thêm đuôi). TUYỆT ĐỐI KHÔNG sinh key demo: nếu chưa có key thật thì TỪ CHỐI
+        // (không trừ tiền) để không bao giờ giao key ảo cho khách.
         $providedKey = trim((string)($input['key'] ?? ''));
-        $key = $providedKey !== '' ? $providedKey : generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
+        if ($providedKey === '') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Gói này chưa có key trong kho. Vui lòng thêm key cho gói (hoặc liên hệ Admin) rồi mua lại."]);
+            exit;
+        }
+        $key = $providedKey;
+        // Đủ điều kiện -> trừ số dư trên máy chủ.
+        $db['users'][$userIdx]['balance'] = $balance - $price;
 
         // Hệ điều hành khách chọn: ưu tiên tên thư mục con, rồi tới tên danh mục.
         $os = trim((string)($input['os'] ?? ''));
@@ -926,6 +918,20 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Số dư không đủ. Vui lòng nạp thêm tiền."]);
             exit;
         }
+
+        // KIỂM TRA đủ key thật cho TỪNG sản phẩm TRƯỚC khi trừ tiền. KHÔNG sinh key demo:
+        // nếu 1 sản phẩm trong combo chưa có key thì từ chối cả combo (không trừ tiền).
+        foreach ($resolved as $r) {
+            $pkg = $db['services'][$r['si']]['packages'][$r['pi']];
+            $hasServerKey = array_key_exists('keys', $pkg) && !empty($pkg['keys']);
+            $mapKey = $r['sid'] . '::' . $r['pid'];
+            $provided = isset($itemKeys[$mapKey]) ? trim((string)$itemKeys[$mapKey]) : '';
+            if (!$hasServerKey && $provided === '') {
+                flock($fp, LOCK_UN); fclose($fp);
+                echo json_encode(["status" => "error", "message" => "Một sản phẩm trong combo chưa có key trong kho. Vui lòng thêm key (hoặc liên hệ Admin) rồi mua lại."]);
+                exit;
+            }
+        }
         $db['users'][$userIdx]['balance'] = $balance - $price;
 
         $uid = $db['users'][$userIdx]['userId'];
@@ -935,9 +941,8 @@ switch ($action) {
         foreach ($resolved as $r) {
             $service = $db['services'][$r['si']];
             $pkg = $db['services'][$r['si']]['packages'][$r['pi']];
-            // Ưu tiên rút đúng 1 key thật khỏi kho máy chủ (nếu gói có). Nếu máy chủ chưa
-            // có kho nhưng client gửi lên key thật của gói (admin đã nhập) thì giao đúng
-            // key đó. Cuối cùng, hết mọi nguồn key thật mới sinh key demo.
+            // Rút đúng 1 key thật khỏi kho máy chủ (nếu gói có); nếu chưa có kho thì dùng
+            // key thật client gửi lên (đã kiểm tra không rỗng ở trên). KHÔNG sinh key demo.
             $key = null;
             if (array_key_exists('keys', $pkg) && !empty($pkg['keys'])) {
                 $keys = $pkg['keys'];
@@ -945,8 +950,7 @@ switch ($action) {
                 $db['services'][$r['si']]['packages'][$r['pi']]['keys'] = $keys;
             } else {
                 $mapKey = $r['sid'] . '::' . $r['pid'];
-                $provided = isset($itemKeys[$mapKey]) ? trim((string)$itemKeys[$mapKey]) : '';
-                $key = $provided !== '' ? $provided : generate_demo_key($service['name'] ?? '', $pkg['name'] ?? '');
+                $key = trim((string)($itemKeys[$mapKey] ?? ''));
             }
             $os = '';
             $subId = $service['subcategoryId'] ?? '';
