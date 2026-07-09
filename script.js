@@ -1402,6 +1402,7 @@ window.KENIOS_DEFAULT_DB = {
     upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
     trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
     arrowUp: _svg('<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>'),
+    arrowDown: _svg('<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>'),
     sun: _svg('<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/>'),
     moon: _svg('<path d="M20 14.5A8 8 0 0 1 9.5 4 7 7 0 1 0 20 14.5Z"/>'),
     // ---- Icon cho danh mục / thư mục con (admin chọn từ bộ này, không dùng emoji) ----
@@ -2566,14 +2567,23 @@ window.KENIOS_DEFAULT_DB = {
     items.forEach(el => io.observe(el));
   }
 
-  // ---- Nút lên đầu trang ----
+  // ---- Nút lên đầu trang & xuống cuối trang ----
   function wireScrollTopButton() {
     const btn = $('#scrollTopBtn');
-    window.addEventListener('scroll', () => {
-      btn.hidden = window.scrollY < 500;
-      btn.classList.toggle('visible', window.scrollY >= 500);
-    }, { passive: true });
-    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    const btnDown = $('#scrollBottomBtn');
+    const update = () => {
+      const y = window.scrollY;
+      const distToBottom = document.documentElement.scrollHeight - y - window.innerHeight;
+      // Lên đầu: hiện khi đã cuộn xuống >500px.
+      if (btn) { btn.hidden = y < 500; btn.classList.toggle('visible', y >= 500); }
+      // Xuống cuối: hiện khi còn >500px nội dung phía dưới (chưa tới cuối).
+      if (btnDown) { const show = distToBottom > 500; btnDown.hidden = !show; btnDown.classList.toggle('visible', show); }
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+    if (btn) btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    if (btnDown) btnDown.addEventListener('click', () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }));
   }
 
   function renderHeroStats() {
