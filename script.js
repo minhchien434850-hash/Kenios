@@ -2568,22 +2568,40 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Nút lên đầu trang & xuống cuối trang ----
+  // Khi đang mở modal (VD trang Quản trị), nội dung cuộn BÊN TRONG modal nên 2 nút
+  // phải cuộn đúng phần đó thay vì cuộn cả trang (đang bị khóa).
+  let _updateScrollBtns = null;
+  function currentScroller() {
+    if (!document.body.classList.contains('modal-open')) return null;
+    const overlay = $('.modal-overlay:not([hidden])');
+    if (!overlay) return null;
+    const cands = overlay.querySelectorAll('.admin-panel-body, .admin-modal, .legal-content, .orders-list, .downloads-list, .deposit-history-list, .modal');
+    for (const el of cands) { if (el.scrollHeight > el.clientHeight + 8) return el; }
+    return overlay.querySelector('.admin-modal, .modal');
+  }
   function wireScrollTopButton() {
     const btn = $('#scrollTopBtn');
     const btnDown = $('#scrollBottomBtn');
-    const update = () => {
-      const y = window.scrollY;
-      const distToBottom = document.documentElement.scrollHeight - y - window.innerHeight;
-      // Lên đầu: hiện khi đã cuộn xuống >500px.
-      if (btn) { btn.hidden = y < 500; btn.classList.toggle('visible', y >= 500); }
-      // Xuống cuối: hiện khi còn >500px nội dung phía dưới (chưa tới cuối).
-      if (btnDown) { const show = distToBottom > 500; btnDown.hidden = !show; btnDown.classList.toggle('visible', show); }
+    _updateScrollBtns = () => {
+      const sc = currentScroller();
+      const y = sc ? sc.scrollTop : window.scrollY;
+      const dist = sc ? (sc.scrollHeight - sc.scrollTop - sc.clientHeight)
+                      : (document.documentElement.scrollHeight - window.scrollY - window.innerHeight);
+      const th = sc ? 200 : 500; // trong modal ngưỡng nhỏ hơn cho dễ hiện
+      if (btn) { const s = y > th; btn.hidden = !s; btn.classList.toggle('visible', s); }
+      if (btnDown) { const s = dist > th; btnDown.hidden = !s; btnDown.classList.toggle('visible', s); }
     };
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
-    update();
-    if (btn) btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    if (btnDown) btnDown.addEventListener('click', () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }));
+    window.addEventListener('scroll', _updateScrollBtns, { passive: true });
+    document.addEventListener('scroll', _updateScrollBtns, { capture: true, passive: true }); // bắt cuộn TRONG modal
+    window.addEventListener('resize', _updateScrollBtns, { passive: true });
+    _updateScrollBtns();
+    const doScroll = (toBottom) => {
+      const sc = currentScroller();
+      if (sc) sc.scrollTo({ top: toBottom ? sc.scrollHeight : 0, behavior: 'smooth' });
+      else window.scrollTo({ top: toBottom ? document.documentElement.scrollHeight : 0, behavior: 'smooth' });
+    };
+    if (btn) btn.addEventListener('click', () => doScroll(false));
+    if (btnDown) btnDown.addEventListener('click', () => doScroll(true));
   }
 
   function renderHeroStats() {
@@ -2888,8 +2906,8 @@ window.KENIOS_DEFAULT_DB = {
   // ============================================================
   // MODAL helpers
   // ============================================================
-  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; document.body.classList.add('modal-open'); if (sel === '#depositModal') updateDepositBonusNote(); }
-  function closeModal(sel) { $(sel).hidden = true; document.body.style.overflow = ''; if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open'); }
+  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; document.body.classList.add('modal-open'); if (sel === '#depositModal') updateDepositBonusNote(); setTimeout(() => _updateScrollBtns && _updateScrollBtns(), 60); }
+  function closeModal(sel) { $(sel).hidden = true; document.body.style.overflow = ''; if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open'); if (_updateScrollBtns) _updateScrollBtns(); }
 
   async function withLoading(btn, fn) {
     btn.classList.add('is-loading');
