@@ -5142,10 +5142,13 @@ window.KENIOS_DEFAULT_DB = {
       const newKeys = input.value.split('\n').map(k => k.trim()).filter(Boolean);
       if (!newKeys.length) return;
       const dataEl = row.querySelector('[data-pkg-keys-data]');
-      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean).concat(newKeys);
+      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean);
+      let added = 0, dup = 0;
+      newKeys.forEach(k => { if (keys.includes(k)) { dup++; } else { keys.push(k); added++; } });
       dataEl.value = keys.join('\n');
       input.value = '';
       refreshPkgKeyList(row, keys);
+      toast(dup > 0 ? `Đã thêm ${added} key (bỏ qua ${dup} key trùng).` : `Đã thêm ${added} key vào kho.`, 'success');
       return;
     }
     const clearPkgKeys = e.target.closest('[data-clear-pkg-keys]');
@@ -5438,7 +5441,13 @@ window.KENIOS_DEFAULT_DB = {
       const packages = $$('.admin-pkg-row', e.target).map((row, i) => {
         const name = row.querySelector('[data-pkg-name]').value.trim();
         const price = parseInt(row.querySelector('[data-pkg-price]').value, 10) || 0;
-        const keys = row.querySelector('[data-pkg-keys-data]').value.split('\n').map(k => k.trim()).filter(Boolean);
+        // Kho key đã xác nhận + CHÍNH những key còn đang gõ dở trong ô (chưa bấm "+ Thêm
+        // key") — gộp lại để gõ xong bấm Lưu là tự vào kho, không sợ mất. Đồng thời khử
+        // trùng, giữ nguyên thứ tự (không thêm/bớt ký tự nào của key).
+        const confirmedKeys = row.querySelector('[data-pkg-keys-data]').value.split('\n').map(k => k.trim()).filter(Boolean);
+        const pendingKeys = (row.querySelector('[data-pkg-keys-input]')?.value || '').split('\n').map(k => k.trim()).filter(Boolean);
+        const keys = [];
+        confirmedKeys.concat(pendingKeys).forEach(k => { if (!keys.includes(k)) keys.push(k); });
         const pkgId = row.dataset.pkgId;
         const pkg = { id: pkgId || `pkg-${id}-${i}-${Date.now().toString(36)}`, name, price };
         const original = pkgId && originalService ? (originalService.packages || []).find(p => p.id === pkgId) : null;
