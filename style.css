@@ -1547,8 +1547,8 @@ body.modal-open .scroll-bottom-btn { right: 74px; }
   /* Nút trở về: CỐ ĐỊNH góc trên-phải màn hình → luôn hiện đầy đủ, không bị cắt
      dù modal dài & cuộn. z-index cao hơn nút cuộn nên không bị đè. */
   .modal-close {
-    position: fixed; top: calc(env(safe-area-inset-top) + 10px); right: 14px; z-index: 2700;
-    float: none; margin: 0; width: 40px; height: 40px;
+    position: fixed; top: calc(env(safe-area-inset-top) + 56px); right: 14px; z-index: 2700;
+    float: none; margin: 0; width: 42px; height: 42px;
     background: var(--bg-alt); border-color: rgba(255,255,255,.28); box-shadow: 0 6px 18px rgba(0,0,0,.5);
   }
 
