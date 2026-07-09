@@ -1119,6 +1119,79 @@ switch ($action) {
         }
         break;
 
+    // Admin cộng/trừ số dư 1 người dùng NGAY TRÊN MÁY CHỦ (bền vững, khách thấy liền).
+    case 'admin_adjust_balance':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $targetId = (string)($input['userId'] ?? '');
+        $delta = floatval($input['delta'] ?? 0);
+        if ($delta === 0.0) { echo json_encode(["status" => "error", "message" => "Số tiền không hợp lệ."]); exit; }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]); exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $uidx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $targetId) { $uidx = $i; break; } }
+        if ($uidx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy người dùng."]); exit;
+        }
+        $newBal = max(0, floatval($db['users'][$uidx]['balance'] ?? 0) + $delta);
+        $db['users'][$uidx]['balance'] = $newBal;
+        if (!isset($db['transactions'])) $db['transactions'] = [];
+        array_unshift($db['transactions'], [
+            "id" => "TX" . time() . rand(100, 999), "userId" => $db['users'][$uidx]['userId'],
+            "amount" => $delta, "type" => $delta >= 0 ? "deposit" : "adjust",
+            "description" => $delta >= 0 ? "Admin cộng tiền" : "Admin trừ tiền", "date" => date("c")
+        ]);
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "balance" => $newBal]);
+        break;
+
+    // Admin xóa 1 người dùng NGAY TRÊN MÁY CHỦ (không xóa được tài khoản admin).
+    case 'admin_delete_user':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $targetId = (string)($input['userId'] ?? '');
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]); exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $uidx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $targetId) { $uidx = $i; break; } }
+        if ($uidx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy người dùng."]); exit;
+        }
+        if (($db['users'][$uidx]['role'] ?? '') === 'admin') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không thể xóa tài khoản quản trị."]); exit;
+        }
+        array_splice($db['users'], $uidx, 1);
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success"]);
+        break;
+
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
     case 'backup_db':
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');

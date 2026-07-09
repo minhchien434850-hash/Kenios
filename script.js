@@ -1054,12 +1054,63 @@ window.KENIOS_DEFAULT_DB = {
       this._emit();
     },
 
+    // Cộng/trừ số dư — bản CỤC BỘ (khi không có máy chủ / chưa nhớ mật khẩu admin).
     adminAdjustBalance(userId, delta) {
       const user = this.db.users.find(u => u.userId === userId);
       if (!user) throw new Error('Không tìm thấy người dùng.');
       user.balance = Math.max(0, (user.balance || 0) + delta);
       this._persistOverrides();
       this._emit();
+    },
+
+    // Cộng/trừ số dư NGAY TRÊN MÁY CHỦ (bền vững — khách thấy tiền liền, không cần bấm
+    // "Đồng bộ"). delta > 0 là cộng, < 0 là trừ.
+    async adminAdjustBalanceServer(userId, delta, adminUser, adminPass) {
+      try {
+        const r = await fetch(`${API_URL}?action=admin_adjust_balance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+          body: JSON.stringify({ userId, delta })
+        });
+        const json = await r.json();
+        if (json && json.status === 'success') {
+          const user = this.db.users.find(u => u.userId === userId);
+          if (user) user.balance = json.balance;
+          this._persistOverrides();
+          this._emit();
+        }
+        return json;
+      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
+
+    // Xóa người dùng — bản CỤC BỘ (dự phòng khi không có máy chủ).
+    adminDeleteUser(userId) {
+      const user = this.db.users.find(u => u.userId === userId);
+      if (!user) throw new Error('Không tìm thấy người dùng.');
+      if (user.role === 'admin') throw new Error('Không thể xóa tài khoản quản trị.');
+      const me = this.currentUser();
+      if (me && me.userId === userId) throw new Error('Không thể tự xóa tài khoản của chính bạn.');
+      this.db.users = this.db.users.filter(u => u.userId !== userId);
+      this._persistOverrides();
+      this._emit();
+    },
+
+    // Xóa người dùng NGAY TRÊN MÁY CHỦ (xóa hẳn, không hiện lại khi tải trang).
+    async adminDeleteUserServer(userId, adminUser, adminPass) {
+      try {
+        const r = await fetch(`${API_URL}?action=admin_delete_user`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+          body: JSON.stringify({ userId })
+        });
+        const json = await r.json();
+        if (json && json.status === 'success') {
+          this.db.users = this.db.users.filter(u => u.userId !== userId);
+          this._persistOverrides();
+          this._emit();
+        }
+        return json;
+      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
     },
 
     adminSetUserStatus(userId, status) {
@@ -4482,9 +4533,13 @@ window.KENIOS_DEFAULT_DB = {
                 <td>${u.status === 'banned' ? 'Đã khóa' : 'Hoạt động'}</td>
                 <td>${esc(u.createdAt || '')}</td>
                 <td class="admin-row-actions">
-                  <button data-admin-adjust-balance="${esc(u.userId)}" data-delta="10000">+10k</button>
-                  <button data-admin-adjust-balance="${esc(u.userId)}" data-delta="-10000">-10k</button>
+                  <div class="user-bal-adjust">
+                    <input type="number" min="0" step="1000" class="user-adjust-amount" data-adjust-amount="${esc(u.userId)}" placeholder="Số tiền (đ)">
+                    <button data-admin-add-balance="${esc(u.userId)}" title="Cộng tiền vào tài khoản">+ Cộng</button>
+                    <button data-admin-sub-balance="${esc(u.userId)}" title="Trừ tiền khỏi tài khoản">− Trừ</button>
+                  </div>
                   ${u.role !== 'admin' ? `<button class="danger" data-admin-toggle-status="${esc(u.userId)}" data-status="${u.status === 'banned' ? 'active' : 'banned'}">${u.status === 'banned' ? 'Mở khóa' : 'Khóa'}</button>` : ''}
+                  ${u.role !== 'admin' ? `<button class="danger" data-admin-delete-user="${esc(u.userId)}" title="Xóa tài khoản này">Xóa</button>` : ''}
                 </td>
               </tr>
             `).join('')}
@@ -5305,11 +5360,58 @@ window.KENIOS_DEFAULT_DB = {
     const delVip = e.target.closest('[data-vip-remove]');
     if (delVip) { delVip.closest('[data-vip-row]')?.remove(); return; }
 
-    const adjustBalance = e.target.closest('[data-admin-adjust-balance]');
-    if (adjustBalance) {
-      Store.adminAdjustBalance(adjustBalance.dataset.adminAdjustBalance, parseInt(adjustBalance.dataset.delta, 10));
-      renderAdminTab('users');
-      toast('Đã cập nhật số dư.', 'success');
+    const addBal = e.target.closest('[data-admin-add-balance]');
+    const subBal = e.target.closest('[data-admin-sub-balance]');
+    if (addBal || subBal) {
+      const btn = addBal || subBal;
+      const userId = btn.dataset.adminAddBalance || btn.dataset.adminSubBalance;
+      const row = btn.closest('tr');
+      const input = row && row.querySelector('[data-adjust-amount]');
+      const amount = parseInt((input && input.value) || '', 10);
+      if (!amount || amount <= 0) { toast('Nhập số tiền cần cộng/trừ (lớn hơn 0).', 'error'); return; }
+      const delta = addBal ? amount : -amount;
+      const creds = getAdminCreds();
+      (async () => {
+        if (creds) {
+          const res = await Store.adminAdjustBalanceServer(userId, delta, creds.username, creds.password);
+          if (res.status === 'success') {
+            renderAdminTab('users');
+            toast(addBal ? `Đã cộng ${fmt(amount)} vào tài khoản.` : `Đã trừ ${fmt(amount)} khỏi tài khoản.`, 'success');
+            return;
+          }
+          if (res.message && /unauthor/i.test(res.message)) { toast('Cần đăng nhập lại admin 1 lần để lưu lên máy chủ.', 'error'); return; }
+          // Máy chủ lỗi khác → cập nhật cục bộ để không kẹt (nhớ Đồng bộ sau).
+          Store.adminAdjustBalance(userId, delta);
+          renderAdminTab('users');
+          toast('Đã cập nhật (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".', 'success');
+        } else {
+          Store.adminAdjustBalance(userId, delta);
+          renderAdminTab('users');
+          toast('Đã cập nhật (cục bộ). Hãy bấm "Đồng bộ lên máy chủ" để khách thấy.', 'success');
+        }
+      })();
+      return;
+    }
+
+    const delUser = e.target.closest('[data-admin-delete-user]');
+    if (delUser) {
+      const userId = delUser.dataset.adminDeleteUser;
+      const u = Store.db.users.find(x => x.userId === userId);
+      if (!confirm(`Xóa tài khoản "${u ? u.username : ''}"? Hành động không thể hoàn tác.`)) return;
+      const creds = getAdminCreds();
+      (async () => {
+        try {
+          if (creds) {
+            const res = await Store.adminDeleteUserServer(userId, creds.username, creds.password);
+            if (res.status === 'success') { renderAdminTab('users'); toast('Đã xóa người dùng.', 'success'); return; }
+            if (res.message && /unauthor/i.test(res.message)) { toast('Cần đăng nhập lại admin 1 lần để xóa trên máy chủ.', 'error'); return; }
+            if (res.message) { toast(res.message, 'error'); return; }
+          }
+          Store.adminDeleteUser(userId);
+          renderAdminTab('users');
+          toast('Đã xóa (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".', 'success');
+        } catch (err) { toast(err.message, 'error'); }
+      })();
       return;
     }
 
