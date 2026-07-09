@@ -3563,9 +3563,9 @@ window.KENIOS_DEFAULT_DB = {
     try { btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (_) {}
   }
 
-  // Các tab Cộng tác viên được phép xem (an toàn — không đụng Cấu hình, kho key,
-  // ngân hàng, hay đổi vai trò/số dư người khác). Có thể mở rộng theo yêu cầu.
-  const CTV_TABS = ['overview', 'orders'];
+  // Các tab Cộng tác viên được phép xem: Tổng quan, Đơn hàng, Dịch vụ (thêm/sửa
+  // sản phẩm) và Thư viện. KHÔNG có Cấu hình, Người dùng, Ngân hàng — an toàn.
+  const CTV_TABS = ['overview', 'orders', 'services', 'media'];
 
   function openAdminModal() {
     if (!Store.canAccessAdmin()) { toast('Bạn không có quyền truy cập.', 'error'); return; }
