@@ -660,7 +660,17 @@ window.KENIOS_DEFAULT_DB = {
       const finalPrice = p.final;
       if ((user.balance || 0) < finalPrice) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
       user.balance -= finalPrice;
-      const key = this._generateKey(service, pkg);
+      // Ưu tiên phát ĐÚNG key admin đã nhập trong kho của gói (không thêm bất kỳ đuôi nào).
+      // Chỉ khi gói chưa có kho key nào thì mới sinh key giả lập để demo.
+      const svc = this.db.services.find(s => s.id === service.id);
+      const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
+      const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
+      let key;
+      if (stock && stock.length) {
+        key = stock.shift(); // rút đúng 1 key thật khỏi kho, giữ nguyên chuỗi khách nhập
+      } else {
+        key = this._generateKey(service, pkg);
+      }
       const purchaseDate = new Date().toISOString();
       const order = {
         id: 'DH' + Date.now(), userId: user.userId, serviceId: service.id,
@@ -715,11 +725,16 @@ window.KENIOS_DEFAULT_DB = {
       user.balance -= price;
       const now = new Date().toISOString();
       const orders = items.map(({ service, pkg }, i) => {
+        // Phát đúng key admin đã nhập trong kho của gói; hết kho mới sinh key giả lập.
+        const svc = this.db.services.find(s => s.id === service.id);
+        const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
+        const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
+        const key = (stock && stock.length) ? stock.shift() : this._generateKey(service, pkg);
         const order = {
           id: 'DH' + Date.now() + i, userId: user.userId, serviceId: service.id,
           serviceName: service.name, packageName: pkg.name, price: 0,
           comboId: combo.id, comboName: combo.name,
-          os: this.serviceOs(service), key: this._generateKey(service, pkg), date: now,
+          os: this.serviceOs(service), key, date: now,
           purchaseDate: now, expiryDate: computeExpiryISO(pkg.name, now)
         };
         this.db.orders.unshift(order);
