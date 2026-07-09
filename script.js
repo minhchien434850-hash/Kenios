@@ -1183,6 +1183,15 @@ window.KENIOS_DEFAULT_DB = {
       try { const r = await fetch(`${API_URL}?action=export_db`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
       catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
     },
+    // Kho đơn hàng bền vững: thông tin (số đơn) + phục hồi đơn khách về database.json.
+    async ordersArchiveInfo(u, p) {
+      try { const r = await fetch(`${API_URL}?action=orders_archive_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error' }; }
+    },
+    async recoverOrders(u, p) {
+      try { const r = await fetch(`${API_URL}?action=recover_orders`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
     // Nạp 1 file sao lưu (.json) từ máy admin rồi đẩy lên server.
     async importDb(dbObj, u, p) {
       if (!dbObj || !dbObj.config || !Array.isArray(dbObj.users)) throw new Error('File sao lưu không hợp lệ (thiếu config/users).');
@@ -3937,6 +3946,41 @@ window.KENIOS_DEFAULT_DB = {
     }
     refreshInfo();
 
+    // Trạng thái kho đơn hàng bền vững (số đơn đang lưu).
+    function refreshOrdersInfo() {
+      const el = $('#ordersArchiveStatus');
+      if (!el) return;
+      const c = getAdminCreds();
+      if (!c) { el.textContent = 'Đăng nhập lại admin 1 lần để xem kho đơn hàng.'; return; }
+      Store.ordersArchiveInfo(c.username, c.password).then(res => {
+        if (!res || res.status !== 'success') { el.textContent = 'Không kiểm tra được kho đơn hàng.'; return; }
+        if (res.exists && res.count > 0) {
+          const when = res.time ? new Date(res.time).toLocaleString('vi-VN') : '';
+          el.innerHTML = '<span class="backup-ok-ico">' + ICONS.check + '</span> Đang lưu <b>' + res.count + '</b> đơn hàng khách' + (when ? ' · Cập nhật: ' + esc(when) : '');
+        } else {
+          el.textContent = 'Chưa có đơn hàng nào trong kho (sẽ tự lưu khi có khách mua hoặc khi bấm Đồng bộ).';
+        }
+      }).catch(() => { el.textContent = 'Không kiểm tra được kho đơn hàng.'; });
+    }
+    refreshOrdersInfo();
+
+    $('#recoverOrdersBtn')?.addEventListener('click', () => {
+      const c = getAdminCreds();
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!confirm('Phục hồi các đơn hàng khách đang thiếu từ kho đơn hàng về web? Sản phẩm/cấu hình hiện tại KHÔNG bị đụng tới.')) return;
+      withLoading($('#recoverOrdersBtn'), async () => {
+        setMsg('Đang phục hồi đơn hàng…');
+        const res = await Store.recoverOrders(c.username, c.password);
+        if (res.status === 'success') {
+          const n = res.recovered || 0;
+          setMsg(n > 0 ? `Đã phục hồi ${n} đơn hàng khách. Đang tải lại…` : 'Không có đơn nào cần phục hồi (web đang đủ đơn).', true);
+          toast(n > 0 ? `Đã phục hồi ${n} đơn hàng!` : 'Web đang đủ đơn hàng.', 'success');
+          if (n > 0) { Store._clearLocalOverrides(); setTimeout(() => location.reload(), 900); }
+          else refreshOrdersInfo();
+        } else { setMsg(res.message || 'Phục hồi thất bại.', false); toast(res.message || 'Phục hồi thất bại.', 'error'); }
+      });
+    });
+
     $('#backupNowBtn')?.addEventListener('click', () => {
       const c = getAdminCreds();
       if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
@@ -4876,6 +4920,13 @@ window.KENIOS_DEFAULT_DB = {
               <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn" style="width:100%;"><span class="btn-ico">${ICONS.upload}</span> Phục hồi từ file trên máy</button>
               <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
             </div>
+          </div>
+
+          <div class="backup-card" style="margin-top:14px;">
+            <div class="backup-card-title"><span class="backup-card-ico">${ICONS.key}</span> Đơn hàng &amp; key của khách</div>
+            <p class="muted" style="font-size:.78rem;margin:0 0 8px;">Mỗi đơn khách mua được lưu vào kho đơn hàng riêng (cộng dồn, không mất khi up code mới). Bấm "Đồng bộ lên máy chủ" cũng tự lưu toàn bộ đơn vào đây.</p>
+            <div class="secret-status" id="ordersArchiveStatus" style="margin-bottom:10px;">Đang kiểm tra kho đơn hàng…</div>
+            <button type="button" class="btn btn-glass btn-sm" id="recoverOrdersBtn" style="width:100%;"><span class="btn-ico">${ICONS.refresh}</span> Phục hồi đơn hàng khách về web</button>
           </div>
 
           <span class="admin-sync-msg" id="backupMsg" style="display:block;font-size:.82rem;color:var(--muted);margin-top:12px;"></span>

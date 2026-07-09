@@ -73,6 +73,62 @@ function write_db($file, $data) {
     return file_put_contents($file, $json_content, LOCK_EX) !== false;
 }
 
+// Kho lưu ĐƠN HÀNG KHÁCH (append-only) — tách riêng khỏi database.json để đơn + key
+// của khách KHÔNG mất khi up code mới đè lên database.json. Cộng dồn theo id, không trùng.
+function orders_archive_file() { return __DIR__ . '/orders_backup.json'; }
+
+// Gộp thêm các đơn mới vào kho đơn hàng (giữ nguyên đơn cũ, bỏ qua đơn trùng id).
+function archive_orders($newOrders) {
+    if (empty($newOrders) || !is_array($newOrders)) return;
+    $file = orders_archive_file();
+    $fp = @fopen($file, 'c+');
+    if (!$fp) return;
+    if (!flock($fp, LOCK_EX)) { fclose($fp); return; }
+    $raw = stream_get_contents($fp);
+    $existing = $raw ? (json_decode($raw, true) ?: []) : [];
+    if (!is_array($existing)) $existing = [];
+    $byId = [];
+    foreach ($existing as $o) { if (is_array($o) && !empty($o['id'])) $byId[$o['id']] = true; }
+    $changed = false;
+    foreach ($newOrders as $o) {
+        if (!is_array($o) || empty($o['id']) || isset($byId[$o['id']])) continue;
+        $existing[] = $o; $byId[$o['id']] = true; $changed = true;
+    }
+    if ($changed) {
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp);
+    }
+    flock($fp, LOCK_UN); fclose($fp);
+}
+
+// Phục hồi đơn hàng khách từ kho archive vào $db (chỉ thêm đơn còn thiếu, của user còn
+// tồn tại). Trả về số đơn đã phục hồi. Dùng khi up file mới làm database.json mất đơn.
+function recover_orders_into(&$db) {
+    $file = orders_archive_file();
+    if (!file_exists($file)) return 0;
+    $archived = json_decode(file_get_contents($file), true);
+    if (!is_array($archived) || empty($archived)) return 0;
+    if (!isset($db['orders']) || !is_array($db['orders'])) $db['orders'] = [];
+    $haveIds = [];
+    foreach ($db['orders'] as $o) { if (is_array($o) && !empty($o['id'])) $haveIds[$o['id']] = true; }
+    $userIds = [];
+    foreach (($db['users'] ?? []) as $u) { if (!empty($u['userId'])) $userIds[$u['userId']] = true; }
+    $recovered = 0;
+    foreach ($archived as $o) {
+        if (!is_array($o) || empty($o['id']) || isset($haveIds[$o['id']])) continue;
+        // Chỉ phục hồi đơn của user còn tồn tại (tránh rác trỏ tới tài khoản đã xóa).
+        if (!empty($o['userId']) && !isset($userIds[$o['userId']])) continue;
+        $db['orders'][] = $o; $haveIds[$o['id']] = true; $recovered++;
+    }
+    if ($recovered > 0) {
+        usort($db['orders'], function ($a, $b) {
+            return strcmp((string)($b['date'] ?? $b['purchaseDate'] ?? ''), (string)($a['date'] ?? $a['purchaseDate'] ?? ''));
+        });
+    }
+    return $recovered;
+}
+
 // So khớp mật khẩu: hỗ trợ hash bcrypt (password_hash) và mật khẩu văn bản thuần
 // còn sót lại từ tài khoản demo cũ. Khi khớp bằng văn bản thuần, hàm trả về true
 // nhưng KHÔNG tự ý sửa dữ liệu ở đây — nơi gọi tự quyết định có nâng cấp hash hay không.
@@ -388,6 +444,29 @@ switch ($action) {
             exit;
         }
         $db = read_db($db_file);
+
+        // TỰ PHỤC HỒI ĐƠN HÀNG: nếu database.json vừa bị up file mới đè làm MẤT SẠCH đơn
+        // (orders rỗng) nhưng kho đơn hàng bền vững còn dữ liệu, gộp đơn của khách trở lại
+        // ngay để khách không mất key. Chỉ chạy khi orders rỗng nên gần như không tốn kém.
+        if (empty($db['orders']) && file_exists(orders_archive_file())) {
+            $fp = @fopen($db_file, 'c+');
+            if ($fp && flock($fp, LOCK_EX)) {
+                $raw = stream_get_contents($fp);
+                $live = $raw ? (json_decode($raw, true) ?: []) : [];
+                if (is_array($live) && empty($live['orders'])) {
+                    if (recover_orders_into($live) > 0) {
+                        ftruncate($fp, 0); rewind($fp);
+                        fwrite($fp, json_encode($live, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                        fflush($fp);
+                    }
+                    $db = $live;
+                } elseif (is_array($live)) {
+                    $db = $live;
+                }
+                flock($fp, LOCK_UN); fclose($fp);
+            }
+        }
+
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
         $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
         $is_admin = !empty($admin_user) && admin_authenticated($db, $admin_user, $admin_pass);
@@ -587,6 +666,7 @@ switch ($action) {
         flock($fp, LOCK_UN);
         fclose($fp);
 
+        archive_orders([$order]); // lưu đơn + key vào kho đơn hàng bền vững
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
         break;
 
@@ -771,6 +851,7 @@ switch ($action) {
         flock($fp, LOCK_UN);
         fclose($fp);
 
+        archive_orders([$order]); // lưu đơn + key vào kho đơn hàng bền vững
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
         break;
 
@@ -898,6 +979,7 @@ switch ($action) {
         flock($fp, LOCK_UN);
         fclose($fp);
 
+        archive_orders($orders); // lưu tất cả đơn + key của combo vào kho đơn hàng bền vững
         echo json_encode(["status" => "success", "orders" => $orders, "balance" => $db['users'][$userIdx]['balance']]);
         break;
 
@@ -1028,6 +1110,9 @@ switch ($action) {
             // nên sau khi update hosting có thể bấm "Khôi phục" để lấy lại toàn bộ dữ liệu.
             // Ghi thẳng nội dung vừa lưu (không đọc lại file) để bản sao lưu luôn khớp.
             @file_put_contents(__DIR__ . '/database_backup.json', json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+            // Cộng dồn ĐƠN HÀNG KHÁCH vào kho đơn hàng bền vững: admin bấm "Đồng bộ" để
+            // chuẩn bị up file mới -> mọi đơn + key hiện có được lưu lại, không bị mất.
+            archive_orders($input['orders'] ?? []);
             echo json_encode(["status" => "success", "message" => "Database saved successfully"]);
         } else {
             echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
@@ -1108,6 +1193,53 @@ switch ($action) {
         } else {
             echo json_encode(["status" => "success", "exists" => false]);
         }
+        break;
+
+    // Thông tin kho đơn hàng bền vững (số đơn đang lưu, thời gian cập nhật).
+    case 'orders_archive_info':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $af = orders_archive_file();
+        if (file_exists($af)) {
+            $arr = json_decode(file_get_contents($af), true);
+            $count = is_array($arr) ? count($arr) : 0;
+            echo json_encode(["status" => "success", "exists" => true, "count" => $count, "time" => date('c', filemtime($af)), "size" => filesize($af)]);
+        } else {
+            echo json_encode(["status" => "success", "exists" => false, "count" => 0]);
+        }
+        break;
+
+    // Phục hồi đơn hàng khách từ kho đơn hàng bền vững vào database.json (chỉ thêm đơn
+    // còn thiếu của user còn tồn tại) — không đụng tới sản phẩm/cấu hình.
+    case 'recover_orders':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db0 = read_db($db_file);
+        if (!admin_authenticated($db0, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        if (!file_exists(orders_archive_file())) {
+            echo json_encode(["status" => "success", "recovered" => 0, "message" => "Chưa có kho đơn hàng nào."]); exit;
+        }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]); exit;
+        }
+        $raw = stream_get_contents($fp);
+        $live = $raw ? (json_decode($raw, true) ?: []) : [];
+        $recovered = recover_orders_into($live);
+        if ($recovered > 0) {
+            ftruncate($fp, 0); rewind($fp);
+            fwrite($fp, json_encode($live, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            fflush($fp);
+        }
+        flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "recovered" => $recovered]);
         break;
 
     // Tải toàn bộ dữ liệu thô (kèm mật khẩu băm & kho key) để admin lưu 1 bản về MÁY.
