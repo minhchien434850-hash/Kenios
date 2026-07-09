@@ -25,6 +25,7 @@ window.KENIOS_DEFAULT_DB = {
     accentColor: "#ffb703",
     referralEnabled: true,
     referralBonus: 20000,
+    showcaseEnabled: false,
     googleClientId: "",
     welcomePopupEnabled: false,
     welcomePopupTitle: "Chào mừng bạn đến với KENIOS.STORE!",
@@ -2191,6 +2192,9 @@ window.KENIOS_DEFAULT_DB = {
     const grid = $('#showcaseGrid');
     const section = $('#showcase');
     if (!grid || !section) return;
+    // Mặc định ẨN mục "Hình ảnh & Video" cho web nhẹ (không tải ảnh/video thừa).
+    // Admin có thể bật lại: Cấu hình → "Hiện mục Hình ảnh & Video".
+    if (Store.db.config.showcaseEnabled !== true) { section.hidden = true; grid.innerHTML = ''; return; }
     const media = (Store.db.media || []).filter(m => m.showcase !== false);
     if (!media.length) { section.hidden = true; grid.innerHTML = ''; return; }
     section.hidden = false;
@@ -4397,6 +4401,8 @@ window.KENIOS_DEFAULT_DB = {
           <input type="number" name="logoMotionSpeed" min="0.5" max="20" step="0.5" value="${c.logoMotionSpeed || 2}">
         </label>
 
+        <label class="admin-check-label"><input type="checkbox" name="showcaseEnabled" ${c.showcaseEnabled === true ? 'checked' : ''}> Hiện mục "Hình ảnh &amp; Video" ở trang chủ (tắt để web nhẹ hơn)</label>
+
         <div class="admin-form-section">Giới thiệu bạn bè</div>
         <label class="admin-check-label"><input type="checkbox" name="referralEnabled" ${c.referralEnabled !== false ? 'checked' : ''}> Bật chương trình giới thiệu (mỗi người có 1 mã, cả hai nhận thưởng khi người mới nạp lần đầu)</label>
         <label>Tiền thưởng mỗi bên (đồng) <input type="number" name="referralBonus" min="0" step="1000" value="${Number(c.referralBonus) || 0}"></label>
@@ -5142,6 +5148,7 @@ window.KENIOS_DEFAULT_DB = {
         accentColor: fd.get('accentColor'),
         referralEnabled: fd.get('referralEnabled') === 'on',
         referralBonus: parseInt(fd.get('referralBonus'), 10) || 0,
+        showcaseEnabled: fd.get('showcaseEnabled') === 'on',
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
         contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
