@@ -799,9 +799,16 @@ window.KENIOS_DEFAULT_DB = {
     ensureRefCode(user) {
       if (!user) return '';
       if (!user.refCode) {
-        let code;
-        do { code = 'KEN' + Math.random().toString(36).slice(2, 7).toUpperCase(); }
-        while (this.db.users.some(u => u.refCode === code));
+        // Mã theo TÊN khách cho dễ nhớ & gắn thương hiệu: KENIOS-<TÊN>. Bỏ dấu,
+        // in hoa, chỉ giữ chữ/số. Nếu trùng (tên rút gọn giống nhau) thì thêm số.
+        const clean = (user.username || '')
+          .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd')
+          .toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 14);
+        const base = 'KENIOS-' + (clean || Math.random().toString(36).slice(2, 7).toUpperCase());
+        let code = base, n = 1;
+        while (this.db.users.some(u => u !== user && (u.refCode || '') === code)) {
+          n++; code = base + n;
+        }
         user.refCode = code;
         this._persistOverrides();
       }
