@@ -72,7 +72,7 @@ thành file `database_backup.json` **ngay trên máy chủ**.
 - File `database_backup.json` **không nằm trong bộ mã nguồn**, nên khi bạn upload code
   mới nó **không bị ghi đè** — dữ liệu vẫn còn nguyên trên hosting.
 
-### Nút trong Quản trị → Cấu hình (mục "Sao lưu & Khôi phục dữ liệu")
+### Nút trong Quản trị → tab **Sao lưu** (tab riêng, chỉ admin thấy)
 - **Sao lưu ngay lên máy chủ** — tạo/cập nhật bản sao lưu trên server bất cứ lúc nào.
 - **Khôi phục từ máy chủ** — nếu lỡ mất dữ liệu (VD sau khi upload đè nhầm), bấm nút
   này để lấy lại toàn bộ web như cũ. Trang sẽ tự tải lại sau khi khôi phục.
@@ -84,7 +84,7 @@ thành file `database_backup.json` **ngay trên máy chủ**.
 1. (Nên làm) Vào **Cấu hình → Sao lưu ngay lên máy chủ**, và **Tải bản sao lưu về máy**.
 2. Upload bản code mới, nhưng **KHÔNG ghi đè** 2 file: `database.json` và
    `database_backup.json` (cả `secrets.php` — token ngân hàng).
-3. Nếu web vẫn còn dữ liệu → xong. Nếu lỡ mất → vào **Cấu hình → Khôi phục từ máy chủ**
+3. Nếu web vẫn còn dữ liệu → xong. Nếu lỡ mất → vào **tab Sao lưu → Khôi phục từ máy chủ**
    (hoặc **Phục hồi từ file trên máy** nếu server không còn file backup).
 
 > 🔒 File `database_backup.json` đã được chặn truy cập trực tiếp qua trình duyệt

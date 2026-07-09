@@ -821,6 +821,19 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .secret-box input { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .88rem; font-family: inherit; }
 .secret-box .btn { align-self: flex-start; }
 
+/* ===== Sao lưu & Khôi phục (tab riêng) ===== */
+.admin-backup-page { max-width: 720px; }
+.backup-box { border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: rgba(255,255,255,.02); }
+.backup-box .secret-status { margin-bottom: 14px; }
+.backup-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.backup-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: rgba(255,255,255,.03); }
+.backup-card-title { font-weight: 700; font-size: .92rem; margin-bottom: 4px; color: var(--ink); }
+.backup-steps ol { margin: 0; }
+.backup-steps code, .admin-backup-page code { background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 5px; font-size: .82em; }
+@media (max-width: 560px) {
+  .backup-card-grid { grid-template-columns: 1fr; }
+}
+
 /* ---------- Liên Hệ & Cộng Đồng (nhóm mạng xã hội) ---------- */
 .contact-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
 .contact-card {

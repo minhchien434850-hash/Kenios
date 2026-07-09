@@ -3745,6 +3745,7 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'combos') body.innerHTML = adminCombosHtml();
     else if (tab === 'promo') { body.innerHTML = adminPromoHtml(); $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer()); }
     else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
+    else if (tab === 'backup') { body.innerHTML = adminBackupHtml(); wireBackupBox(); }
   }
 
   function wireAdminConfigSecretBoxes() {
@@ -3795,8 +3796,6 @@ window.KENIOS_DEFAULT_DB = {
         if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
       });
     });
-
-    wireBackupBox();
   }
 
   // ---- Sao lưu & Khôi phục dữ liệu trên máy chủ ----
@@ -4715,25 +4714,6 @@ window.KENIOS_DEFAULT_DB = {
           Mỗi dòng gồm: <b>Từ khoá</b> (cách nhau bởi dấu phẩy — khách nhắn chứa 1 trong các từ này) và <b>Câu trả lời</b>. Khách hỏi trúng từ khoá nào thì AI trả lời câu đó. Thêm càng nhiều câu, AI trả lời càng thông minh.
         </p>
 
-        <div class="admin-form-section">Sao lưu &amp; Khôi phục dữ liệu (chống mất web khi cập nhật code mới)</div>
-        <div class="backup-box span-2" id="backupBox">
-          <div class="secret-status" id="backupInfoStatus">Đang kiểm tra bản sao lưu trên máy chủ…</div>
-          <p class="muted" style="font-size:.8rem;margin:2px 0 10px;line-height:1.5;">
-            Mỗi lần bấm "Đồng bộ lên máy chủ", hệ thống tự tạo 1 bản sao lưu (<code>database_backup.json</code>) ngay trên máy chủ.
-            Khi bạn tải bản code mới lên hosting, <b>đừng ghi đè</b> 2 file <code>database.json</code> và <code>database_backup.json</code> —
-            nếu lỡ mất dữ liệu, chỉ cần bấm "Khôi phục từ máy chủ" là web trở lại như cũ, không phải làm lại từ đầu.
-            Nên bấm "Tải bản sao lưu về máy" để giữ thêm 1 bản trên thiết bị cho chắc chắn.
-          </p>
-          <div class="backup-actions">
-            <button type="button" class="btn btn-glass btn-sm" id="backupNowBtn"><span class="btn-ico" data-icon="cloud"></span> Sao lưu ngay lên máy chủ</button>
-            <button type="button" class="btn btn-glass btn-sm" id="backupRestoreBtn">♻️ Khôi phục từ máy chủ</button>
-            <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn">⬇️ Tải bản sao lưu về máy</button>
-            <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn">⬆️ Phục hồi từ file trên máy</button>
-            <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
-          </div>
-          <span class="admin-sync-msg" id="backupMsg" style="display:block;font-size:.8rem;color:var(--muted);margin-top:8px;"></span>
-        </div>
-
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">Lưu cấu hình</button>
           <button type="button" class="btn btn-glass btn-sm" id="adminSyncServerBtn" style="gap:7px;">
@@ -4742,6 +4722,54 @@ window.KENIOS_DEFAULT_DB = {
           <span class="admin-sync-msg" id="adminConfigSyncMsg" style="font-size:.78rem;color:var(--muted);align-self:center;"></span>
         </div>
       </form>
+    `;
+  }
+
+  // ---- Admin: Sao lưu & Khôi phục dữ liệu (tab riêng) ----
+  function adminBackupHtml() {
+    return `
+      <div class="admin-backup-page">
+        <div class="admin-section-title" style="margin:0 0 4px;">Sao lưu &amp; Khôi phục dữ liệu</div>
+        <p class="muted" style="font-size:.85rem;margin:0 0 16px;line-height:1.6;">
+          Giúp bạn <b>không phải làm lại web từ đầu</b> mỗi khi cập nhật bản code mới lên hosting.
+          Toàn bộ dữ liệu (người dùng, đơn hàng, cấu hình, kho key…) được lưu thành file
+          <code>database_backup.json</code> ngay trên máy chủ. Mỗi lần bấm "Đồng bộ lên máy chủ",
+          hệ thống tự tạo bản sao lưu này. Khi tải code mới lên, <b>đừng ghi đè</b> 2 file
+          <code>database.json</code> và <code>database_backup.json</code> — lỡ mất dữ liệu thì bấm
+          "Khôi phục từ máy chủ" là web trở lại như cũ.
+        </p>
+
+        <div class="backup-box" id="backupBox">
+          <div class="secret-status" id="backupInfoStatus">Đang kiểm tra bản sao lưu trên máy chủ…</div>
+
+          <div class="backup-card-grid">
+            <div class="backup-card">
+              <div class="backup-card-title">☁️ Trên máy chủ</div>
+              <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Lưu / lấy lại dữ liệu ngay trên hosting.</p>
+              <button type="button" class="btn btn-primary btn-sm" id="backupNowBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico" data-icon="cloud"></span> Sao lưu ngay lên máy chủ</button>
+              <button type="button" class="btn btn-glass btn-sm" id="backupRestoreBtn" style="width:100%;">♻️ Khôi phục từ máy chủ</button>
+            </div>
+            <div class="backup-card">
+              <div class="backup-card-title">💻 Trên thiết bị</div>
+              <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Giữ thêm 1 bản trên máy để phòng khi cần.</p>
+              <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn" style="width:100%;margin-bottom:8px;">⬇️ Tải bản sao lưu về máy</button>
+              <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn" style="width:100%;">⬆️ Phục hồi từ file trên máy</button>
+              <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
+            </div>
+          </div>
+
+          <span class="admin-sync-msg" id="backupMsg" style="display:block;font-size:.82rem;color:var(--muted);margin-top:12px;"></span>
+        </div>
+
+        <div class="backup-steps">
+          <div class="admin-form-section" style="margin-top:20px;">Các bước an toàn khi upload code mới lên hosting</div>
+          <ol style="margin:0;padding-left:20px;font-size:.85rem;line-height:1.9;color:var(--muted);">
+            <li>Bấm <b>Sao lưu ngay lên máy chủ</b> (và <b>Tải bản sao lưu về máy</b> cho chắc chắn).</li>
+            <li>Upload bản code mới, nhưng <b>KHÔNG ghi đè</b> 2 file: <code>database.json</code> và <code>database_backup.json</code> (cả <code>secrets.php</code>).</li>
+            <li>Nếu web vẫn còn dữ liệu → xong. Nếu lỡ mất → bấm <b>Khôi phục từ máy chủ</b> (hoặc <b>Phục hồi từ file trên máy</b> nếu server mất sạch dữ liệu).</li>
+          </ol>
+        </div>
+      </div>
     `;
   }
 
