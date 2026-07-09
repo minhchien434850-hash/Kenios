@@ -3930,6 +3930,10 @@ window.KENIOS_DEFAULT_DB = {
         setMsg('Đang khôi phục…');
         const res = await Store.restoreFromServer(c.username, c.password);
         if (res.status === 'success') {
+          // Xóa bản ghi đè cục bộ (localStorage) TRƯỚC khi tải lại — nếu không, dữ liệu
+          // cũ trong trình duyệt sẽ đè lên bản vừa khôi phục từ máy chủ, khiến việc khôi
+          // phục như không có tác dụng.
+          Store._clearLocalOverrides();
           setMsg('Đã khôi phục. Đang tải lại trang…', true);
           toast('Đã khôi phục dữ liệu từ máy chủ!', 'success');
           setTimeout(() => location.reload(), 900);

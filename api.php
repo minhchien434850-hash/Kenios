@@ -1013,10 +1013,11 @@ switch ($action) {
         }
 
         if (write_db($db_file, $input)) {
-            // TỰ ĐỘNG SAO LƯU: mỗi lần đồng bộ thành công, chép ra database_backup.json.
+            // TỰ ĐỘNG SAO LƯU: mỗi lần đồng bộ thành công, ghi ra database_backup.json.
             // File này KHÔNG bị ghi đè khi bạn upload code mới (không nằm trong bộ mã),
             // nên sau khi update hosting có thể bấm "Khôi phục" để lấy lại toàn bộ dữ liệu.
-            @copy($db_file, __DIR__ . '/database_backup.json');
+            // Ghi thẳng nội dung vừa lưu (không đọc lại file) để bản sao lưu luôn khớp.
+            @file_put_contents(__DIR__ . '/database_backup.json', json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
             echo json_encode(["status" => "success", "message" => "Database saved successfully"]);
         } else {
             echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
@@ -1032,8 +1033,21 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
         }
         if (!file_exists($db_file)) { echo json_encode(["status" => "error", "message" => "Chưa có dữ liệu để sao lưu."]); exit; }
-        if (@copy($db_file, __DIR__ . '/database_backup.json')) {
-            echo json_encode(["status" => "success", "time" => date('c'), "size" => filesize($db_file)]);
+        // Đọc database.json dưới khóa chia sẻ để không chép trúng lúc đơn mua đang ghi dở.
+        $fp = fopen($db_file, 'r');
+        if (!$fp || !flock($fp, LOCK_SH)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không đọc được cơ sở dữ liệu, thử lại sau."]); exit;
+        }
+        $content = stream_get_contents($fp);
+        flock($fp, LOCK_UN); fclose($fp);
+        // Chỉ sao lưu khi dữ liệu là JSON hợp lệ (tránh tạo bản backup hỏng).
+        $chk = json_decode($content, true);
+        if (!is_array($chk) || !isset($chk['config'])) {
+            echo json_encode(["status" => "error", "message" => "Dữ liệu hiện tại không hợp lệ, chưa thể sao lưu."]); exit;
+        }
+        if (file_put_contents(__DIR__ . '/database_backup.json', $content, LOCK_EX) !== false) {
+            echo json_encode(["status" => "success", "time" => date('c'), "size" => strlen($content)]);
         } else {
             echo json_encode(["status" => "error", "message" => "Không tạo được bản sao lưu (kiểm tra quyền ghi thư mục)."]);
         }
@@ -1050,10 +1064,21 @@ switch ($action) {
         $backup = __DIR__ . '/database_backup.json';
         if (!file_exists($backup)) { echo json_encode(["status" => "error", "message" => "Chưa có bản sao lưu nào trên máy chủ."]); exit; }
         // Kiểm tra bản sao lưu là JSON hợp lệ trước khi ghi đè.
-        $bk = json_decode(file_get_contents($backup), true);
+        $bkContent = file_get_contents($backup);
+        $bk = json_decode($bkContent, true);
         if (!is_array($bk) || !isset($bk['config'])) { echo json_encode(["status" => "error", "message" => "Bản sao lưu hỏng hoặc không hợp lệ."]); exit; }
-        if (@copy($backup, $db_file)) {
-            echo json_encode(["status" => "success", "time" => date('c', filemtime($backup))]);
+        $bkTime = filemtime($backup);
+        // Ghi đè database.json dưới khóa độc quyền để không đụng đơn mua đang ghi song song.
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]); exit;
+        }
+        ftruncate($fp, 0); rewind($fp);
+        $ok = fwrite($fp, $bkContent) !== false;
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        if ($ok) {
+            echo json_encode(["status" => "success", "time" => date('c', $bkTime)]);
         } else {
             echo json_encode(["status" => "error", "message" => "Không khôi phục được (kiểm tra quyền ghi)."]);
         }
