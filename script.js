@@ -3926,6 +3926,30 @@ window.KENIOS_DEFAULT_DB = {
     });
   }
 
+  // Tự đồng bộ toàn bộ dữ liệu lên máy chủ NGAY sau khi admin thêm/sửa/xóa nội dung
+  // (sản phẩm, danh mục, combo...) bằng mật khẩu admin đã nhớ — không cần bấm nút riêng.
+  // Nếu chưa nhớ mật khẩu (vd. đăng nhập Google) hoặc máy chủ lỗi thì giữ bản cục bộ và
+  // nhắc bấm "Đồng bộ lên máy chủ". Trả về true nếu đã đẩy lên server.
+  async function autoSyncToServer(okMsg, localMsg) {
+    const creds = getAdminCreds();
+    const user = Store.currentUser();
+    const ok = okMsg || 'Đã lưu và đồng bộ lên máy chủ.';
+    const local = localMsg || 'Đã lưu (cục bộ). Hãy bấm "Đồng bộ lên máy chủ" để đưa lên web.';
+    if (!creds || !user || user.role !== 'admin' || creds.username.toLowerCase() !== user.username.toLowerCase()) {
+      toast(local, 'success');
+      return false;
+    }
+    try {
+      const res = await Store.trySaveToServer(creds.username, creds.password);
+      if (res && res.status === 'success') { toast(ok, 'success'); return true; }
+      toast((res && res.message) ? res.message : local, res && res.message ? 'error' : 'success');
+      return false;
+    } catch (e) {
+      toast(local, 'success');
+      return false;
+    }
+  }
+
   function renderAdminTab(tab) {
     const body = $('#adminPanelBody');
     // Chốt chặn: Cộng tác viên chỉ được xem các tab cho phép.
@@ -5205,7 +5229,7 @@ window.KENIOS_DEFAULT_DB = {
     if (e.target.closest('[data-admin-cancel-combo]')) { adminComboEditing = null; renderAdminTab('combos'); return; }
     const delCombo = e.target.closest('[data-admin-delete-combo]');
     if (delCombo) {
-      if (confirm('Xoá combo này?')) { Store.adminDeleteCombo(delCombo.dataset.adminDeleteCombo); adminComboEditing = null; renderAdminTab('combos'); toast('Đã xoá combo.', 'success'); }
+      if (confirm('Xoá combo này?')) { Store.adminDeleteCombo(delCombo.dataset.adminDeleteCombo); adminComboEditing = null; renderAdminTab('combos'); autoSyncToServer('Đã xóa combo và đồng bộ lên máy chủ.', 'Đã xóa combo (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".'); }
       return;
     }
     if (e.target.closest('#addComboItemBtn')) {
@@ -5234,7 +5258,7 @@ window.KENIOS_DEFAULT_DB = {
       if (confirm('Xóa dịch vụ này? Hành động không thể hoàn tác.')) {
         Store.adminDeleteService(deleteService.dataset.adminDeleteService);
         renderAdminTab('services');
-        toast('Đã xóa dịch vụ.', 'success');
+        autoSyncToServer('Đã xóa sản phẩm và đồng bộ lên máy chủ.', 'Đã xóa sản phẩm (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
       }
       return;
     }
@@ -5301,7 +5325,7 @@ window.KENIOS_DEFAULT_DB = {
       try {
         Store.adminDeleteCategory(deleteCategory.dataset.adminDeleteCategory);
         renderAdminTab('categories');
-        toast('Đã xóa danh mục.', 'success');
+        autoSyncToServer('Đã xóa danh mục và đồng bộ lên máy chủ.', 'Đã xóa danh mục (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
       } catch (err) { toast(err.message, 'error'); }
       return;
     }
@@ -5321,7 +5345,7 @@ window.KENIOS_DEFAULT_DB = {
       try {
         Store.adminDeleteSubcategory(deleteSubcat.dataset.adminDeleteSubcategory);
         renderAdminTab('categories');
-        toast('Đã xóa thư mục con.', 'success');
+        autoSyncToServer('Đã xóa thư mục con và đồng bộ lên máy chủ.', 'Đã xóa thư mục con (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
       } catch (err) { toast(err.message, 'error'); }
       return;
     }
@@ -5600,7 +5624,7 @@ window.KENIOS_DEFAULT_DB = {
         });
         adminComboEditing = null;
         renderAdminTab('combos');
-        toast('Đã lưu combo!', 'success');
+        autoSyncToServer('Đã lưu combo và đồng bộ lên máy chủ.', 'Đã lưu combo (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
       } catch (err) { toast(err.message, 'error'); }
       return;
     }
@@ -5646,7 +5670,7 @@ window.KENIOS_DEFAULT_DB = {
       });
       adminServiceEditing = null;
       renderAdminTab('services');
-      toast('Đã lưu dịch vụ.', 'success');
+      autoSyncToServer('Đã lưu sản phẩm và đồng bộ lên máy chủ.', 'Đã lưu sản phẩm (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
     } else if (formType === 'category') {
       const id = adminCategoryEditing === 'new' ? nextSeqId(Store.db.categories) : adminCategoryEditing;
       Store.adminSaveCategory({
@@ -5655,7 +5679,7 @@ window.KENIOS_DEFAULT_DB = {
       });
       adminCategoryEditing = null;
       renderAdminTab('categories');
-      toast('Đã lưu danh mục.', 'success');
+      autoSyncToServer('Đã lưu danh mục và đồng bộ lên máy chủ.', 'Đã lưu danh mục (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
     } else if (formType === 'subcategory') {
       const id = adminSubcategoryEditing === 'new' ? nextSeqId(Store.db.subcategories || []) : adminSubcategoryEditing;
       Store.adminSaveSubcategory({
@@ -5664,7 +5688,7 @@ window.KENIOS_DEFAULT_DB = {
       });
       adminSubcategoryEditing = null;
       renderAdminTab('categories');
-      toast('Đã lưu thư mục con.', 'success');
+      autoSyncToServer('Đã lưu thư mục con và đồng bộ lên máy chủ.', 'Đã lưu thư mục con (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
     } else if (formType === 'config') {
       Store.adminUpdateConfig({
         logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),
