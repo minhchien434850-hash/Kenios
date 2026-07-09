@@ -1748,3 +1748,17 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
   background: rgba(255, 255, 255, 0.03) !important;
   transform: translateX(3px);
 }
+
+/* ============================================================
+   Chống trình duyệt ĐIỆN THOẠI (iOS/Safari) TỰ PHÓNG TO trang khi bấm vào ô
+   nhập và hiện bàn phím. iOS chỉ auto-zoom khi cỡ chữ ô nhập < 16px, nên đặt
+   16px cho mọi ô nhập trên màn hình nhỏ là hết bị phóng to (không ảnh hưởng
+   máy tính). Loại trừ checkbox/radio (không cần).
+   ============================================================ */
+@media (max-width: 820px) {
+  input:not([type=checkbox]):not([type=radio]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
