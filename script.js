@@ -250,11 +250,12 @@ window.KENIOS_DEFAULT_DB = {
       // Ưu tiên api.php?action=get_db — endpoint này đã LỌC BỎ mật khẩu (băm), key thật
       // trong kho và token ngân hàng trước khi trả ra, nên an toàn cho khách. Chỉ khi
       // không có backend PHP (hosting tĩnh / mở bằng file://) mới đọc thẳng database.json.
+      this._dbFromServer = false; // true nếu tải được từ máy chủ (get_db) — dữ liệu tiền thật
       try {
         const res = await fetch(`api.php?action=get_db&t=${Date.now()}`, { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
-          if (json && json.config) return json;
+          if (json && json.config) { this._dbFromServer = true; return json; }
         }
       } catch (e) { /* thử tiếp database.json */ }
       try {
@@ -276,9 +277,30 @@ window.KENIOS_DEFAULT_DB = {
       if (!this._readLocal('overrides_dirty')) return;
       const local = this._readLocal('overrides');
       if (!local) return;
-      ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'].forEach(key => {
+      const fromServer = !!this._dbFromServer;
+      // Khi tải được từ MÁY CHỦ: số dư, danh sách người dùng và đơn hàng LẤY THEO SERVER
+      // (mọi thao tác tiền: mua hàng, nạp, admin cộng/trừ, đăng ký... đều ghi thẳng server),
+      // nên admin và khách luôn thấy đúng số dư còn lại + đủ user sau khi tải lại trang.
+      // Chỉ giữ lại các thứ admin chỉnh CỤC BỘ chưa đồng bộ: sản phẩm, danh mục, thư viện,
+      // cấu hình — và vai trò/trạng thái người dùng. Chế độ demo (không backend) giữ nguyên
+      // toàn bộ bản cục bộ như trước.
+      const localArrays = fromServer
+        ? ['categories', 'subcategories', 'services', 'media']
+        : ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'];
+      const serverUsers = Array.isArray(this.db.users) ? this.db.users : [];
+      localArrays.forEach(key => {
         if (Array.isArray(local[key])) this.db[key] = local[key];
       });
+      if (fromServer && Array.isArray(local.users)) {
+        // Nền là user từ server (đúng số dư + đủ user); phủ lại vai trò/trạng thái đã
+        // chỉnh cục bộ chưa đồng bộ để không mất thao tác đổi vai trò/khóa của admin.
+        const localById = {};
+        local.users.forEach(u => { if (u && u.userId) localById[u.userId] = u; });
+        this.db.users = serverUsers.map(su => {
+          const lu = su && su.userId ? localById[su.userId] : null;
+          return lu ? Object.assign({}, su, { role: lu.role, status: lu.status }) : su;
+        });
+      }
       if (local.config) Object.assign(this.db.config, local.config);
     },
 
