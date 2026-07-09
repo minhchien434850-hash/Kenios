@@ -698,10 +698,77 @@ switch ($action) {
         }
 
         if (write_db($db_file, $input)) {
+            // TỰ ĐỘNG SAO LƯU: mỗi lần đồng bộ thành công, chép ra database_backup.json.
+            // File này KHÔNG bị ghi đè khi bạn upload code mới (không nằm trong bộ mã),
+            // nên sau khi update hosting có thể bấm "Khôi phục" để lấy lại toàn bộ dữ liệu.
+            @copy($db_file, __DIR__ . '/database_backup.json');
             echo json_encode(["status" => "success", "message" => "Database saved successfully"]);
         } else {
             echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
         }
+        break;
+
+    // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
+    case 'backup_db':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        if (!file_exists($db_file)) { echo json_encode(["status" => "error", "message" => "Chưa có dữ liệu để sao lưu."]); exit; }
+        if (@copy($db_file, __DIR__ . '/database_backup.json')) {
+            echo json_encode(["status" => "success", "time" => date('c'), "size" => filesize($db_file)]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Không tạo được bản sao lưu (kiểm tra quyền ghi thư mục)."]);
+        }
+        break;
+
+    // Khôi phục: chép database_backup.json -> database.json.
+    case 'restore_db':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $backup = __DIR__ . '/database_backup.json';
+        if (!file_exists($backup)) { echo json_encode(["status" => "error", "message" => "Chưa có bản sao lưu nào trên máy chủ."]); exit; }
+        // Kiểm tra bản sao lưu là JSON hợp lệ trước khi ghi đè.
+        $bk = json_decode(file_get_contents($backup), true);
+        if (!is_array($bk) || !isset($bk['config'])) { echo json_encode(["status" => "error", "message" => "Bản sao lưu hỏng hoặc không hợp lệ."]); exit; }
+        if (@copy($backup, $db_file)) {
+            echo json_encode(["status" => "success", "time" => date('c', filemtime($backup))]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Không khôi phục được (kiểm tra quyền ghi)."]);
+        }
+        break;
+
+    // Thông tin bản sao lưu hiện có trên máy chủ (có/không, thời gian, dung lượng).
+    case 'backup_info':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $backup = __DIR__ . '/database_backup.json';
+        if (file_exists($backup)) {
+            echo json_encode(["status" => "success", "exists" => true, "time" => date('c', filemtime($backup)), "size" => filesize($backup)]);
+        } else {
+            echo json_encode(["status" => "success", "exists" => false]);
+        }
+        break;
+
+    // Tải toàn bộ dữ liệu thô (kèm mật khẩu băm & kho key) để admin lưu 1 bản về MÁY.
+    case 'export_db':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        echo json_encode(["status" => "success", "db" => $db], JSON_UNESCAPED_UNICODE);
         break;
 
     case 'secrets_status':

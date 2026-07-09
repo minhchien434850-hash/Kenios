@@ -1050,6 +1050,32 @@ window.KENIOS_DEFAULT_DB = {
       } catch (e) {
         return { status: 'error', message: 'Không có kết nối tới máy chủ PHP (chế độ demo cục bộ).' };
       }
+    },
+
+    // ---- Sao lưu & Khôi phục dữ liệu (server-side) ----
+    async backupNow(u, p) {
+      try { const r = await fetch(`${API_URL}?action=backup_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
+    async backupInfo(u, p) {
+      try { const r = await fetch(`${API_URL}?action=backup_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error' }; }
+    },
+    async restoreFromServer(u, p) {
+      try { const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
+    async exportDb(u, p) {
+      try { const r = await fetch(`${API_URL}?action=export_db`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
+    // Nạp 1 file sao lưu (.json) từ máy admin rồi đẩy lên server.
+    async importDb(dbObj, u, p) {
+      if (!dbObj || !dbObj.config || !Array.isArray(dbObj.users)) throw new Error('File sao lưu không hợp lệ (thiếu config/users).');
+      this.db = dbObj;
+      this._clearLocalOverrides();
+      this._emit();
+      return await this.trySaveToServer(u, p);
     }
   };
 
@@ -3769,6 +3795,105 @@ window.KENIOS_DEFAULT_DB = {
         if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
       });
     });
+
+    wireBackupBox();
+  }
+
+  // ---- Sao lưu & Khôi phục dữ liệu trên máy chủ ----
+  function wireBackupBox() {
+    const infoEl = $('#backupInfoStatus');
+    const msgEl = $('#backupMsg');
+    const setMsg = (t, ok) => { if (msgEl) { msgEl.textContent = t; msgEl.style.color = ok === false ? 'var(--danger, #ef4444)' : (ok ? 'var(--success, #22c55e)' : 'var(--muted)'); } };
+
+    function refreshInfo() {
+      const c = getAdminCreds();
+      if (!infoEl) return;
+      if (!c) { infoEl.textContent = 'Đăng nhập lại admin 1 lần để xem trạng thái sao lưu.'; return; }
+      Store.backupInfo(c.username, c.password).then(res => {
+        if (res.status !== 'success') { infoEl.textContent = res.message || 'Không kiểm tra được bản sao lưu.'; return; }
+        if (res.exists) {
+          const when = res.time ? new Date(res.time).toLocaleString('vi-VN') : '(không rõ thời gian)';
+          const kb = res.size ? ' · ' + Math.max(1, Math.round(res.size / 1024)) + ' KB' : '';
+          infoEl.innerHTML = '✅ Có bản sao lưu trên máy chủ · Cập nhật: ' + esc(when) + kb;
+        } else {
+          infoEl.textContent = 'Chưa có bản sao lưu. Bấm "Sao lưu ngay" hoặc "Đồng bộ lên máy chủ" để tạo.';
+        }
+      }).catch(() => { infoEl.textContent = 'Không kiểm tra được bản sao lưu.'; });
+    }
+    refreshInfo();
+
+    $('#backupNowBtn')?.addEventListener('click', () => {
+      const c = getAdminCreds();
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#backupNowBtn'), async () => {
+        setMsg('Đang sao lưu…');
+        const res = await Store.backupNow(c.username, c.password);
+        if (res.status === 'success') { setMsg('Đã tạo bản sao lưu trên máy chủ lúc ' + new Date().toLocaleTimeString('vi-VN') + '.', true); toast('Đã sao lưu lên máy chủ!', 'success'); refreshInfo(); }
+        else { setMsg(res.message || 'Sao lưu thất bại.', false); toast(res.message || 'Sao lưu thất bại.', 'error'); }
+      });
+    });
+
+    $('#backupRestoreBtn')?.addEventListener('click', () => {
+      const c = getAdminCreds();
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!confirm('Khôi phục sẽ ghi đè toàn bộ dữ liệu hiện tại bằng bản sao lưu trên máy chủ. Trang sẽ tải lại sau khi khôi phục. Tiếp tục?')) return;
+      withLoading($('#backupRestoreBtn'), async () => {
+        setMsg('Đang khôi phục…');
+        const res = await Store.restoreFromServer(c.username, c.password);
+        if (res.status === 'success') {
+          setMsg('Đã khôi phục. Đang tải lại trang…', true);
+          toast('Đã khôi phục dữ liệu từ máy chủ!', 'success');
+          setTimeout(() => location.reload(), 900);
+        } else { setMsg(res.message || 'Khôi phục thất bại.', false); toast(res.message || 'Khôi phục thất bại.', 'error'); }
+      });
+    });
+
+    $('#backupDownloadBtn')?.addEventListener('click', () => {
+      const c = getAdminCreds();
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#backupDownloadBtn'), async () => {
+        setMsg('Đang tải bản sao lưu…');
+        const res = await Store.exportDb(c.username, c.password);
+        if (res.status === 'success' && res.db) {
+          try {
+            const blob = new Blob([JSON.stringify(res.db, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+            a.href = url; a.download = 'kenios-backup-' + stamp + '.json';
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+            setMsg('Đã tải bản sao lưu về máy.', true);
+          } catch (e) { setMsg('Không tạo được file tải về.', false); }
+        } else { setMsg(res.message || 'Không lấy được dữ liệu để tải.', false); toast(res.message || 'Tải thất bại.', 'error'); }
+      });
+    });
+
+    $('#backupImportBtn')?.addEventListener('click', () => $('#backupImportInput')?.click());
+    $('#backupImportInput')?.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const c = getAdminCreds();
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); e.target.value = ''; return; }
+      if (!confirm('Phục hồi từ file "' + file.name + '" sẽ ghi đè toàn bộ dữ liệu hiện tại và đồng bộ lên máy chủ. Trang sẽ tải lại. Tiếp tục?')) { e.target.value = ''; return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        let dbObj;
+        try { dbObj = JSON.parse(reader.result); }
+        catch (err) { setMsg('File không phải JSON hợp lệ.', false); toast('File sao lưu lỗi.', 'error'); e.target.value = ''; return; }
+        setMsg('Đang phục hồi từ file…');
+        try {
+          const res = await Store.importDb(dbObj, c.username, c.password);
+          if (res && res.status === 'success') {
+            setMsg('Đã phục hồi từ file. Đang tải lại trang…', true);
+            toast('Đã phục hồi dữ liệu từ file!', 'success');
+            setTimeout(() => location.reload(), 900);
+          } else { setMsg((res && res.message) || 'Phục hồi thất bại.', false); toast((res && res.message) || 'Phục hồi thất bại.', 'error'); }
+        } catch (err) { setMsg(err.message || 'File sao lưu không hợp lệ.', false); toast(err.message || 'File sao lưu không hợp lệ.', 'error'); }
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    });
   }
 
   function adminOverviewHtml() {
@@ -4589,6 +4714,25 @@ window.KENIOS_DEFAULT_DB = {
         <p class="muted" style="grid-column:1/-1;font-size:.78rem;margin:0;">
           Mỗi dòng gồm: <b>Từ khoá</b> (cách nhau bởi dấu phẩy — khách nhắn chứa 1 trong các từ này) và <b>Câu trả lời</b>. Khách hỏi trúng từ khoá nào thì AI trả lời câu đó. Thêm càng nhiều câu, AI trả lời càng thông minh.
         </p>
+
+        <div class="admin-form-section">Sao lưu &amp; Khôi phục dữ liệu (chống mất web khi cập nhật code mới)</div>
+        <div class="backup-box span-2" id="backupBox">
+          <div class="secret-status" id="backupInfoStatus">Đang kiểm tra bản sao lưu trên máy chủ…</div>
+          <p class="muted" style="font-size:.8rem;margin:2px 0 10px;line-height:1.5;">
+            Mỗi lần bấm "Đồng bộ lên máy chủ", hệ thống tự tạo 1 bản sao lưu (<code>database_backup.json</code>) ngay trên máy chủ.
+            Khi bạn tải bản code mới lên hosting, <b>đừng ghi đè</b> 2 file <code>database.json</code> và <code>database_backup.json</code> —
+            nếu lỡ mất dữ liệu, chỉ cần bấm "Khôi phục từ máy chủ" là web trở lại như cũ, không phải làm lại từ đầu.
+            Nên bấm "Tải bản sao lưu về máy" để giữ thêm 1 bản trên thiết bị cho chắc chắn.
+          </p>
+          <div class="backup-actions">
+            <button type="button" class="btn btn-glass btn-sm" id="backupNowBtn"><span class="btn-ico" data-icon="cloud"></span> Sao lưu ngay lên máy chủ</button>
+            <button type="button" class="btn btn-glass btn-sm" id="backupRestoreBtn">♻️ Khôi phục từ máy chủ</button>
+            <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn">⬇️ Tải bản sao lưu về máy</button>
+            <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn">⬆️ Phục hồi từ file trên máy</button>
+            <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
+          </div>
+          <span class="admin-sync-msg" id="backupMsg" style="display:block;font-size:.8rem;color:var(--muted);margin-top:8px;"></span>
+        </div>
 
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">Lưu cấu hình</button>

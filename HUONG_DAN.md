@@ -60,7 +60,40 @@ và **nhận key của tất cả sản phẩm** trong combo.
 
 ---
 
+## 3. 💾 Sao lưu & Khôi phục dữ liệu (chống mất web khi cập nhật code)
+
+Tính năng này giúp **không phải làm lại web từ đầu** mỗi lần bạn tải bản code mới
+lên hosting. Toàn bộ dữ liệu (người dùng, đơn hàng, cấu hình, kho key…) được lưu
+thành file `database_backup.json` **ngay trên máy chủ**.
+
+### Cách hoạt động
+- Mỗi lần bấm **"Đồng bộ lên máy chủ"**, hệ thống **tự động** chép ra một bản sao lưu
+  `database_backup.json` trên server.
+- File `database_backup.json` **không nằm trong bộ mã nguồn**, nên khi bạn upload code
+  mới nó **không bị ghi đè** — dữ liệu vẫn còn nguyên trên hosting.
+
+### Nút trong Quản trị → Cấu hình (mục "Sao lưu & Khôi phục dữ liệu")
+- **Sao lưu ngay lên máy chủ** — tạo/cập nhật bản sao lưu trên server bất cứ lúc nào.
+- **Khôi phục từ máy chủ** — nếu lỡ mất dữ liệu (VD sau khi upload đè nhầm), bấm nút
+  này để lấy lại toàn bộ web như cũ. Trang sẽ tự tải lại sau khi khôi phục.
+- **Tải bản sao lưu về máy** — tải file `.json` về thiết bị để giữ thêm 1 bản dự phòng.
+- **Phục hồi từ file trên máy** — chọn file `.json` đã tải trước đó để nạp lại dữ liệu
+  (dùng khi cần chuyển sang hosting mới hoặc server mất sạch dữ liệu).
+
+### Quy trình an toàn khi cập nhật code mới lên hosting
+1. (Nên làm) Vào **Cấu hình → Sao lưu ngay lên máy chủ**, và **Tải bản sao lưu về máy**.
+2. Upload bản code mới, nhưng **KHÔNG ghi đè** 2 file: `database.json` và
+   `database_backup.json` (cả `secrets.php` — token ngân hàng).
+3. Nếu web vẫn còn dữ liệu → xong. Nếu lỡ mất → vào **Cấu hình → Khôi phục từ máy chủ**
+   (hoặc **Phục hồi từ file trên máy** nếu server không còn file backup).
+
+> 🔒 File `database_backup.json` đã được chặn truy cập trực tiếp qua trình duyệt
+> (khai báo trong `.htaccess`), chỉ admin đã đăng nhập mới thao tác được.
+
+---
+
 ## Nhắc chung khi deploy
 - Sau khi chỉnh trong Quản trị, luôn bấm **Đồng bộ lên máy chủ** để lưu vào `database.json`.
 - Khi upload code mới lên hosting: **không ghi đè** `database.json` (dữ liệu người
-  dùng/đơn hàng) và `secrets.php` (token ngân hàng) nếu bản trên server đang mới hơn.
+  dùng/đơn hàng), `database_backup.json` (bản sao lưu) và `secrets.php` (token ngân hàng)
+  nếu bản trên server đang mới hơn.
