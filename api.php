@@ -35,6 +35,17 @@ function duration_days_from_name($name) {
     return null;
 }
 
+// Sinh MÃ TÀI KHOẢN chỉ gồm SỐ, tăng dần giống admin (10001, 10002, ...). Tránh userId
+// dạng chữ (uniqid) gây rắc rối khi khớp nội dung chuyển khoản / hiển thị.
+function next_numeric_user_id($db) {
+    $max = 10000;
+    foreach (($db['users'] ?? []) as $u) {
+        $uid = (string)($u['userId'] ?? '');
+        if ($uid !== '' && ctype_digit($uid)) { $n = intval($uid); if ($n > $max) $max = $n; }
+    }
+    return (string)($max + 1);
+}
+
 function admin_authenticated($db, $admin_user, $admin_pass) {
     $users = $db['users'] ?? [];
     if (empty($users)) return true; // Cho phép ghi lần đầu khi chưa có tài khoản nào (khởi tạo)
@@ -140,19 +151,28 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Tên đăng nhập hoặc mật khẩu không hợp lệ (mật khẩu tối thiểu 6 ký tự)."]);
             exit;
         }
-        $db = read_db($db_file);
-        if (empty($db) || !isset($db['users'])) {
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]);
+            exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!isset($db['users']) || !is_array($db['users'])) {
+            flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Database not initialized"]);
             exit;
         }
         foreach ($db['users'] as $u) {
             if (strtolower($u['username'] ?? '') === strtolower($username)) {
+                flock($fp, LOCK_UN); fclose($fp);
                 echo json_encode(["status" => "error", "message" => "Tên đăng nhập đã tồn tại."]);
                 exit;
             }
         }
         $user = [
-            "userId" => uniqid(),
+            "userId" => next_numeric_user_id($db),
             "username" => $username,
             "password" => password_hash($password, PASSWORD_BCRYPT),
             "contact" => trim((string)($input['contact'] ?? '')),
@@ -163,10 +183,9 @@ switch ($action) {
             "createdAt" => date("Y-m-d")
         ];
         $db['users'][] = $user;
-        if (!write_db($db_file, $db)) {
-            echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
-            exit;
-        }
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
         echo json_encode(["status" => "success", "user" => safe_user($user)]);
         break;
 
@@ -297,7 +316,18 @@ switch ($action) {
         }
 
         $email = strtolower($info['email']);
-        if (empty($db) || !isset($db['users'])) {
+        // Khóa file + đọc lại DB mới nhất để tạo/đăng nhập tài khoản Google (tránh race
+        // và cấp đúng mã số tăng dần).
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]);
+            exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!isset($db['users']) || !is_array($db['users'])) {
+            flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Database not initialized"]);
             exit;
         }
@@ -309,7 +339,7 @@ switch ($action) {
 
         if ($matchedIdx === -1) {
             $user = [
-                "userId" => uniqid(),
+                "userId" => next_numeric_user_id($db),
                 "username" => $email,
                 "password" => password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT),
                 "balance" => 0,
@@ -320,12 +350,12 @@ switch ($action) {
                 "createdAt" => date("Y-m-d")
             ];
             $db['users'][] = $user;
-            if (!write_db($db_file, $db)) {
-                echo json_encode(["status" => "error", "message" => "Failed to write database file"]);
-                exit;
-            }
+            ftruncate($fp, 0); rewind($fp);
+            fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            fflush($fp); flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "success", "user" => safe_user($user)]);
         } else {
+            flock($fp, LOCK_UN); fclose($fp);
             if (($db['users'][$matchedIdx]['status'] ?? 'active') !== 'active') {
                 echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
                 exit;
