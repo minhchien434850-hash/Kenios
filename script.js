@@ -2684,14 +2684,19 @@ window.KENIOS_DEFAULT_DB = {
 
   // ---- Ghi nhớ tạm thông tin admin trong phiên để "Lưu giao diện" không cần nhập lại mật khẩu ----
   const ADMIN_CREDS_KEY = 'kenios_admin_creds_v1';
+  // Lưu trong localStorage để nhớ QUA CẢ khi đóng/mở lại tab → không bắt đăng nhập
+  // lại mỗi lần lưu/đồng bộ cấu hình. (Đọc kèm sessionStorage cho bản cũ.)
   function rememberAdminCreds(username, password) {
-    try { sessionStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify({ username, password })); } catch { /* ignore */ }
+    try { localStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify({ username, password })); } catch { /* ignore */ }
   }
   function getAdminCreds() {
-    try { return JSON.parse(sessionStorage.getItem(ADMIN_CREDS_KEY)) || null; } catch { return null; }
+    try {
+      return JSON.parse(localStorage.getItem(ADMIN_CREDS_KEY))
+        || JSON.parse(sessionStorage.getItem(ADMIN_CREDS_KEY)) || null;
+    } catch { return null; }
   }
   function clearAdminCreds() {
-    try { sessionStorage.removeItem(ADMIN_CREDS_KEY); } catch { /* ignore */ }
+    try { localStorage.removeItem(ADMIN_CREDS_KEY); sessionStorage.removeItem(ADMIN_CREDS_KEY); } catch { /* ignore */ }
   }
 
   function renderAuthArea() {
@@ -3613,13 +3618,21 @@ window.KENIOS_DEFAULT_DB = {
   // Đồng bộ toàn bộ dữ liệu lên máy chủ dùng thông tin admin đã lưu trong phiên
   // (không cần nhập lại mật khẩu). Nếu chưa có (vd. đã tải lại trang), yêu cầu đăng nhập lại.
   async function saveUiToServer() {
-    const creds = getAdminCreds();
+    let creds = getAdminCreds();
     const user = Store.currentUser();
     if (!user || user.role !== 'admin') { toast('Chỉ admin mới lưu được giao diện.', 'error'); return; }
+    // Thiếu mật khẩu đã nhớ (vd. đăng nhập bằng Google, hoặc bản cũ) → KHÔNG đăng
+    // xuất nữa. Hỏi mật khẩu 1 lần rồi nhớ lại; nếu bỏ qua thì vẫn giữ bản đã lưu
+    // cục bộ, không bắt đăng nhập lại.
     if (!creds || creds.username.toLowerCase() !== user.username.toLowerCase()) {
-      toast('Vui lòng đăng nhập lại admin 1 lần để bật lưu tự động.', 'error');
-      clearAdminCreds(); Store.logout(); openModal('#authModal');
-      return;
+      let pw = null;
+      try { pw = window.prompt('Nhập mật khẩu admin 1 lần để đồng bộ lên máy chủ (sẽ được nhớ, không hỏi lại):'); } catch { pw = null; }
+      if (!pw) {
+        toast('Đã lưu cục bộ. Chưa đồng bộ lên máy chủ (bỏ qua nhập mật khẩu).', 'success');
+        return;
+      }
+      rememberAdminCreds(user.username, pw);
+      creds = getAdminCreds();
     }
     const btn = $('#adminSyncServerBtn');
     const msgEl = $('#adminConfigSyncMsg');
