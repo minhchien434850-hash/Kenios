@@ -512,7 +512,10 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 }
 .modal-sm { max-width: 380px; }
 .modal-lg { max-width: 760px; }
-.modal-close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; line-height: 1; padding: 0; }
+/* DÍNH (sticky) + float phải để nút đóng LUÔN hiển thị khi cuộn nội dung dài
+   trong modal (VD modal Nạp tiền có mã QR) — trước đây dán tuyệt đối nên bị cuộn
+   mất theo nội dung. */
+.modal-close { position: sticky; top: 8px; float: right; margin: 0 0 4px 12px; z-index: 6; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--glass-strong, var(--glass)); backdrop-filter: blur(6px); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; line-height: 1; padding: 0; }
 .modal-close svg { width: 20px; height: 20px; }
 .modal h3 { margin: 0 0 20px; font-size: 1.2rem; }
 
