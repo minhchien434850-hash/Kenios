@@ -460,12 +460,25 @@ video.hero-banner-bg { width: 100%; height: 100%; object-fit: cover; }
 .category-card h3 { margin: 0 0 6px; font-size: 1rem; }
 .category-card p { margin: 0; color: var(--muted); font-size: .82rem; }
 .category-media {
-  display: block; height: 90px; margin: -26px -18px 14px; background-size: cover; background-position: center;
-  transition: background-size .5s ease;
+  display: block; height: 155px; margin: -26px -18px 16px; position: relative; overflow: hidden;
+  background-size: cover; background-position: center;
 }
-video.category-media { width: calc(100% + 36px); object-fit: cover; }
-.category-card:hover .category-media { background-size: 112%; }
+/* Lớp nền MỜ (chính ảnh đó làm mờ) lấp hai bên -> không có viền đen xấu */
+.category-media::before {
+  content: ""; position: absolute; inset: -14%; z-index: 0;
+  background-image: inherit; background-size: cover; background-position: center;
+  filter: blur(24px) brightness(.5);
+}
+/* Ảnh SẮC NÉT hiện FULL (contain) ở trên, không bị cắt */
+.category-media::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background-image: inherit; background-size: contain; background-position: center; background-repeat: no-repeat;
+  transition: transform .5s ease;
+}
+.category-card:hover .category-media::after { transform: scale(1.04); }
+video.category-media { width: calc(100% + 36px); object-fit: contain; background: #05050a; }
 .category-media.img-fallback { background: linear-gradient(135deg, rgba(139,92,246,.25), rgba(255,183,3,.15)); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+.category-media.img-fallback::before, .category-media.img-fallback::after { display: none; }
 
 /* ---------- Breadcrumb duyệt danh mục ---------- */
 .cat-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-bottom: 22px; font-size: .9rem; }
@@ -513,9 +526,22 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   display: flex; flex-direction: column; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 .service-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: rgba(255,183,3,.35); }
-.service-card:hover .thumb { background-size: 112%; }
-.service-card .thumb { height: 160px; background-size: cover; background-position: center; position: relative; overflow: hidden; transition: background-size .5s ease; }
-.thumb-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.service-card:hover .thumb::after { transform: scale(1.05); }
+.service-card .thumb { height: 160px; background-size: cover; background-position: center; position: relative; overflow: hidden; }
+/* Nền mờ lấp hai bên (chính ảnh làm mờ) */
+.service-card .thumb::before {
+  content: ""; position: absolute; inset: -14%; z-index: 0;
+  background-image: inherit; background-size: cover; background-position: center;
+  filter: blur(24px) brightness(.5);
+}
+/* Ảnh full sắc nét (contain) ở trên */
+.service-card .thumb::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background-image: inherit; background-size: contain; background-position: center; background-repeat: no-repeat;
+  transition: transform .5s ease;
+}
+.thumb.img-fallback::before, .thumb.img-fallback::after { display: none; }
+.thumb-video { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: contain; background: #05050a; transition: transform .5s ease; }
 .service-card:hover .thumb-video { transform: scale(1.08); }
 .service-card .thumb .thumb-badges { position: absolute; top: 12px; right: 12px; z-index: 2; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 24px); }
 .service-card .thumb .thumb-badges .badge { position: static; top: auto; right: auto; }
@@ -640,8 +666,15 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 #confirmDepositBtn .btn-ico svg { width: 18px; height: 18px; }
 
 .service-modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
-.service-modal-media { position: relative; border-radius: 14px; overflow: hidden; min-height: 220px; background-size: cover; background-position: center; }
-.service-modal-media img, .service-modal-media video { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.service-modal-media { position: relative; border-radius: 14px; overflow: hidden; min-height: 220px; background-size: cover; background-position: center; background-color: #05050a; }
+/* Nền mờ lấp hai bên (chính ảnh làm mờ) -> ảnh hiện FULL không viền đen */
+.service-modal-media::before {
+  content: ""; position: absolute; inset: -14%; z-index: 0;
+  background-image: inherit; background-size: cover; background-position: center;
+  filter: blur(26px) brightness(.5);
+}
+.service-modal-media.img-fallback::before { display: none; }
+.service-modal-media img, .service-modal-media video { width: 100%; height: 100%; object-fit: contain; position: absolute; inset: 0; z-index: 1; }
 .service-modal-media .badge { position: absolute; top: 12px; right: 12px; }
 .service-modal-info { display: flex; flex-direction: column; gap: 14px; }
 .feature-list { display: flex; flex-direction: column; gap: 8px; }
@@ -1713,7 +1746,7 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
   .category-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .category-card { padding: 20px 14px; }
   .category-icon svg { width: 32px; height: 32px; }
-  .category-media { height: 70px; }
+  .category-media { height: 130px; margin: -20px -14px 14px; }
 
   /* Service grid — 3 cột NHỎ GỌN, tách theo từng danh mục (không gộp chung) */
   .service-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -1820,6 +1853,7 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
   /* Category grid 1 cột nếu min quá lớn */
   .category-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .category-card { padding: 16px 10px; }
+  .category-media { height: 118px; margin: -16px -10px 12px; }
 
   /* Hero */
   .hero-brand-row { gap: 10px; }

@@ -3924,15 +3924,19 @@ window.KENIOS_DEFAULT_DB = {
 
     const modalImg = $('#serviceModalImg');
     const modalVideo = $('#serviceModalVideo');
+    const modalMedia = modalImg.closest('.service-modal-media');
     if (isVideoUrl(service.image)) {
       modalVideo.src = service.image;
       modalVideo.hidden = false;
       modalImg.hidden = true;
+      if (modalMedia) modalMedia.style.backgroundImage = '';
     } else {
       modalImg.src = service.image;
       modalImg.alt = service.name;
       modalImg.hidden = false;
       modalVideo.hidden = true;
+      // Đặt nền cho khung modal = chính ảnh, để lớp mờ ::before lấp hai bên (ảnh hiện full).
+      if (modalMedia) modalMedia.style.backgroundImage = service.image ? `url('${String(service.image).replace(/'/g, "%27")}')` : '';
     }
     const inStock = Store.serviceInStock(service);
     $('#serviceModalBadge').textContent = inStock ? 'Còn hàng' : 'Hết hàng';
