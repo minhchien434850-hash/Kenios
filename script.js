@@ -4423,8 +4423,8 @@ window.KENIOS_DEFAULT_DB = {
     if (tab === 'overview') body.innerHTML = adminOverviewHtml();
     else if (tab === 'services') body.innerHTML = adminServicesHtml();
     else if (tab === 'categories') body.innerHTML = adminCategoriesHtml();
-    else if (tab === 'orders') body.innerHTML = adminOrdersHtml();
-    else if (tab === 'users') body.innerHTML = adminUsersHtml();
+    else if (tab === 'orders') { body.innerHTML = adminOrdersHtml(); wireAdminTableTools('orders'); }
+    else if (tab === 'users') { body.innerHTML = adminUsersHtml(); wireAdminTableTools('users'); }
     else if (tab === 'media') body.innerHTML = adminMediaHtml();
     else if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();
     else if (tab === 'combos') body.innerHTML = adminCombosHtml();
@@ -5039,14 +5039,15 @@ window.KENIOS_DEFAULT_DB = {
   function adminOrdersHtml() {
     const orders = Store.db.orders;
     return `
+      ${adminTableToolsHtml('orders', 'Tìm mã đơn, khách, dịch vụ, gói, key...')}
       <div class="admin-table-wrap">
-        <table class="admin-table">
+        <table class="admin-table" data-admin-table="orders">
           <thead><tr><th>Mã đơn</th><th>Người dùng</th><th>Dịch vụ</th><th>Gói</th><th>Giá</th><th>Key</th><th>Thời gian</th><th>Thao tác</th></tr></thead>
           <tbody>
             ${orders.length ? orders.map(o => {
               const user = Store.db.users.find(u => u.userId === o.userId);
               const refundable = (o.price || 0) > 0 && !o.refunded;
-              return `<tr>
+              return `<tr data-admin-row>
                 <td>${esc(o.id)}</td><td>${esc(user?.username || o.userId)}</td><td>${esc(o.serviceName)}</td>
                 <td>${esc(o.packageName)}</td><td>${fmt(o.price)}</td><td>${esc(o.key)}</td>
                 <td>${new Date(o.date).toLocaleString('vi-VN')}</td>
@@ -5061,15 +5062,82 @@ window.KENIOS_DEFAULT_DB = {
     `;
   }
 
+  // Thanh công cụ (ô tìm kiếm + nút xuất CSV) dùng chung cho bảng Đơn hàng / Người dùng.
+  function adminTableToolsHtml(kind, placeholder) {
+    return `
+      <div class="admin-table-tools">
+        <input type="search" class="admin-tbl-search" data-admin-search="${kind}" placeholder="${esc(placeholder)}" autocomplete="off">
+        <span class="admin-tbl-count" data-admin-count="${kind}"></span>
+        <button type="button" class="btn btn-glass btn-sm" data-admin-export="${kind}">⬇ Xuất CSV</button>
+      </div>`;
+  }
+
+  // Lọc các dòng bảng theo từ khoá (khớp nội dung hiển thị) + cập nhật bộ đếm.
+  function wireAdminTableTools(kind) {
+    const search = $(`[data-admin-search="${kind}"]`);
+    const table = $(`[data-admin-table="${kind}"]`);
+    const countEl = $(`[data-admin-count="${kind}"]`);
+    if (!table) return;
+    const rows = $$('tbody tr[data-admin-row]', table);
+    const applyFilter = () => {
+      const term = (search?.value || '').trim().toLowerCase();
+      let shown = 0;
+      rows.forEach(tr => {
+        const match = !term || tr.textContent.toLowerCase().includes(term);
+        tr.hidden = !match;
+        if (match) shown++;
+      });
+      if (countEl) countEl.textContent = term ? `${shown}/${rows.length} dòng` : `${rows.length} dòng`;
+    };
+    search?.addEventListener('input', applyFilter);
+    applyFilter();
+    $(`[data-admin-export="${kind}"]`)?.addEventListener('click', () => exportAdminCsv(kind, (search?.value || '').trim().toLowerCase()));
+  }
+
+  // Xuất CSV (kèm BOM để Excel đọc đúng tiếng Việt). Tôn trọng từ khoá đang lọc.
+  function downloadCsv(filename, headers, rows) {
+    const cell = v => { const s = String(v == null ? '' : v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const lines = [headers.map(cell).join(',')].concat(rows.map(r => r.map(cell).join(',')));
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function exportAdminCsv(kind, term) {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const hit = txt => !term || String(txt).toLowerCase().includes(term);
+    if (kind === 'orders') {
+      const rows = (Store.db.orders || []).map(o => {
+        const user = Store.db.users.find(u => u.userId === o.userId);
+        return [o.id, user?.username || o.userId, o.serviceName, o.packageName, o.price || 0,
+          o.key, o.date ? new Date(o.date).toLocaleString('vi-VN') : '', o.refunded ? 'Đã hoàn' : ''];
+      }).filter(r => hit(r.join(' ')));
+      downloadCsv(`kenios-donhang-${stamp}.csv`,
+        ['Mã đơn', 'Người dùng', 'Dịch vụ', 'Gói', 'Giá', 'Key', 'Thời gian', 'Hoàn tiền'], rows);
+      toast(`Đã xuất ${rows.length} đơn hàng ra CSV.`, 'success');
+    } else if (kind === 'users') {
+      const rows = (Store.db.users || []).map(u => [
+        u.username, u.userId, u.role === 'admin' ? 'Admin' : (u.role === 'ctv' ? 'Cộng tác viên' : 'Thành viên'),
+        u.balance || 0, u.status === 'banned' ? 'Đã khóa' : 'Hoạt động', u.createdAt || ''
+      ]).filter(r => hit(r.join(' ')));
+      downloadCsv(`kenios-nguoidung-${stamp}.csv`,
+        ['Tên đăng nhập', 'Mã KH', 'Vai trò', 'Số dư', 'Trạng thái', 'Ngày tạo'], rows);
+      toast(`Đã xuất ${rows.length} người dùng ra CSV.`, 'success');
+    }
+  }
+
   function adminUsersHtml() {
     const users = Store.db.users;
     return `
+      ${adminTableToolsHtml('users', 'Tìm tên đăng nhập, mã KH...')}
       <div class="admin-table-wrap">
-        <table class="admin-table">
+        <table class="admin-table" data-admin-table="users">
           <thead><tr><th>Tên đăng nhập</th><th>Vai trò</th><th>Số dư</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
           <tbody>
             ${users.map(u => `
-              <tr>
+              <tr data-admin-row>
                 <td>${esc(u.username)}</td>
                 <td>
                   <select class="user-role-select" data-admin-set-role="${esc(u.userId)}" title="Đổi vai trò">
