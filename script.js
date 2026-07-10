@@ -2486,7 +2486,7 @@ window.KENIOS_DEFAULT_DB = {
     const logoUrl = cfg.logoUrl || '';
     const isVid = isVideoUrl(logoUrl);           // logo là VIDEO -> dùng <video>, không phải <img>
     const src = logoUrl || './logo.png';
-    $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => {
+    $$('.brand-mark-wrap, .mobile-nav-brand-mark, .auth-logo').forEach(w => {
       w.classList.toggle('has-photo', hasPhoto);
       const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
       w.innerHTML = isVid
