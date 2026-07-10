@@ -60,6 +60,66 @@ function admin_authenticated($db, $admin_user, $admin_pass) {
     return false;
 }
 
+// ---- CHỐNG DÒ MẬT KHẨU / SPAM (rate limit) ----
+// Đếm số lần thử theo "khoá" (VD login:ten, card:userId) trong 1 cửa sổ thời gian; vượt
+// ngưỡng thì KHOÁ TẠM. Lưu ở file riêng rate_limits.json (khoá flock) để không đụng DB.
+// Trả về ['ok'=>bool, 'retry'=>số giây còn phải chờ nếu bị khoá].
+function rate_limit_hit($key, $maxAttempts, $windowSec, $lockSec) {
+    $file = __DIR__ . '/rate_limits.json';
+    $now = time();
+    $fp = @fopen($file, 'c+');
+    if (!$fp) return ['ok' => true]; // không chặn nếu không mở được file (tránh khoá oan)
+    if (!flock($fp, LOCK_EX)) { fclose($fp); return ['ok' => true]; }
+    $raw = stream_get_contents($fp);
+    $data = $raw ? (json_decode($raw, true) ?: []) : [];
+    // Dọn mục cũ để file không phình.
+    foreach ($data as $k => $v) {
+        $exp = max($v['lockUntil'] ?? 0, ($v['first'] ?? 0) + $windowSec);
+        if ($exp < $now - 3600) unset($data[$k]);
+    }
+    $rec = $data[$key] ?? ['count' => 0, 'first' => $now, 'lockUntil' => 0];
+    if (($rec['lockUntil'] ?? 0) > $now) {
+        $retry = $rec['lockUntil'] - $now;
+        flock($fp, LOCK_UN); fclose($fp);
+        return ['ok' => false, 'retry' => $retry];
+    }
+    if ($now - ($rec['first'] ?? $now) > $windowSec) $rec = ['count' => 0, 'first' => $now, 'lockUntil' => 0];
+    $rec['count'] = ($rec['count'] ?? 0) + 1;
+    $locked = false;
+    if ($rec['count'] > $maxAttempts) { $rec['lockUntil'] = $now + $lockSec; $locked = true; }
+    $data[$key] = $rec;
+    ftruncate($fp, 0); rewind($fp);
+    fwrite($fp, json_encode($data));
+    fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+    return $locked ? ['ok' => false, 'retry' => $lockSec] : ['ok' => true];
+}
+// Xoá bộ đếm khi thao tác thành công (VD đăng nhập đúng) để không khoá oan lần sau.
+function rate_limit_reset($key) {
+    $file = __DIR__ . '/rate_limits.json';
+    $fp = @fopen($file, 'c+');
+    if (!$fp) return;
+    if (!flock($fp, LOCK_EX)) { fclose($fp); return; }
+    $raw = stream_get_contents($fp);
+    $data = $raw ? (json_decode($raw, true) ?: []) : [];
+    if (isset($data[$key])) {
+        unset($data[$key]);
+        ftruncate($fp, 0); rewind($fp); fwrite($fp, json_encode($data)); fflush($fp);
+    }
+    flock($fp, LOCK_UN); fclose($fp);
+}
+// IP khách (ưu tiên header proxy phổ biến). Chỉ dùng để rate-limit, không tin tuyệt đối.
+function client_ip() {
+    $xff = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+    if ($xff !== '') { $parts = explode(',', $xff); return trim($parts[0]); }
+    return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+}
+// Định dạng "còn phải chờ" thân thiện (giây -> phút/giây).
+function retry_human($sec) {
+    $sec = max(1, intval($sec));
+    if ($sec < 60) return $sec . ' giây';
+    return ceil($sec / 60) . ' phút';
+}
+
 function read_db($file) {
     if (!file_exists($file)) return [];
     $content = file_get_contents($file);
@@ -169,6 +229,12 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Tên đăng nhập hoặc mật khẩu không hợp lệ (mật khẩu tối thiểu 6 ký tự)."]);
             exit;
         }
+        // Chống tạo tài khoản hàng loạt: tối đa 5 tài khoản / giờ / IP, vượt thì khoá 1 giờ.
+        $rlReg = rate_limit_hit('reg:' . client_ip(), 5, 3600, 3600);
+        if (!$rlReg['ok']) {
+            echo json_encode(["status" => "error", "message" => "Tạo tài khoản quá nhiều lần. Vui lòng thử lại sau " . retry_human($rlReg['retry']) . "."]);
+            exit;
+        }
         $fp = fopen($db_file, 'c+');
         if (!$fp || !flock($fp, LOCK_EX)) {
             if ($fp) fclose($fp);
@@ -272,6 +338,14 @@ switch ($action) {
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $username = trim($input['username'] ?? '');
         $password = (string)($input['password'] ?? '');
+        // Chống dò mật khẩu: tối đa 8 lần thử / 15 phút cho mỗi (IP + tên đăng nhập),
+        // vượt thì khoá tạm 15 phút. Đăng nhập đúng sẽ xoá bộ đếm.
+        $rlKey = 'login:' . client_ip() . ':' . strtolower($username);
+        $rl = rate_limit_hit($rlKey, 8, 900, 900);
+        if (!$rl['ok']) {
+            echo json_encode(["status" => "error", "message" => "Bạn đã thử sai quá nhiều lần. Vui lòng thử lại sau " . retry_human($rl['retry']) . "."]);
+            exit;
+        }
         $db = read_db($db_file);
         if (empty($db) || !isset($db['users'])) {
             echo json_encode(["status" => "error", "message" => "Database not initialized"]);
@@ -285,6 +359,7 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Sai tên đăng nhập hoặc mật khẩu."]);
             exit;
         }
+        rate_limit_reset($rlKey); // đăng nhập đúng -> xoá bộ đếm
         if (($db['users'][$matchedIdx]['status'] ?? 'active') !== 'active') {
             echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
             exit;
@@ -1395,6 +1470,13 @@ switch ($action) {
         foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $meUser = $u; break; } }
         if (!$meUser) { echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]); exit; }
         if (!token_ok($meUser, $token)) { echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]); exit; }
+
+        // Chống spam thẻ: tối đa 5 lần gửi thẻ / phút / tài khoản. Gửi thẻ sai liên tục dễ bị
+        // cổng card2k phạt/khoá đối tác, nên chặn ngay ở đây.
+        $rlCard = rate_limit_hit('card:' . $userId, 5, 60, 120);
+        if (!$rlCard['ok']) {
+            echo json_encode(["status" => "error", "message" => "Bạn gửi thẻ quá nhanh. Vui lòng thử lại sau " . retry_human($rlCard['retry']) . "."]); exit;
+        }
 
         $request_id = 'CARD' . $userId . time() . rand(1000, 9999);
         $sign = md5($partnerKey . $code . $serial); // chữ ký thesieure: md5(partner_key + code + serial)
