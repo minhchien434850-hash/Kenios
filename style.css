@@ -41,7 +41,12 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 40px); overflow-x: hidden; max-width: 100%; }
+/* Đặt nền cho html (không chỉ body): khi người dùng chụm ngón thu nhỏ trên iOS (iOS bỏ
+   qua "chặn zoom"), vùng dôi ra ngoài khung trang sẽ khớp màu nền, không lộ dải tối lệch. */
+html {
+  scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 40px);
+  overflow-x: hidden; background: var(--bg);
+}
 body {
   margin: 0;
   background: var(--bg);
@@ -50,6 +55,8 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   overflow-x: hidden;
+  /* Chốt bề rộng đúng bằng màn hình để nội dung không bị đẩy lệch khi zoom. */
+  width: 100%; max-width: 100%;
 }
 h1, h2, h3, h4, .btn, .brand-text strong { font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; font-weight: 700; }
 img { max-width: 100%; display: block; }
