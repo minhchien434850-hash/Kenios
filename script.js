@@ -4165,15 +4165,12 @@ window.KENIOS_DEFAULT_DB = {
     Store.secretsStatus(user.username, pass).then(res => {
       if (res.status !== 'success') {
         $('#bankTokenStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
-        $('#ttsKeyStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
         return;
       }
       $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
-      $('#ttsKeyStatus').innerHTML = res.ttsApiKeyConfigured ? '✅ Đã cấu hình API key — giọng nói dùng Google Cloud TTS thật.' : 'Chưa cấu hình — trang đang dùng giọng trình duyệt để dự phòng.';
       if ($('#cardApiStatus')) $('#cardApiStatus').innerHTML = res.cardConfigured ? '✅ Đã cấu hình API thẻ cào — khách nạp thẻ được.' : 'Chưa cấu hình — nhập Partner ID + Partner Key để bật nạp thẻ cào.';
     }).catch(() => {
       $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái.';
-      $('#ttsKeyStatus').textContent = 'Không kiểm tra được trạng thái.';
       if ($('#cardApiStatus')) $('#cardApiStatus').textContent = 'Không kiểm tra được trạng thái.';
     });
 
@@ -4186,18 +4183,6 @@ window.KENIOS_DEFAULT_DB = {
         const res = await Store.saveSecrets(c.username, c.password, { bankToken: token });
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
         if (res.status === 'success') { $('#bankTokenInput').value = ''; renderAdminTab('config'); }
-      });
-    });
-
-    $('#saveTtsKeyBtn').addEventListener('click', () => {
-      const key = $('#ttsApiKeyInput').value.trim();
-      const c = getAdminCreds();
-      if (!key) { toast('Vui lòng nhập API key trước khi lưu.', 'error'); return; }
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
-      withLoading($('#saveTtsKeyBtn'), async () => {
-        const res = await Store.saveSecrets(c.username, c.password, { ttsApiKey: key });
-        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
-        if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
       });
     });
 
@@ -5111,18 +5096,6 @@ window.KENIOS_DEFAULT_DB = {
           </label>
           <button type="button" class="btn btn-glass btn-sm" id="saveBankTokenBtn">🔒 Lưu Token Webhook</button>
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
-        </div>
-
-        <div class="admin-form-section">Giọng nói Google Cloud TTS (chạy được trên mọi trình duyệt, kể cả Safari/iPhone)</div>
-        <div class="secret-box span-2" id="ttsKeyBox">
-          <div class="secret-status" id="ttsKeyStatus">Đang kiểm tra trạng thái…</div>
-          <label>Google Cloud Text-to-Speech API Key
-            <input type="password" id="ttsApiKeyInput" placeholder="Để trống nếu giữ nguyên API key hiện tại" autocomplete="new-password">
-          </label>
-          <button type="button" class="btn btn-glass btn-sm" id="saveTtsKeyBtn">🔒 Lưu API Key</button>
-          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">
-            Lấy API key miễn phí tại <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--gold-soft);">Google Cloud Console</a> (bật API "Cloud Text-to-Speech"). Chưa cấu hình thì trang sẽ tự dùng giọng trình duyệt để dự phòng. Khóa được lưu riêng ở máy chủ, không hiển thị lại và không gửi cho khách truy cập trang.
-          </p>
         </div>
 
         <div class="admin-form-section">Nạp thẻ cào (thesieure.com)</div>
