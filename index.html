@@ -35,6 +35,14 @@
     <img src="./favicon.svg" alt="" class="boot-loader-mark">
     <span class="boot-loader-spinner"></span>
   </div>
+  <script>
+    // Chốt an toàn phòng hờ: nếu vì lý do gì màn hình chờ không được gỡ (lỗi tải JS...),
+    // tự ẩn sau 6s để không che mất trang web.
+    setTimeout(function () {
+      var l = document.getElementById('bootLoader');
+      if (l) { l.style.opacity = '0'; l.style.visibility = 'hidden'; l.style.pointerEvents = 'none'; setTimeout(function () { if (l && l.parentNode) l.parentNode.removeChild(l); }, 600); }
+    }, 6000);
+  </script>
 
   <div class="bg-mesh" aria-hidden="true"></div>
 
