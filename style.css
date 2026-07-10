@@ -41,7 +41,7 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 40px); }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 40px); overflow-x: hidden; max-width: 100%; }
 body {
   margin: 0;
   background: var(--bg);
