@@ -5506,7 +5506,7 @@ window.KENIOS_DEFAULT_DB = {
       if (!btn) return;
       const reqId = btn.dataset.cardApprove;
       const suggest = btn.dataset.suggest || '';
-      const input = window.prompt('Nhập SỐ TIỀN cộng cho khách (xem cột "Thực nhận" bên card2k). Ví dụ card2k trả 8.100đ thì nhập 8100:', suggest);
+      const input = window.prompt('Số tiền cộng cho khách (đã tính sẵn theo % chiết khấu = số khách được hứa nhận). Sửa lại nếu cần rồi bấm OK:', suggest);
       if (input == null) return;
       const amount = parseInt(String(input).replace(/[^\d]/g, ''), 10);
       if (!amount || amount <= 0) { toast('Số tiền không hợp lệ.', 'error'); return; }
@@ -5529,9 +5529,14 @@ window.KENIOS_DEFAULT_DB = {
       rows.innerHTML = list.length
         ? list.map(r => {
             const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
-            const real = r.status === 'success' && r.realAmount ? fmt(r.realAmount) : '—';
+            // Số tiền KHÁCH CẦN NHẬN = mệnh giá × (100 − % chiết khấu) — đúng như lúc khách
+            // thấy "bạn sẽ nhận X đ". Dùng để hiện sẵn + điền sẵn khi duyệt tay.
+            const disc = cardDiscountPct(String(r.telco || '').toUpperCase(), Number(r.declaredAmount) || 0);
+            const suggest = Math.floor((Number(r.declaredAmount) || 0) * (100 - disc) / 100);
+            const real = r.status === 'success' && r.realAmount ? fmt(r.realAmount)
+                       : (r.status === 'pending' ? `<span style="color:var(--gold-soft);">cần cộng ${fmt(suggest)}</span>` : '—');
             const act = (r.status === 'pending' && r.requestId)
-              ? `<button type="button" class="btn btn-primary btn-sm" data-card-approve="${esc(r.requestId)}" data-suggest="${esc(String(r.declaredAmount || ''))}">Duyệt tay</button>`
+              ? `<button type="button" class="btn btn-primary btn-sm" data-card-approve="${esc(r.requestId)}" data-suggest="${suggest}">Duyệt tay ${fmt(suggest)}</button>`
               : '';
             return `<tr><td>${esc(r.username)}</td><td>${esc(r.telco)}</td><td>${fmt(r.declaredAmount)}</td><td>${real}</td><td><span class="card-status-badge ${esc(r.status)}">${label[r.status] || r.status}</span></td><td style="white-space:nowrap;font-size:.78rem;">${esc(when)}</td><td>${act}</td></tr>`;
           }).join('')
