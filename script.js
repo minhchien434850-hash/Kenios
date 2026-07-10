@@ -2480,7 +2480,9 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function applyBranding(cfg) {
-    const hasPhoto = !!cfg.logoUrl; // logo ảnh riêng → hiển thị full (phủ kín khung như app-icon)
+    // Logo mặc định giờ là ẢNH đầy đủ (logo.png) → LUÔN hiển thị full khung (phủ kín, không
+    // viền/nền trang trí) như app-icon, dù admin có đặt logo riêng hay không.
+    const hasPhoto = true;
     const logoUrl = cfg.logoUrl || '';
     const isVid = isVideoUrl(logoUrl);           // logo là VIDEO -> dùng <video>, không phải <img>
     const src = logoUrl || './logo.png';
