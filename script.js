@@ -4767,16 +4767,23 @@ window.KENIOS_DEFAULT_DB = {
 
   function adminPkgRowHtml(p) {
     const keys = p.keys || [];
+    // Khi mới tải trang, client CHỈ có keyCount từ máy chủ (danh sách key thật chưa tải về
+    // để bảo mật). Hiển thị keyCount để admin thấy ĐÚNG số lượng kho — tránh tưởng nhầm là
+    // mất key sau khi khôi phục/cập nhật. Muốn xem/sửa từng key thì bấm "Tải kho key đầy đủ".
+    const keysLoaded = Array.isArray(p.keys);
+    const stockCount = keysLoaded ? keys.length : (typeof p.keyCount === 'number' ? p.keyCount : 0);
+    const needLoad = !keysLoaded && stockCount > 0;
     return `
       <div class="admin-pkg-row" data-pkg-id="${esc(p.id || '')}">
         <div class="admin-pkg-row-main">
           <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
           <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
-          <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>Kho key (<span data-pkg-key-count>${keys.length}</span>)</button>
+          <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>Kho key (<span data-pkg-key-count>${stockCount}</span>)</button>
           <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
         </div>
         <div class="admin-pkg-keys-panel" data-pkg-keys-panel hidden>
           <p class="muted" style="font-size:.75rem;margin:0 0 6px;">Mỗi dòng là 1 key. Khi khách mua gói này, hệ thống tự rút đúng 1 key ở đây và xóa khỏi kho.</p>
+          ${needLoad ? `<p class="muted" style="font-size:.75rem;margin:0 0 6px;color:var(--gold-soft);">Có <b>${stockCount}</b> key trên máy chủ. Bấm <b>"Tải kho key đầy đủ"</b> ở đầu trang Dịch vụ để xem/sửa từng key. Không tải mà lưu vẫn <b>giữ nguyên</b> kho key trên máy chủ.</p>` : ''}
           <ul class="admin-pkg-key-list" data-pkg-key-list>${pkgKeyListItems(keys)}</ul>
           <textarea class="pkg-keys-input" data-pkg-keys-input placeholder="Dán nhiều key, mỗi dòng 1 key rồi bấm Thêm key"></textarea>
           <div class="admin-pkg-keys-actions">
