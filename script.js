@@ -4354,6 +4354,9 @@ window.KENIOS_DEFAULT_DB = {
 
   function renderAdminTab(tab) {
     const body = $('#adminPanelBody');
+    // Nút "Tải kho key đầy đủ" chỉ liên quan tới sản phẩm → chỉ hiện ở tab Dịch vụ.
+    const loadKeysBtn = $('#adminLoadKeysBtn');
+    if (loadKeysBtn) loadKeysBtn.hidden = (tab !== 'services');
     // Chốt chặn: Cộng tác viên chỉ được xem các tab cho phép.
     if (Store.isCtv() && !CTV_TABS.includes(tab)) {
       body.innerHTML = '<p class="empty-note">Bạn (Cộng tác viên) không có quyền xem mục này.</p>';
