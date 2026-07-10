@@ -1817,3 +1817,10 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
 .acs-chip.ok { color: #4ade80; border-color: rgba(34,197,94,.3); }
 .acs-chip.pend { color: var(--gold-soft); border-color: rgba(255,183,3,.3); }
 .acs-chip.fail { color: #f87171; border-color: rgba(248,113,113,.3); }
+
+/* Cảnh báo kho key sắp hết (admin Tổng quan) */
+.admin-lowstock { margin: 4px 0 20px; padding: 14px 16px; border-radius: 12px; background: rgba(255,183,3,.08); border: 1px solid rgba(255,183,3,.3); }
+.admin-lowstock-head { font-size: .88rem; color: var(--gold-soft); margin-bottom: 8px; }
+.admin-lowstock-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-lowstock-item { font-size: .78rem; padding: 4px 10px; border-radius: 999px; background: var(--glass); border: 1px solid var(--border); }
+.admin-lowstock-item.out { color: #f87171; border-color: rgba(248,113,113,.35); }

@@ -1128,6 +1128,29 @@ window.KENIOS_DEFAULT_DB = {
       } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
     },
 
+    // Admin hoàn tiền 1 đơn hàng (server): cộng lại giá đơn cho khách + đánh dấu đã hoàn.
+    async adminRefundOrder(orderId, adminUser, adminPass) {
+      try {
+        const r = await fetch(`${API_URL}?action=admin_refund_order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+          body: JSON.stringify({ orderId })
+        });
+        const json = await r.json();
+        if (json && json.status === 'success') {
+          const o = this.db.orders.find(x => x.id === orderId);
+          if (o) {
+            o.refunded = true;
+            const u = this.db.users.find(x => x.userId === o.userId);
+            if (u) u.balance = json.balance;
+          }
+          this._persistOverrides();
+          this._emit();
+        }
+        return json;
+      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
+
     // Xóa người dùng — bản CỤC BỘ (dự phòng khi không có máy chủ).
     adminDeleteUser(userId) {
       const user = this.db.users.find(u => u.userId === userId);
@@ -4414,6 +4437,24 @@ window.KENIOS_DEFAULT_DB = {
     const topProducts = Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 6);
     const maxProd = Math.max(1, ...topProducts.map(p => p.revenue));
 
+    // ----- Cảnh báo kho key sắp hết (gói có kho key thật, còn ≤ 5) -----
+    const LOW = 5;
+    const lowStock = [];
+    (db.services || []).forEach(s => {
+      (s.packages || []).forEach(p => {
+        if (typeof p.keyCount === 'number' && p.keyCount <= LOW) {
+          lowStock.push({ svc: s.name, pkg: p.name, count: p.keyCount });
+        }
+      });
+    });
+    const lowStockHtml = lowStock.length ? `
+      <div class="admin-lowstock">
+        <div class="admin-lowstock-head">⚠️ <b>${lowStock.length}</b> gói sắp/đã hết key — hãy nhập thêm để không gián đoạn bán hàng</div>
+        <div class="admin-lowstock-list">
+          ${lowStock.map(x => `<span class="admin-lowstock-item ${x.count === 0 ? 'out' : ''}">${esc(x.svc)} · ${esc(x.pkg)}: <b>${x.count === 0 ? 'HẾT KEY' : 'còn ' + x.count}</b></span>`).join('')}
+        </div>
+      </div>` : '';
+
     // ----- Lịch sử dùng mã giảm giá -----
     const codes = (db.config.discountCodes || []).filter(d => (parseInt(d.usedCount, 10) || 0) > 0)
       .sort((a, b) => (parseInt(b.usedCount, 10) || 0) - (parseInt(a.usedCount, 10) || 0));
@@ -4427,6 +4468,8 @@ window.KENIOS_DEFAULT_DB = {
       <div class="admin-stat-grid">
         ${stats.map(s => `<div class="admin-stat-card"><strong>${s.value}</strong><span>${s.label}</span></div>`).join('')}
       </div>
+
+      ${lowStockHtml}
 
       <h4 class="admin-section-title">Doanh thu 14 ngày gần nhất</h4>
       <div class="revenue-chart">${chart}</div>
@@ -4756,16 +4799,20 @@ window.KENIOS_DEFAULT_DB = {
     return `
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Mã đơn</th><th>Người dùng</th><th>Dịch vụ</th><th>Gói</th><th>Giá</th><th>Key</th><th>Thời gian</th></tr></thead>
+          <thead><tr><th>Mã đơn</th><th>Người dùng</th><th>Dịch vụ</th><th>Gói</th><th>Giá</th><th>Key</th><th>Thời gian</th><th>Thao tác</th></tr></thead>
           <tbody>
             ${orders.length ? orders.map(o => {
               const user = Store.db.users.find(u => u.userId === o.userId);
+              const refundable = (o.price || 0) > 0 && !o.refunded;
               return `<tr>
                 <td>${esc(o.id)}</td><td>${esc(user?.username || o.userId)}</td><td>${esc(o.serviceName)}</td>
                 <td>${esc(o.packageName)}</td><td>${fmt(o.price)}</td><td>${esc(o.key)}</td>
                 <td>${new Date(o.date).toLocaleString('vi-VN')}</td>
+                <td class="admin-row-actions">${refundable
+                  ? `<button data-refund-order="${esc(o.id)}" title="Hoàn tiền đơn này vào số dư khách">↩ Hoàn tiền</button>`
+                  : (o.refunded ? '<span class="muted" style="font-size:.75rem;">Đã hoàn</span>' : '—')}</td>
               </tr>`;
-            }).join('') : '<tr><td colspan="7">Chưa có đơn hàng nào.</td></tr>'}
+            }).join('') : '<tr><td colspan="8">Chưa có đơn hàng nào.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -5696,6 +5743,22 @@ window.KENIOS_DEFAULT_DB = {
           renderAdminTab('users');
           toast('Đã cập nhật (cục bộ). Hãy bấm "Đồng bộ lên máy chủ" để khách thấy.', 'success');
         }
+      })();
+      return;
+    }
+
+    const refundOrder = e.target.closest('[data-refund-order]');
+    if (refundOrder) {
+      const orderId = refundOrder.dataset.refundOrder;
+      const o = Store.db.orders.find(x => x.id === orderId);
+      if (!o) return;
+      const creds = getAdminCreds();
+      if (!creds) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!confirm(`Hoàn ${fmt(o.price)} của đơn "${orderId}" vào số dư khách?`)) return;
+      (async () => {
+        const res = await Store.adminRefundOrder(orderId, creds.username, creds.password);
+        if (res.status === 'success') { renderAdminTab('orders'); toast(`Đã hoàn ${fmt(o.price)} cho khách.`, 'success'); }
+        else { toast(res.message || 'Hoàn tiền thất bại.', 'error'); }
       })();
       return;
     }

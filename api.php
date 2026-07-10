@@ -1243,6 +1243,57 @@ switch ($action) {
         echo json_encode(["status" => "success", "balance" => $newBal]);
         break;
 
+    // Admin HOÀN TIỀN 1 đơn hàng: cộng lại giá đơn vào số dư khách + đánh dấu đã hoàn
+    // (chống hoàn 2 lần) — nguyên tử bằng khóa file.
+    case 'admin_refund_order':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $orderId = (string)($input['orderId'] ?? '');
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]); exit;
+        }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $oidx = -1;
+        foreach (($db['orders'] ?? []) as $i => $o) { if (($o['id'] ?? '') === $orderId) { $oidx = $i; break; } }
+        if ($oidx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy đơn hàng."]); exit;
+        }
+        if (!empty($db['orders'][$oidx]['refunded'])) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Đơn này đã được hoàn tiền rồi."]); exit;
+        }
+        $price = floatval($db['orders'][$oidx]['price'] ?? 0);
+        $ouid = (string)($db['orders'][$oidx]['userId'] ?? '');
+        $uidx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $ouid) { $uidx = $i; break; } }
+        if ($uidx === -1) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản của đơn này."]); exit;
+        }
+        $db['orders'][$oidx]['refunded'] = true;
+        $newBal = floatval($db['users'][$uidx]['balance'] ?? 0) + $price;
+        $db['users'][$uidx]['balance'] = $newBal;
+        if (!isset($db['transactions'])) $db['transactions'] = [];
+        array_unshift($db['transactions'], [
+            "id" => "TX" . time() . rand(100, 999), "userId" => $ouid,
+            "amount" => $price, "type" => "refund",
+            "description" => "Hoàn tiền đơn " . $orderId, "date" => date("c")
+        ]);
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "balance" => $newBal]);
+        break;
+
     // Admin xóa 1 người dùng NGAY TRÊN MÁY CHỦ (không xóa được tài khoản admin).
     case 'admin_delete_user':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
