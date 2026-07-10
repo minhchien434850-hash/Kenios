@@ -147,13 +147,13 @@
 
   <div class="marquee-bar">
     <div class="marquee-track" id="marqueeTrack">
-      <span id="marqueeText1">📢 Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24</span>
-      <span id="marqueeText2" aria-hidden="true">📢 Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24</span>
+      <span id="marqueeText1">Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24</span>
+      <span id="marqueeText2" aria-hidden="true">Hệ thống nạp tiền VietQR tự động 24/7 · Key được gửi tự động ngay trong mục Đơn Hàng Của Tôi · Trợ lý ảo AI hỗ trợ giải đáp 24/24</span>
     </div>
   </div>
 
   <div class="flash-sale-bar" id="flashSaleBar" hidden>
-    <span class="flash-sale-ico">⚡</span>
+    <span class="flash-sale-ico" data-icon="bolt"></span>
     <span class="flash-sale-title" id="flashSaleTitle">FLASH SALE</span>
     <span class="flash-sale-desc" id="flashSaleDesc"></span>
     <span class="flash-sale-countdown" id="flashSaleCountdown" aria-label="Thời gian còn lại"></span>
@@ -440,7 +440,7 @@
             <li>Số tiền: <strong id="qrAmount"></strong></li>
             <li class="qr-note-row">Nội dung (mã KH): <strong id="qrNote"></strong> <button type="button" class="btn-copy-key" id="copyNoteBtn" data-icon="copy" title="Sao chép nội dung"></button></li>
           </ul>
-          <p class="deposit-hint">⚠️ Chuyển khoản đúng <b>nội dung</b> trên (chính là mã khách hàng của bạn). Hệ thống tự động cộng tiền khi nhận được — hoặc bấm nút bên dưới để kiểm tra ngay.</p>
+          <p class="deposit-hint"><span class="inline-ico" data-icon="warn"></span> Chuyển khoản đúng <b>nội dung</b> trên (chính là mã khách hàng của bạn). Hệ thống tự động cộng tiền khi nhận được — hoặc bấm nút bên dưới để kiểm tra ngay.</p>
           <button type="button" class="btn btn-primary btn-block" id="confirmDepositBtn"><span class="btn-ico" data-icon="check"></span> Kiểm tra giao dịch</button>
         </div>
       </div>
@@ -478,7 +478,7 @@
           <p class="deposit-bonus-note" id="cardReceiveNote" hidden></p>
           <label>Số Serial <input type="text" id="cardSerial" placeholder="Nhập số serial trên thẻ" autocomplete="off" inputmode="numeric"></label>
           <label>Mã thẻ (Code) <input type="text" id="cardCode" placeholder="Nhập mã thẻ cào" autocomplete="off" inputmode="numeric"></label>
-          <p class="deposit-hint">⚠️ Nhập đúng <b>mệnh giá</b> của thẻ. Sai mệnh giá có thể bị mất thẻ hoặc trừ phạt theo quy định nhà mạng. Số dư được cộng sau khi hệ thống kiểm tra thẻ (thường vài phút).</p>
+          <p class="deposit-hint"><span class="inline-ico" data-icon="warn"></span> Nhập đúng <b>mệnh giá</b> của thẻ. Sai mệnh giá có thể bị mất thẻ hoặc trừ phạt theo quy định nhà mạng. Số dư được cộng sau khi hệ thống kiểm tra thẻ (thường vài phút).</p>
           <p class="deposit-card-msg" id="cardChargeMsg" hidden></p>
           <button type="button" class="btn btn-primary btn-block" id="submitCardBtn"><span class="btn-ico" data-icon="card"></span> Nạp thẻ</button>
           <button type="button" class="btn btn-glass btn-block" id="checkCardBtn"><span class="btn-ico" data-icon="check"></span> Kiểm tra thẻ đã nạp</button>

@@ -35,13 +35,13 @@ window.KENIOS_DEFAULT_DB = {
     hotline: "",
     zaloLink: "",
     contactChannels: [
-      { id: "zalo", label: "Zalo", icon: "💬", url: "", enabled: false },
+      { id: "zalo", label: "Zalo", icon: "", url: "", enabled: false },
       { id: "phone", label: "Hotline", icon: "", url: "", enabled: false },
-      { id: "telegram", label: "Telegram", icon: "📢", url: "", enabled: false },
-      { id: "facebook", label: "Facebook", icon: "👍", url: "", enabled: false },
-      { id: "instagram", label: "Instagram", icon: "📷", url: "", enabled: false },
-      { id: "tiktok", label: "TikTok", icon: "🎵", url: "", enabled: false },
-      { id: "email", label: "Email", icon: "📧", url: "", enabled: false }
+      { id: "telegram", label: "Telegram", icon: "", url: "", enabled: false },
+      { id: "facebook", label: "Facebook", icon: "", url: "", enabled: false },
+      { id: "instagram", label: "Instagram", icon: "", url: "", enabled: false },
+      { id: "tiktok", label: "TikTok", icon: "", url: "", enabled: false },
+      { id: "email", label: "Email", icon: "", url: "", enabled: false }
     ],
     contactAdminName: "ADMIN SHOP",
     contactAdminSub: "Chủ sở hữu hệ thống",
@@ -1782,8 +1782,20 @@ window.KENIOS_DEFAULT_DB = {
     email: _svg('<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>'),
     youtube: _svg('<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="m10 9.2 5 2.8-5 2.8Z" fill="currentColor" stroke="none"/>'),
     messenger: _svg('<path d="M12 3c5 0 9 3.7 9 8.4 0 4.6-4 8.3-9 8.3-1 0-2-.2-2.9-.5L5 20.5l.3-3.4A8 8 0 0 1 3 11.4C3 6.7 7 3 12 3Z"/><path d="m7.5 13.5 3-3 2 2 3-2.5"/>'),
-    discord: _svg('<path d="M7 7a15 15 0 0 1 10 0l1.5 3.5a12 12 0 0 1 1 5l-2.5 2-1.2-2M7 7 5.5 10.5a12 12 0 0 0-1 5l2.5 2 1.2-2"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/>')
+    discord: _svg('<path d="M7 7a15 15 0 0 1 10 0l1.5 3.5a12 12 0 0 1 1 5l-2.5 2-1.2-2M7 7 5.5 10.5a12 12 0 0 0-1 5l2.5 2 1.2-2"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/>'),
+    // ---- Icon SVG bổ sung (thay cho emoji của điện thoại) ----
+    warn: _svg('<path d="M12 3.5 21 19H3L12 3.5Z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r="0.6" fill="currentColor" stroke="none"/>'),
+    info: _svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><circle cx="12" cy="8" r="0.7" fill="currentColor" stroke="none"/>'),
+    bell: _svg('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2.5H4.5L6 16Z"/><path d="M10 19a2 2 0 0 0 4 0"/>'),
+    megaphone: _svg('<path d="M4 10v4a1 1 0 0 0 1 1h2l9 4V5L7 9H5a1 1 0 0 0-1 1Z"/><path d="M18 9a3 3 0 0 1 0 6"/>'),
+    undo: _svg('<path d="M9 7 4 12l5 5"/><path d="M4 12h11a5 5 0 0 1 0 10h-2"/>'),
+    ban: _svg('<circle cx="12" cy="12" r="8.5"/><path d="m6.2 6.2 11.6 11.6"/>'),
+    party: _svg('<path d="M4 20 9 8l7 7-12 5Z"/><path d="M14 4v2M18 6l-1.5 1.5M20 10h-2"/>'),
+    sale: _svg('<path d="M4 4h7.5l8.5 8.5-7.5 7.5L4 11.5V4Z"/><circle cx="8.5" cy="8.5" r="1.4"/><path d="M10.5 14.5 15 10"/>')
   };
+  // SVG icon để CHÈN THẲNG vào nút/nhãn (gắn class 'ico' cho CSS canh cỡ theo chữ).
+  // Dùng thay cho emoji của điện thoại — giao diện luôn nhất quán trên mọi máy.
+  const ico = (name) => (ICONS[name] || '').replace('<svg ', '<svg class="ico" ');
   // Map id kênh liên hệ -> tên icon SVG ở trên (mặc định dùng headset nếu không khớp).
   const CONTACT_ICON_MAP = {
     zalo: 'zalo', phone: 'phone', hotline: 'phone', telegram: 'telegram', facebook: 'facebook',
@@ -2298,9 +2310,10 @@ window.KENIOS_DEFAULT_DB = {
     applyHeroBackground(cfg.bgUrl);
     applySiteBackground(cfg.siteBgUrl);
 
-    const m = `📢 ${cfg.marqueeText}`;
-    setText('#marqueeText1', m);
-    setText('#marqueeText2', m);
+    const m = `${ico('megaphone')} ${esc(cfg.marqueeText || '')}`;
+    const mq1 = $('#marqueeText1'), mq2 = $('#marqueeText2');
+    if (mq1) mq1.innerHTML = m;
+    if (mq2) mq2.innerHTML = m;
     // Marquee chạy bằng JS requestAnimationFrame — không bị block bởi prefers-reduced-motion hay CSS cache
     const marqueeSpeed = cfg.marqueeSpeed || 26;
     startMarquee(marqueeSpeed);
@@ -2452,7 +2465,7 @@ window.KENIOS_DEFAULT_DB = {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = opts.btnClass;
-    btn.innerHTML = `<span>💬</span> Liên hệ`;
+    btn.innerHTML = `${ico('headset')} Liên hệ`;
     const dropdown = document.createElement('div');
     dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
     dropdown.innerHTML = enabled.map(c => {
@@ -2795,7 +2808,7 @@ window.KENIOS_DEFAULT_DB = {
           <div class="drawer-subcat-list">
             ${subs.map(s => `
               <button type="button" class="drawer-subcat-link" data-cat="${esc(c.id)}" data-sub="${esc(s.id)}">
-                👉 ${esc(s.name)}
+                ${ico('chevron')} ${esc(s.name)}
               </button>
             `).join('')}
           </div>
@@ -3107,7 +3120,7 @@ window.KENIOS_DEFAULT_DB = {
   function starsHtml(rating) {
     const full = Math.round(rating);
     let out = '';
-    for (let i = 1; i <= 5; i++) out += i <= full ? '★' : `<span class="empty">★</span>`;
+    for (let i = 1; i <= 5; i++) out += `<span class="rs-star${i <= full ? ' on' : ''}">${ICONS.star}</span>`;
     return `<span class="review-stars">${out}</span>`;
   }
 
@@ -3310,7 +3323,7 @@ window.KENIOS_DEFAULT_DB = {
       progress = `<div class="vip-progress"><span style="width:${pct}%"></span></div>
         <small style="color:var(--muted);">Mua thêm <b style="color:var(--gold-soft);">${fmt(need)}</b> để lên hạng <b>${esc(next.name)}</b> (giảm ${parseFloat(next.discountPercent) || 0}%)</small>`;
     } else if (current) {
-      progress = `<small style="color:var(--muted);">Bạn đang ở hạng cao nhất 🎉</small>`;
+      progress = `<small style="color:var(--muted);">Bạn đang ở hạng cao nhất ${ico('party')}</small>`;
     }
     return `
       <div class="vip-badge-box">
@@ -3344,7 +3357,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="profile-meta" style="display:flex;flex-direction:column;gap:4px;">
           <strong style="font-size:1.15rem;color:var(--ink);">${esc(user.username)}</strong>
           <span style="font-size:0.8rem;color:var(--muted);">ID tài khoản: <code style="color:var(--gold-soft);">${esc(user.userId)}</code></span>
-          <span style="font-size:0.8rem;color:var(--muted);">${user.role === 'admin' ? '🛡️ Quản trị viên' : user.role === 'ctv' ? '🤝 Cộng tác viên' : '👤 Thành viên'}</span>
+          <span style="font-size:0.8rem;color:var(--muted);">${user.role === 'admin' ? `${ico('shield')} Quản trị viên` : user.role === 'ctv' ? `${ico('heart')} Cộng tác viên` : `${ico('users')} Thành viên`}</span>
         </div>
       </div>
       <div class="profile-balance" style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);margin-bottom:12px;">
@@ -3357,7 +3370,7 @@ window.KENIOS_DEFAULT_DB = {
         const bonus = Number(Store.db.config.referralBonus) || 0;
         return `
       <div class="profile-referral">
-        <div class="pr-head"><span>🎁</span> Giới thiệu bạn bè${bonus > 0 ? ` — cả hai +<b>${fmt(bonus)}</b> khi bạn của bạn nạp tiền lần đầu` : ''}</div>
+        <div class="pr-head">${ico('gift')} Giới thiệu bạn bè${bonus > 0 ? ` — cả hai +<b>${fmt(bonus)}</b> khi bạn của bạn nạp tiền lần đầu` : ''}</div>
         <div class="pr-code-row">
           <input id="profRefCode" type="text" readonly value="${esc(st.code)}" onclick="this.select()">
           <button type="button" class="btn btn-primary btn-sm" id="profRefCopy"><span class="btn-ico">${ICONS.copy}</span> Sao chép mã</button>
@@ -3635,11 +3648,11 @@ window.KENIOS_DEFAULT_DB = {
     const min = parseInt(c.depositBonusMin, 10) || 0;
     const bonus = Store.depositBonusFor(amount);
     if (bonus > 0) {
-      noteEl.innerHTML = `🎁 Khuyến mãi <b>+${percent}%</b>: bạn được cộng thêm <b>${fmt(bonus)}</b> — tổng nhận <b>${fmt(amount + bonus)}</b>.`;
+      noteEl.innerHTML = `${ico('gift')} Khuyến mãi <b>+${percent}%</b>: bạn được cộng thêm <b>${fmt(bonus)}</b> — tổng nhận <b>${fmt(amount + bonus)}</b>.`;
     } else if (min > 0) {
-      noteEl.innerHTML = `🎁 Đang có khuyến mãi <b>+${percent}%</b> cho đơn nạp từ <b>${fmt(min)}</b> trở lên.`;
+      noteEl.innerHTML = `${ico('gift')} Đang có khuyến mãi <b>+${percent}%</b> cho đơn nạp từ <b>${fmt(min)}</b> trở lên.`;
     } else {
-      noteEl.innerHTML = `🎁 Đang có khuyến mãi nạp tiền <b>+${percent}%</b>.`;
+      noteEl.innerHTML = `${ico('gift')} Đang có khuyến mãi nạp tiền <b>+${percent}%</b>.`;
     }
     noteEl.hidden = false;
   }
@@ -3828,12 +3841,12 @@ window.KENIOS_DEFAULT_DB = {
       currentDiscount = { valid: true, code: p.code };
       msgEl.hidden = false;
       msgEl.className = 'discount-apply-msg ok';
-      msgEl.innerHTML = `✅ Áp dụng mã <b>${esc(p.code)}</b> — giảm thêm <b>${fmt(p.codeDiscount)}</b>.`;
+      msgEl.innerHTML = `${ico('check')} Áp dụng mã <b>${esc(p.code)}</b> — giảm thêm <b>${fmt(p.codeDiscount)}</b>.`;
     } else {
       currentDiscount = null;
       msgEl.hidden = false;
       msgEl.className = 'discount-apply-msg err';
-      msgEl.textContent = '⚠️ ' + (p.codeReason || 'Mã giảm giá không hợp lệ.');
+      msgEl.innerHTML = `${ico('warn')} ${esc(p.codeReason || 'Mã giảm giá không hợp lệ.')}`;
     }
     updateServiceModalTotal();
   }
@@ -3986,7 +3999,7 @@ window.KENIOS_DEFAULT_DB = {
       </div>`).join('');
     let form = '';
     if (canReview) {
-      const pick = [1, 2, 3, 4, 5].map(n => `<span data-star="${n}" class="${n <= reviewDraftRating ? 'on' : ''}">★</span>`).join('');
+      const pick = [1, 2, 3, 4, 5].map(n => `<span data-star="${n}" class="rs-star${n <= reviewDraftRating ? ' on' : ''}">${ICONS.star}</span>`).join('');
       form = `
         <div class="review-form">
           <strong style="font-size:.9rem;">${mine ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn'}</strong>
@@ -3998,7 +4011,7 @@ window.KENIOS_DEFAULT_DB = {
       form = `<p class="muted" style="font-size:.8rem;margin:6px 0 0;">Chỉ khách đã mua sản phẩm này mới được đánh giá.</p>`;
     }
     wrap.innerHTML = `
-      <h4 class="reviews-title">⭐ Đánh giá sản phẩm</h4>
+      <h4 class="reviews-title">${ico('star')} Đánh giá sản phẩm</h4>
       ${head}
       <div class="review-list">${list}</div>
       ${form}`;
@@ -4033,10 +4046,10 @@ window.KENIOS_DEFAULT_DB = {
     if (isNaN(exp)) return null;
     const diff = exp - Date.now();
     const dayMs = 86400000;
-    if (diff <= 0) return { cls: 'expired', text: '⛔ Key đã hết hạn — gia hạn để tiếp tục dùng' };
+    if (diff <= 0) return { cls: 'expired', text: `${ico('ban')} Key đã hết hạn — gia hạn để tiếp tục dùng` };
     if (diff <= 3 * dayMs) {
       const days = Math.ceil(diff / dayMs);
-      return { cls: 'soon', text: `⏳ Sắp hết hạn — còn ${days} ngày, nên gia hạn sớm` };
+      return { cls: 'soon', text: `${ico('clock')} Sắp hết hạn — còn ${days} ngày, nên gia hạn sớm` };
     }
     return null;
   }
@@ -4077,7 +4090,7 @@ window.KENIOS_DEFAULT_DB = {
     // Banner tổng hợp số key sắp/đã hết hạn để khách chú ý gia hạn.
     const warnCount = orders.filter(o => orderExpiryWarn(o)).length;
     const banner = warnCount > 0
-      ? `<div class="order-expiry-warn expired" style="display:block;margin-bottom:12px;">🔔 Bạn có <b>${warnCount}</b> key sắp/đã hết hạn — hãy gia hạn để không gián đoạn.</div>`
+      ? `<div class="order-expiry-warn expired" style="display:block;margin-bottom:12px;">${ico('bell')} Bạn có <b>${warnCount}</b> key sắp/đã hết hạn — hãy gia hạn để không gián đoạn.</div>`
       : '';
     $('#ordersList').innerHTML = orders.length
       ? banner + orders.map(orderCardHtml).join('')
@@ -4260,12 +4273,12 @@ window.KENIOS_DEFAULT_DB = {
     const rows = [];
     cart.forEach((it, i) => {
       const info = cartItemInfo(it);
-      if (!info) { rows.push(`<div class="cart-item"><div class="cart-item-main"><strong>Sản phẩm không còn</strong></div><button class="cart-item-del" data-cart-remove="${i}" title="Xóa">✕</button></div>`); return; }
+      if (!info) { rows.push(`<div class="cart-item"><div class="cart-item-main"><strong>Sản phẩm không còn</strong></div><button class="cart-item-del" data-cart-remove="${i}" title="Xóa">${ico('close')}</button></div>`); return; }
       total += info.price;
       rows.push(`<div class="cart-item">
         <div class="cart-item-main"><strong>${esc(info.service.name)}</strong><span>${esc(info.pkg.name)}</span></div>
         <span class="cart-item-price">${fmt(info.price)}</span>
-        <button class="cart-item-del" data-cart-remove="${i}" title="Xóa khỏi giỏ">✕</button>
+        <button class="cart-item-del" data-cart-remove="${i}" title="Xóa khỏi giỏ">${ico('close')}</button>
       </div>`);
     });
     listEl.innerHTML = rows.length ? rows.join('') : '<p class="empty-note">Giỏ hàng trống. Vào sản phẩm bấm "Thêm vào giỏ" để thêm.</p>';
@@ -4588,9 +4601,9 @@ window.KENIOS_DEFAULT_DB = {
         $('#bankTokenStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
         return;
       }
-      $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
-      if ($('#cardApiStatus')) $('#cardApiStatus').innerHTML = res.cardConfigured ? '✅ Đã cấu hình API thẻ cào — khách nạp thẻ được.' : 'Chưa cấu hình — nhập Partner ID + Partner Key để bật nạp thẻ cào.';
-      if ($('#telegramStatus')) $('#telegramStatus').innerHTML = res.telegramConfigured ? '✅ Đã bật thông báo Telegram — admin nhận tin khi có đơn/nạp tiền.' : 'Chưa bật — nhập Bot Token + Chat ID để nhận thông báo.';
+      $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? `${ico('check')} Đã cấu hình token webhook.` : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
+      if ($('#cardApiStatus')) $('#cardApiStatus').innerHTML = res.cardConfigured ? `${ico('check')} Đã cấu hình API thẻ cào — khách nạp thẻ được.` : 'Chưa cấu hình — nhập Partner ID + Partner Key để bật nạp thẻ cào.';
+      if ($('#telegramStatus')) $('#telegramStatus').innerHTML = res.telegramConfigured ? `${ico('check')} Đã bật thông báo Telegram — admin nhận tin khi có đơn/nạp tiền.` : 'Chưa bật — nhập Bot Token + Chat ID để nhận thông báo.';
     }).catch(() => {
       $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái.';
       if ($('#cardApiStatus')) $('#cardApiStatus').textContent = 'Không kiểm tra được trạng thái.';
@@ -4853,7 +4866,7 @@ window.KENIOS_DEFAULT_DB = {
     });
     const lowStockHtml = lowStock.length ? `
       <div class="admin-lowstock">
-        <div class="admin-lowstock-head">⚠️ <b>${lowStock.length}</b> gói sắp/đã hết key — hãy nhập thêm để không gián đoạn bán hàng</div>
+        <div class="admin-lowstock-head">${ico('warn')} <b>${lowStock.length}</b> gói sắp/đã hết key — hãy nhập thêm để không gián đoạn bán hàng</div>
         <div class="admin-lowstock-list">
           ${lowStock.map(x => `<span class="admin-lowstock-item ${x.count === 0 ? 'out' : ''}">${esc(x.svc)} · ${esc(x.pkg)}: <b>${x.count === 0 ? 'HẾT KEY' : 'còn ' + x.count}</b></span>`).join('')}
         </div>
@@ -4865,7 +4878,7 @@ window.KENIOS_DEFAULT_DB = {
 
     return `
       <div class="admin-guide">
-        <b>📘 Hướng dẫn:</b> Trang <b>Tổng quan</b> cho bạn thấy sức khoẻ shop: số liệu nhanh, biểu đồ
+        <b>${ico('bulb')} Hướng dẫn:</b> Trang <b>Tổng quan</b> cho bạn thấy sức khoẻ shop: số liệu nhanh, biểu đồ
         <b>doanh thu 14 ngày</b>, <b>sản phẩm bán chạy</b> và <b>lịch sử dùng mã giảm giá</b>. Dữ liệu tự
         cập nhật theo đơn hàng & giao dịch thực tế.
       </div>
@@ -5009,7 +5022,7 @@ window.KENIOS_DEFAULT_DB = {
           <input placeholder="Tên gói (VD: 7 Ngày)" data-pkg-name value="${esc(p.name)}">
           <input type="number" min="0" step="1000" placeholder="Giá (đ)" data-pkg-price value="${p.price}">
           <button type="button" class="btn btn-glass btn-sm" data-pkg-keys-toggle>Kho key (<span data-pkg-key-count>${stockCount}</span>)</button>
-          <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>✕</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-remove-pkg-row>${ico('close')}</button>
         </div>
         <div class="admin-pkg-keys-panel" data-pkg-keys-panel hidden>
           <p class="muted" style="font-size:.75rem;margin:0 0 6px;">Mỗi dòng là 1 key. Khi khách mua gói này, hệ thống tự rút đúng 1 key ở đây và xóa khỏi kho.</p>
@@ -5028,7 +5041,7 @@ window.KENIOS_DEFAULT_DB = {
 
   function pkgKeyListItems(keys) {
     return keys.length
-      ? keys.map((k, i) => `<li><span>${esc(k)}</span><button type="button" data-remove-pkg-key="${i}" title="Xóa key này">✕</button></li>`).join('')
+      ? keys.map((k, i) => `<li><span>${esc(k)}</span><button type="button" data-remove-pkg-key="${i}" title="Xóa key này">${ico('close')}</button></li>`).join('')
       : '<li class="empty-note">Chưa có key nào trong kho.</li>';
   }
 
@@ -5221,7 +5234,7 @@ window.KENIOS_DEFAULT_DB = {
                 <td>${esc(o.packageName)}</td><td>${fmt(o.price)}</td><td>${esc(o.key)}</td>
                 <td>${new Date(o.date).toLocaleString('vi-VN')}</td>
                 <td class="admin-row-actions">${refundable
-                  ? `<button data-refund-order="${esc(o.id)}" title="Hoàn tiền đơn này vào số dư khách">↩ Hoàn tiền</button>`
+                  ? `<button data-refund-order="${esc(o.id)}" title="Hoàn tiền đơn này vào số dư khách">${ico('undo')} Hoàn tiền</button>`
                   : (o.refunded ? '<span class="muted" style="font-size:.75rem;">Đã hoàn</span>' : '—')}</td>
               </tr>`;
             }).join('') : '<tr><td colspan="8">Chưa có đơn hàng nào.</td></tr>'}
@@ -5237,7 +5250,7 @@ window.KENIOS_DEFAULT_DB = {
       <div class="admin-table-tools">
         <input type="search" class="admin-tbl-search" data-admin-search="${kind}" placeholder="${esc(placeholder)}" autocomplete="off">
         <span class="admin-tbl-count" data-admin-count="${kind}"></span>
-        <button type="button" class="btn btn-glass btn-sm" data-admin-export="${kind}">⬇ Xuất CSV</button>
+        <button type="button" class="btn btn-glass btn-sm" data-admin-export="${kind}">${ico('download')} Xuất CSV</button>
       </div>`;
   }
 
@@ -5311,7 +5324,7 @@ window.KENIOS_DEFAULT_DB = {
         <button type="button" class="btn btn-glass btn-sm" data-report-quick="7">7 ngày</button>
         <button type="button" class="btn btn-glass btn-sm" data-report-quick="30">30 ngày</button>
         <button type="button" class="btn btn-glass btn-sm" data-report-quick="month">Tháng này</button>
-        <button type="button" class="btn btn-glass btn-sm" id="reportExportBtn">⬇ Xuất CSV</button>
+        <button type="button" class="btn btn-glass btn-sm" id="reportExportBtn">${ico('download')} Xuất CSV</button>
       </div>
       <div id="reportBody"></div>`;
   }
@@ -5354,13 +5367,13 @@ window.KENIOS_DEFAULT_DB = {
       </div>
       <div class="report-cols">
         <div class="report-col">
-          <h4>🏆 Khách mua nhiều nhất</h4>
+          <h4>${ico('trophy')} Khách mua nhiều nhất</h4>
           ${r.topUsers.length ? `<table class="admin-table"><tbody>
             ${r.topUsers.map(([n, v], i) => `<tr><td>${i + 1}. ${esc(n)}</td><td style="text-align:right">${fmt(v)}</td></tr>`).join('')}
           </tbody></table>` : '<p class="muted">Chưa có đơn nào trong khoảng này.</p>'}
         </div>
         <div class="report-col">
-          <h4>🔥 Sản phẩm bán chạy</h4>
+          <h4>${ico('fire')} Sản phẩm bán chạy</h4>
           ${r.topServices.length ? `<table class="admin-table"><tbody>
             ${r.topServices.map(([n, o], i) => `<tr><td>${i + 1}. ${esc(n)}</td><td style="text-align:right">${fmt(o.revenue)} <small class="muted">(${o.count} đơn)</small></td></tr>`).join('')}
           </tbody></table>` : '<p class="muted">—</p>'}
@@ -5447,7 +5460,7 @@ window.KENIOS_DEFAULT_DB = {
         </select>
         <input data-ch-label class="contact-ch-label" value="${esc(ch.label || '')}" placeholder="Tên hiển thị (VD: Nhóm Zalo VIP)">
         <input data-ch-url class="contact-ch-url" value="${esc(ch.url || '')}" placeholder="https://zalo.me/g/... , https://t.me/... , tel:..., mailto:...">
-        <button type="button" class="contact-ch-del" data-ch-remove title="Xoá dòng này">✕</button>
+        <button type="button" class="contact-ch-del" data-ch-remove title="Xoá dòng này">${ico('close')}</button>
       </div>`;
   }
 
@@ -5457,7 +5470,7 @@ window.KENIOS_DEFAULT_DB = {
       <div class="ai-kb-row" data-kb-row>
         <input data-kb-k class="ai-kb-k" value="${esc(item.k || '')}" placeholder="Từ khoá (VD: nạp tiền, nap tien, vietqr)">
         <textarea data-kb-a class="ai-kb-a" placeholder="Câu trả lời khách sẽ nhận">${esc(item.a || '')}</textarea>
-        <button type="button" class="ai-kb-del" data-kb-remove title="Xoá câu này">✕</button>
+        <button type="button" class="ai-kb-del" data-kb-remove title="Xoá câu này">${ico('close')}</button>
       </div>`;
   }
   function readAiKnowledgeFromEditor() {
@@ -5496,7 +5509,7 @@ window.KENIOS_DEFAULT_DB = {
             <option value="amount" ${type === 'amount' ? 'selected' : ''}>Giảm tiền (đ)</option>
           </select>
           <input data-dc-value class="discount-value" type="number" min="0" step="any" value="${dc.value != null ? dc.value : ''}" placeholder="VD: 10 hoặc 50000">
-          <button type="button" class="discount-del" data-dc-remove title="Xoá mã này">✕</button>
+          <button type="button" class="discount-del" data-dc-remove title="Xoá mã này">${ico('close')}</button>
         </div>
         <div class="discount-line discount-cond">
           <label class="dc-cond">Lượt tối đa <input data-dc-maxuses type="number" min="0" step="1" value="${maxUses || ''}" placeholder="0 = không giới hạn"></label>
@@ -5533,7 +5546,7 @@ window.KENIOS_DEFAULT_DB = {
         <input data-vip-name class="vip-name" value="${esc(t.name || '')}" placeholder="Tên hạng (VD: VIP Bạc)">
         <label class="vip-cond">Chi tiêu từ (đ) <input data-vip-min type="number" min="0" step="1000" value="${t.minSpent ? parseInt(t.minSpent, 10) : ''}" placeholder="VD: 500000"></label>
         <label class="vip-cond">Giảm (%) <input data-vip-pct type="number" min="0" max="100" step="1" value="${t.discountPercent ? parseFloat(t.discountPercent) : ''}" placeholder="VD: 5"></label>
-        <button type="button" class="vip-del" data-vip-remove title="Xoá hạng này">✕</button>
+        <button type="button" class="vip-del" data-vip-remove title="Xoá hạng này">${ico('close')}</button>
       </div>`;
   }
   function readVipTiersFromEditor() {
@@ -5559,7 +5572,7 @@ window.KENIOS_DEFAULT_DB = {
     return `
       <form class="admin-form" data-admin-form="promo">
         <div class="admin-guide">
-          <b>📘 Hướng dẫn nhanh:</b> Trang này gộp 4 công cụ tăng doanh thu — <b>Khuyến mãi nạp tiền</b>,
+          <b>${ico('bulb')} Hướng dẫn nhanh:</b> Trang này gộp 4 công cụ tăng doanh thu — <b>Khuyến mãi nạp tiền</b>,
           <b>Flash Sale</b>, <b>Mã giảm giá</b>, <b>Hạng VIP</b>. Sau khi chỉnh, bấm <b>"Lưu"</b> rồi
           <b>"Đồng bộ lên máy chủ"</b> để áp dụng cho mọi khách. Thứ tự giảm giá khi khách mua:
           <b>Flash Sale → Hạng VIP → Mã giảm giá</b>.
@@ -5609,7 +5622,7 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section">3. Mã giảm giá sản phẩm (tạo bao nhiêu mã tuỳ ý)</div>
         <div class="admin-guide">
-          <b>📘 Hướng dẫn dùng mã giảm giá:</b>
+          <b>${ico('bulb')} Hướng dẫn dùng mã giảm giá:</b>
           <ul style="margin:6px 0 0;padding-left:18px;">
             <li><b>Ô tick trái:</b> bật/tắt từng mã.</li>
             <li><b>MÃ:</b> tên mã khách gõ (VD: <code>SALE10</code>). <b>Giảm %</b> hoặc <b>Giảm tiền (đ)</b> + giá trị.</li>
@@ -5629,7 +5642,7 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section">4. Hạng thành viên VIP (tự giảm giá theo tổng chi tiêu)</div>
         <div class="admin-guide">
-          <b>📘 Hướng dẫn hạng VIP:</b> Khách mua càng nhiều (tổng tiền đã mua) sẽ tự lên hạng và được <b>giảm giá % mọi đơn</b> mà không cần nhập mã.
+          <b>${ico('bulb')} Hướng dẫn hạng VIP:</b> Khách mua càng nhiều (tổng tiền đã mua) sẽ tự lên hạng và được <b>giảm giá % mọi đơn</b> mà không cần nhập mã.
           Mỗi hạng gồm: <b>Tên hạng</b>, <b>Chi tiêu từ</b> (tổng tiền đã mua để đạt hạng) và <b>Giảm (%)</b>. Tạo nhiều hạng với mốc chi tiêu tăng dần (VD: 500.000đ → 3%, 2.000.000đ → 5%, 5.000.000đ → 8%).
           Khách sẽ thấy hạng của mình trong menu tài khoản.
         </div>
@@ -5752,7 +5765,7 @@ window.KENIOS_DEFAULT_DB = {
               <button type="button" class="pw-toggle-btn" id="copyWebhookUrlBtn" title="Sao chép"></button>
             </span>
           </label>
-          <button type="button" class="btn btn-glass btn-sm" id="saveBankTokenBtn">🔒 Lưu Token Webhook</button>
+          <button type="button" class="btn btn-glass btn-sm" id="saveBankTokenBtn">${ico('lock')} Lưu Token Webhook</button>
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
         </div>
 
@@ -5771,7 +5784,7 @@ window.KENIOS_DEFAULT_DB = {
               <button type="button" class="pw-toggle-btn" id="copyCardCbBtn" title="Sao chép"></button>
             </span>
           </label>
-          <button type="button" class="btn btn-glass btn-sm" id="saveCardApiBtn">🔒 Lưu API thẻ cào</button>
+          <button type="button" class="btn btn-glass btn-sm" id="saveCardApiBtn">${ico('lock')} Lưu API thẻ cào</button>
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Lấy Partner ID / Partner Key trong mục "Chi tiết kết nối API" của card2k.net. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
         </div>
 
@@ -5785,8 +5798,8 @@ window.KENIOS_DEFAULT_DB = {
             <input type="text" id="telegramChatInput" placeholder="VD: 123456789 hoặc -100... (để trống nếu giữ nguyên)" autocomplete="off">
           </label>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="button" class="btn btn-glass btn-sm" id="saveTelegramBtn">🔒 Lưu Telegram</button>
-            <button type="button" class="btn btn-glass btn-sm" id="testTelegramBtn">📨 Gửi thử</button>
+            <button type="button" class="btn btn-glass btn-sm" id="saveTelegramBtn">${ico('lock')} Lưu Telegram</button>
+            <button type="button" class="btn btn-glass btn-sm" id="testTelegramBtn">${ico('telegram')} Gửi thử</button>
             <button type="button" class="btn btn-glass btn-sm" id="clearTelegramBtn">Tắt thông báo</button>
           </div>
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Tạo bot bằng <b>@BotFather</b> để lấy <b>Bot Token</b>. Lấy <b>Chat ID</b> bằng cách nhắn cho bot rồi mở <b>@userinfobot</b> (hoặc thêm bot vào nhóm). Khi cấu hình xong, admin sẽ nhận tin nhắn mỗi khi có <b>đơn mới / khách nạp tiền / kho key sắp hết</b>.</p>
@@ -5803,7 +5816,7 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <p class="muted span-2" style="font-size:.75rem;margin:0;">Mặc định đang theo bảng phí phổ biến (Viettel/Vina/Mobifone thay đổi theo mệnh giá). <b>Nên nhập lại đúng % theo bảng phí card2k.net</b> để khớp số tiền thực nhận. Để trống = dùng mặc định. Nhập số = ép một mức % cho <b>mọi mệnh giá</b> của nhà mạng đó. Hệ thống luôn <b>không cộng quá</b> số tiền cổng thực trả nên bạn không lỗ.</p>
 
-        <div class="admin-form-section">🛠️ Chế độ bảo trì</div>
+        <div class="admin-form-section">${ico('gear')} Chế độ bảo trì</div>
         <label>Bật bảo trì (tạm đóng shop với khách)
           <select name="maintenanceMode">
             <option value="0" ${!c.maintenanceMode ? 'selected' : ''}>Tắt — shop hoạt động bình thường</option>
@@ -6032,7 +6045,7 @@ window.KENIOS_DEFAULT_DB = {
       <div class="combo-item-row" data-combo-item>
         <select data-combo-service class="combo-item-service">${svcOptions}</select>
         <select data-combo-package class="combo-item-package">${comboPackageOptions(item.serviceId, item.packageId)}</select>
-        <button type="button" class="btn btn-glass btn-sm danger" data-combo-item-remove aria-label="Xoá sản phẩm">✕</button>
+        <button type="button" class="btn btn-glass btn-sm danger" data-combo-item-remove aria-label="Xoá sản phẩm">${ico('close')}</button>
       </div>`;
   }
   function adminCombosHtml() {
@@ -6738,11 +6751,11 @@ window.KENIOS_DEFAULT_DB = {
   // ============================================================
   // Toast
   // ============================================================
-  const TOAST_ICONS = { success: '✅', error: '⚠️' };
+  const TOAST_ICONS = { success: ICONS.check, error: ICONS.warn, info: ICONS.info };
   function toast(message, type = 'success') {
     const el = document.createElement('div');
     el.className = `toast ${type}`;
-    el.innerHTML = `<span class="toast-icon">${TOAST_ICONS[type] || 'ℹ️'}</span><span class="toast-body"></span><button class="toast-dismiss" aria-label="Đóng">✕</button>`;
+    el.innerHTML = `<span class="toast-icon">${TOAST_ICONS[type] || ICONS.info}</span><span class="toast-body"></span><button class="toast-dismiss" aria-label="Đóng">${ICONS.close}</button>`;
     el.querySelector('.toast-body').textContent = message;
     el.querySelector('.toast-dismiss').addEventListener('click', () => el.remove());
     $('#toastStack').appendChild(el);

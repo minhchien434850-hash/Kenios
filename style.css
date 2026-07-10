@@ -1073,8 +1073,13 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .filter-bar .filter-label { font-size: .82rem; color: var(--muted); }
 
 /* Đánh giá sản phẩm (sao) */
-.review-stars { color: var(--gold); letter-spacing: 2px; }
-.review-stars .empty { color: var(--muted); opacity: .35; }
+.review-stars { display: inline-flex; gap: 2px; color: var(--gold); vertical-align: middle; }
+.rs-star { display: inline-flex; }
+.rs-star svg { width: 1em; height: 1em; display: block; fill: none; stroke: var(--muted); opacity: .55; }
+.rs-star.on svg { fill: var(--gold); stroke: var(--gold); opacity: 1; }
+/* Ô chọn sao khi viết đánh giá: to hơn, bấm được */
+[data-star].rs-star { cursor: pointer; }
+[data-star].rs-star svg { width: 26px; height: 26px; }
 .card-rating { display: flex; align-items: center; gap: 6px; margin: -2px 0 6px; font-size: .85rem; }
 .card-rating small { color: var(--muted); font-size: .74rem; }
 .service-reviews { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 14px; }
@@ -1154,7 +1159,17 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .toast { display: flex; align-items: flex-start; gap: 10px; padding-right: 10px; }
 .toast-icon { flex-shrink: 0; }
 .toast-body { flex: 1; }
-.toast-dismiss { background: none; border: none; color: var(--muted); cursor: pointer; font-size: .85rem; flex-shrink: 0; }
+.toast-dismiss { background: none; border: none; color: var(--muted); cursor: pointer; font-size: .85rem; flex-shrink: 0; display: inline-flex; align-items: center; }
+
+/* ---- Icon SVG chèn thẳng thay cho emoji: tự canh cỡ theo chữ ----
+   CHỈ icon nội tuyến mới gắn class 'ico' (icon data-icon không có), nên quy tắc này
+   an toàn, phủ mọi chỗ đã thay emoji mà không đụng các icon khác. */
+svg.ico { width: 1.05em; height: 1.05em; vertical-align: -.15em; flex-shrink: 0; }
+.inline-ico { display: inline-flex; vertical-align: -.18em; color: var(--gold, #ffb703); }
+.inline-ico svg { width: 1.05em; height: 1.05em; }
+.toast-icon svg { width: 20px; height: 20px; display: block; }
+.toast-dismiss svg.ico { width: 15px; height: 15px; }
+.flash-sale-ico svg { width: 1.15rem; height: 1.15rem; display: block; }
 .thumb.img-fallback, .service-modal-media.img-fallback { background: linear-gradient(135deg, rgba(139,92,246,.25), rgba(255,183,3,.15)); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
 
 /* ---------- Boot loader ---------- */
