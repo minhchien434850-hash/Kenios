@@ -2157,7 +2157,9 @@ window.KENIOS_DEFAULT_DB = {
       await Store.init();
     } catch (e) {
       console.error('Store.init lỗi, dùng dữ liệu mặc định:', e);
-      try { Store.db = JSON.parse(JSON.stringify(global.KENIOS_DEFAULT_DB)); } catch (_) {}
+      // Dùng window.* (không phải global.* — IIFE này không có tham số global nên sẽ lỗi
+      // ReferenceError khiến fallback không chạy, web trắng khi máy chủ chậm/lỗi).
+      try { Store.db = JSON.parse(JSON.stringify(window.KENIOS_DEFAULT_DB)); } catch (_) {}
     }
     step(() => Store.onChange(renderDynamic), 'onChange');
 
