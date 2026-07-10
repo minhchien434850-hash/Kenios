@@ -316,16 +316,16 @@ button { font: inherit; }
 .mobile-nav-backdrop.open { display: block; }
 
 /* ---------- Marquee ---------- */
-.marquee-bar { background: linear-gradient(90deg, rgba(255,183,3,.12), rgba(139,92,246,.12)); border-bottom: 1px solid var(--border); overflow: hidden; padding: 5px 0; }
+.marquee-bar { background: linear-gradient(90deg, rgba(255,183,3,.12), rgba(139,92,246,.12)); border-bottom: 1px solid var(--border); overflow: hidden; padding: 3px 0; }
 .marquee-track { display: flex; gap: 0; width: max-content; }
-.marquee-track span { font-size: .74rem; color: var(--gold-soft); font-weight: 600; white-space: nowrap; padding-right: 70px; }
+.marquee-track span { font-size: .66rem; color: var(--gold-soft); font-weight: 600; white-space: nowrap; padding-right: 60px; }
 /* Chữ chạy nhỏ lại trên điện thoại để gọn gàng hơn */
 @media (max-width: 640px) {
-  .marquee-bar { padding: 4px 0; }
-  .marquee-track span { font-size: .62rem; padding-right: 50px; }
+  .marquee-bar { padding: 2px 0; }
+  .marquee-track span { font-size: .54rem; padding-right: 44px; }
 }
 @media (max-width: 380px) {
-  .marquee-track span { font-size: .56rem; padding-right: 40px; }
+  .marquee-track span { font-size: .48rem; padding-right: 36px; }
 }
 
 /* ---------- Hero ---------- */
