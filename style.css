@@ -3,24 +3,32 @@
    Dark glassmorphism, accent vàng gold + tím violet.
 ========================================================= */
 :root {
-  --bg: #07070c;
-  --bg-alt: #0c0c14;
+  --bg: #05060f;
+  --bg-alt: #0a0c1a;
   --ink: #f3f4f6;
-  --muted: #9ca3af;
-  --border: rgba(255,255,255,.08);
-  --glass: rgba(255,255,255,.045);
-  --glass-strong: rgba(255,255,255,.075);
-  --gold: #ffb703;
-  --gold-soft: #ffd873;
-  --violet: #8b5cf6;
-  --violet-soft: #a78bfa;
-  --success: #22c55e;
-  --danger: #f87171;
-  --radius: 18px;
-  --radius-sm: 12px;
-  --shadow: 0 20px 60px -20px rgba(0,0,0,.6);
+  --muted: #98a1bd;
+  --border: rgba(124,162,255,.12);
+  --glass: rgba(130,150,255,.05);
+  --glass-strong: rgba(130,150,255,.09);
+  --gold: #ffc231;
+  --gold-soft: #ffe08a;
+  --violet: #9a6bff;
+  --violet-soft: #bda2ff;
+  /* Tông neon "cyber gaming" mới — cyan điện + hồng tím, phối cùng tím/vàng cũ */
+  --cyan: #22d3ee;
+  --cyan-soft: #7ceeff;
+  --magenta: #ff3d9a;
+  --neon-glow: 0 0 18px rgba(154,107,255,.55), 0 0 40px rgba(34,211,238,.28);
+  --grad-neon: linear-gradient(120deg, var(--violet) 0%, var(--cyan) 100%);
+  --grad-neon-2: linear-gradient(120deg, var(--magenta) 0%, var(--violet) 55%, var(--cyan) 100%);
+  --success: #2ee6a0;
+  --danger: #ff6b7d;
+  --radius: 16px;
+  --radius-sm: 11px;
+  --shadow: 0 24px 70px -22px rgba(0,0,0,.72), 0 0 0 1px rgba(124,162,255,.05);
   --header-h: 72px;
-  --logo-font: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+  --logo-font: 'Exo 2', 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+  --display-font: 'Exo 2', 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
   --logo-color: inherit;
   --marquee-speed: 26s;
   font-size: 16px;
@@ -28,14 +36,15 @@
 
 /* ---- Chế độ SÁNG (light theme) — đảo nền/chữ, giữ nguyên tông nhấn vàng/tím ---- */
 :root[data-theme="light"] {
-  --bg: #f4f5f8;
+  --bg: #eef1f8;
   --bg-alt: #ffffff;
-  --ink: #1a1d24;
-  --muted: #5b6472;
-  --border: rgba(0,0,0,.10);
-  --glass: rgba(0,0,0,.03);
-  --glass-strong: rgba(0,0,0,.05);
-  --shadow: 0 20px 60px -24px rgba(0,0,0,.25);
+  --ink: #161a26;
+  --muted: #59617a;
+  --border: rgba(60,80,160,.14);
+  --glass: rgba(40,60,140,.035);
+  --glass-strong: rgba(40,60,140,.06);
+  --shadow: 0 22px 60px -24px rgba(30,40,90,.28);
+  --neon-glow: 0 0 16px rgba(124,58,237,.28), 0 0 30px rgba(34,211,238,.16);
 }
 :root[data-theme="light"] body { background: var(--bg); }
 
@@ -58,7 +67,7 @@ body {
   /* Chốt bề rộng đúng bằng màn hình để nội dung không bị đẩy lệch khi zoom. */
   width: 100%; max-width: 100%;
 }
-h1, h2, h3, h4, .btn, .brand-text strong { font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; font-weight: 700; }
+h1, h2, h3, h4, .btn, .brand-text strong { font-family: var(--display-font); font-weight: 700; letter-spacing: .2px; }
 img { max-width: 100%; display: block; }
 img, svg, video, canvas, iframe { max-width: 100%; }
 /* Mặc định mọi icon SVG nhỏ gọn theo cỡ chữ. Các icon có rule riêng (vd .category-icon svg)
@@ -2097,3 +2106,126 @@ input[type=tel]:focus, input[type=url]:focus, select:focus, textarea:focus {
 input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 3px rgba(255,183,3,.12); }
 /* Chuyển động mượt hơn cho các phần tử tương tác (không ảnh hưởng bố cục) */
 a, button, .category-card, .service-card, .filter-tab { transition-timing-function: cubic-bezier(.22,.61,.36,1); }
+
+/* =========================================================
+   GAMING SKIN v4 — phong cách hiện đại/gaming (chỉ đổi giao diện,
+   KHÔNG đổi chức năng, KHÔNG đổi bố cục). Tông neon tím→cyan trên nền
+   xanh-đen sâu, lưới công nghệ mờ, viền phát sáng, chữ tiêu đề Exo 2.
+========================================================= */
+
+/* ---- Nền: quầng sáng neon tím/cyan/hồng + lưới công nghệ mờ ---- */
+.bg-mesh {
+  background:
+    radial-gradient(620px 480px at 10% -8%, rgba(154,107,255,.30), transparent 60%),
+    radial-gradient(680px 520px at 108% 6%, rgba(34,211,238,.20), transparent 58%),
+    radial-gradient(760px 560px at 92% 96%, rgba(255,61,154,.14), transparent 60%),
+    radial-gradient(900px 700px at 48% 122%, rgba(124,58,237,.18), transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
+}
+.bg-mesh::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(124,162,255,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,162,255,.055) 1px, transparent 1px);
+  background-size: 46px 46px, 46px 46px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
+          mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
+  animation: gridDrift 24s linear infinite;
+}
+@keyframes gridDrift { to { background-position: 46px 46px, 46px 46px; } }
+:root[data-theme="light"] .bg-mesh::after { background-image:
+    linear-gradient(rgba(60,80,160,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(60,80,160,.06) 1px, transparent 1px); }
+@media (prefers-reduced-motion: reduce) { .bg-mesh::after { animation: none; } }
+
+/* ---- Marquee & header: viền neon phát sáng ---- */
+.marquee-bar {
+  background: linear-gradient(90deg, rgba(154,107,255,.14), rgba(34,211,238,.12));
+  border-bottom: 1px solid rgba(124,162,255,.18);
+}
+.marquee-track span { color: var(--cyan-soft); letter-spacing: .3px; }
+.site-header {
+  background: rgba(7,9,20,.74); backdrop-filter: blur(18px) saturate(1.2);
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, rgba(154,107,255,.5), rgba(34,211,238,.5), transparent) 1;
+  box-shadow: 0 1px 0 rgba(124,162,255,.06), 0 10px 30px -24px rgba(0,0,0,.9);
+}
+:root[data-theme="light"] .site-header { background: rgba(255,255,255,.82); }
+.brand-text strong { text-shadow: 0 0 18px rgba(154,107,255,.35); }
+
+/* ---- Nút: gradient neon + quầng sáng ---- */
+.btn-primary {
+  background: linear-gradient(120deg, var(--violet) 0%, #7c3aed 42%, var(--cyan) 100%);
+  color: #fff;
+  box-shadow: 0 10px 26px -10px rgba(154,107,255,.6), 0 0 22px -6px rgba(34,211,238,.45), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px -12px rgba(154,107,255,.75), 0 0 32px -6px rgba(34,211,238,.6), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.btn-glass:hover, .btn-ghost:hover {
+  border-color: rgba(124,162,255,.4);
+  box-shadow: 0 0 0 1px rgba(124,162,255,.18), 0 8px 24px -14px rgba(34,211,238,.5);
+}
+.icon-btn:hover { border-color: rgba(124,162,255,.45); box-shadow: 0 0 16px -6px rgba(154,107,255,.6); }
+
+/* ---- Tiêu đề mục: gạch chân neon + quầng chữ nhẹ ---- */
+.section-head h2 { text-shadow: 0 0 26px rgba(154,107,255,.28); }
+.section-head h2::after { background: var(--grad-neon); box-shadow: 0 0 12px rgba(34,211,238,.55); width: 62px; height: 3px; }
+.cat-group-head { border-bottom-color: rgba(124,162,255,.16); }
+.cat-group-head h3 { text-shadow: 0 0 20px rgba(34,211,238,.22); }
+.cat-group-head .cat-group-ico { color: var(--cyan-soft); }
+.cat-group-count {
+  background: linear-gradient(120deg, rgba(154,107,255,.22), rgba(34,211,238,.18));
+  border: 1px solid rgba(124,162,255,.3); color: var(--cyan-soft);
+}
+
+/* ---- Filter tabs: active gradient neon ---- */
+.filter-tab.active {
+  background: var(--grad-neon); color: #06121a;
+  box-shadow: 0 8px 22px -10px rgba(34,211,238,.7), 0 0 0 1px rgba(124,162,255,.35);
+}
+.filter-tab.sub.active { background: linear-gradient(120deg, var(--violet), var(--magenta)); color: #fff; }
+.filter-tab:hover { border-color: rgba(124,162,255,.4); }
+
+/* ---- Thẻ danh mục / sản phẩm: vạch neon trên + quầng sáng khi hover ---- */
+.category-card, .service-card {
+  position: relative; border-color: rgba(124,162,255,.12);
+}
+.category-card::before, .service-card::before {
+  content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 2px; z-index: 3;
+  background: var(--grad-neon); border-radius: 2px; opacity: .0; transition: opacity .22s ease;
+  box-shadow: 0 0 12px rgba(34,211,238,.6);
+}
+.category-card:hover::before, .service-card:hover::before { opacity: .95; }
+.service-card:hover { box-shadow: 0 26px 56px -26px rgba(154,107,255,.6), 0 0 0 1px rgba(34,211,238,.32); border-color: rgba(124,162,255,.32); }
+.category-card:hover { box-shadow: 0 24px 52px -26px rgba(34,211,238,.42), 0 0 0 1px rgba(154,107,255,.3); border-color: rgba(124,162,255,.32); }
+.category-icon { color: var(--cyan-soft); filter: drop-shadow(0 0 10px rgba(34,211,238,.4)); }
+
+/* ---- Giá tiền: vẫn nổi bật, thêm quầng nhẹ ---- */
+.price { text-shadow: 0 0 18px rgba(255,194,49,.3); }
+
+/* ---- Stat chips (hero): viền + số neon ---- */
+.stat-chip { border-color: rgba(124,162,255,.16); background: linear-gradient(160deg, rgba(130,150,255,.07), rgba(130,150,255,.02)); }
+.stat-chip:hover { border-color: rgba(34,211,238,.4); box-shadow: 0 12px 30px -16px rgba(154,107,255,.6); }
+.stat-chip strong { text-shadow: 0 0 20px rgba(34,211,238,.3); }
+.stat-chip-ico { color: var(--cyan-soft); }
+
+/* ---- AI fab: vòng neon nhấp nháy nhẹ ---- */
+.ai-fab { box-shadow: 0 12px 34px -10px rgba(154,107,255,.7), 0 0 0 1px rgba(34,211,238,.35); }
+.ai-fab::after {
+  content: ""; position: absolute; inset: -4px; border-radius: inherit; pointer-events: none;
+  border: 1px solid rgba(34,211,238,.5); animation: fabPulse 2.6s ease-out infinite;
+}
+@keyframes fabPulse { 0% { opacity: .7; transform: scale(1); } 100% { opacity: 0; transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .ai-fab::after { animation: none; opacity: .5; } }
+
+/* ---- Cuộn / bôi đen / focus: tông cyber ---- */
+::selection { background: rgba(34,211,238,.28); color: #fff; }
+* { scrollbar-color: rgba(154,107,255,.5) transparent; }
+::-webkit-scrollbar-thumb { background: linear-gradient(var(--violet), var(--cyan)); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan); background-clip: padding-box; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 3px rgba(34,211,238,.16); border-color: rgba(34,211,238,.5); }
+
+/* ---- Badge "Còn hàng": xanh neon dịu, hợp tông ---- */
+.badge { box-shadow: 0 2px 12px -4px rgba(0,0,0,.55); }
