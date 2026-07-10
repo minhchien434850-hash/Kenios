@@ -1,7 +1,7 @@
 <?php
-// card.php — Callback nhận kết quả NẠP THẺ CÀO từ thesieure.com.
-// Cấu hình bên thesieure: "Đường dẫn nhận dữ liệu (Callback Url)" = https://<tên-miền>/card.php
-// Khi thẻ được duyệt, thesieure POST kết quả về đây; ta xác minh chữ ký rồi cộng số dư.
+// card.php — Callback nhận kết quả NẠP THẺ CÀO từ card2k.net.
+// Cấu hình bên card2k: "Đường dẫn nhận dữ liệu (Callback Url)" = https://<tên-miền>/card.php
+// Khi thẻ được duyệt, cổng POST kết quả về đây; ta xác minh chữ ký rồi cộng số dư.
 header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . '/lib_secrets.php';
 

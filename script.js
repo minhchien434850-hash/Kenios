@@ -5350,7 +5350,7 @@ window.KENIOS_DEFAULT_DB = {
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
         </div>
 
-        <div class="admin-form-section">Nạp thẻ cào (thesieure.com)</div>
+        <div class="admin-form-section">Nạp thẻ cào (card2k.net)</div>
         <div class="secret-box span-2" id="cardApiBox">
           <div class="secret-status" id="cardApiStatus">Đang kiểm tra trạng thái…</div>
           <label>Partner ID
@@ -5359,17 +5359,17 @@ window.KENIOS_DEFAULT_DB = {
           <label>Partner Key
             <input type="password" id="cardPartnerKeyInput" placeholder="Nhập Partner Key (để trống nếu giữ nguyên)" autocomplete="new-password">
           </label>
-          <label>Callback URL — dán vào ô "Đường dẫn nhận dữ liệu (Callback Url)" bên thesieure.com
+          <label>Callback URL — dán vào ô "Đường dẫn nhận dữ liệu (Callback Url)" bên card2k.net
             <span class="input-with-toggle">
               <input type="text" id="cardCallbackUrl" readonly>
               <button type="button" class="pw-toggle-btn" id="copyCardCbBtn" title="Sao chép"></button>
             </span>
           </label>
           <button type="button" class="btn btn-glass btn-sm" id="saveCardApiBtn">🔒 Lưu API thẻ cào</button>
-          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Lấy Partner ID / Partner Key trong mục "Thông tin kết nối" của thesieure.com. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Lấy Partner ID / Partner Key trong mục "Chi tiết kết nối API" của card2k.net. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
         </div>
 
-        <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí thesieure.com.</div>
+        <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí của card2k.net.</div>
         <div class="card-discount-grid span-2">
           ${['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','VCOIN','SCOIN'].map(t => {
             const telcoName = { VIETTEL:'Viettel', MOBIFONE:'Mobifone', VINAPHONE:'Vinaphone', VIETNAMOBILE:'Vietnamobile', ZING:'Zing', GARENA:'Garena', VCOIN:'Vcoin', SCOIN:'Scoin' }[t];
@@ -5378,7 +5378,7 @@ window.KENIOS_DEFAULT_DB = {
             return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="0.5" value="${esc(String(val))}" placeholder="mặc định ${cardDiscountHint(t)}%"></label>`;
           }).join('')}
         </div>
-        <p class="muted span-2" style="font-size:.75rem;margin:0;">Mặc định đã lấy <b>đúng bảng phí thesieure.com</b> (Viettel/Vina/Mobifone thay đổi theo mệnh giá). Để trống = dùng mặc định này. Nhập số = ép một mức % cho <b>mọi mệnh giá</b> của nhà mạng đó. Hệ thống luôn <b>không cộng quá</b> số tiền cổng thực trả nên bạn không lỗ.</p>
+        <p class="muted span-2" style="font-size:.75rem;margin:0;">Mặc định đang theo bảng phí phổ biến (Viettel/Vina/Mobifone thay đổi theo mệnh giá). <b>Nên nhập lại đúng % theo bảng phí card2k.net</b> để khớp số tiền thực nhận. Để trống = dùng mặc định. Nhập số = ép một mức % cho <b>mọi mệnh giá</b> của nhà mạng đó. Hệ thống luôn <b>không cộng quá</b> số tiền cổng thực trả nên bạn không lỗ.</p>
 
         <div class="admin-form-section">Thông báo Popup khi vào Web</div>
         <label>Bật thông báo popup
@@ -5449,7 +5449,7 @@ window.KENIOS_DEFAULT_DB = {
     return `
       <div class="admin-cards-page">
         <div class="admin-section-title" style="margin:0 0 4px;">Nạp thẻ cào của khách</div>
-        <p class="muted" style="font-size:.85rem;margin:0 0 16px;">Theo dõi các thẻ khách đã nạp: đang xử lý / thành công / lỗi. Tiền tự cộng khi cổng thesieure duyệt.</p>
+        <p class="muted" style="font-size:.85rem;margin:0 0 16px;">Theo dõi các thẻ khách đã nạp: đang xử lý / thành công / lỗi. Tiền tự cộng khi cổng card2k.net duyệt.</p>
         <div class="admin-card-stats" id="adminCardStats"></div>
         <div class="admin-table-wrap" style="margin-top:14px;">
           <table class="admin-table">

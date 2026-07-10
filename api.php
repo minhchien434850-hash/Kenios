@@ -1364,8 +1364,8 @@ switch ($action) {
         echo json_encode(["status" => "success", "avatar" => $avatar]);
         break;
 
-    // Khách NẠP THẺ CÀO qua thesieure.com. Gửi thẻ lên cổng, ghi 1 yêu cầu "đang xử lý";
-    // tiền được cộng khi thesieure gọi callback (card.php) báo thẻ hợp lệ.
+    // Khách NẠP THẺ CÀO qua card2k.net. Gửi thẻ lên cổng, ghi 1 yêu cầu "đang xử lý";
+    // tiền được cộng khi cổng gọi callback (card.php) báo thẻ hợp lệ.
     case 'card_charge':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
@@ -1399,7 +1399,7 @@ switch ($action) {
             'telco' => $telco, 'code' => $code, 'serial' => $serial, 'amount' => $amount,
             'request_id' => $request_id, 'partner_id' => $partnerId, 'sign' => $sign, 'command' => 'charging'
         ]);
-        $ch = curl_init('https://thesieure.com/chargingws/v2');
+        $ch = curl_init('https://card2k.net/chargingws/v2');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
