@@ -138,8 +138,25 @@ function verify_password($input, $stored) {
 }
 
 function safe_user($u) {
-    unset($u['password'], $u['contact']);
+    // Ẩn mật khẩu, liên hệ và MÃ PHIÊN (token) — token là bí mật riêng của mỗi khách,
+    // không được lộ cho khách khác qua get_db.
+    unset($u['password'], $u['contact'], $u['token']);
     return $u;
+}
+
+// Sinh mã phiên đăng nhập ngẫu nhiên (dùng xác thực mua hàng thay cho mật khẩu).
+function gen_session_token() {
+    return bin2hex(random_bytes(24));
+}
+
+// Kiểm tra mã phiên khi mua hàng/thao tác nhạy cảm. Nếu tài khoản ĐÃ có token trên máy
+// chủ thì bắt buộc khớp (chống người khác giả mạo userId để mua hộ / rút số dư). Tài
+// khoản cũ chưa có token (chưa đăng nhập lại từ khi cập nhật) tạm cho qua — sẽ được bảo
+// vệ ngay lần đăng nhập kế tiếp (máy chủ cấp token lúc đó).
+function token_ok($u, $token) {
+    $serverToken = (string)($u['token'] ?? '');
+    if ($serverToken === '') return true;
+    return is_string($token) && $token !== '' && hash_equals($serverToken, $token);
 }
 
 switch ($action) {
@@ -180,13 +197,14 @@ switch ($action) {
             "role" => "member",
             "status" => "active",
             "avatar" => "https://api.dicebear.com/7.x/adventurer/svg?seed=" . urlencode($username),
-            "createdAt" => date("Y-m-d")
+            "createdAt" => date("Y-m-d"),
+            "token" => gen_session_token()
         ];
         $db['users'][] = $user;
         ftruncate($fp, 0); rewind($fp);
         fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         fflush($fp); flock($fp, LOCK_UN); fclose($fp);
-        echo json_encode(["status" => "success", "user" => safe_user($user)]);
+        echo json_encode(["status" => "success", "user" => safe_user($user), "token" => $user['token']]);
         break;
 
     case 'reset_password':
@@ -273,9 +291,12 @@ switch ($action) {
         // Nâng cấp mật khẩu văn bản thuần cũ lên bcrypt ngay khi đăng nhập thành công.
         if (password_get_info($db['users'][$matchedIdx]['password'])['algo'] === null) {
             $db['users'][$matchedIdx]['password'] = password_hash($password, PASSWORD_BCRYPT);
-            write_db($db_file, $db);
         }
-        echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx])]);
+        // Cấp MÃ PHIÊN mới mỗi lần đăng nhập (để xác thực mua hàng thay mật khẩu).
+        $token = gen_session_token();
+        $db['users'][$matchedIdx]['token'] = $token;
+        write_db($db_file, $db);
+        echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx]), "token" => $token]);
         break;
 
     case 'google_login':
@@ -337,6 +358,7 @@ switch ($action) {
             if (strtolower($u['username'] ?? '') === $email) { $matchedIdx = $idx; break; }
         }
 
+        $token = gen_session_token();
         if ($matchedIdx === -1) {
             $user = [
                 "userId" => next_numeric_user_id($db),
@@ -347,20 +369,25 @@ switch ($action) {
                 "status" => "active",
                 "authProvider" => "google",
                 "avatar" => $info['picture'] ?? ("https://api.dicebear.com/7.x/adventurer/svg?seed=" . urlencode($email)),
-                "createdAt" => date("Y-m-d")
+                "createdAt" => date("Y-m-d"),
+                "token" => $token
             ];
             $db['users'][] = $user;
             ftruncate($fp, 0); rewind($fp);
             fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             fflush($fp); flock($fp, LOCK_UN); fclose($fp);
-            echo json_encode(["status" => "success", "user" => safe_user($user)]);
+            echo json_encode(["status" => "success", "user" => safe_user($user), "token" => $token]);
         } else {
-            flock($fp, LOCK_UN); fclose($fp);
             if (($db['users'][$matchedIdx]['status'] ?? 'active') !== 'active') {
+                flock($fp, LOCK_UN); fclose($fp);
                 echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
                 exit;
             }
-            echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx])]);
+            $db['users'][$matchedIdx]['token'] = $token;
+            ftruncate($fp, 0); rewind($fp);
+            fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx]), "token" => $token]);
         }
         break;
 
@@ -514,6 +541,7 @@ switch ($action) {
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
         $username = trim((string)($input['username'] ?? ''));
+        $token = (string)($input['token'] ?? '');
         $serviceId = (string)($input['serviceId'] ?? '');
         $packageId = (string)($input['packageId'] ?? '');
         $discountCode = strtoupper(trim((string)($input['discountCode'] ?? '')));
@@ -536,6 +564,11 @@ switch ($action) {
         if ($userIdx === -1) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]);
+            exit;
+        }
+        if (!token_ok($db['users'][$userIdx], $token)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]);
             exit;
         }
         if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
@@ -698,6 +731,7 @@ switch ($action) {
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
         $username = trim((string)($input['username'] ?? ''));
+        $token = (string)($input['token'] ?? '');
         $serviceId = (string)($input['serviceId'] ?? '');
         $packageId = (string)($input['packageId'] ?? '');
         $discountCode = strtoupper(trim((string)($input['discountCode'] ?? '')));
@@ -719,6 +753,11 @@ switch ($action) {
         if ($userIdx === -1) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]);
+            exit;
+        }
+        if (!token_ok($db['users'][$userIdx], $token)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]);
             exit;
         }
         if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
@@ -886,6 +925,7 @@ switch ($action) {
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
         $username = trim((string)($input['username'] ?? ''));
+        $token = (string)($input['token'] ?? '');
         $comboId = (string)($input['comboId'] ?? '');
 
         $fp = fopen($db_file, 'c+');
@@ -904,6 +944,11 @@ switch ($action) {
         if ($userIdx === -1) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]);
+            exit;
+        }
+        if (!token_ok($db['users'][$userIdx], $token)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]);
             exit;
         }
         if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
@@ -1233,6 +1278,7 @@ switch ($action) {
     case 'update_avatar':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
+        $token = (string)($input['token'] ?? '');
         $avatar = trim((string)($input['avatar'] ?? ''));
         if ($userId === '' || $avatar === '') {
             echo json_encode(["status" => "error", "message" => "Thiếu thông tin ảnh đại diện."]); exit;
@@ -1253,6 +1299,10 @@ switch ($action) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]); exit;
         }
+        if (!token_ok($db['users'][$uidx], $token)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]); exit;
+        }
         $db['users'][$uidx]['avatar'] = $avatar;
         ftruncate($fp, 0); rewind($fp);
         fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -1265,6 +1315,7 @@ switch ($action) {
     case 'card_charge':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
+        $token  = (string)($input['token'] ?? '');
         $telco  = strtoupper(trim((string)($input['telco'] ?? '')));
         $amount = intval($input['amount'] ?? 0);
         $serial = trim((string)($input['serial'] ?? ''));
@@ -1280,11 +1331,12 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Vui lòng chọn nhà mạng, mệnh giá và nhập đủ Serial + Mã thẻ."]); exit;
         }
 
-        // Xác minh user tồn tại + tạo mã yêu cầu duy nhất.
+        // Xác minh user tồn tại + mã phiên + tạo mã yêu cầu duy nhất.
         $db = read_db($db_file);
-        $exists = false;
-        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $exists = true; break; } }
-        if (!$exists) { echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]); exit; }
+        $meUser = null;
+        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $meUser = $u; break; } }
+        if (!$meUser) { echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]); exit; }
+        if (!token_ok($meUser, $token)) { echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]); exit; }
 
         $request_id = 'CARD' . $userId . time() . rand(1000, 9999);
         $sign = md5($partnerKey . $code . $serial); // chữ ký thesieure: md5(partner_key + code + serial)
@@ -1341,10 +1393,12 @@ switch ($action) {
     case 'card_status':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
+        $token = (string)($input['token'] ?? '');
         if ($userId === '') { echo json_encode(["status" => "error", "message" => "Thiếu tài khoản."]); exit; }
         $db = read_db($db_file);
-        $balance = null;
-        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $balance = $u['balance']; break; } }
+        $balance = null; $meFound = false;
+        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $balance = $u['balance']; $meFound = $u; break; } }
+        if ($meFound && !token_ok($meFound, $token)) { echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]); exit; }
         $mine = [];
         foreach (($db['cardRequests'] ?? []) as $r) {
             if (($r['userId'] ?? '') !== $userId) continue;

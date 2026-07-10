@@ -370,7 +370,7 @@ window.KENIOS_DEFAULT_DB = {
         this.serverAvailable = true;
         if (result.status !== 'success') throw new Error(result.message || 'Đăng ký thất bại.');
         this._upsertUser(result.user);
-        this._setSession(result.user.userId);
+        this._setSession(result.user.userId, result.token);
         return result.user;
       } catch (err) {
         if (err instanceof BackendUnavailableError) {
@@ -394,7 +394,7 @@ window.KENIOS_DEFAULT_DB = {
         this.serverAvailable = true;
         if (result.status !== 'success') throw new Error(result.message || 'Sai tên đăng nhập hoặc mật khẩu.');
         this._upsertUser(result.user);
-        this._setSession(result.user.userId);
+        this._setSession(result.user.userId, result.token);
         return result.user;
       } catch (err) {
         if (err instanceof BackendUnavailableError) {
@@ -432,7 +432,7 @@ window.KENIOS_DEFAULT_DB = {
       const result = await this._callApi('google_login', { credential });
       if (result.status !== 'success') throw new Error(result.message || 'Đăng nhập Google thất bại.');
       this._upsertUser(result.user);
-      this._setSession(result.user.userId);
+      this._setSession(result.user.userId, result.token);
       return result.user;
     },
 
@@ -468,11 +468,15 @@ window.KENIOS_DEFAULT_DB = {
       this._persistOverrides();
     },
 
-    _setSession(userId) {
-      this.session = { userId };
+    _setSession(userId, token) {
+      this.session = { userId, token: token || null };
       this._writeLocal('session', this.session);
       this._emit();
     },
+
+    // Mã phiên đăng nhập (do máy chủ cấp khi đăng nhập) — dùng để xác thực mua hàng mà
+    // KHÔNG cần nhập lại mật khẩu, đồng thời chặn người khác giả mạo userId để mua hộ.
+    currentToken() { return (this.session && this.session.token) || ''; },
 
     logout() {
       this.session = null;
@@ -645,7 +649,7 @@ window.KENIOS_DEFAULT_DB = {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi nạp thẻ.');
       const res = await this._callApi('card_charge', {
-        userId: user.userId,
+        userId: user.userId, token: this.currentToken(),
         telco: info.telco, amount: info.amount, serial: info.serial, code: info.code
       });
       return res;
@@ -655,7 +659,7 @@ window.KENIOS_DEFAULT_DB = {
     async cardStatus() {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập.');
-      const res = await this._callApi('card_status', { userId: user.userId });
+      const res = await this._callApi('card_status', { userId: user.userId, token: this.currentToken() });
       if (res && res.status === 'success' && res.balance !== null && res.balance !== undefined) {
         if (user.balance !== res.balance) { user.balance = res.balance; this._persistOverrides(); this._emit(); }
       }
@@ -680,7 +684,7 @@ window.KENIOS_DEFAULT_DB = {
     async redeemKeyOnServer(username, password, service, pkg, discountCode) {
       const user = this.currentUser();
       const result = await this._callApi('redeem_key', {
-        username, password, userId: user ? user.userId : '',
+        username, password, userId: user ? user.userId : '', token: this.currentToken(),
         serviceId: service.id, packageId: pkg.id,
         os: this.serviceOs(service), discountCode: (discountCode || '').trim()
       });
@@ -709,7 +713,7 @@ window.KENIOS_DEFAULT_DB = {
       const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
       const chosenKey = (stock && stock.length) ? stock[0] : '';
       const result = await this._callApi('purchase', {
-        userId: user.userId, username: user.username,
+        userId: user.userId, username: user.username, token: this.currentToken(),
         serviceId: service.id, packageId: pkg.id,
         os: this.serviceOs(service), discountCode: (discountCode || '').trim(),
         key: chosenKey
@@ -861,7 +865,7 @@ window.KENIOS_DEFAULT_DB = {
         });
       }
       const result = await this._callApi('purchase_combo', {
-        userId: user.userId, username: user.username, comboId, itemKeys
+        userId: user.userId, username: user.username, token: this.currentToken(), comboId, itemKeys
       });
       if (result.status !== 'success') throw new Error(result.message || 'Mua combo thất bại.');
       user.balance = result.balance;
@@ -1212,7 +1216,7 @@ window.KENIOS_DEFAULT_DB = {
       url = (url || '').trim();
       if (!url) throw new Error('Chưa có ảnh để cập nhật.');
       try {
-        const res = await this._callApi('update_avatar', { userId: user.userId, avatar: url });
+        const res = await this._callApi('update_avatar', { userId: user.userId, token: this.currentToken(), avatar: url });
         if (res.status !== 'success') throw new Error(res.message || 'Không đổi được ảnh đại diện.');
         user.avatar = res.avatar || url;
       } catch (e) {
