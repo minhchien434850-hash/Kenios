@@ -1810,3 +1810,10 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
     font-size: 16px !important;
   }
 }
+
+/* Admin: tab Nạp thẻ cào */
+.admin-card-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.acs-chip { font-size: .82rem; font-weight: 600; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--glass); }
+.acs-chip.ok { color: #4ade80; border-color: rgba(34,197,94,.3); }
+.acs-chip.pend { color: var(--gold-soft); border-color: rgba(255,183,3,.3); }
+.acs-chip.fail { color: #f87171; border-color: rgba(248,113,113,.3); }

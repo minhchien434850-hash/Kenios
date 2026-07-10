@@ -1290,6 +1290,10 @@ window.KENIOS_DEFAULT_DB = {
       try { const r = await fetch(`${API_URL}?action=backup_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
       catch (e) { return { status: 'error' }; }
     },
+    async cardRequestsAdmin(u, p) {
+      try { const r = await fetch(`${API_URL}?action=card_requests`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
     async restoreFromServer(u, p) {
       try { const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
       catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
@@ -4145,6 +4149,7 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();
     else if (tab === 'combos') body.innerHTML = adminCombosHtml();
     else if (tab === 'promo') { body.innerHTML = adminPromoHtml(); $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer()); }
+    else if (tab === 'cards') { body.innerHTML = adminCardsHtml(); wireAdminCards(); }
     else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
     else if (tab === 'backup') { body.innerHTML = adminBackupHtml(); wireBackupBox(); }
   }
@@ -5185,6 +5190,46 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ---- Admin: Sao lưu & Khôi phục dữ liệu (tab riêng) ----
+  // ---- Admin: theo dõi Nạp thẻ cào của khách ----
+  function adminCardsHtml() {
+    return `
+      <div class="admin-cards-page">
+        <div class="admin-section-title" style="margin:0 0 4px;">Nạp thẻ cào của khách</div>
+        <p class="muted" style="font-size:.85rem;margin:0 0 16px;">Theo dõi các thẻ khách đã nạp: đang xử lý / thành công / lỗi. Tiền tự cộng khi cổng thesieure duyệt.</p>
+        <div class="admin-card-stats" id="adminCardStats"></div>
+        <div class="admin-table-wrap" style="margin-top:14px;">
+          <table class="admin-table">
+            <thead><tr><th>Khách</th><th>Nhà mạng</th><th>Mệnh giá</th><th>Thực nhận</th><th>Trạng thái</th><th>Thời gian</th></tr></thead>
+            <tbody id="adminCardRows"><tr><td colspan="6" class="empty-note">Đang tải…</td></tr></tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function wireAdminCards() {
+    const c = getAdminCreds();
+    const rows = $('#adminCardRows');
+    const statsEl = $('#adminCardStats');
+    if (!c) { if (rows) rows.innerHTML = '<tr><td colspan="6" class="empty-note">Đăng nhập lại admin 1 lần để xem.</td></tr>'; return; }
+    Store.cardRequestsAdmin(c.username, c.password).then(res => {
+      if (!res || res.status !== 'success') { rows.innerHTML = `<tr><td colspan="6" class="empty-note">${esc((res && res.message) || 'Không tải được.')}</td></tr>`; return; }
+      const s = res.stats || {};
+      if (statsEl) statsEl.innerHTML =
+        `<span class="acs-chip ok">✅ Thành công: <b>${s.success || 0}</b> · ${fmt(s.sumSuccess || 0)}</span>`
+        + `<span class="acs-chip pend">⏳ Đang xử lý: <b>${s.pending || 0}</b></span>`
+        + `<span class="acs-chip fail">❌ Lỗi: <b>${s.failed || 0}</b></span>`;
+      const list = res.requests || [];
+      const label = { pending: '⏳ Đang xử lý', success: '✅ Thành công', failed: '❌ Lỗi/sai' };
+      rows.innerHTML = list.length
+        ? list.map(r => {
+            const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
+            const real = r.status === 'success' && r.realAmount ? fmt(r.realAmount) : '—';
+            return `<tr><td>${esc(r.username)}</td><td>${esc(r.telco)}</td><td>${fmt(r.declaredAmount)}</td><td>${real}</td><td><span class="card-status-badge ${esc(r.status)}">${label[r.status] || r.status}</span></td><td style="white-space:nowrap;font-size:.78rem;">${esc(when)}</td></tr>`;
+          }).join('')
+        : '<tr><td colspan="6" class="empty-note">Chưa có khách nào nạp thẻ.</td></tr>';
+    }).catch(() => { rows.innerHTML = '<tr><td colspan="6" class="empty-note">Không tải được.</td></tr>'; });
+  }
+
   function adminBackupHtml() {
     return `
       <div class="admin-backup-page">

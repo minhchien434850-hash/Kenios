@@ -517,6 +517,9 @@ switch ($action) {
         if (isset($db['users']) && is_array($db['users'])) {
             $db['users'] = array_map('safe_user', $db['users']);
         }
+        // Yêu cầu nạp thẻ (cardRequests) chứa userId + mệnh giá của khách — chỉ trả cho
+        // admin đã xác thực, khách thường KHÔNG được thấy của người khác.
+        if (!$is_admin) unset($db['cardRequests']);
         // bankToken đã chuyển sang secrets.php — không trả field cũ này ra ngoài nữa.
         if (isset($db['config']['bankToken'])) $db['config']['bankToken'] = '';
         // Kho key thật của từng gói CHỈ trả về cho admin đã xác thực; khách thường chỉ
@@ -1410,6 +1413,38 @@ switch ($action) {
             if (count($mine) >= 10) break;
         }
         echo json_encode(["status" => "success", "balance" => $balance, "requests" => $mine]);
+        break;
+
+    // Admin xem danh sách yêu cầu NẠP THẺ CÀO của khách (mới nhất trước).
+    case 'card_requests':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $usersById = [];
+        foreach (($db['users'] ?? []) as $u) { if (!empty($u['userId'])) $usersById[$u['userId']] = $u['username'] ?? ''; }
+        $list = [];
+        foreach (($db['cardRequests'] ?? []) as $r) {
+            $list[] = [
+                'username' => $usersById[$r['userId'] ?? ''] ?? ('#' . ($r['userId'] ?? '')),
+                'telco' => $r['telco'] ?? '', 'declaredAmount' => $r['declaredAmount'] ?? 0,
+                'realAmount' => $r['realAmount'] ?? null, 'status' => $r['status'] ?? 'pending',
+                'date' => $r['date'] ?? ''
+            ];
+            if (count($list) >= 100) break;
+        }
+        // Thống kê nhanh
+        $sumSuccess = 0; $cntSuccess = 0; $cntPending = 0; $cntFailed = 0;
+        foreach (($db['cardRequests'] ?? []) as $r) {
+            $st = $r['status'] ?? 'pending';
+            if ($st === 'success') { $cntSuccess++; $sumSuccess += floatval($r['realAmount'] ?? 0); }
+            elseif ($st === 'failed') { $cntFailed++; }
+            else { $cntPending++; }
+        }
+        echo json_encode(["status" => "success", "requests" => $list,
+            "stats" => ["success" => $cntSuccess, "pending" => $cntPending, "failed" => $cntFailed, "sumSuccess" => $sumSuccess]]);
         break;
 
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
