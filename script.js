@@ -4014,19 +4014,19 @@ window.KENIOS_DEFAULT_DB = {
     openModal('#txHistoryModal');
   }
 
-  // % chiết khấu nạp thẻ MẶC ĐỊNH — LẤY ĐÚNG theo bảng phí đổi thẻ cào của thesieure.com
-  // (mức "Thành viên"). Viettel/Vina/Mobifone chiết khấu KHÁC NHAU theo mệnh giá nên dùng
-  // bảng theo mệnh giá; các cổng còn lại một mức. `default` dùng cho mệnh giá không liệt kê.
-  // Phải khớp $DEFAULT_DISC trong card.php.
+  // % chiết khấu nạp thẻ MẶC ĐỊNH — LẤY ĐÚNG theo bảng phí đổi thẻ cào của card2k.net
+  // (mức "Thành viên"). Viettel/Vina/Mobifone/Gate/Vcoin chiết khấu KHÁC NHAU theo mệnh giá
+  // nên dùng bảng theo mệnh giá; các cổng còn lại một mức. `default` dùng cho mệnh giá không
+  // liệt kê. Phải khớp $DEFAULT_DISC trong card.php.
   const DEFAULT_CARD_DISCOUNTS = {
-    VIETTEL:      { 10000: 17, 20000: 16, 30000: 17, 50000: 14, 100000: 14, 200000: 14, 300000: 15, 500000: 15.5, 1000000: 15.5, default: 15.5 },
-    MOBIFONE:     { 10000: 21, 20000: 21, 30000: 21, 50000: 20.5, 100000: 20.5, 200000: 19, 300000: 19, 500000: 19, default: 19 },
-    VINAPHONE:    { 10000: 16, 20000: 16, 30000: 16, 50000: 13, 100000: 12.5, 200000: 12, 300000: 12, 500000: 12, default: 12 },
-    VIETNAMOBILE: { default: 38 },
-    ZING:         { default: 13.5 },
-    GARENA:       { default: 14.5 },
-    VCOIN:        { 2000000: 16, default: 14.5 },
-    SCOIN:        { default: 27.5 }
+    VIETTEL:   { 10000: 19, 20000: 19, 30000: 20, 50000: 18.5, 100000: 18.5, 200000: 18.5, 300000: 18.5, 500000: 20.5, 1000000: 20.5, default: 20.5 },
+    VINAPHONE: { 10000: 19.5, 20000: 19.5, 30000: 19.5, 50000: 16.5, 100000: 15.5, 200000: 16, 300000: 16, 500000: 15.5, default: 15.5 },
+    MOBIFONE:  { 10000: 26, 20000: 26, 30000: 26, 50000: 25.5, 100000: 25, 200000: 23, 300000: 23, 500000: 22, default: 22 },
+    GARENA:    { 5000: 19.5, 10000: 18.5, 20000: 18.5, 50000: 18.5, 100000: 18.5, 200000: 18.5, 500000: 18.5, default: 18.5 },
+    ZING:      { default: 18.5 },
+    GATE:      { 10000: 17, 20000: 17, 50000: 17, 100000: 17, 200000: 17, 300000: 23.5, 500000: 17, 1000000: 17, 2000000: 23.5, 5000000: 17, default: 17 },
+    VCOIN:     { 2000000: 21, 5000000: 21.5, default: 19.5 },
+    SCOIN:     { default: 32.5 }
   };
   // Lấy % chiết khấu theo nhà mạng + mệnh giá. Ưu tiên admin tự đặt (một mức phẳng cho mọi
   // mệnh giá); nếu chưa đặt thì dùng bảng mặc định theo mệnh giá ở trên.
@@ -5371,8 +5371,8 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí của card2k.net.</div>
         <div class="card-discount-grid span-2">
-          ${['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','VCOIN','SCOIN'].map(t => {
-            const telcoName = { VIETTEL:'Viettel', MOBIFONE:'Mobifone', VINAPHONE:'Vinaphone', VIETNAMOBILE:'Vietnamobile', ZING:'Zing', GARENA:'Garena', VCOIN:'Vcoin', SCOIN:'Scoin' }[t];
+          ${['VIETTEL','VINAPHONE','MOBIFONE','GARENA','ZING','GATE','VCOIN','SCOIN'].map(t => {
+            const telcoName = { VIETTEL:'Viettel', VINAPHONE:'Vinaphone', MOBIFONE:'Mobifone', GARENA:'Garena', ZING:'Zing', GATE:'Gate', VCOIN:'Vcoin', SCOIN:'Scoin' }[t];
             const saved = (c.cardDiscounts || {})[t];
             const val = (saved != null && saved !== '' && typeof saved !== 'object') ? saved : '';
             return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="0.5" value="${esc(String(val))}" placeholder="mặc định ${cardDiscountHint(t)}%"></label>`;
@@ -6200,7 +6200,7 @@ window.KENIOS_DEFAULT_DB = {
       autoSyncToServer('Đã lưu thư mục con và đồng bộ lên máy chủ.', 'Đã lưu thư mục con (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
     } else if (formType === 'config') {
       const cardDiscounts = {};
-      ['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','VCOIN','SCOIN'].forEach(t => {
+      ['VIETTEL','VINAPHONE','MOBIFONE','GARENA','ZING','GATE','VCOIN','SCOIN'].forEach(t => {
         const raw = fd.get('cardDiscount_' + t);
         const v = parseFloat(raw);
         if (raw !== null && raw !== '' && !isNaN(v) && v > 0) cardDiscounts[t] = Math.max(0, Math.min(90, v));
