@@ -3597,10 +3597,9 @@ window.KENIOS_DEFAULT_DB = {
           if (after > before) toast(`Đã cộng tiền! Số dư: ${fmt(after)}.`, 'success');
           const reqs = res.requests || [];
           if (!reqs.length) { listEl.hidden = false; listEl.innerHTML = '<p class="muted" style="font-size:.8rem;margin:0;">Bạn chưa nạp thẻ nào.</p>'; return; }
-          const label = { pending: '⏳ Đang xử lý', success: '✅ Thành công', failed: '❌ Thẻ lỗi/sai' };
           listEl.hidden = false;
           listEl.innerHTML = reqs.map(r => {
-            const st = label[r.status] || r.status;
+            const st = cardStatusLabel(r.status, 'Thẻ lỗi/sai');
             const amt = r.status === 'success' && r.realAmount ? ` · nhận ${fmt(r.realAmount)}` : '';
             const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
             return `<div class="card-status-item"><span>${esc(r.telco)} ${fmt(r.declaredAmount)}${amt}</span><span class="card-status-badge ${esc(r.status)}">${st}</span><small>${esc(when)}</small></div>`;
@@ -3977,6 +3976,18 @@ window.KENIOS_DEFAULT_DB = {
     openModal('#downloadsModal');
   }
 
+  // Nhãn trạng thái thẻ cào dùng ICON SVG RIÊNG (không dùng emoji máy). failText đổi được
+  // vì mỗi nơi ghi khác nhau ("Thẻ lỗi/sai" / "Lỗi/sai" / "Lỗi").
+  function cardStatusLabel(status, failText) {
+    const ico = {
+      pending: `<span class="cs-ico pending">${ICONS.clock}</span>`,
+      success: `<span class="cs-ico ok">${ICONS.check}</span>`,
+      failed:  `<span class="cs-ico fail">${ICONS.close}</span>`
+    }[status] || '';
+    const txt = { pending: 'Đang xử lý', success: 'Thành công', failed: failText || 'Thẻ lỗi/sai' }[status] || status;
+    return `${ico} ${txt}`;
+  }
+
   // Lịch sử nạp tiền: gồm các lần nạp THÀNH CÔNG (giao dịch type='deposit') + các thẻ cào
   // ĐANG XỬ LÝ / LỖI (chưa cộng tiền). Mở lịch sử cũng chủ động hỏi cổng trạng thái thẻ.
   async function openDepositHistoryModal() {
@@ -4012,7 +4023,10 @@ window.KENIOS_DEFAULT_DB = {
        <div class="dh-summary-row"><span>Số lần nạp thành công</span><strong>${deps.length}</strong></div>`
       + (pendCount ? `<div class="dh-summary-row"><span>Thẻ đang xử lý</span><strong>${pendCount}</strong></div>` : '');
 
-    const badge = { pending: '<span class="dh-status pending">⏳ Đang xử lý</span>', failed: '<span class="dh-status failed">❌ Thẻ lỗi/sai</span>' };
+    const badge = {
+      pending: `<span class="dh-status pending">${cardStatusLabel('pending')}</span>`,
+      failed: `<span class="dh-status failed">${cardStatusLabel('failed', 'Thẻ lỗi/sai')}</span>`
+    };
     $('#depositHistoryList').innerHTML = items.length
       ? items.map(it => {
           const when = it.date ? new Date(it.date).toLocaleString('vi-VN') : '';
@@ -5555,11 +5569,11 @@ window.KENIOS_DEFAULT_DB = {
       if (!res || res.status !== 'success') { rows.innerHTML = `<tr><td colspan="7" class="empty-note">${esc((res && res.message) || 'Không tải được.')}</td></tr>`; return; }
       const s = res.stats || {};
       if (statsEl) statsEl.innerHTML =
-        `<span class="acs-chip ok">✅ Thành công: <b>${s.success || 0}</b> · ${fmt(s.sumSuccess || 0)}</span>`
-        + `<span class="acs-chip pend">⏳ Đang xử lý: <b>${s.pending || 0}</b></span>`
-        + `<span class="acs-chip fail">❌ Lỗi: <b>${s.failed || 0}</b></span>`;
+        `<span class="acs-chip ok"><span class="cs-ico ok">${ICONS.check}</span> Thành công: <b>${s.success || 0}</b> · ${fmt(s.sumSuccess || 0)}</span>`
+        + `<span class="acs-chip pend"><span class="cs-ico pending">${ICONS.clock}</span> Đang xử lý: <b>${s.pending || 0}</b></span>`
+        + `<span class="acs-chip fail"><span class="cs-ico fail">${ICONS.close}</span> Lỗi: <b>${s.failed || 0}</b></span>`;
       const list = res.requests || [];
-      const label = { pending: '⏳ Đang xử lý', success: '✅ Thành công', failed: '❌ Lỗi/sai' };
+      const label = { pending: cardStatusLabel('pending'), success: cardStatusLabel('success'), failed: cardStatusLabel('failed', 'Lỗi/sai') };
       rows.innerHTML = list.length
         ? list.map(r => {
             const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';

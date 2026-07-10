@@ -1538,6 +1538,12 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
 .dh-status { display: inline-block; margin-left: 6px; font-weight: 700; font-size: .72rem; }
 .dh-status.pending { color: var(--gold-soft); }
 .dh-status.failed { color: #f87171; }
+/* Icon SVG trạng thái thẻ (thay cho emoji máy) */
+.cs-ico { display: inline-flex; width: 15px; height: 15px; vertical-align: -3px; }
+.cs-ico svg { width: 15px; height: 15px; }
+.cs-ico.pending { color: var(--gold-soft); }
+.cs-ico.ok { color: #22c55e; }
+.cs-ico.fail { color: #f87171; }
 
 .auth-head { text-align: center; margin-bottom: 18px; }
 .auth-logo { width: 52px; height: 52px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(139,92,246,.28), rgba(255,183,3,.16)); border: 1px solid rgba(139,92,246,.25); margin-bottom: 8px; }
