@@ -36,7 +36,7 @@ window.KENIOS_DEFAULT_DB = {
     zaloLink: "",
     contactChannels: [
       { id: "zalo", label: "Zalo", icon: "💬", url: "", enabled: false },
-      { id: "phone", label: "Hotline", icon: "📞", url: "", enabled: false },
+      { id: "phone", label: "Hotline", icon: "", url: "", enabled: false },
       { id: "telegram", label: "Telegram", icon: "📢", url: "", enabled: false },
       { id: "facebook", label: "Facebook", icon: "👍", url: "", enabled: false },
       { id: "instagram", label: "Instagram", icon: "📷", url: "", enabled: false },
@@ -51,7 +51,7 @@ window.KENIOS_DEFAULT_DB = {
     aiName: "Trợ Lý Ảo Kenios",
     aiGreeting: "Xin chào! Tôi là trợ lý ảo của KENIOS.STORE. Tôi có thể giúp gì cho bạn hôm nay?",
     aiResponseGreeting: "Chào bạn! Chúc bạn một ngày mua sắm vui vẻ. Tôi có thể hỗ trợ bạn tìm hiểu về dịch vụ Game hoặc Thiết Kế Web của shop.",
-    aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n📱 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
+    aiResponsePrice: "🔥 BẢNG GIÁ 🔥🚀\n\n🎮 PUBG IOS\n\n💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần\n\n💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần\n\n💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần\n\n💎 KING\n💰 900K/Tháng\n💰 450K/Tuần\n\n💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày\n\n💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần\n\n🤖 PUBG ANDROID\n\n💰 ZOLO: 500K/T - 250K/Tuần\n💰 MG: 500K/T - 250K/Tuần\n💰 VNB: 500K/T - 250K/Tuần\n💰 ROOT: 650K/Tháng\n\n⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500/Tháng chống tố\n💰 250/Tuần chống tố\n\n🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần\n\n🌐 Tất cả dịch vụ: https://linkbio.co/KENIOS\n👥 Nhóm Zalo: https://zalo.me/g/wfggej458\n📢 Nhóm Telegram: https://t.me/minhchienhaxgame\n\n❤️ Cảm ơn anh em đã ủng hộ ❤️",
     aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này 🥲. Bạn có thể hỏi mình về: cách nạp tiền, cách mua/nhận key, bảng giá, bảo hành, thiết kế web… hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé!",
     // Bộ câu trả lời sẵn — khách nhắn chứa từ khoá nào (cách nhau bởi dấu phẩy) thì trả lời câu tương ứng.
     aiKnowledge: [
@@ -1738,7 +1738,7 @@ window.KENIOS_DEFAULT_DB = {
     trophy: _svg('<path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 5.5H5V7a3 3 0 0 0 3 3M16 5.5h3V7a3 3 0 0 1-3 3"/><path d="M12 12v4M9 20h6M10 20l.5-4h3l.5 4"/>'),
     sword: _svg('<path d="M14 3h7v7l-9.5 9.5-2 .5.5-2L19.5 8.5"/><path d="m5 15 4 4M4 20l2.5-2.5"/>'),
     diamond: _svg('<path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 7 9l5 12 5-12-2-6"/>'),
-    phone: _svg('<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/>'),
+    phone: _svg('<path d="M6.8 3.5c.9 0 1.7.6 1.9 1.5l.6 2.4c.2.7-.1 1.4-.6 1.9L7.4 10.6a12.5 12.5 0 0 0 6 6l1.3-1.3c.5-.5 1.2-.8 1.9-.6l2.4.6c.9.2 1.5 1 1.5 1.9v2.5c0 1.1-.9 2-2 2A16 16 0 0 1 4.4 5.5c0-1.1.9-2 2-2Z"/>'),
     cart: _svg('<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.2 11a1.5 1.5 0 0 0 1.5 1.2h8a1.5 1.5 0 0 0 1.5-1.2L20 8H6"/>'),
     tag: _svg('<path d="M4 4h7.5l8.5 8.5-7.5 7.5L4 11.5V4Z"/><circle cx="8.5" cy="8.5" r="1.4"/>'),
     gift: _svg('<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12"/><path d="M12 8S10.5 4.5 8.2 4.5A1.8 1.8 0 0 0 8 8h4Zm0 0s1.5-3.5 3.8-3.5A1.8 1.8 0 0 1 16 8h-4Z"/>'),
@@ -4260,7 +4260,7 @@ window.KENIOS_DEFAULT_DB = {
     { keys: ['mg'], text: 'PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
     { keys: ['liên quân', 'lien quan'], text: '⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500K/Tháng chống tố\n💰 250K/Tuần chống tố' },
     { keys: ['free fire', 'freefire'], text: '🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần' },
-    { keys: ['pubg ios', 'ios'], text: '📱 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
+    { keys: ['pubg ios', 'ios'], text: '🎮 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
     { keys: ['pubg android', 'android'], text: 'PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
   ];
 
