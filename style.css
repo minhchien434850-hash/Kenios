@@ -557,6 +557,14 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   background: rgba(255,255,255,.03); color: var(--ink); font-size: .95rem; font-family: inherit;
 }
 .deposit-card-msg { font-size: .84rem; margin: 0; line-height: 1.5; }
+.card-status-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.card-status-item { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--border); font-size: .82rem; }
+.card-status-item > span:first-child { flex: 1; font-weight: 600; }
+.card-status-item small { width: 100%; color: var(--muted); font-size: .72rem; }
+.card-status-badge { font-size: .74rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.card-status-badge.pending { color: var(--gold-soft); background: rgba(255,183,3,.12); }
+.card-status-badge.success { color: #4ade80; background: rgba(34,197,94,.14); }
+.card-status-badge.failed { color: #f87171; background: rgba(248,113,113,.14); }
 .quick-amounts { display: flex; gap: 8px; flex-wrap: wrap; }
 .quick-amounts button {
   padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; font-size: .82rem;

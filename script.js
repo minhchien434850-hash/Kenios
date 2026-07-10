@@ -651,6 +651,17 @@ window.KENIOS_DEFAULT_DB = {
       return res;
     },
 
+    // Kiểm tra trạng thái các thẻ đã nạp + đồng bộ số dư mới nhất (nếu callback đã cộng).
+    async cardStatus() {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập.');
+      const res = await this._callApi('card_status', { userId: user.userId });
+      if (res && res.status === 'success' && res.balance !== null && res.balance !== undefined) {
+        if (user.balance !== res.balance) { user.balance = res.balance; this._persistOverrides(); this._emit(); }
+      }
+      return res;
+    },
+
     // Gói có kho key thật (admin đã nhập key trong tab Dịch vụ) sẽ có field `keyCount`
     // (kể cả khi = 0). Với gói này, PHẢI mua qua máy chủ (redeemKeyOnServer) để rút
     // đúng 1 key thật + trừ số dư một cách xác thực, không dùng đường cũ (giả lập cục bộ).
@@ -3470,6 +3481,33 @@ window.KENIOS_DEFAULT_DB = {
         } catch (e) {
           setMsg('Không kết nối được máy chủ nạp thẻ (cần backend PHP).', false);
           toast('Không nạp được thẻ (thiếu máy chủ).', 'error');
+        }
+      });
+    });
+
+    // Kiểm tra thẻ đã nạp: xem trạng thái + cập nhật số dư nếu đã cộng.
+    $('#checkCardBtn')?.addEventListener('click', () => {
+      if (!Store.currentUser()) { toast('Vui lòng đăng nhập.', 'error'); return; }
+      const listEl = $('#cardStatusList');
+      const before = Store.currentUser().balance || 0;
+      withLoading($('#checkCardBtn'), async () => {
+        try {
+          const res = await Store.cardStatus();
+          if (!res || res.status !== 'success') { toast((res && res.message) || 'Không kiểm tra được.', 'error'); return; }
+          const after = Store.currentUser().balance || 0;
+          if (after > before) toast(`Đã cộng tiền! Số dư: ${fmt(after)}.`, 'success');
+          const reqs = res.requests || [];
+          if (!reqs.length) { listEl.hidden = false; listEl.innerHTML = '<p class="muted" style="font-size:.8rem;margin:0;">Bạn chưa nạp thẻ nào.</p>'; return; }
+          const label = { pending: '⏳ Đang xử lý', success: '✅ Thành công', failed: '❌ Thẻ lỗi/sai' };
+          listEl.hidden = false;
+          listEl.innerHTML = reqs.map(r => {
+            const st = label[r.status] || r.status;
+            const amt = r.status === 'success' && r.realAmount ? ` · nhận ${fmt(r.realAmount)}` : '';
+            const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
+            return `<div class="card-status-item"><span>${esc(r.telco)} ${fmt(r.declaredAmount)}${amt}</span><span class="card-status-badge ${esc(r.status)}">${st}</span><small>${esc(when)}</small></div>`;
+          }).join('');
+        } catch (e) {
+          toast('Không kết nối được máy chủ.', 'error');
         }
       });
     });

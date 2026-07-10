@@ -1337,6 +1337,27 @@ switch ($action) {
         }
         break;
 
+    // Khách KIỂM TRA trạng thái các thẻ đã nạp + lấy số dư mới nhất (callback đã cộng chưa).
+    case 'card_status':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        if ($userId === '') { echo json_encode(["status" => "error", "message" => "Thiếu tài khoản."]); exit; }
+        $db = read_db($db_file);
+        $balance = null;
+        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $balance = $u['balance']; break; } }
+        $mine = [];
+        foreach (($db['cardRequests'] ?? []) as $r) {
+            if (($r['userId'] ?? '') !== $userId) continue;
+            $mine[] = [
+                'telco' => $r['telco'] ?? '', 'declaredAmount' => $r['declaredAmount'] ?? 0,
+                'status' => $r['status'] ?? 'pending', 'realAmount' => $r['realAmount'] ?? null,
+                'date' => $r['date'] ?? ''
+            ];
+            if (count($mine) >= 10) break;
+        }
+        echo json_encode(["status" => "success", "balance" => $balance, "requests" => $mine]);
+        break;
+
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
     case 'backup_db':
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
