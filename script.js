@@ -1439,15 +1439,11 @@ window.KENIOS_DEFAULT_DB = {
     prefs: Object.assign({ touchEnabled: true, sound: 'pop', volume: 0.5 }, readPrefs()),
 
     init() {
-      injectCSS();
-      document.addEventListener('pointerdown', (e) => this._onPointer(e), { passive: true });
-      // Đã bỏ nút cài đặt âm thanh nổi (loa) theo yêu cầu — âm thanh chạm vẫn hoạt động.
+      // Đã GỠ hoàn toàn hiệu ứng chạm (gợn sóng + âm thanh) theo yêu cầu — không gắn
+      // listener gì nữa để khi chạm màn hình không còn hiệu ứng nào.
     },
 
-    _onPointer(e) {
-      if (this.prefs.touchEnabled) spawnRipple(e.clientX, e.clientY);
-      // Đã xóa âm thanh chạm theo yêu cầu
-    },
+    _onPointer() { /* không dùng nữa */ },
 
     setPrefs(patch) {
       Object.assign(this.prefs, patch);
