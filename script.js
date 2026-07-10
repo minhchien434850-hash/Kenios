@@ -2587,38 +2587,12 @@ window.KENIOS_DEFAULT_DB = {
     if (typeof updateFlashSaleBar === 'function') updateFlashSaleBar();
     injectSeoJsonLd();
     applyMaintenanceMode();
-    applyMediaAspect();
   }
 
-  // Cho KHUNG ảnh/video (thẻ danh mục + thẻ sản phẩm) ĂN THEO ĐÚNG tỷ lệ media đã up:
-  // đọc kích thước thật rồi đặt --media-ar -> ảnh lấp đầy full viền, canh giữa, không lệch,
-  // không dải đen. Có nhớ src đã xử lý để không chạy lại thừa mỗi lần render.
-  function applyMediaAspect(root = document) {
-    const clamp = (r) => Math.min(Math.max(r, 0.5), 2.4);
-    // Ảnh nền (div .category-media / .thumb)
-    $$('.category-media, .service-card .thumb', root).forEach(el => {
-      if (el.tagName === 'VIDEO') return;
-      const st = el.getAttribute('style') || '';
-      const m = st.match(/background-image:\s*url\((['"]?)([^'")]+)\1\)/i);
-      if (!m) return;
-      const src = m[2];
-      if (el.dataset.arSrc === src) return; // đã xử lý ảnh này rồi
-      el.dataset.arSrc = src;
-      const im = new Image();
-      im.onload = () => {
-        if (im.naturalWidth > 0 && im.naturalHeight > 0)
-          el.style.setProperty('--media-ar', clamp(im.naturalWidth / im.naturalHeight).toFixed(4));
-      };
-      im.src = src;
-    });
-    // Video (video.category-media hoặc .thumb-video trong .thumb)
-    $$('video.category-media, .thumb-video', root).forEach(v => {
-      const box = v.classList.contains('thumb-video') ? v.closest('.thumb') : v;
-      if (!box) return;
-      const set = () => { if (v.videoWidth > 0) box.style.setProperty('--media-ar', clamp(v.videoWidth / v.videoHeight).toFixed(4)); };
-      if (v.readyState >= 1) set(); else v.addEventListener('loadedmetadata', set, { once: true });
-    });
-  }
+  // Khung ảnh thẻ danh mục / thư mục con / sản phẩm dùng KHUNG CỐ ĐỊNH 4:3 (đặt trong CSS)
+  // và ảnh/video phủ kín bằng cover. Vì vậy dù admin up ảnh rộng/cao bao nhiêu, cột và
+  // khung thẻ vẫn giữ NGUYÊN kích thước, không nới rộng, không xê dịch chữ. Không đặt
+  // --media-ar cho lưới thẻ nữa (chỉ modal chi tiết mới ăn theo tỷ lệ ảnh thật).
 
   // Chế độ bảo trì: khi admin bật, khách thấy trang "Đang bảo trì" và không thao tác được.
   // Admin (đang đăng nhập vai admin) VẪN vào bình thường để cập nhật shop.

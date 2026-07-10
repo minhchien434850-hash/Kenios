@@ -459,8 +459,8 @@ video.hero-banner-bg { width: 100%; height: 100%; object-fit: cover; }
 .category-icon .emoji-fallback { font-size: 2.1rem; line-height: 1; }
 .category-card h3 { margin: 0 0 6px; font-size: 1rem; }
 .category-card p { margin: 0; color: var(--muted); font-size: .82rem; }
-/* Khung ẢNH ĂN THEO ĐÚNG tỷ lệ ảnh (JS đặt --media-ar) -> ảnh lấp đầy full viền,
-   canh giữa, KHÔNG dải đen, KHÔNG lệch. Mặc định 16:9 trước khi biết tỷ lệ thật. */
+/* KHUNG CỐ ĐỊNH 4:3 cho thẻ danh mục & thư mục con. Ảnh/video phủ kín (cover),
+   canh giữa. Dù up ảnh rộng/cao bao nhiêu, khung & cột KHÔNG đổi, chữ KHÔNG xê dịch. */
 .category-media {
   display: block; margin: -26px -18px 16px; position: relative; overflow: hidden;
   aspect-ratio: 4 / 3; /* KHUNG CỐ ĐỊNH → mọi thẻ bằng nhau, không so le; ảnh phủ kín (cover) */
@@ -518,8 +518,8 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 }
 .service-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: rgba(255,183,3,.35); }
 .service-card:hover .thumb { background-size: 108%; }
-/* Khung ảnh sản phẩm ĂN THEO tỷ lệ ảnh (JS đặt --media-ar) -> lấp đầy full viền,
-   canh giữa, không dải đen, không lệch. Mặc định 16:9 trước khi biết tỷ lệ thật. */
+/* KHUNG CỐ ĐỊNH 4:3 cho ảnh sản phẩm. Ảnh/video phủ kín (cover), canh giữa. Dù up ảnh
+   rộng/cao bao nhiêu, khung thẻ & cột sản phẩm GIỮ NGUYÊN, chữ KHÔNG xê dịch. */
 .service-card .thumb { aspect-ratio: 4 / 3; background-size: cover; background-position: center; position: relative; overflow: hidden; transition: background-size .5s ease; }
 .thumb-video { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
 .service-card:hover .thumb-video { transform: scale(1.08); }
