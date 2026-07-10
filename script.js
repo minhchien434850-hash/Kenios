@@ -3324,6 +3324,7 @@ window.KENIOS_DEFAULT_DB = {
       openModal('#depositModal');
     });
     $('#mobileNavDepositHistory').addEventListener('click', () => openDepositHistoryModal());
+    $('#mobileNavTxHistory')?.addEventListener('click', () => { closeMobileNavGlobal(); openTxHistoryModal(); });
     $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
     $('#mobileNavDownloads').addEventListener('click', () => { closeMobileNav(); openDownloadsModal(); });
     const adminNavBtn2 = $('#mobileNavAdminLink');
@@ -3902,6 +3903,27 @@ window.KENIOS_DEFAULT_DB = {
         </div>`).join('')
       : '<p class="empty-note">Bạn chưa có giao dịch nạp tiền nào.</p>';
     openModal('#depositHistoryModal');
+  }
+
+  // Lịch sử GIAO DỊCH đầy đủ của khách: nạp, mua, admin cộng/trừ — hiện trong menu 3 gạch.
+  function openTxHistoryModal() {
+    const user = Store.currentUser();
+    if (!user) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
+    const txs = (Store.db.transactions || []).filter(t => t.userId === user.userId);
+    $('#txHistoryList').innerHTML = txs.length
+      ? txs.map(t => {
+          const plus = (t.amount || 0) >= 0;
+          return `
+        <div class="dh-item">
+          <div class="dh-item-main">
+            <span class="dh-item-amount" style="color:${plus ? 'var(--success)' : 'var(--danger)'}">${plus ? '+' : ''}${fmt(t.amount || 0)}</span>
+            <span class="dh-item-desc">${esc(t.description || (t.type === 'purchase' ? 'Mua hàng' : 'Giao dịch'))}</span>
+          </div>
+          <span class="dh-item-date">${esc(new Date(t.date).toLocaleString('vi-VN'))}</span>
+        </div>`;
+        }).join('')
+      : '<p class="empty-note">Bạn chưa có giao dịch nào.</p>';
+    openModal('#txHistoryModal');
   }
 
   // ---- Thông tin pháp lý ----
