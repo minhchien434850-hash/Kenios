@@ -251,15 +251,24 @@ window.KENIOS_DEFAULT_DB = {
       // trong kho và token ngân hàng trước khi trả ra, nên an toàn cho khách. Chỉ khi
       // không có backend PHP (hosting tĩnh / mở bằng file://) mới đọc thẳng database.json.
       this._dbFromServer = false; // true nếu tải được từ máy chủ (get_db) — dữ liệu tiền thật
+      // Fetch có GIỚI HẠN THỜI GIAN: trình duyệt trong app (Telegram/Zalo) hay mạng yếu
+      // có thể mở kết nối nhưng không trả về, khiến trang kẹt mãi ở màn hình chờ. Sau
+      // 12s coi như thất bại và chuyển sang phương án dự phòng.
+      const fetchWithTimeout = async (url, ms = 12000) => {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), ms);
+        try { return await fetch(url, { cache: 'no-store', signal: ctrl.signal }); }
+        finally { clearTimeout(timer); }
+      };
       try {
-        const res = await fetch(`api.php?action=get_db&t=${Date.now()}`, { cache: 'no-store' });
+        const res = await fetchWithTimeout(`api.php?action=get_db&t=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
           if (json && json.config) { this._dbFromServer = true; return json; }
         }
       } catch (e) { /* thử tiếp database.json */ }
       try {
-        const res = await fetch(`database.json?v=${Date.now()}`, { cache: 'no-store' });
+        const res = await fetchWithTimeout(`database.json?v=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
           if (json && json.config) return json;
@@ -2117,36 +2126,56 @@ window.KENIOS_DEFAULT_DB = {
 
   document.addEventListener('DOMContentLoaded', boot);
 
-  async function boot() {
-    Voice.init();
-    Effects.init();
-    await Store.init();
-    Store.onChange(renderDynamic);
-
-    applyIcons();
-    renderStatic();
-    renderDynamic();
-    // LiveFeed.init(); // Đã xóa phần hoạt động trực tuyến khỏi giao diện nên không cần chạy nữa
-    renderFaq();
-    wireGlobalUI();
-    wireAuthModal();
-    wireDepositModal();
-    wireServiceModal();
-    wireCart();
-    wireAdminModal();
-    wireLegalModal();
-    wireAiWidget();
-    wireSearchModal();
-    wireScrollReveal();
-    wireScrollTopButton();
-    wireFlashSaleBar();
-    wireThemeToggle();
-    wireServiceFilters();
-
+  function hideBootLoader() {
     const loader = $('#bootLoader');
-    if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 500); }
+    if (loader && !loader.dataset.hidden) {
+      loader.dataset.hidden = '1';
+      loader.classList.add('hidden');
+      setTimeout(() => loader.remove(), 500);
+    }
+  }
 
-    maybeShowWelcome(Store.db.config);
+  async function boot() {
+    // Chạy từng bước có bọc lỗi: một hàm lỗi (VD thiếu phần tử) KHÔNG được làm sập
+    // cả trang và kẹt màn hình chờ. Ghi log để còn gỡ lỗi.
+    const step = (fn, name) => { try { fn(); } catch (e) { console.error('Boot lỗi ở ' + name + ':', e); } };
+    // Phao cứu: dù có bất kỳ lỗi/treo nào, sau 12s vẫn gỡ màn hình chờ để người dùng
+    // thấy được trang (đặc biệt trên trình duyệt trong app Telegram/Zalo).
+    const failsafe = setTimeout(hideBootLoader, 12000);
+
+    step(() => Voice.init(), 'Voice.init');
+    step(() => Effects.init(), 'Effects.init');
+    try {
+      await Store.init();
+    } catch (e) {
+      console.error('Store.init lỗi, dùng dữ liệu mặc định:', e);
+      try { Store.db = JSON.parse(JSON.stringify(global.KENIOS_DEFAULT_DB)); } catch (_) {}
+    }
+    step(() => Store.onChange(renderDynamic), 'onChange');
+
+    step(applyIcons, 'applyIcons');
+    step(renderStatic, 'renderStatic');
+    step(renderDynamic, 'renderDynamic');
+    step(renderFaq, 'renderFaq');
+    step(wireGlobalUI, 'wireGlobalUI');
+    step(wireAuthModal, 'wireAuthModal');
+    step(wireDepositModal, 'wireDepositModal');
+    step(wireServiceModal, 'wireServiceModal');
+    step(wireCart, 'wireCart');
+    step(wireAdminModal, 'wireAdminModal');
+    step(wireLegalModal, 'wireLegalModal');
+    step(wireAiWidget, 'wireAiWidget');
+    step(wireSearchModal, 'wireSearchModal');
+    step(wireScrollReveal, 'wireScrollReveal');
+    step(wireScrollTopButton, 'wireScrollTopButton');
+    step(wireFlashSaleBar, 'wireFlashSaleBar');
+    step(wireThemeToggle, 'wireThemeToggle');
+    step(wireServiceFilters, 'wireServiceFilters');
+
+    clearTimeout(failsafe);
+    hideBootLoader();
+
+    step(() => maybeShowWelcome(Store.db.config), 'maybeShowWelcome');
   }
 
   // ---- Thông báo popup khi vào web (đã bỏ tính năng lời chào bằng giọng nói). ----
