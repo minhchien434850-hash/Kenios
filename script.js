@@ -14,7 +14,7 @@ window.KENIOS_DEFAULT_DB = {
     siteTitle: "KENIOS.STORE - Cửa Hàng Dịch Vụ Game & Thiết Kế Website",
     siteSubtitle: "Hệ thống phân phối phụ kiện game & dịch vụ thiết kế web hàng đầu Việt Nam. Tự động 24/24, hỗ trợ setup từ A-Z.",
     logoText: "KENIOS.STORE",
-    logoSubtext: "v3.0 Premium",
+    logoSubtext: "Next Gen",
     logoUrl: "",
     logoFont: "Be Vietnam Pro",
     logoColor: "",
