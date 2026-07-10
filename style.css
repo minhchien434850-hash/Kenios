@@ -2083,3 +2083,17 @@ input[type=tel]:focus, input[type=url]:focus, select:focus, textarea:focus {
 
 /* Đường kẻ mềm giữa các mục lớn */
 .section + .section { position: relative; }
+
+/* ===== Tinh chỉnh nhẹ toàn trang (đồng bộ, tinh tế — không lòe loẹt) ===== */
+/* Bôi đen chữ theo tông vàng thương hiệu */
+::selection { background: rgba(255,183,3,.26); color: #fff; }
+/* Thanh cuộn mảnh, tối, hợp giao diện (mọi trình duyệt) */
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,183,3,.5); background-clip: padding-box; }
+/* Vòng sáng nhẹ khi focus ô nhập — đồng bộ, dễ thấy đang chọn ô nào */
+input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 3px rgba(255,183,3,.12); }
+/* Chuyển động mượt hơn cho các phần tử tương tác (không ảnh hưởng bố cục) */
+a, button, .category-card, .service-card, .filter-tab { transition-timing-function: cubic-bezier(.22,.61,.36,1); }
