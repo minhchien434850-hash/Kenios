@@ -23,15 +23,32 @@ $callbackSign = (string)($in['callback_sign'] ?? ($in['sign'] ?? ''));
 // Số tiền cổng thực trả về ví (đã trừ phí) và mệnh giá thực của thẻ. $credit tính sau
 // (dựa trên tỷ lệ % theo nhà mạng admin cấu hình), khi đã đọc DB.
 $amount = intval($in['amount'] ?? 0);
-$value  = intval($in['value'] ?? 0);
+$value  = intval($in['value'] ?? ($in['declared_value'] ?? 0));
+
+// ---- LOG CHẨN ĐOÁN: ghi lại MỌI callback để soi khi có sự cố "cổng success nhưng web
+// vẫn chờ". File này được .htaccess chặn truy cập trực tiếp. Xoá đi sau khi hết lỗi.
+$logLine = function ($note) use ($in) {
+    @file_put_contents(__DIR__ . '/card_callback_log.txt',
+        date('c') . " | " . $note . " | DATA=" . json_encode($in, JSON_UNESCAPED_UNICODE) . "\n",
+        FILE_APPEND);
+};
+$logLine('CALLBACK NHẬN ĐƯỢC');
 
 $secrets = read_secrets();
 $partnerKey = trim((string)($secrets['cardPartnerKey'] ?? ''));
-if ($partnerKey === '') { echo json_encode(["status" => "error", "message" => "Chưa cấu hình Partner Key."]); exit; }
+if ($partnerKey === '') { $logLine('LỖI: chưa cấu hình Partner Key'); echo json_encode(["status" => "error", "message" => "Chưa cấu hình Partner Key."]); exit; }
 
-// Xác minh chữ ký callback: md5(partner_key + code + serial). Sai -> bỏ qua (chống giả mạo).
-$expected = md5($partnerKey . $code . $serial);
-if ($callbackSign === '' || strtolower($callbackSign) !== strtolower($expected)) {
+// Xác minh chữ ký callback. Các cổng cùng họ chargingws/v2 (card2k/thesieure/doithe1s) dùng
+// md5(partner_key + code + serial); một số cổng đảo thứ tự serial/code — chấp nhận cả 2 để
+// không bị kẹt vì thứ tự (vẫn an toàn vì đều cần partner_key bí mật).
+$expectedCS = md5($partnerKey . $code . $serial);
+$expectedSC = md5($partnerKey . $serial . $code);
+$sigOk = ($callbackSign !== '' && (
+    strtolower($callbackSign) === strtolower($expectedCS) ||
+    strtolower($callbackSign) === strtolower($expectedSC)
+));
+if (!$sigOk) {
+    $logLine("LỖI CHỮ KÝ: nhận=$callbackSign | mong đợi(code+serial)=$expectedCS | mong đợi(serial+code)=$expectedSC");
     echo json_encode(["status" => "error", "message" => "Chữ ký callback không hợp lệ."]); exit;
 }
 
@@ -47,6 +64,11 @@ $db = $raw ? (json_decode($raw, true) ?: []) : [];
 $reqIdx = -1;
 foreach (($db['cardRequests'] ?? []) as $i => $r) {
     if (($r['request_id'] ?? '') === $request_id) { $reqIdx = $i; break; }
+}
+if ($reqIdx === -1) {
+    $logLine("CẢNH BÁO: không tìm thấy yêu cầu với request_id=$request_id (không cộng được cho ai)");
+} else {
+    $logLine("OK: tìm thấy yêu cầu (userId=" . ($db['cardRequests'][$reqIdx]['userId'] ?? '?') . "), statusCode cổng=$statusCode");
 }
 
 // Chống cộng trùng: nếu đã có giao dịch với cardRef = request_id thì thôi.
@@ -114,6 +136,9 @@ if ($reqIdx !== -1) {
     $db['cardRequests'][$reqIdx]['realAmount'] = $credit;
     $db['cardRequests'][$reqIdx]['gatewayStatus'] = $statusCode;
 }
+$logLine(($success && !$already && $reqIdx !== -1 && $credit > 0)
+    ? "ĐÃ CỘNG $credit đ cho user (thành công)"
+    : "KHÔNG cộng tiền (success=" . ($success ? 1 : 0) . ", already=" . ($already ? 1 : 0) . ", reqIdx=$reqIdx, credit=$credit)");
 
 ftruncate($fp, 0); rewind($fp);
 fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));

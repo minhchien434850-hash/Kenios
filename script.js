@@ -1326,6 +1326,14 @@ window.KENIOS_DEFAULT_DB = {
       try { const r = await fetch(`${API_URL}?action=card_requests`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
       catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
     },
+    async cardApprove(u, p, requestId, amount) {
+      try { const r = await fetch(`${API_URL}?action=card_approve`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-User': u, 'X-Admin-Pass': p }, body: JSON.stringify({ requestId, amount }) }); return await r.json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
+    async cardLog(u, p) {
+      try { const r = await fetch(`${API_URL}?action=card_log`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
     async restoreFromServer(u, p) {
       try { const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
       catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
@@ -5459,12 +5467,17 @@ window.KENIOS_DEFAULT_DB = {
     return `
       <div class="admin-cards-page">
         <div class="admin-section-title" style="margin:0 0 4px;">Nạp thẻ cào của khách</div>
-        <p class="muted" style="font-size:.85rem;margin:0 0 16px;">Theo dõi các thẻ khách đã nạp: đang xử lý / thành công / lỗi. Tiền tự cộng khi cổng card2k.net duyệt.</p>
+        <p class="muted" style="font-size:.85rem;margin:0 0 12px;">Theo dõi các thẻ khách đã nạp: đang xử lý / thành công / lỗi. Tiền tự cộng khi cổng card2k.net duyệt (callback về <code>card.php</code>). Nếu cổng đã báo <b>success</b> mà web vẫn <b>Đang xử lý</b> → callback chưa về được, dùng nút <b>Duyệt tay</b> để cộng cho khách.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <button type="button" class="btn btn-glass btn-sm" id="cardLogBtn"><span class="btn-ico">${ICONS.news || ''}</span> Xem log callback</button>
+          <button type="button" class="btn btn-glass btn-sm" id="cardReloadBtn"><span class="btn-ico">${ICONS.refresh || ''}</span> Tải lại</button>
+        </div>
+        <pre id="cardLogBox" class="card-log-box" hidden></pre>
         <div class="admin-card-stats" id="adminCardStats"></div>
         <div class="admin-table-wrap" style="margin-top:14px;">
           <table class="admin-table">
-            <thead><tr><th>Khách</th><th>Nhà mạng</th><th>Mệnh giá</th><th>Thực nhận</th><th>Trạng thái</th><th>Thời gian</th></tr></thead>
-            <tbody id="adminCardRows"><tr><td colspan="6" class="empty-note">Đang tải…</td></tr></tbody>
+            <thead><tr><th>Khách</th><th>Nhà mạng</th><th>Mệnh giá</th><th>Thực nhận</th><th>Trạng thái</th><th>Thời gian</th><th></th></tr></thead>
+            <tbody id="adminCardRows"><tr><td colspan="7" class="empty-note">Đang tải…</td></tr></tbody>
           </table>
         </div>
       </div>`;
@@ -5474,9 +5487,38 @@ window.KENIOS_DEFAULT_DB = {
     const c = getAdminCreds();
     const rows = $('#adminCardRows');
     const statsEl = $('#adminCardStats');
-    if (!c) { if (rows) rows.innerHTML = '<tr><td colspan="6" class="empty-note">Đăng nhập lại admin 1 lần để xem.</td></tr>'; return; }
+    if (!c) { if (rows) rows.innerHTML = '<tr><td colspan="7" class="empty-note">Đăng nhập lại admin 1 lần để xem.</td></tr>'; return; }
+
+    $('#cardReloadBtn')?.addEventListener('click', () => renderAdminTab('cards'));
+    $('#cardLogBtn')?.addEventListener('click', () => {
+      const box = $('#cardLogBox');
+      if (!box) return;
+      if (!box.hidden) { box.hidden = true; return; }
+      box.hidden = false; box.textContent = 'Đang tải log…';
+      Store.cardLog(c.username, c.password).then(res => {
+        box.textContent = (res && res.status === 'success') ? (res.log || '(trống)') : ((res && res.message) || 'Không tải được log.');
+      });
+    });
+
+    // Duyệt tay: cộng tiền cho 1 thẻ đang chờ (khi callback không về được).
+    rows.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-card-approve]');
+      if (!btn) return;
+      const reqId = btn.dataset.cardApprove;
+      const suggest = btn.dataset.suggest || '';
+      const input = window.prompt('Nhập SỐ TIỀN cộng cho khách (xem cột "Thực nhận" bên card2k). Ví dụ card2k trả 8.100đ thì nhập 8100:', suggest);
+      if (input == null) return;
+      const amount = parseInt(String(input).replace(/[^\d]/g, ''), 10);
+      if (!amount || amount <= 0) { toast('Số tiền không hợp lệ.', 'error'); return; }
+      withLoading(btn, async () => {
+        const res = await Store.cardApprove(c.username, c.password, reqId, amount);
+        if (res && res.status === 'success') { toast('Đã cộng ' + fmt(amount) + ' cho khách.', 'success'); renderAdminTab('cards'); }
+        else { toast((res && res.message) || 'Duyệt thất bại.', 'error'); }
+      });
+    });
+
     Store.cardRequestsAdmin(c.username, c.password).then(res => {
-      if (!res || res.status !== 'success') { rows.innerHTML = `<tr><td colspan="6" class="empty-note">${esc((res && res.message) || 'Không tải được.')}</td></tr>`; return; }
+      if (!res || res.status !== 'success') { rows.innerHTML = `<tr><td colspan="7" class="empty-note">${esc((res && res.message) || 'Không tải được.')}</td></tr>`; return; }
       const s = res.stats || {};
       if (statsEl) statsEl.innerHTML =
         `<span class="acs-chip ok">✅ Thành công: <b>${s.success || 0}</b> · ${fmt(s.sumSuccess || 0)}</span>`
@@ -5488,10 +5530,13 @@ window.KENIOS_DEFAULT_DB = {
         ? list.map(r => {
             const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
             const real = r.status === 'success' && r.realAmount ? fmt(r.realAmount) : '—';
-            return `<tr><td>${esc(r.username)}</td><td>${esc(r.telco)}</td><td>${fmt(r.declaredAmount)}</td><td>${real}</td><td><span class="card-status-badge ${esc(r.status)}">${label[r.status] || r.status}</span></td><td style="white-space:nowrap;font-size:.78rem;">${esc(when)}</td></tr>`;
+            const act = (r.status === 'pending' && r.requestId)
+              ? `<button type="button" class="btn btn-primary btn-sm" data-card-approve="${esc(r.requestId)}" data-suggest="${esc(String(r.declaredAmount || ''))}">Duyệt tay</button>`
+              : '';
+            return `<tr><td>${esc(r.username)}</td><td>${esc(r.telco)}</td><td>${fmt(r.declaredAmount)}</td><td>${real}</td><td><span class="card-status-badge ${esc(r.status)}">${label[r.status] || r.status}</span></td><td style="white-space:nowrap;font-size:.78rem;">${esc(when)}</td><td>${act}</td></tr>`;
           }).join('')
-        : '<tr><td colspan="6" class="empty-note">Chưa có khách nào nạp thẻ.</td></tr>';
-    }).catch(() => { rows.innerHTML = '<tr><td colspan="6" class="empty-note">Không tải được.</td></tr>'; });
+        : '<tr><td colspan="7" class="empty-note">Chưa có khách nào nạp thẻ.</td></tr>';
+    }).catch(() => { rows.innerHTML = '<tr><td colspan="7" class="empty-note">Không tải được.</td></tr>'; });
   }
 
   function adminBackupHtml() {

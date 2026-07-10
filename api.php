@@ -1479,6 +1479,7 @@ switch ($action) {
         $list = [];
         foreach (($db['cardRequests'] ?? []) as $r) {
             $list[] = [
+                'requestId' => $r['request_id'] ?? '',
                 'username' => $usersById[$r['userId'] ?? ''] ?? ('#' . ($r['userId'] ?? '')),
                 'telco' => $r['telco'] ?? '', 'declaredAmount' => $r['declaredAmount'] ?? 0,
                 'realAmount' => $r['realAmount'] ?? null, 'status' => $r['status'] ?? 'pending',
@@ -1496,6 +1497,65 @@ switch ($action) {
         }
         echo json_encode(["status" => "success", "requests" => $list,
             "stats" => ["success" => $cntSuccess, "pending" => $cntPending, "failed" => $cntFailed, "sumSuccess" => $sumSuccess]]);
+        break;
+
+    // Admin DUYỆT TAY 1 thẻ đang chờ: dùng khi cổng đã báo success nhưng callback không về
+    // được (VD sai chữ ký). Admin xem "Thực nhận" bên card2k rồi nhập số tiền cộng cho khách.
+    case 'card_approve':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $reqId  = (string)($input['requestId'] ?? '');
+        $credit = intval($input['amount'] ?? 0);
+        $dbAuth = read_db($db_file);
+        if (!admin_authenticated($dbAuth, $admin_user, $admin_pass)) { echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit; }
+        if ($reqId === '' || $credit <= 0) { echo json_encode(["status" => "error", "message" => "Thiếu mã yêu cầu hoặc số tiền."]); exit; }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { if ($fp) fclose($fp); echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        $ri = -1;
+        foreach (($db['cardRequests'] ?? []) as $i => $r) { if (($r['request_id'] ?? '') === $reqId) { $ri = $i; break; } }
+        if ($ri === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Không tìm thấy yêu cầu."]); exit; }
+        // Chống cộng trùng.
+        $dup = false;
+        foreach (($db['transactions'] ?? []) as $t) { if (($t['cardRef'] ?? '') === $reqId) { $dup = true; break; } }
+        if ($dup || ($db['cardRequests'][$ri]['status'] ?? '') === 'success') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Thẻ này đã được cộng tiền rồi."]); exit;
+        }
+        $uid = $db['cardRequests'][$ri]['userId'] ?? '';
+        $uIdx = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $uid) { $uIdx = $i; break; } }
+        if ($uIdx === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản khách."]); exit; }
+        $db['users'][$uIdx]['balance'] = floatval($db['users'][$uIdx]['balance'] ?? 0) + $credit;
+        if (!isset($db['transactions'])) $db['transactions'] = [];
+        $telco = $db['cardRequests'][$ri]['telco'] ?? '';
+        array_unshift($db['transactions'], [
+            'id' => 'TX' . time() . rand(100, 999), 'userId' => $uid, 'type' => 'deposit',
+            'amount' => $credit, 'date' => date('c'),
+            'description' => "Nạp thẻ cào $telco - duyệt tay (nhận " . number_format($credit) . "đ)",
+            'cardRef' => $reqId
+        ]);
+        $db['cardRequests'][$ri]['status'] = 'success';
+        $db['cardRequests'][$ri]['realAmount'] = $credit;
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "balance" => $db['users'][$uIdx]['balance']]);
+        break;
+
+    // Admin xem log callback nạp thẻ (chẩn đoán vì sao cổng success mà web vẫn chờ).
+    case 'card_log':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) { echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit; }
+        $logFile = __DIR__ . '/card_callback_log.txt';
+        if (!file_exists($logFile)) { echo json_encode(["status" => "success", "log" => "(Chưa có callback nào được ghi. Nghĩa là card2k chưa gọi về card.php — kiểm tra lại Callback URL bên card2k và thử nạp 1 thẻ nhỏ.)"]); exit; }
+        $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $tail = array_slice($lines, -60);
+        echo json_encode(["status" => "success", "log" => implode("\n", $tail)]);
         break;
 
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
