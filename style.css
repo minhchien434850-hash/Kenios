@@ -1554,9 +1554,21 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
   .category-icon svg { width: 32px; height: 32px; }
   .category-media { height: 70px; }
 
-  /* Service grid — 1 cột full */
-  .service-grid { grid-template-columns: 1fr; gap: 16px; }
-  .service-card .thumb { height: 180px; }
+  /* Service grid — 2 cột NHỎ GỌN như danh mục (dễ nhìn, không chiếm cả màn hình) */
+  .service-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .service-card .thumb { height: 108px; }
+  .service-card .thumb .badge { top: 8px; right: 8px; padding: 3px 8px; font-size: .62rem; }
+  .service-card .views-badge { font-size: .62rem; padding: 2px 6px; }
+  .service-card .body { padding: 10px 11px 12px; gap: 6px; }
+  .service-card h3 { font-size: .86rem; line-height: 1.25; }
+  .service-card p.desc {
+    font-size: .72rem; flex: none; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .service-card .card-rating { font-size: .7rem; }
+  .service-card .price { font-size: .92rem; }
+  .service-card .price-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .service-card .price-row .btn { width: 100%; justify-content: center; padding: 8px 10px; font-size: .78rem; }
 
   /* Live feed */
   .live-grid { grid-template-columns: 1fr; }
