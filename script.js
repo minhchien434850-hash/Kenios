@@ -2495,6 +2495,41 @@ window.KENIOS_DEFAULT_DB = {
     renderShowcase();
     renderCombos();
     if (typeof updateFlashSaleBar === 'function') updateFlashSaleBar();
+    injectSeoJsonLd();
+  }
+
+  // Chèn dữ liệu có cấu trúc (JSON-LD schema.org) cho Google/Zalo: thông tin cửa hàng +
+  // danh sách sản phẩm kèm giá & tình trạng còn hàng. Giúp lên kết quả tìm kiếm đẹp hơn.
+  function injectSeoJsonLd() {
+    try {
+      const cfg = (Store.db && Store.db.config) || {};
+      const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+      const storeName = cfg.logoText || 'KENIOS.STORE';
+      const abs = u => (u && /^https?:/i.test(u)) ? u : '';
+      const desc = cfg.metaDescription || cfg.welcomePopupMessage || 'Cửa hàng dịch vụ game & thiết kế website.';
+      const store = { '@type': 'OnlineStore', name: storeName, url: base, logo: abs(cfg.logoUrl) || (base + 'favicon.svg'), description: desc };
+      const sameAs = (cfg.contactChannels || []).filter(c => c && c.enabled && abs(c.url)).map(c => c.url);
+      if (sameAs.length) store.sameAs = sameAs;
+      const services = (Store.db && Store.db.services) || [];
+      const items = services.slice(0, 50).map((s, i) => {
+        const prices = (s.packages || []).map(p => parseFloat(p.price)).filter(n => n > 0);
+        const minPrice = prices.length ? Math.min(...prices) : 0;
+        const inStock = (s.packages || []).some(p => p.keyCount == null || p.keyCount > 0 || (p.keys && p.keys.length));
+        const product = {
+          '@type': 'Product', name: s.name || 'Sản phẩm', description: s.description || storeName,
+          offers: { '@type': 'Offer', price: minPrice, priceCurrency: 'VND', url: base,
+            availability: 'https://schema.org/' + (inStock ? 'InStock' : 'OutOfStock') }
+        };
+        if (abs(s.image)) product.image = s.image;
+        return { '@type': 'ListItem', position: i + 1, item: product };
+      });
+      const graph = [store];
+      if (items.length) graph.push({ '@type': 'ItemList', name: 'Sản phẩm & dịch vụ', itemListElement: items });
+      const json = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+      let el = document.getElementById('seoJsonLd');
+      if (!el) { el = document.createElement('script'); el.type = 'application/ld+json'; el.id = 'seoJsonLd'; document.head.appendChild(el); }
+      el.textContent = json;
+    } catch (e) { console.error('SEO JSON-LD lỗi:', e); }
   }
 
   // Hiển thị các combo ưu đãi ở trang chủ (ẩn section nếu chưa có combo nào).
