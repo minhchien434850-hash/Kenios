@@ -675,6 +675,11 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]);
             exit;
         }
+        if (!empty($db['config']['maintenanceMode']) && ($db['users'][$userIdx]['role'] ?? '') !== 'admin') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Shop đang bảo trì, vui lòng quay lại sau ít phút."]);
+            exit;
+        }
         if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Tài khoản đã bị khóa."]);
@@ -865,6 +870,11 @@ switch ($action) {
         if (!token_ok($db['users'][$userIdx], $token)) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]);
+            exit;
+        }
+        if (!empty($db['config']['maintenanceMode']) && ($db['users'][$userIdx]['role'] ?? '') !== 'admin') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Shop đang bảo trì, vui lòng quay lại sau ít phút."]);
             exit;
         }
         if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {
@@ -1058,6 +1068,11 @@ switch ($action) {
         if (!token_ok($db['users'][$userIdx], $token)) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]);
+            exit;
+        }
+        if (!empty($db['config']['maintenanceMode']) && ($db['users'][$userIdx]['role'] ?? '') !== 'admin') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Shop đang bảo trì, vui lòng quay lại sau ít phút."]);
             exit;
         }
         if (($db['users'][$userIdx]['status'] ?? 'active') !== 'active') {

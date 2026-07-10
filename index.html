@@ -44,6 +44,16 @@
     }, 6000);
   </script>
 
+  <!-- Trang "Đang bảo trì" — hiện phủ toàn màn hình khi admin bật bảo trì (khách; admin vẫn vào được). -->
+  <div class="maintenance-overlay" id="maintenanceOverlay" hidden>
+    <div class="maintenance-box">
+      <img src="./favicon.svg" alt="" class="maintenance-logo">
+      <h2>Đang bảo trì</h2>
+      <p id="maintenanceMsg">Shop đang được nâng cấp, vui lòng quay lại sau ít phút. Cảm ơn bạn!</p>
+      <button type="button" class="btn btn-glass btn-sm maintenance-admin-login" id="maintenanceAdminLogin">Đăng nhập Admin</button>
+    </div>
+  </div>
+
   <div class="bg-mesh" aria-hidden="true"></div>
 
   <!-- Nền ẢNH/VIDEO phủ toàn giao diện (cấu hình: siteBgUrl). Nằm trên .bg-mesh,

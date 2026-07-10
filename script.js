@@ -2509,6 +2509,31 @@ window.KENIOS_DEFAULT_DB = {
     renderCombos();
     if (typeof updateFlashSaleBar === 'function') updateFlashSaleBar();
     injectSeoJsonLd();
+    applyMaintenanceMode();
+  }
+
+  // Chế độ bảo trì: khi admin bật, khách thấy trang "Đang bảo trì" và không thao tác được.
+  // Admin (đang đăng nhập vai admin) VẪN vào bình thường để cập nhật shop.
+  function applyMaintenanceMode() {
+    const overlay = $('#maintenanceOverlay');
+    if (!overlay) return;
+    const cfg = Store.db.config || {};
+    const show = !!cfg.maintenanceMode && !(Store.isAdmin && Store.isAdmin());
+    if (show) {
+      const msg = (cfg.maintenanceMessage || '').trim() || 'Shop đang được nâng cấp, vui lòng quay lại sau ít phút. Cảm ơn bạn!';
+      setText('#maintenanceMsg', msg);
+      overlay.hidden = false;
+      document.body.classList.add('maintenance-on');
+    } else {
+      overlay.hidden = true;
+      document.body.classList.remove('maintenance-on');
+    }
+    // Nút "Đăng nhập Admin" trên trang bảo trì -> mở hộp đăng nhập (modal nổi trên overlay).
+    const loginBtn = $('#maintenanceAdminLogin');
+    if (loginBtn && !loginBtn.dataset.wired) {
+      loginBtn.dataset.wired = '1';
+      loginBtn.addEventListener('click', () => openModal('#authModal'));
+    }
   }
 
   // Chèn dữ liệu có cấu trúc (JSON-LD schema.org) cho Google/Zalo: thông tin cửa hàng +
@@ -5636,6 +5661,18 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <p class="muted span-2" style="font-size:.75rem;margin:0;">Mặc định đang theo bảng phí phổ biến (Viettel/Vina/Mobifone thay đổi theo mệnh giá). <b>Nên nhập lại đúng % theo bảng phí card2k.net</b> để khớp số tiền thực nhận. Để trống = dùng mặc định. Nhập số = ép một mức % cho <b>mọi mệnh giá</b> của nhà mạng đó. Hệ thống luôn <b>không cộng quá</b> số tiền cổng thực trả nên bạn không lỗ.</p>
 
+        <div class="admin-form-section">🛠️ Chế độ bảo trì</div>
+        <label>Bật bảo trì (tạm đóng shop với khách)
+          <select name="maintenanceMode">
+            <option value="0" ${!c.maintenanceMode ? 'selected' : ''}>Tắt — shop hoạt động bình thường</option>
+            <option value="1" ${c.maintenanceMode ? 'selected' : ''}>Bật — khách thấy trang "Đang bảo trì"</option>
+          </select>
+        </label>
+        <label class="span-2">Lời nhắn khi bảo trì
+          <input name="maintenanceMessage" value="${esc(c.maintenanceMessage || '')}" placeholder="VD: Shop đang nâng cấp, quay lại sau ít phút nhé!">
+        </label>
+        <p class="muted span-2" style="font-size:.75rem;margin:0 0 6px;">Khi bật, khách vào web sẽ thấy trang "Đang bảo trì" và không mua được (server cũng chặn). <b>Riêng admin vẫn vào và thao tác bình thường</b> để cập nhật shop an toàn.</p>
+
         <div class="admin-form-section">Thông báo Popup khi vào Web</div>
         <label>Bật thông báo popup
           <select name="welcomePopupEnabled">
@@ -6521,6 +6558,7 @@ window.KENIOS_DEFAULT_DB = {
         welcomePopupEnabled: fd.get('welcomePopupEnabled') === '1',
         welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
         welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceEnabled: false,
+        maintenanceMode: fd.get('maintenanceMode') === '1', maintenanceMessage: fd.get('maintenanceMessage'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
