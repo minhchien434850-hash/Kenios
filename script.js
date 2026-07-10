@@ -2492,6 +2492,15 @@ window.KENIOS_DEFAULT_DB = {
         : `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
     });
 
+    // Áp logo cho MỌI chỗ khác có logo: favicon (tab trình duyệt), apple-touch-icon, màn
+    // hình chờ, màn bảo trì, logo modal đăng nhập. Logo dạng VIDEO không dùng được cho các
+    // chỗ này (favicon/ảnh) nên tự động dùng ảnh logo mặc định.
+    const imgLogo = (logoUrl && !isVid) ? logoUrl : './logo.png';
+    document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach(l => { l.href = imgLogo; });
+    document.querySelectorAll('.maintenance-logo, .boot-loader-mark').forEach(img => { if (img.tagName === 'IMG') img.src = imgLogo; });
+    const authLogoImg = document.querySelector('.auth-logo img');
+    if (authLogoImg) authLogoImg.src = imgLogo;
+
     const font = cfg.logoFont || 'Be Vietnam Pro';
     ensureFontLoaded(font);
     document.documentElement.style.setProperty('--logo-font', `'${font}', 'Be Vietnam Pro', sans-serif`);
