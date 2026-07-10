@@ -1291,6 +1291,18 @@ window.KENIOS_DEFAULT_DB = {
       return await res.json();
     },
 
+    // Gửi tin nhắn Telegram thử để admin kiểm tra cấu hình.
+    async testTelegram(adminUser, adminPass) {
+      try {
+        const res = await fetch(`${API_URL}?action=test_telegram`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+          body: '{}'
+        });
+        return await res.json();
+      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+    },
+
     // ---- Đồng bộ Admin lên máy chủ (chỉ hoạt động khi có backend PHP) ----
     async trySaveToServer(adminUser, adminPass) {
       try {
@@ -4458,9 +4470,11 @@ window.KENIOS_DEFAULT_DB = {
       }
       $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
       if ($('#cardApiStatus')) $('#cardApiStatus').innerHTML = res.cardConfigured ? '✅ Đã cấu hình API thẻ cào — khách nạp thẻ được.' : 'Chưa cấu hình — nhập Partner ID + Partner Key để bật nạp thẻ cào.';
+      if ($('#telegramStatus')) $('#telegramStatus').innerHTML = res.telegramConfigured ? '✅ Đã bật thông báo Telegram — admin nhận tin khi có đơn/nạp tiền.' : 'Chưa bật — nhập Bot Token + Chat ID để nhận thông báo.';
     }).catch(() => {
       $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái.';
       if ($('#cardApiStatus')) $('#cardApiStatus').textContent = 'Không kiểm tra được trạng thái.';
+      if ($('#telegramStatus')) $('#telegramStatus').textContent = 'Không kiểm tra được trạng thái.';
     });
 
     $('#saveBankTokenBtn').addEventListener('click', () => {
@@ -4488,6 +4502,41 @@ window.KENIOS_DEFAULT_DB = {
         const res = await Store.saveSecrets(c.username, c.password, patch);
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
         if (res.status === 'success') { $('#cardPartnerIdInput').value = ''; $('#cardPartnerKeyInput').value = ''; renderAdminTab('config'); }
+      });
+    });
+
+    // ---- Thông báo Telegram ----
+    $('#saveTelegramBtn')?.addEventListener('click', () => {
+      const tok = $('#telegramTokenInput').value.trim();
+      const chat = $('#telegramChatInput').value.trim();
+      const c = getAdminCreds();
+      if (!tok && !chat) { toast('Nhập Bot Token và/hoặc Chat ID trước khi lưu.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      const patch = {};
+      if (tok) patch.telegramBotToken = tok;
+      if (chat) patch.telegramChatId = chat;
+      withLoading($('#saveTelegramBtn'), async () => {
+        const res = await Store.saveSecrets(c.username, c.password, patch);
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#telegramTokenInput').value = ''; $('#telegramChatInput').value = ''; renderAdminTab('config'); }
+      });
+    });
+    $('#testTelegramBtn')?.addEventListener('click', () => {
+      const c = getAdminCreds();
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      withLoading($('#testTelegramBtn'), async () => {
+        const res = await Store.testTelegram(c.username, c.password);
+        toast(res.message || (res.status === 'success' ? 'Đã gửi tin thử — kiểm tra Telegram!' : 'Gửi thất bại.'), res.status === 'success' ? 'success' : 'error');
+      });
+    });
+    $('#clearTelegramBtn')?.addEventListener('click', () => {
+      const c = getAdminCreds();
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!confirm('Tắt thông báo Telegram? Bạn sẽ không nhận tin nữa cho tới khi cấu hình lại.')) return;
+      withLoading($('#clearTelegramBtn'), async () => {
+        const res = await Store.saveSecrets(c.username, c.password, { telegramBotToken: '-', telegramChatId: '-' });
+        toast(res.status === 'success' ? 'Đã tắt thông báo Telegram.' : (res.message || 'Thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') renderAdminTab('config');
       });
     });
   }
@@ -5503,6 +5552,23 @@ window.KENIOS_DEFAULT_DB = {
           </label>
           <button type="button" class="btn btn-glass btn-sm" id="saveCardApiBtn">🔒 Lưu API thẻ cào</button>
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Lấy Partner ID / Partner Key trong mục "Chi tiết kết nối API" của card2k.net. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
+        </div>
+
+        <div class="admin-form-section">Thông báo Telegram cho Admin</div>
+        <div class="secret-box span-2" id="telegramBox">
+          <div class="secret-status" id="telegramStatus">Đang kiểm tra trạng thái…</div>
+          <label>Bot Token
+            <input type="password" id="telegramTokenInput" placeholder="VD: 123456:ABC... (để trống nếu giữ nguyên)" autocomplete="new-password">
+          </label>
+          <label>Chat ID (của bạn hoặc nhóm nhận thông báo)
+            <input type="text" id="telegramChatInput" placeholder="VD: 123456789 hoặc -100... (để trống nếu giữ nguyên)" autocomplete="off">
+          </label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-glass btn-sm" id="saveTelegramBtn">🔒 Lưu Telegram</button>
+            <button type="button" class="btn btn-glass btn-sm" id="testTelegramBtn">📨 Gửi thử</button>
+            <button type="button" class="btn btn-glass btn-sm" id="clearTelegramBtn">Tắt thông báo</button>
+          </div>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Tạo bot bằng <b>@BotFather</b> để lấy <b>Bot Token</b>. Lấy <b>Chat ID</b> bằng cách nhắn cho bot rồi mở <b>@userinfobot</b> (hoặc thêm bot vào nhóm). Khi cấu hình xong, admin sẽ nhận tin nhắn mỗi khi có <b>đơn mới / khách nạp tiền / kho key sắp hết</b>.</p>
         </div>
 
         <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí của card2k.net.</div>

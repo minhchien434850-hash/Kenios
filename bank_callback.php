@@ -109,11 +109,16 @@ if (empty($db) || !isset($db['users'])) {
 }
 
 $transactions = bank_extract_transactions($data);
-list($processed_count, $success_logs) = bank_process_transactions($db, $transactions);
+list($processed_count, $success_logs, $deposit_notifs) = bank_process_transactions($db, $transactions);
 
 if ($processed_count > 0 && write_db($db_file, $db)) {
     http_response_code(200);
     echo json_encode(["status" => "success", "processed" => $processed_count, "details" => $success_logs]);
+    // Thông báo Telegram cho admin mỗi khoản khách vừa nạp (sau khi đã ghi DB + trả kết quả).
+    if (function_exists('fastcgi_finish_request')) { @fastcgi_finish_request(); }
+    foreach (($deposit_notifs ?? []) as $n) {
+        notify_telegram("💰 <b>NẠP TIỀN</b>\n👤 <b>" . htmlspecialchars((string)$n['username']) . "</b>\n➕ " . number_format((float)$n['amount']) . "đ\n🏦 VietQR tự động");
+    }
 } else {
     http_response_code(200);
     echo json_encode(["status" => "success", "message" => "No new matching transactions", "received" => count($transactions)]);

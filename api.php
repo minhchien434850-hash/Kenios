@@ -120,6 +120,28 @@ function retry_human($sec) {
     return ceil($sec / 60) . ' phút';
 }
 
+// Đẩy response về client NGAY rồi mới chạy việc chậm (gửi Telegram) để khách không phải chờ.
+// Chỉ chắc chắn hoạt động trên PHP-FPM (fastcgi_finish_request); SAPI khác cố flush buffer.
+function flush_response() {
+    if (function_exists('fastcgi_finish_request')) { @fastcgi_finish_request(); return; }
+    if (function_exists('litespeed_finish_request')) { @litespeed_finish_request(); return; }
+    @ob_end_flush(); @flush();
+}
+// Soạn + gửi thông báo "đơn mới" (kèm cảnh báo kho key nếu sắp hết) tới Telegram admin.
+function tg_notify_order($username, $serviceName, $pkgName, $price, $remainKeys = null) {
+    $msg = "🛒 <b>ĐƠN MỚI</b>\n"
+         . "👤 <b>" . htmlspecialchars((string)$username) . "</b>\n"
+         . "📦 " . htmlspecialchars((string)$serviceName) . " — " . htmlspecialchars((string)$pkgName) . "\n"
+         . "💵 " . number_format((float)$price) . "đ";
+    if ($remainKeys !== null && $remainKeys <= 3) $msg .= "\n⚠️ Kho gói này còn <b>" . intval($remainKeys) . "</b> key!";
+    notify_telegram($msg);
+}
+// Gửi thông báo "khách nạp tiền" tới Telegram admin.
+function tg_notify_deposit($username, $amount, $method) {
+    notify_telegram("💰 <b>NẠP TIỀN</b>\n👤 <b>" . htmlspecialchars((string)$username) . "</b>\n➕ "
+        . number_format((float)$amount) . "đ\n🏦 " . htmlspecialchars((string)$method));
+}
+
 function read_db($file) {
     if (!file_exists($file)) return [];
     $content = file_get_contents($file);
@@ -802,6 +824,9 @@ switch ($action) {
 
         archive_orders([$order]); // lưu đơn + key vào kho đơn hàng bền vững
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
+        // Thông báo Telegram cho admin SAU KHI đã trả kết quả cho khách (không bắt khách chờ).
+        flush_response();
+        tg_notify_order($db['users'][$userIdx]['username'] ?? $order['userId'], $service['name'], $pkg['name'], $price, count($keys));
         break;
 
     case 'purchase':
@@ -999,6 +1024,8 @@ switch ($action) {
 
         archive_orders([$order]); // lưu đơn + key vào kho đơn hàng bền vững
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
+        flush_response();
+        tg_notify_order($db['users'][$userIdx]['username'] ?? $order['userId'], $service['name'], $pkg['name'], $price);
         break;
 
     case 'purchase_combo':
@@ -1574,6 +1601,7 @@ switch ($action) {
                 $raw = stream_get_contents($fp);
                 $db = $raw ? (json_decode($raw, true) ?: []) : [];
                 $cfgDisc = (isset($db['config']['cardDiscounts']) && is_array($db['config']['cardDiscounts'])) ? $db['config']['cardDiscounts'] : [];
+                $cardDepositNotifs = [];
                 foreach (($db['cardRequests'] ?? []) as $i => $r) {
                     $rid = $r['request_id'] ?? '';
                     if (!isset($gwResult[$rid])) continue;
@@ -1596,6 +1624,7 @@ switch ($action) {
                                         'description' => "Nạp thẻ cào " . ($r['telco'] ?? '') . " (nhận " . number_format($credit) . "đ)",
                                         'cardRef' => $rid
                                     ]);
+                                    $cardDepositNotifs[] = ['username' => $u['username'] ?? $uid, 'amount' => $credit, 'telco' => $r['telco'] ?? ''];
                                     break;
                                 }
                             }
@@ -1614,6 +1643,10 @@ switch ($action) {
                 fflush($fp); flock($fp, LOCK_UN);
             }
             if ($fp) fclose($fp);
+            // Thông báo Telegram cho admin các thẻ vừa được duyệt & cộng tiền (ngoài khoá file).
+            foreach (($cardDepositNotifs ?? []) as $n) {
+                tg_notify_deposit($n['username'], $n['amount'], 'Thẻ ' . $n['telco']);
+            }
         }
 
         // 4) Trả về số dư mới + danh sách thẻ + lịch sử nạp thành công (để hiện ngay, kể cả
@@ -1878,7 +1911,8 @@ switch ($action) {
             "status" => "success",
             "ttsApiKeyConfigured" => !empty($secrets['ttsApiKey']),
             "bankTokenConfigured" => !empty($secrets['bankToken']) || !empty($db['config']['bankToken'] ?? ''),
-            "cardConfigured" => !empty($secrets['cardPartnerId']) && !empty($secrets['cardPartnerKey'])
+            "cardConfigured" => !empty($secrets['cardPartnerId']) && !empty($secrets['cardPartnerKey']),
+            "telegramConfigured" => !empty($secrets['telegramBotToken']) && !empty($secrets['telegramChatId'])
         ]);
         break;
 
@@ -1897,6 +1931,14 @@ switch ($action) {
         // Thẻ cào (thesieure.com): Partner ID + Partner Key.
         if (isset($input['cardPartnerId']) && trim($input['cardPartnerId']) !== '') $patch['cardPartnerId'] = trim($input['cardPartnerId']);
         if (isset($input['cardPartnerKey']) && trim($input['cardPartnerKey']) !== '') $patch['cardPartnerKey'] = trim($input['cardPartnerKey']);
+        // Thông báo Telegram: Bot Token + Chat ID. Cho phép GỠ bằng cách gửi "-" (xoá cấu hình).
+        foreach (['telegramBotToken', 'telegramChatId'] as $tk) {
+            if (isset($input[$tk])) {
+                $v = trim((string)$input[$tk]);
+                if ($v === '-') $patch[$tk] = '';
+                elseif ($v !== '') $patch[$tk] = $v;
+            }
+        }
         if (!$patch) {
             echo json_encode(["status" => "error", "message" => "Không có gì để lưu"]);
             exit;
@@ -1906,6 +1948,24 @@ switch ($action) {
         } else {
             echo json_encode(["status" => "error", "message" => "Không ghi được file secrets.php (kiểm tra quyền ghi file trên hosting)"]);
         }
+        break;
+
+    // Admin bấm "Gửi thử" để kiểm tra cấu hình Telegram.
+    case 'test_telegram':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $secrets = read_secrets();
+        if (empty($secrets['telegramBotToken']) || empty($secrets['telegramChatId'])) {
+            echo json_encode(["status" => "error", "message" => "Chưa cấu hình Bot Token + Chat ID. Hãy lưu trước khi gửi thử."]); exit;
+        }
+        $ok = notify_telegram("✅ <b>KENIOS.STORE</b>\nThông báo Telegram đã hoạt động! Bạn sẽ nhận tin khi có đơn mới / khách nạp tiền.");
+        echo json_encode($ok
+            ? ["status" => "success", "message" => "Đã gửi tin thử — kiểm tra Telegram của bạn!"]
+            : ["status" => "error", "message" => "Gửi thất bại. Kiểm tra lại Bot Token / Chat ID (và bạn đã bấm Start cho bot chưa)."]);
         break;
 
     case 'upload_file':

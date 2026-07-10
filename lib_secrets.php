@@ -26,3 +26,29 @@ function write_secrets($patch) {
     if ($ok && function_exists('opcache_invalidate')) opcache_invalidate($file, true);
     return $ok;
 }
+
+// Gửi thông báo tới TELEGRAM của admin (bot token + chat id lưu trong secrets.php).
+// Fire-and-forget: timeout ngắn, KHÔNG chặn lâu luồng chính; lỗi thì bỏ qua (trả false).
+// $text hỗ trợ HTML cơ bản của Telegram (<b>, <code>...). Trả true nếu gửi được.
+function notify_telegram($text) {
+    $secrets = read_secrets();
+    $botToken = trim((string)($secrets['telegramBotToken'] ?? ''));
+    $chatId   = trim((string)($secrets['telegramChatId'] ?? ''));
+    if ($botToken === '' || $chatId === '') return false; // chưa cấu hình -> bỏ qua
+    if (!function_exists('curl_init')) return false;
+    $ch = curl_init("https://api.telegram.org/bot{$botToken}/sendMessage");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+        'chat_id' => $chatId,
+        'text' => $text,
+        'parse_mode' => 'HTML',
+        'disable_web_page_preview' => 'true',
+    ]));
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $resp = curl_exec($ch);
+    $ok = ($resp !== false && curl_getinfo($ch, CURLINFO_HTTP_CODE) === 200);
+    curl_close($ch);
+    return $ok;
+}

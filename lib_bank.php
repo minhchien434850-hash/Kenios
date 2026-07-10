@@ -30,7 +30,8 @@ function bank_deposit_bonus($db, $amount) {
 function bank_process_transactions(&$db, $transactions) {
     $processed = 0;
     $logs = [];
-    if (empty($db) || !isset($db['users']) || !is_array($db['users'])) return [0, []];
+    $notifs = []; // danh sách nạp tiền để thông báo Telegram (gửi SAU khi ghi DB)
+    if (empty($db) || !isset($db['users']) || !is_array($db['users'])) return [0, [], []];
 
     foreach ($transactions as $txn) {
         if (!is_array($txn)) continue;
@@ -104,7 +105,8 @@ function bank_process_transactions(&$db, $transactions) {
 
         $processed++;
         $logs[] = '+' . number_format($credit) . 'd (goc ' . number_format($amount) . ' + km ' . number_format($bonus) . ') -> ' . ($mu['username'] ?? $mu['userId']) . " | Ref=$txnRef";
+        $notifs[] = ['username' => $mu['username'] ?? $mu['userId'], 'amount' => $credit];
     }
 
-    return [$processed, $logs];
+    return [$processed, $logs, $notifs];
 }

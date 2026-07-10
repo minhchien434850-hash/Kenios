@@ -101,6 +101,8 @@ if ($success && !$already && $reqIdx !== -1 && $credit > 0) {
             'description' => "Nạp thẻ cào $telco (nhận " . number_format($credit) . "đ)",
             'cardRef' => $request_id
         ]);
+        // Lưu lại để thông báo Telegram SAU khi ghi DB xong (không giữ khoá lâu vì curl).
+        $tgDeposit = ['username' => $db['users'][$uIdx]['username'] ?? $uid, 'amount' => $credit, 'telco' => $telco];
     }
 }
 
@@ -119,3 +121,10 @@ fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 fflush($fp); flock($fp, LOCK_UN); fclose($fp);
 
 echo json_encode(["status" => "success", "message" => "OK"]);
+
+// Thông báo Telegram cho admin khi thẻ được duyệt & đã cộng tiền (sau khi trả kết quả).
+if (!empty($tgDeposit) && function_exists('notify_telegram')) {
+    if (function_exists('fastcgi_finish_request')) { @fastcgi_finish_request(); }
+    notify_telegram("💰 <b>NẠP THẺ CÀO</b>\n👤 <b>" . htmlspecialchars((string)$tgDeposit['username'])
+        . "</b>\n➕ " . number_format((float)$tgDeposit['amount']) . "đ\n🏦 Thẻ " . htmlspecialchars((string)$tgDeposit['telco']));
+}
