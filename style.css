@@ -445,9 +445,18 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 
 /* ---------- Service cards ---------- */
 .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 22px; }
+/* Nhóm sản phẩm theo danh mục (chế độ "Tất cả") */
+.service-groups { display: block; }
+.cat-group { margin-bottom: 34px; }
+.cat-group:last-child { margin-bottom: 0; }
+.cat-group-head { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.cat-group-head .cat-group-ico { display: inline-flex; color: var(--gold-soft); }
+.cat-group-head .cat-group-ico svg { width: 20px; height: 20px; }
+.cat-group-head h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+.cat-group-count { margin-left: auto; font-size: .78rem; font-weight: 700; color: var(--gold-soft); background: rgba(255,183,3,.1); border: 1px solid rgba(255,183,3,.25); padding: 2px 10px; border-radius: 999px; }
 .service-card {
   border-radius: var(--radius); background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
-  border: 1px solid var(--border); overflow: hidden;
+  border: 1px solid var(--border); overflow: hidden; cursor: pointer;
   display: flex; flex-direction: column; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 .service-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: rgba(255,183,3,.35); }
@@ -1554,21 +1563,28 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
   .category-icon svg { width: 32px; height: 32px; }
   .category-media { height: 70px; }
 
-  /* Service grid — 2 cột NHỎ GỌN như danh mục (dễ nhìn, không chiếm cả màn hình) */
-  .service-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .service-card .thumb { height: 108px; }
-  .service-card .thumb .badge { top: 8px; right: 8px; padding: 3px 8px; font-size: .62rem; }
-  .service-card .views-badge { font-size: .62rem; padding: 2px 6px; }
-  .service-card .body { padding: 10px 11px 12px; gap: 6px; }
-  .service-card h3 { font-size: .86rem; line-height: 1.25; }
+  /* Service grid — 3 cột NHỎ GỌN, tách theo từng danh mục (không gộp chung) */
+  .service-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .service-card .thumb { height: 74px; }
+  .service-card .thumb .badge { top: 5px; right: 5px; padding: 2px 6px; font-size: .54rem; }
+  .service-card .views-badge { font-size: .54rem; padding: 1px 5px; left: 5px; bottom: 5px; }
+  .service-card .body { padding: 7px 7px 8px; gap: 4px; }
+  .service-card h3 { font-size: .72rem; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .service-card p.desc {
-    font-size: .72rem; flex: none; line-height: 1.4;
+    font-size: .62rem; flex: none; line-height: 1.35;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .service-card .card-rating { font-size: .7rem; }
-  .service-card .price { font-size: .92rem; }
-  .service-card .price-row { flex-direction: column; align-items: stretch; gap: 8px; }
-  .service-card .price-row .btn { width: 100%; justify-content: center; padding: 8px 10px; font-size: .78rem; }
+  .service-card .card-rating { font-size: .6rem; }
+  .service-card .price { font-size: .74rem; }
+  .service-card .price-row { flex-direction: column; align-items: stretch; gap: 6px; }
+  .service-card .price-row .btn { width: 100%; justify-content: center; padding: 6px 4px; font-size: .64rem; }
+
+  /* Tiêu đề nhóm danh mục gọn lại */
+  .cat-group { margin-bottom: 24px; }
+  .cat-group-head { margin-bottom: 12px; gap: 8px; }
+  .cat-group-head h3 { font-size: .98rem; }
+  .cat-group-head .cat-group-ico svg { width: 17px; height: 17px; }
+  .cat-group-count { font-size: .7rem; padding: 2px 8px; }
 
   /* Live feed */
   .live-grid { grid-template-columns: 1fr; }

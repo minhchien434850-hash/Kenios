@@ -2929,23 +2929,65 @@ window.KENIOS_DEFAULT_DB = {
     return v[id];
   }
 
-  function renderServiceGrid() {
-    let list = Store.db.services.filter(s => {
-      if (s.categoryId === 'webdesign') return false;
-      if (selectedCategory !== 'all' && s.categoryId !== selectedCategory) return false;
-      if (selectedSub !== 'all' && s.subcategoryId !== selectedSub) return false;
-      if (serviceStatusFilter === 'instock' && s.status !== 'instock') return false;
-      return true;
-    });
+  // Sắp xếp danh sách sản phẩm theo lựa chọn hiện tại.
+  function sortServiceList(arr) {
     const minP = s => Math.min(...(s.packages || [{ price: 0 }]).map(p => p.price));
-    if (serviceSort === 'price-asc') list = list.slice().sort((a, b) => minP(a) - minP(b));
-    else if (serviceSort === 'price-desc') list = list.slice().sort((a, b) => minP(b) - minP(a));
-    else if (serviceSort === 'name') list = list.slice().sort((a, b) => a.name.localeCompare(b.name, 'vi'));
-    else if (serviceSort === 'rating') list = list.slice().sort((a, b) => Store.avgRating(b.id) - Store.avgRating(a.id));
-    $('#serviceGrid').innerHTML = list.length
-      ? list.map(serviceCardHtml).join('')
-      : `<p class="empty-note">Chưa có dịch vụ nào phù hợp bộ lọc.</p>`;
-    applyImageFallbacks($('#serviceGrid'));
+    const list = arr.slice();
+    if (serviceSort === 'price-asc') list.sort((a, b) => minP(a) - minP(b));
+    else if (serviceSort === 'price-desc') list.sort((a, b) => minP(b) - minP(a));
+    else if (serviceSort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    else if (serviceSort === 'rating') list.sort((a, b) => Store.avgRating(b.id) - Store.avgRating(a.id));
+    return list;
+  }
+
+  function renderServiceGrid() {
+    const grid = $('#serviceGrid');
+    const statusOk = s => !(serviceStatusFilter === 'instock' && s.status !== 'instock');
+
+    // Khi ĐÃ chọn 1 danh mục / thư mục con cụ thể -> hiển thị lưới phẳng của mục đó.
+    if (selectedCategory !== 'all' || selectedSub !== 'all') {
+      const list = sortServiceList(Store.db.services.filter(s =>
+        s.categoryId !== 'webdesign' && statusOk(s)
+        && (selectedCategory === 'all' || s.categoryId === selectedCategory)
+        && (selectedSub === 'all' || s.subcategoryId === selectedSub)
+      ));
+      grid.className = 'service-grid';
+      grid.innerHTML = list.length
+        ? list.map(serviceCardHtml).join('')
+        : `<p class="empty-note">Chưa có dịch vụ nào phù hợp bộ lọc.</p>`;
+      applyImageFallbacks(grid);
+      return;
+    }
+
+    // "Tất cả" -> NHÓM THEO DANH MỤC: mỗi danh mục 1 tiêu đề + lưới riêng (không gộp chung).
+    grid.className = 'service-groups';
+    const cats = (Store.db.categories || []).filter(c => c.id !== 'webdesign');
+    const known = new Set(cats.map(c => c.id));
+    let html = '';
+    cats.forEach(c => {
+      const list = sortServiceList(Store.db.services.filter(s => s.categoryId === c.id && statusOk(s)));
+      if (!list.length) return;
+      html += `
+        <section class="cat-group">
+          <div class="cat-group-head">
+            <span class="cat-group-ico">${catIcon(c.icon)}</span>
+            <h3>${esc(c.name)}</h3>
+            <span class="cat-group-count">${list.length}</span>
+          </div>
+          <div class="service-grid">${list.map(serviceCardHtml).join('')}</div>
+        </section>`;
+    });
+    // Sản phẩm không thuộc danh mục nào còn tồn tại -> gom vào nhóm "Khác".
+    const orphan = sortServiceList(Store.db.services.filter(s => s.categoryId !== 'webdesign' && !known.has(s.categoryId) && statusOk(s)));
+    if (orphan.length) {
+      html += `
+        <section class="cat-group">
+          <div class="cat-group-head"><h3>Khác</h3><span class="cat-group-count">${orphan.length}</span></div>
+          <div class="service-grid">${orphan.map(serviceCardHtml).join('')}</div>
+        </section>`;
+    }
+    grid.innerHTML = html || `<p class="empty-note">Chưa có dịch vụ nào.</p>`;
+    applyImageFallbacks(grid);
   }
 
   function wireServiceFilters() {
@@ -3268,6 +3310,11 @@ window.KENIOS_DEFAULT_DB = {
     document.body.addEventListener('click', (e) => {
       const viewBtn = e.target.closest('[data-view-service]');
       if (viewBtn) openServiceModal(viewBtn.dataset.viewService);
+      // Bấm bất kỳ đâu trên thẻ sản phẩm (ngoài nút) cũng mở chi tiết — tiện cho thẻ nhỏ.
+      else {
+        const svcCard = e.target.closest('.service-card[data-service]');
+        if (svcCard) openServiceModal(svcCard.dataset.service);
+      }
 
       const pwToggle = e.target.closest('[data-pw-toggle]');
       if (pwToggle) {
