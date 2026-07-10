@@ -1760,9 +1760,10 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
     background: var(--bg-alt); border-color: rgba(255,255,255,.28); box-shadow: 0 6px 18px rgba(0,0,0,.5);
   }
 
-  /* Auth modal — giữa màn hình trên phone */
-  #authModal.modal-overlay { align-items: center; }
+  /* Auth modal + popup lời chào — canh GIỮA màn hình trên phone (không dính đáy) */
+  #authModal.modal-overlay, #welcomeModal.modal-overlay { align-items: center; }
   #authModal .modal { border-radius: 20px; }
+  #welcomeModal .modal { border-radius: 20px; }
 
   /* Touch-friendly buttons */
   .btn { min-height: 44px; }
