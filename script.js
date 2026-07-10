@@ -5318,13 +5318,19 @@ window.KENIOS_DEFAULT_DB = {
     const to = _ymd(today);
     return `
       <div class="report-toolbar">
-        <label>Từ ngày <input type="date" id="reportFrom" value="${from}"></label>
-        <label>Đến ngày <input type="date" id="reportTo" value="${to}"></label>
-        <button type="button" class="btn btn-primary btn-sm" id="reportApplyBtn">Xem</button>
-        <button type="button" class="btn btn-glass btn-sm" data-report-quick="7">7 ngày</button>
-        <button type="button" class="btn btn-glass btn-sm" data-report-quick="30">30 ngày</button>
-        <button type="button" class="btn btn-glass btn-sm" data-report-quick="month">Tháng này</button>
-        <button type="button" class="btn btn-glass btn-sm" id="reportExportBtn">${ico('download')} Xuất CSV</button>
+        <div class="report-dates">
+          <label>Từ ngày <input type="date" id="reportFrom" value="${from}"></label>
+          <label>Đến ngày <input type="date" id="reportTo" value="${to}"></label>
+        </div>
+        <div class="report-quicks">
+          <button type="button" class="btn btn-glass btn-sm" data-report-quick="7">7 ngày</button>
+          <button type="button" class="btn btn-glass btn-sm" data-report-quick="30">30 ngày</button>
+          <button type="button" class="btn btn-glass btn-sm" data-report-quick="month">Tháng này</button>
+        </div>
+        <div class="report-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="reportApplyBtn">Xem báo cáo</button>
+          <button type="button" class="btn btn-glass btn-sm" id="reportExportBtn">${ico('download')} Xuất CSV</button>
+        </div>
       </div>
       <div id="reportBody"></div>`;
   }
