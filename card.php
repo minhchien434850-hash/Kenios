@@ -60,11 +60,30 @@ foreach (($db['transactions'] ?? []) as $t) {
 // trả về ví ($amount) để shop không bị lỗ. Chưa đặt % thì cộng đúng tiền cổng trả.
 $telcoReq = ($reqIdx !== -1) ? strtoupper((string)($db['cardRequests'][$reqIdx]['telco'] ?? '')) : '';
 $discounts = (isset($db['config']['cardDiscounts']) && is_array($db['config']['cardDiscounts'])) ? $db['config']['cardDiscounts'] : [];
-// Bảng % mặc định theo mức chiết khấu phổ biến của thesieure.com (dùng khi admin chưa
-// tự đặt). Admin có thể chỉnh trong Cấu hình cho khớp tài khoản của mình.
-$defaultDisc = ['VIETTEL'=>25,'MOBIFONE'=>25,'VINAPHONE'=>25,'VIETNAMOBILE'=>30,'ZING'=>15,'GARENA'=>15,'GATE'=>15,'VCOIN'=>18];
-$discPct = isset($discounts[$telcoReq]) ? floatval($discounts[$telcoReq]) : (isset($defaultDisc[$telcoReq]) ? $defaultDisc[$telcoReq] : 0);
 $face = $value > 0 ? $value : intval(($reqIdx !== -1 ? ($db['cardRequests'][$reqIdx]['declaredAmount'] ?? 0) : 0));
+// Bảng % chiết khấu MẶC ĐỊNH lấy ĐÚNG theo bảng phí đổi thẻ cào thesieure.com (mức
+// "Thành viên"). Viettel/Vina/Mobifone khác nhau theo mệnh giá; các cổng còn lại một mức.
+// 'default' dùng cho mệnh giá không liệt kê. Phải khớp DEFAULT_CARD_DISCOUNTS trong script.js.
+$DEFAULT_DISC = [
+    'VIETTEL'      => [10000=>17, 20000=>16, 30000=>17, 50000=>14, 100000=>14, 200000=>14, 300000=>15, 500000=>15.5, 1000000=>15.5, 'default'=>15.5],
+    'MOBIFONE'     => [10000=>21, 20000=>21, 30000=>21, 50000=>20.5, 100000=>20.5, 200000=>19, 300000=>19, 500000=>19, 'default'=>19],
+    'VINAPHONE'    => [10000=>16, 20000=>16, 30000=>16, 50000=>13, 100000=>12.5, 200000=>12, 300000=>12, 500000=>12, 'default'=>12],
+    'VIETNAMOBILE' => ['default'=>38],
+    'ZING'         => ['default'=>13.5],
+    'GARENA'       => ['default'=>14.5],
+    'VCOIN'        => [2000000=>16, 'default'=>14.5],
+    'SCOIN'        => ['default'=>27.5],
+];
+// Ưu tiên % admin tự đặt (một mức phẳng cho mọi mệnh giá); nếu chưa đặt thì tra bảng
+// mặc định theo mệnh giá thực của thẻ ($face).
+if (isset($discounts[$telcoReq]) && $discounts[$telcoReq] !== '' && !is_array($discounts[$telcoReq])) {
+    $discPct = floatval($discounts[$telcoReq]);
+} elseif (isset($DEFAULT_DISC[$telcoReq])) {
+    $tbl = $DEFAULT_DISC[$telcoReq];
+    $discPct = ($face > 0 && isset($tbl[$face])) ? floatval($tbl[$face]) : floatval($tbl['default'] ?? 0);
+} else {
+    $discPct = 0;
+}
 if ($discPct > 0) {
     $credit = (int)floor($face * (100 - $discPct) / 100);
     if ($amount > 0 && $credit > $amount) $credit = $amount;

@@ -3495,7 +3495,7 @@ window.KENIOS_DEFAULT_DB = {
       if (!noteEl) return;
       const telco = $('#cardTelco')?.value || '';
       const amount = parseInt($('#cardAmount')?.value, 10) || 0;
-      const pct = cardDiscountPct(telco);
+      const pct = cardDiscountPct(telco, amount);
       if (pct > 0 && amount > 0) {
         const recv = Math.floor(amount * (100 - pct) / 100);
         noteEl.hidden = false;
@@ -3973,13 +3973,35 @@ window.KENIOS_DEFAULT_DB = {
     openModal('#txHistoryModal');
   }
 
-  // % chiết khấu nạp thẻ MẶC ĐỊNH theo mức phổ biến của thesieure.com (dùng khi admin
-  // chưa tự đặt). Phải khớp $defaultDisc trong card.php.
-  const DEFAULT_CARD_DISCOUNTS = { VIETTEL: 25, MOBIFONE: 25, VINAPHONE: 25, VIETNAMOBILE: 30, ZING: 15, GARENA: 15, GATE: 15, VCOIN: 18 };
-  function cardDiscountPct(telco) {
+  // % chiết khấu nạp thẻ MẶC ĐỊNH — LẤY ĐÚNG theo bảng phí đổi thẻ cào của thesieure.com
+  // (mức "Thành viên"). Viettel/Vina/Mobifone chiết khấu KHÁC NHAU theo mệnh giá nên dùng
+  // bảng theo mệnh giá; các cổng còn lại một mức. `default` dùng cho mệnh giá không liệt kê.
+  // Phải khớp $DEFAULT_DISC trong card.php.
+  const DEFAULT_CARD_DISCOUNTS = {
+    VIETTEL:      { 10000: 17, 20000: 16, 30000: 17, 50000: 14, 100000: 14, 200000: 14, 300000: 15, 500000: 15.5, 1000000: 15.5, default: 15.5 },
+    MOBIFONE:     { 10000: 21, 20000: 21, 30000: 21, 50000: 20.5, 100000: 20.5, 200000: 19, 300000: 19, 500000: 19, default: 19 },
+    VINAPHONE:    { 10000: 16, 20000: 16, 30000: 16, 50000: 13, 100000: 12.5, 200000: 12, 300000: 12, 500000: 12, default: 12 },
+    VIETNAMOBILE: { default: 38 },
+    ZING:         { default: 13.5 },
+    GARENA:       { default: 14.5 },
+    VCOIN:        { 2000000: 16, default: 14.5 },
+    SCOIN:        { default: 27.5 }
+  };
+  // Lấy % chiết khấu theo nhà mạng + mệnh giá. Ưu tiên admin tự đặt (một mức phẳng cho mọi
+  // mệnh giá); nếu chưa đặt thì dùng bảng mặc định theo mệnh giá ở trên.
+  function cardDiscountPct(telco, amount) {
     const cfg = (Store.db.config && Store.db.config.cardDiscounts) || {};
-    if (cfg[telco] != null && cfg[telco] !== '') return parseFloat(cfg[telco]) || 0;
-    return DEFAULT_CARD_DISCOUNTS[telco] || 0;
+    const ov = cfg[telco];
+    if (ov != null && ov !== '' && typeof ov !== 'object') return parseFloat(ov) || 0;
+    const tbl = DEFAULT_CARD_DISCOUNTS[telco];
+    if (!tbl) return 0;
+    if (amount != null && tbl[amount] != null) return tbl[amount];
+    return tbl.default || 0;
+  }
+  // Giá trị hiển thị tham khảo (dùng cho placeholder ô cấu hình admin).
+  function cardDiscountHint(telco) {
+    const tbl = DEFAULT_CARD_DISCOUNTS[telco];
+    return tbl ? (tbl.default || 0) : 0;
   }
 
   // ---- Giỏ hàng (mua nhiều sản phẩm cùng lúc) ----
@@ -5308,13 +5330,14 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí thesieure.com.</div>
         <div class="card-discount-grid span-2">
-          ${['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','GATE','VCOIN'].map(t => {
-            const telcoName = { VIETTEL:'Viettel', MOBIFONE:'Mobifone', VINAPHONE:'Vinaphone', VIETNAMOBILE:'Vietnamobile', ZING:'Zing', GARENA:'Garena', GATE:'Gate', VCOIN:'Vcoin' }[t];
-            const val = ((c.cardDiscounts || {})[t] != null && (c.cardDiscounts || {})[t] !== '') ? (c.cardDiscounts || {})[t] : (DEFAULT_CARD_DISCOUNTS[t] || '');
-            return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="1" value="${esc(String(val))}" placeholder="VD: 25"></label>`;
+          ${['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','VCOIN','SCOIN'].map(t => {
+            const telcoName = { VIETTEL:'Viettel', MOBIFONE:'Mobifone', VINAPHONE:'Vinaphone', VIETNAMOBILE:'Vietnamobile', ZING:'Zing', GARENA:'Garena', VCOIN:'Vcoin', SCOIN:'Scoin' }[t];
+            const saved = (c.cardDiscounts || {})[t];
+            const val = (saved != null && saved !== '' && typeof saved !== 'object') ? saved : '';
+            return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="0.5" value="${esc(String(val))}" placeholder="mặc định ${cardDiscountHint(t)}%"></label>`;
           }).join('')}
         </div>
-        <p class="muted span-2" style="font-size:.75rem;margin:0;">VD Viettel = 25 → khách nạp thẻ Viettel 100.000đ nhận 75.000đ. Nhập đúng % theo <b>bảng phí thesieure.com</b> để khách nhận giống hệt. Để trống = cộng đúng số tiền cổng trả về. Hệ thống luôn <b>không cộng quá</b> số tiền thực nhận nên bạn không lỗ.</p>
+        <p class="muted span-2" style="font-size:.75rem;margin:0;">Mặc định đã lấy <b>đúng bảng phí thesieure.com</b> (Viettel/Vina/Mobifone thay đổi theo mệnh giá). Để trống = dùng mặc định này. Nhập số = ép một mức % cho <b>mọi mệnh giá</b> của nhà mạng đó. Hệ thống luôn <b>không cộng quá</b> số tiền cổng thực trả nên bạn không lỗ.</p>
 
         <div class="admin-form-section">Thông báo Popup khi vào Web</div>
         <label>Bật thông báo popup
@@ -6136,7 +6159,7 @@ window.KENIOS_DEFAULT_DB = {
       autoSyncToServer('Đã lưu thư mục con và đồng bộ lên máy chủ.', 'Đã lưu thư mục con (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
     } else if (formType === 'config') {
       const cardDiscounts = {};
-      ['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','GATE','VCOIN'].forEach(t => {
+      ['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','VCOIN','SCOIN'].forEach(t => {
         const raw = fd.get('cardDiscount_' + t);
         const v = parseFloat(raw);
         if (raw !== null && raw !== '' && !isNaN(v) && v > 0) cardDiscounts[t] = Math.max(0, Math.min(90, v));
