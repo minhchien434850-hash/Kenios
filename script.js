@@ -3495,7 +3495,7 @@ window.KENIOS_DEFAULT_DB = {
       if (!noteEl) return;
       const telco = $('#cardTelco')?.value || '';
       const amount = parseInt($('#cardAmount')?.value, 10) || 0;
-      const pct = parseFloat(((Store.db.config && Store.db.config.cardDiscounts) || {})[telco]) || 0;
+      const pct = cardDiscountPct(telco);
       if (pct > 0 && amount > 0) {
         const recv = Math.floor(amount * (100 - pct) / 100);
         noteEl.hidden = false;
@@ -3971,6 +3971,15 @@ window.KENIOS_DEFAULT_DB = {
         }).join('')
       : '<p class="empty-note">Bạn chưa có giao dịch nào.</p>';
     openModal('#txHistoryModal');
+  }
+
+  // % chiết khấu nạp thẻ MẶC ĐỊNH theo mức phổ biến của thesieure.com (dùng khi admin
+  // chưa tự đặt). Phải khớp $defaultDisc trong card.php.
+  const DEFAULT_CARD_DISCOUNTS = { VIETTEL: 25, MOBIFONE: 25, VINAPHONE: 25, VIETNAMOBILE: 30, ZING: 15, GARENA: 15, GATE: 15, VCOIN: 18 };
+  function cardDiscountPct(telco) {
+    const cfg = (Store.db.config && Store.db.config.cardDiscounts) || {};
+    if (cfg[telco] != null && cfg[telco] !== '') return parseFloat(cfg[telco]) || 0;
+    return DEFAULT_CARD_DISCOUNTS[telco] || 0;
   }
 
   // ---- Giỏ hàng (mua nhiều sản phẩm cùng lúc) ----
@@ -5301,7 +5310,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="card-discount-grid span-2">
           ${['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','GATE','VCOIN'].map(t => {
             const telcoName = { VIETTEL:'Viettel', MOBIFONE:'Mobifone', VINAPHONE:'Vinaphone', VIETNAMOBILE:'Vietnamobile', ZING:'Zing', GARENA:'Garena', GATE:'Gate', VCOIN:'Vcoin' }[t];
-            const val = ((c.cardDiscounts || {})[t] != null) ? (c.cardDiscounts || {})[t] : '';
+            const val = ((c.cardDiscounts || {})[t] != null && (c.cardDiscounts || {})[t] !== '') ? (c.cardDiscounts || {})[t] : (DEFAULT_CARD_DISCOUNTS[t] || '');
             return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="1" value="${esc(String(val))}" placeholder="VD: 25"></label>`;
           }).join('')}
         </div>

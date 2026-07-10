@@ -60,7 +60,10 @@ foreach (($db['transactions'] ?? []) as $t) {
 // trả về ví ($amount) để shop không bị lỗ. Chưa đặt % thì cộng đúng tiền cổng trả.
 $telcoReq = ($reqIdx !== -1) ? strtoupper((string)($db['cardRequests'][$reqIdx]['telco'] ?? '')) : '';
 $discounts = (isset($db['config']['cardDiscounts']) && is_array($db['config']['cardDiscounts'])) ? $db['config']['cardDiscounts'] : [];
-$discPct = isset($discounts[$telcoReq]) ? floatval($discounts[$telcoReq]) : 0;
+// Bảng % mặc định theo mức chiết khấu phổ biến của thesieure.com (dùng khi admin chưa
+// tự đặt). Admin có thể chỉnh trong Cấu hình cho khớp tài khoản của mình.
+$defaultDisc = ['VIETTEL'=>25,'MOBIFONE'=>25,'VINAPHONE'=>25,'VIETNAMOBILE'=>30,'ZING'=>15,'GARENA'=>15,'GATE'=>15,'VCOIN'=>18];
+$discPct = isset($discounts[$telcoReq]) ? floatval($discounts[$telcoReq]) : (isset($defaultDisc[$telcoReq]) ? $defaultDisc[$telcoReq] : 0);
 $face = $value > 0 ? $value : intval(($reqIdx !== -1 ? ($db['cardRequests'][$reqIdx]['declaredAmount'] ?? 0) : 0));
 if ($discPct > 0) {
     $credit = (int)floor($face * (100 - $discPct) / 100);
