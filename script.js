@@ -2897,13 +2897,25 @@ window.KENIOS_DEFAULT_DB = {
   function wireScrollReveal() {
     const items = $$('[data-reveal]');
     if (!items.length) return;
-    if (!('IntersectionObserver' in window)) { items.forEach(el => el.classList.add('revealed')); return; }
+    const reveal = el => el.classList.add('revealed');
+    if (!('IntersectionObserver' in window)) { items.forEach(reveal); return; }
     const io = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) { entry.target.classList.add('revealed'); io.unobserve(entry.target); }
+        if (entry.isIntersecting) { reveal(entry.target); io.unobserve(entry.target); }
       });
     }, { threshold: 0.12 });
     items.forEach(el => io.observe(el));
+    // Phao cứu cho webview (đặc biệt TELEGRAM) không kích hoạt IntersectionObserver
+    // lúc mới tải → nội dung kẹt ở opacity:0 trông như bị "che". Hiện ngay các mục đang
+    // nằm trong khung nhìn (giữ nguyên hiệu ứng cuộn cho phần dưới)…
+    const inView = el => {
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      return r.top < vh && r.bottom > 0;
+    };
+    requestAnimationFrame(() => items.forEach(el => { if (inView(el)) reveal(el); }));
+    // …và nếu sau 3s vẫn còn mục chưa hiện (observer hỏng hẳn), hiện hết để không mất nội dung.
+    setTimeout(() => items.forEach(reveal), 3000);
   }
 
   // ---- Nút lên đầu trang & xuống cuối trang ----
