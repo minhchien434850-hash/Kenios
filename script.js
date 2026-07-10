@@ -2483,7 +2483,7 @@ window.KENIOS_DEFAULT_DB = {
     const hasPhoto = !!cfg.logoUrl; // logo ảnh riêng → hiển thị full (phủ kín khung như app-icon)
     const logoUrl = cfg.logoUrl || '';
     const isVid = isVideoUrl(logoUrl);           // logo là VIDEO -> dùng <video>, không phải <img>
-    const src = logoUrl || './favicon.svg';
+    const src = logoUrl || './logo.png';
     $$('.brand-mark-wrap, .mobile-nav-brand-mark').forEach(w => {
       w.classList.toggle('has-photo', hasPhoto);
       const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
@@ -2598,7 +2598,7 @@ window.KENIOS_DEFAULT_DB = {
       const storeName = cfg.logoText || 'KENIOS.STORE';
       const abs = u => (u && /^https?:/i.test(u)) ? u : '';
       const desc = cfg.metaDescription || cfg.welcomePopupMessage || 'Cửa hàng dịch vụ game & thiết kế website.';
-      const store = { '@type': 'OnlineStore', name: storeName, url: base, logo: abs(cfg.logoUrl) || (base + 'favicon.svg'), description: desc };
+      const store = { '@type': 'OnlineStore', name: storeName, url: base, logo: abs(cfg.logoUrl) || (base + 'logo.png'), description: desc };
       const sameAs = (cfg.contactChannels || []).filter(c => c && c.enabled && abs(c.url)).map(c => c.url);
       if (sameAs.length) store.sameAs = sameAs;
       const services = (Store.db && Store.db.services) || [];

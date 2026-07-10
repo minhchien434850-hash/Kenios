@@ -145,6 +145,14 @@ button { font: inherit; }
 /* Logo ảnh riêng do admin tải lên → hiển thị FULL, phủ kín khung như app-icon (không viền, không đệm) */
 .brand-mark-wrap.has-photo, .mobile-nav-brand-mark.has-photo { background: none; border-color: transparent; padding: 0; }
 .brand-mark-wrap.has-photo .brand-mark, .mobile-nav-brand-mark.has-photo img, .mobile-nav-brand-mark.has-photo video { object-fit: cover; padding: 0; }
+/* Logo KENIOS mặc định (logo.png) là ảnh vuông tự chứa nền → hiển thị FULL khung như
+   app-icon (phủ kín, bo góc), không đệm & không nền gradient để tránh viền lệch màu. */
+.brand-mark { object-fit: cover; padding: 0; }
+.brand-mark-wrap { background: #06060c; }
+.mobile-nav-brand-mark img { object-fit: cover !important; padding: 0 !important; }
+.auth-logo { background: #06060c; }
+.auth-logo img { object-fit: cover; padding: 0; }
+.boot-loader-mark, .maintenance-logo { border-radius: 16px; object-fit: cover; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-text strong { font-size: 1.05rem; letter-spacing: .2px; font-family: var(--logo-font); color: var(--logo-color); }
 
