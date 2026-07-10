@@ -543,8 +543,20 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .auth-form input:focus, .deposit-form input:focus { outline: none; border-color: var(--gold); }
 .form-error { color: var(--danger); font-size: .82rem; min-height: 18px; margin: 0; }
 
+.deposit-tabs { display: flex; gap: 8px; margin: 0 0 18px; }
+.deposit-tab {
+  flex: 1; padding: 10px 8px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--glass); color: var(--muted);
+  font-weight: 700; font-size: .86rem; transition: all .18s ease;
+}
+.deposit-tab.active { background: rgba(255,183,3,.12); border-color: rgba(255,183,3,.4); color: var(--gold-soft); }
 .deposit-body { display: flex; flex-direction: column; gap: 20px; }
 .deposit-form { display: flex; flex-direction: column; gap: 14px; }
+.deposit-form select {
+  padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: rgba(255,255,255,.03); color: var(--ink); font-size: .95rem; font-family: inherit;
+}
+.deposit-card-msg { font-size: .84rem; margin: 0; line-height: 1.5; }
 .quick-amounts { display: flex; gap: 8px; flex-wrap: wrap; }
 .quick-amounts button {
   padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--glass); color: var(--ink); cursor: pointer; font-size: .82rem;

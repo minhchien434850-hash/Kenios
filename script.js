@@ -639,6 +639,18 @@ window.KENIOS_DEFAULT_DB = {
       return { credited: !!res.credited, balance: res.balance };
     },
 
+    // Nạp thẻ cào qua thesieure.com — gửi thẻ lên máy chủ; tiền cộng sau khi cổng duyệt
+    // (callback card.php). Cần có backend PHP + đã cấu hình Partner ID/Key.
+    async chargeCard(info) {
+      const user = this.currentUser();
+      if (!user) throw new Error('Bạn cần đăng nhập trước khi nạp thẻ.');
+      const res = await this._callApi('card_charge', {
+        userId: user.userId,
+        telco: info.telco, amount: info.amount, serial: info.serial, code: info.code
+      });
+      return res;
+    },
+
     // Gói có kho key thật (admin đã nhập key trong tab Dịch vụ) sẽ có field `keyCount`
     // (kể cả khi = 0). Với gói này, PHẢI mua qua máy chủ (redeemKeyOnServer) để rút
     // đúng 1 key thật + trừ số dư một cách xác thực, không dùng đường cũ (giả lập cục bộ).
@@ -3423,6 +3435,45 @@ window.KENIOS_DEFAULT_DB = {
     $('#depositAmount').addEventListener('input', updateDepositBonusNote);
     updateDepositBonusNote();
 
+    // Chuyển tab VietQR / Thẻ cào
+    $$('.deposit-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const which = tab.dataset.depositTab;
+        $$('.deposit-tab').forEach(t => t.classList.toggle('active', t === tab));
+        $('#depositPaneVietqr').hidden = which !== 'vietqr';
+        $('#depositPaneCard').hidden = which !== 'card';
+      });
+    });
+
+    // Nạp thẻ cào
+    $('#submitCardBtn')?.addEventListener('click', () => {
+      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp thẻ.', 'error'); return; }
+      const msgEl = $('#cardChargeMsg');
+      const setMsg = (t, ok) => { if (msgEl) { msgEl.hidden = false; msgEl.textContent = t; msgEl.style.color = ok === false ? 'var(--danger)' : (ok ? 'var(--success)' : 'var(--muted)'); } };
+      const telco = $('#cardTelco').value;
+      const amount = parseInt($('#cardAmount').value, 10) || 0;
+      const serial = $('#cardSerial').value.trim();
+      const code = $('#cardCode').value.trim();
+      if (!serial || !code) { setMsg('Vui lòng nhập đủ Serial và Mã thẻ.', false); return; }
+      withLoading($('#submitCardBtn'), async () => {
+        setMsg('Đang gửi thẻ, vui lòng đợi…');
+        try {
+          const res = await Store.chargeCard({ telco, amount, serial, code });
+          if (res.status === 'success') {
+            setMsg(res.message || 'Đã gửi thẻ, đang chờ hệ thống duyệt.', true);
+            toast('Đã gửi thẻ! Số dư sẽ cộng khi thẻ được duyệt.', 'success');
+            $('#cardSerial').value = ''; $('#cardCode').value = '';
+          } else {
+            setMsg(res.message || 'Nạp thẻ thất bại.', false);
+            toast(res.message || 'Nạp thẻ thất bại.', 'error');
+          }
+        } catch (e) {
+          setMsg('Không kết nối được máy chủ nạp thẻ (cần backend PHP).', false);
+          toast('Không nạp được thẻ (thiếu máy chủ).', 'error');
+        }
+      });
+    });
+
     $('#genQrBtn').addEventListener('click', () => {
       const cfg = Store.db.config;
       const amount = parseInt($('#depositAmount').value, 10);
@@ -4060,9 +4111,14 @@ window.KENIOS_DEFAULT_DB = {
     // Wire nút Đồng bộ lên máy chủ (chỉ nằm trong tab Config)
     $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer());
 
-    $('#bankWebhookUrl').value = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}bank_callback.php`;
+    const baseUrl = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`;
+    $('#bankWebhookUrl').value = `${baseUrl}bank_callback.php`;
     $('#copyWebhookUrlBtn').addEventListener('click', () => {
       navigator.clipboard?.writeText($('#bankWebhookUrl').value).then(() => toast('Đã sao chép URL webhook!', 'success'));
+    });
+    if ($('#cardCallbackUrl')) $('#cardCallbackUrl').value = `${baseUrl}card.php`;
+    $('#copyCardCbBtn')?.addEventListener('click', () => {
+      navigator.clipboard?.writeText($('#cardCallbackUrl').value).then(() => toast('Đã sao chép Callback URL!', 'success'));
     });
 
     const user = Store.currentUser();
@@ -4076,9 +4132,11 @@ window.KENIOS_DEFAULT_DB = {
       }
       $('#bankTokenStatus').innerHTML = res.bankTokenConfigured ? '✅ Đã cấu hình token webhook.' : 'Chưa cấu hình — webhook sẽ từ chối mọi giao dịch thật cho tới khi lưu token.';
       $('#ttsKeyStatus').innerHTML = res.ttsApiKeyConfigured ? '✅ Đã cấu hình API key — giọng nói dùng Google Cloud TTS thật.' : 'Chưa cấu hình — trang đang dùng giọng trình duyệt để dự phòng.';
+      if ($('#cardApiStatus')) $('#cardApiStatus').innerHTML = res.cardConfigured ? '✅ Đã cấu hình API thẻ cào — khách nạp thẻ được.' : 'Chưa cấu hình — nhập Partner ID + Partner Key để bật nạp thẻ cào.';
     }).catch(() => {
       $('#bankTokenStatus').textContent = 'Không kiểm tra được trạng thái.';
       $('#ttsKeyStatus').textContent = 'Không kiểm tra được trạng thái.';
+      if ($('#cardApiStatus')) $('#cardApiStatus').textContent = 'Không kiểm tra được trạng thái.';
     });
 
     $('#saveBankTokenBtn').addEventListener('click', () => {
@@ -4102,6 +4160,22 @@ window.KENIOS_DEFAULT_DB = {
         const res = await Store.saveSecrets(c.username, c.password, { ttsApiKey: key });
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
         if (res.status === 'success') { $('#ttsApiKeyInput').value = ''; renderAdminTab('config'); }
+      });
+    });
+
+    $('#saveCardApiBtn')?.addEventListener('click', () => {
+      const pid = $('#cardPartnerIdInput').value.trim();
+      const pkey = $('#cardPartnerKeyInput').value.trim();
+      const c = getAdminCreds();
+      if (!pid && !pkey) { toast('Nhập Partner ID và/hoặc Partner Key trước khi lưu.', 'error'); return; }
+      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      const patch = {};
+      if (pid) patch.cardPartnerId = pid;
+      if (pkey) patch.cardPartnerKey = pkey;
+      withLoading($('#saveCardApiBtn'), async () => {
+        const res = await Store.saveSecrets(c.username, c.password, patch);
+        toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
+        if (res.status === 'success') { $('#cardPartnerIdInput').value = ''; $('#cardPartnerKeyInput').value = ''; renderAdminTab('config'); }
       });
     });
   }
@@ -5011,6 +5085,25 @@ window.KENIOS_DEFAULT_DB = {
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">
             Lấy API key miễn phí tại <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--gold-soft);">Google Cloud Console</a> (bật API "Cloud Text-to-Speech"). Chưa cấu hình thì trang sẽ tự dùng giọng trình duyệt để dự phòng. Khóa được lưu riêng ở máy chủ, không hiển thị lại và không gửi cho khách truy cập trang.
           </p>
+        </div>
+
+        <div class="admin-form-section">Nạp thẻ cào (thesieure.com)</div>
+        <div class="secret-box span-2" id="cardApiBox">
+          <div class="secret-status" id="cardApiStatus">Đang kiểm tra trạng thái…</div>
+          <label>Partner ID
+            <input type="text" id="cardPartnerIdInput" placeholder="Nhập Partner ID (để trống nếu giữ nguyên)" autocomplete="off">
+          </label>
+          <label>Partner Key
+            <input type="password" id="cardPartnerKeyInput" placeholder="Nhập Partner Key (để trống nếu giữ nguyên)" autocomplete="new-password">
+          </label>
+          <label>Callback URL — dán vào ô "Đường dẫn nhận dữ liệu (Callback Url)" bên thesieure.com
+            <span class="input-with-toggle">
+              <input type="text" id="cardCallbackUrl" readonly>
+              <button type="button" class="pw-toggle-btn" id="copyCardCbBtn" title="Sao chép"></button>
+            </span>
+          </label>
+          <button type="button" class="btn btn-glass btn-sm" id="saveCardApiBtn">🔒 Lưu API thẻ cào</button>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Lấy Partner ID / Partner Key trong mục "Thông tin kết nối" của thesieure.com. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
         </div>
 
         <div class="admin-form-section">Thông báo Popup khi vào Web</div>

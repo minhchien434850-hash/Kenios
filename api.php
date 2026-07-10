@@ -1260,6 +1260,83 @@ switch ($action) {
         echo json_encode(["status" => "success", "avatar" => $avatar]);
         break;
 
+    // Khách NẠP THẺ CÀO qua thesieure.com. Gửi thẻ lên cổng, ghi 1 yêu cầu "đang xử lý";
+    // tiền được cộng khi thesieure gọi callback (card.php) báo thẻ hợp lệ.
+    case 'card_charge':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $telco  = strtoupper(trim((string)($input['telco'] ?? '')));
+        $amount = intval($input['amount'] ?? 0);
+        $serial = trim((string)($input['serial'] ?? ''));
+        $code   = trim((string)($input['code'] ?? ''));
+
+        $secrets = read_secrets();
+        $partnerId  = trim((string)($secrets['cardPartnerId'] ?? ''));
+        $partnerKey = trim((string)($secrets['cardPartnerKey'] ?? ''));
+        if ($partnerId === '' || $partnerKey === '') {
+            echo json_encode(["status" => "error", "message" => "Nạp thẻ cào chưa được cấu hình. Vui lòng liên hệ Admin."]); exit;
+        }
+        if ($userId === '' || $telco === '' || $amount <= 0 || $serial === '' || $code === '') {
+            echo json_encode(["status" => "error", "message" => "Vui lòng chọn nhà mạng, mệnh giá và nhập đủ Serial + Mã thẻ."]); exit;
+        }
+
+        // Xác minh user tồn tại + tạo mã yêu cầu duy nhất.
+        $db = read_db($db_file);
+        $exists = false;
+        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $exists = true; break; } }
+        if (!$exists) { echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản. Vui lòng đăng nhập lại."]); exit; }
+
+        $request_id = 'CARD' . $userId . time() . rand(1000, 9999);
+        $sign = md5($partnerKey . $code . $serial); // chữ ký thesieure: md5(partner_key + code + serial)
+
+        $post = http_build_query([
+            'telco' => $telco, 'code' => $code, 'serial' => $serial, 'amount' => $amount,
+            'request_id' => $request_id, 'partner_id' => $partnerId, 'sign' => $sign, 'command' => 'charging'
+        ]);
+        $ch = curl_init('https://thesieure.com/chargingws/v2');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        $resp = curl_exec($ch);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+        if ($resp === false) {
+            echo json_encode(["status" => "error", "message" => "Không kết nối được cổng nạp thẻ: $curlErr"]); exit;
+        }
+        $res = json_decode($resp, true);
+        $gwStatus = is_array($res) ? ($res['status'] ?? null) : null;
+
+        // Ghi yêu cầu vào cardRequests (khóa file) để callback biết cộng cho ai, bao nhiêu.
+        $fp = fopen($db_file, 'c+');
+        if ($fp && flock($fp, LOCK_EX)) {
+            $raw = stream_get_contents($fp);
+            $db2 = $raw ? (json_decode($raw, true) ?: []) : [];
+            if (!isset($db2['cardRequests']) || !is_array($db2['cardRequests'])) $db2['cardRequests'] = [];
+            array_unshift($db2['cardRequests'], [
+                'request_id' => $request_id, 'userId' => $userId, 'telco' => $telco,
+                'declaredAmount' => $amount, 'status' => 'pending',
+                'gatewayStatus' => $gwStatus, 'date' => date('c')
+            ]);
+            // Chỉ giữ 500 yêu cầu gần nhất cho gọn.
+            if (count($db2['cardRequests']) > 500) $db2['cardRequests'] = array_slice($db2['cardRequests'], 0, 500);
+            ftruncate($fp, 0); rewind($fp);
+            fwrite($fp, json_encode($db2, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            fflush($fp); flock($fp, LOCK_UN);
+        }
+        if ($fp) fclose($fp);
+
+        // status 99/100 = đã nhận, đang xử lý (chờ callback). Khác đi là lỗi thẻ ngay.
+        if ($gwStatus === 99 || $gwStatus === 100 || $gwStatus === '99' || $gwStatus === '100') {
+            echo json_encode(["status" => "success", "pending" => true, "message" => "Đã gửi thẻ, hệ thống đang kiểm tra. Số dư sẽ được cộng trong ít phút nếu thẻ hợp lệ."]);
+        } elseif ($gwStatus === 1 || $gwStatus === '1' || $gwStatus === 2 || $gwStatus === '2') {
+            echo json_encode(["status" => "success", "pending" => true, "message" => "Đã tiếp nhận thẻ. Số dư sẽ được cộng sau khi hệ thống xác nhận."]);
+        } else {
+            $msg = is_array($res) ? ($res['message'] ?? 'Thẻ không hợp lệ hoặc sai mệnh giá.') : 'Cổng nạp thẻ trả về dữ liệu không hợp lệ.';
+            echo json_encode(["status" => "error", "message" => $msg]);
+        }
+        break;
+
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
     case 'backup_db':
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
@@ -1406,7 +1483,8 @@ switch ($action) {
         echo json_encode([
             "status" => "success",
             "ttsApiKeyConfigured" => !empty($secrets['ttsApiKey']),
-            "bankTokenConfigured" => !empty($secrets['bankToken']) || !empty($db['config']['bankToken'] ?? '')
+            "bankTokenConfigured" => !empty($secrets['bankToken']) || !empty($db['config']['bankToken'] ?? ''),
+            "cardConfigured" => !empty($secrets['cardPartnerId']) && !empty($secrets['cardPartnerKey'])
         ]);
         break;
 
@@ -1422,6 +1500,9 @@ switch ($action) {
         $patch = [];
         if (isset($input['ttsApiKey']) && trim($input['ttsApiKey']) !== '') $patch['ttsApiKey'] = trim($input['ttsApiKey']);
         if (isset($input['bankToken']) && trim($input['bankToken']) !== '') $patch['bankToken'] = trim($input['bankToken']);
+        // Thẻ cào (thesieure.com): Partner ID + Partner Key.
+        if (isset($input['cardPartnerId']) && trim($input['cardPartnerId']) !== '') $patch['cardPartnerId'] = trim($input['cardPartnerId']);
+        if (isset($input['cardPartnerKey']) && trim($input['cardPartnerKey']) !== '') $patch['cardPartnerKey'] = trim($input['cardPartnerKey']);
         if (!$patch) {
             echo json_encode(["status" => "error", "message" => "Không có gì để lưu"]);
             exit;

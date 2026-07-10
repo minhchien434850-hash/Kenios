@@ -394,8 +394,13 @@
   <div class="modal-overlay" id="depositModal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="depositTitle">
       <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
-      <h3 id="depositTitle">Nạp Tiền Qua VietQR</h3>
-      <div class="deposit-body">
+      <h3 id="depositTitle">Nạp Tiền</h3>
+      <div class="deposit-tabs">
+        <button type="button" class="deposit-tab active" id="depositTabVietqr" data-deposit-tab="vietqr">Chuyển khoản VietQR</button>
+        <button type="button" class="deposit-tab" id="depositTabCard" data-deposit-tab="card">Nạp thẻ cào</button>
+      </div>
+
+      <div class="deposit-body" id="depositPaneVietqr">
         <div class="deposit-form">
           <label>Số tiền muốn nạp (đ)
             <input type="number" id="depositAmount" min="10000" step="1000" value="50000">
@@ -416,6 +421,41 @@
           </ul>
           <p class="deposit-hint">⚠️ Chuyển khoản đúng <b>nội dung</b> trên (chính là mã khách hàng của bạn). Hệ thống tự động cộng tiền khi nhận được — hoặc bấm nút bên dưới để kiểm tra ngay.</p>
           <button type="button" class="btn btn-primary btn-block" id="confirmDepositBtn"><span class="btn-ico" data-icon="check"></span> Kiểm tra giao dịch</button>
+        </div>
+      </div>
+
+      <div class="deposit-body" id="depositPaneCard" hidden>
+        <div class="deposit-form">
+          <label>Nhà mạng
+            <select id="cardTelco">
+              <option value="VIETTEL">Viettel</option>
+              <option value="MOBIFONE">Mobifone</option>
+              <option value="VINAPHONE">Vinaphone</option>
+              <option value="VIETNAMOBILE">Vietnamobile</option>
+              <option value="ZING">Zing</option>
+              <option value="GARENA">Garena</option>
+              <option value="GATE">Gate</option>
+              <option value="VCOIN">Vcoin</option>
+            </select>
+          </label>
+          <label>Mệnh giá
+            <select id="cardAmount">
+              <option value="10000">10.000đ</option>
+              <option value="20000">20.000đ</option>
+              <option value="30000">30.000đ</option>
+              <option value="50000" selected>50.000đ</option>
+              <option value="100000">100.000đ</option>
+              <option value="200000">200.000đ</option>
+              <option value="300000">300.000đ</option>
+              <option value="500000">500.000đ</option>
+              <option value="1000000">1.000.000đ</option>
+            </select>
+          </label>
+          <label>Số Serial <input type="text" id="cardSerial" placeholder="Nhập số serial trên thẻ" autocomplete="off" inputmode="numeric"></label>
+          <label>Mã thẻ (Code) <input type="text" id="cardCode" placeholder="Nhập mã thẻ cào" autocomplete="off" inputmode="numeric"></label>
+          <p class="deposit-hint">⚠️ Nhập đúng <b>mệnh giá</b> của thẻ. Sai mệnh giá có thể bị mất thẻ hoặc trừ phạt theo quy định nhà mạng. Số dư được cộng sau khi hệ thống kiểm tra thẻ (thường vài phút).</p>
+          <p class="deposit-card-msg" id="cardChargeMsg" hidden></p>
+          <button type="button" class="btn btn-primary btn-block" id="submitCardBtn"><span class="btn-ico" data-icon="card"></span> Nạp thẻ</button>
         </div>
       </div>
     </div>
