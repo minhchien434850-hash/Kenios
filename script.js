@@ -2157,6 +2157,45 @@ window.KENIOS_DEFAULT_DB = {
     }));
   }
 
+  // ---- PWA: đăng ký service worker + nút "Cài đặt ứng dụng" (thêm vào màn hình chính) ----
+  function wirePwa() {
+    // Đăng ký service worker NGAY (boot chạy sau khi trang đã tải nên không cần chờ 'load';
+    // đợi 'load' sẽ lỡ sự kiện vì boot await fetch xong mới tới đây).
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./sw.js').catch(() => { /* không sao nếu thất bại */ });
+    }
+    const btn = $('#installAppBtn');
+    if (!btn) return;
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (standalone) return; // đã cài rồi thì không hiện nút
+
+    let deferredPrompt = null;
+    // Android/Chrome: bắt sự kiện để hiện nút cài đặt gọn trong menu.
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      btn.hidden = false;
+    });
+    window.addEventListener('appinstalled', () => { btn.hidden = true; deferredPrompt = null; toast('Đã cài KENIOS.STORE vào màn hình chính!', 'success'); });
+
+    // iPhone/iPad Safari không có beforeinstallprompt -> hiện nút kèm hướng dẫn thủ công.
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIos) btn.hidden = false;
+
+    btn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        try { await deferredPrompt.userChoice; } catch { /* ignore */ }
+        deferredPrompt = null;
+        btn.hidden = true;
+      } else if (isIos) {
+        toast('Trên iPhone: bấm nút Chia sẻ ⎋ ở thanh dưới → chọn "Thêm vào MH chính".', 'info');
+      } else {
+        toast('Mở trình duyệt Chrome và bấm menu ⋮ → "Cài đặt ứng dụng / Thêm vào MH chính".', 'info');
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', boot);
 
   function hideBootLoader() {
@@ -2206,6 +2245,7 @@ window.KENIOS_DEFAULT_DB = {
     step(wireFlashSaleBar, 'wireFlashSaleBar');
     step(wireThemeToggle, 'wireThemeToggle');
     step(wireServiceFilters, 'wireServiceFilters');
+    step(wirePwa, 'wirePwa');
 
     clearTimeout(failsafe);
     hideBootLoader();

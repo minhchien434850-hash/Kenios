@@ -1,12 +1,20 @@
 {
-  "name": "KENIOS.STORE",
+  "id": "/",
+  "name": "KENIOS.STORE — Dịch Vụ Game & Thiết Kế Website",
   "short_name": "KENIOS",
-  "description": "Cửa hàng dịch vụ game & thiết kế website",
+  "description": "Cửa hàng dịch vụ game & thiết kế website. Nạp tiền VietQR tự động 24/7.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#07070c",
   "theme_color": "#07070c",
+  "lang": "vi",
+  "categories": ["shopping", "games", "business"],
   "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

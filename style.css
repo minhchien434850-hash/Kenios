@@ -1174,6 +1174,9 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .maintenance-box p { color: var(--muted); line-height: 1.6; font-size: 1rem; }
 body.maintenance-on { overflow: hidden; }
 
+/* Nút "Cài đặt ứng dụng" trong menu 3 gạch (PWA) */
+.install-app-link { background: rgba(134,59,255,.12); border: 1px solid rgba(134,59,255,.32); color: #c9a7ff; font-weight: 700; }
+
 /* ---------- Scroll reveal ---------- */
 [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
 [data-reveal].revealed { opacity: 1; transform: translateY(0); }
