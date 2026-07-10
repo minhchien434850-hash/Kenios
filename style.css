@@ -388,6 +388,40 @@ video.hero-banner-bg { width: 100%; height: 100%; object-fit: cover; }
 .stat-chip:hover { transform: translateY(-3px); border-color: rgba(255,183,3,.3); }
 .stat-chip strong { display: block; font-size: 1.4rem; color: var(--gold-soft); }
 .stat-chip span { font-size: .78rem; color: var(--muted); }
+.stat-chip-ico { display: inline-flex; width: 22px; height: 22px; margin-bottom: 6px; color: var(--gold-soft); opacity: .9; }
+.stat-chip-ico svg { width: 22px; height: 22px; }
+
+/* ---------- Làm đẹp màn hình chính (hero) ---------- */
+/* Ánh sáng nền chuyển động nhẹ (aurora) phía sau banner, tạo chiều sâu cao cấp. */
+.hero > .container { position: relative; z-index: 1; }
+.hero::before, .hero::after {
+  content: ''; position: absolute; z-index: 0; border-radius: 50%;
+  filter: blur(72px); opacity: .45; pointer-events: none;
+}
+.hero::before { width: 320px; height: 320px; top: -50px; left: -30px;
+  background: radial-gradient(circle, rgba(255,183,3,.55), transparent 70%); animation: heroFloatA 17s ease-in-out infinite; }
+.hero::after { width: 380px; height: 380px; bottom: -90px; right: -40px;
+  background: radial-gradient(circle, rgba(139,92,246,.6), transparent 70%); animation: heroFloatB 21s ease-in-out infinite; }
+@keyframes heroFloatA { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(28px,22px) scale(1.08); } }
+@keyframes heroFloatB { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-26px,-22px) scale(1.1); } }
+/* Vệt sáng lướt qua nút "Mua ngay" cho sinh động. */
+.hero-cta { position: relative; overflow: hidden; }
+.hero-cta::after {
+  content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.6), transparent);
+  transform: skewX(-18deg); animation: ctaShine 3.6s ease-in-out infinite;
+}
+@keyframes ctaShine { 0%,60% { left: -60%; } 100% { left: 130%; } }
+/* Gạch nhấn gradient dưới tiêu đề mỗi mục — gọn gàng, cao cấp hơn. */
+.section-head h2 { position: relative; display: inline-block; padding-bottom: 12px; }
+.section-head h2::after {
+  content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 60px; height: 3px; border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--violet));
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero::before, .hero::after, .hero-cta::after { animation: none; }
+}
 
 /* ---------- Sections ---------- */
 .section { padding: 72px 0; }

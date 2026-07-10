@@ -3106,13 +3106,13 @@ window.KENIOS_DEFAULT_DB = {
   function renderHeroStats() {
     const db = Store.db;
     const stats = [
-      { label: 'Dịch Vụ', value: db.services.length },
-      { label: 'Danh Mục', value: db.categories.length },
-      { label: 'Đơn Hàng', value: db.orders.length },
-      { label: 'Hoạt Động', value: '24/7' }
+      { label: 'Dịch Vụ', value: db.services.length, icon: 'gamepad' },
+      { label: 'Danh Mục', value: db.categories.length, icon: 'grid' },
+      { label: 'Đơn Hàng', value: db.orders.length, icon: 'box' },
+      { label: 'Hoạt Động', value: '24/7', icon: 'bolt' }
     ];
     $('#heroStats').innerHTML = stats.map(s => `
-      <div class="stat-chip"><strong>${s.value}</strong><span>${s.label}</span></div>
+      <div class="stat-chip"><span class="stat-chip-ico">${ICONS[s.icon] || ''}</span><strong>${s.value}</strong><span>${s.label}</span></div>
     `).join('');
   }
 
