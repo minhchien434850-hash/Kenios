@@ -1393,13 +1393,22 @@ switch ($action) {
         if (!token_ok($meUser, $token)) { echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]); exit; }
 
         $request_id = 'CARD' . $userId . time() . rand(1000, 9999);
-        $sign = md5($partnerKey . $code . $serial); // chữ ký thesieure: md5(partner_key + code + serial)
+        $sign = md5($partnerKey . $code . $serial); // chữ ký: md5(partner_key + code + serial) — giống nhau cả 2 cổng
+
+        // Chọn cổng nạp thẻ theo cấu hình admin. thesieure.com và doithe1s.vn dùng CHUNG
+        // chuẩn API /chargingws/v2 (cùng tham số + cùng chữ ký), chỉ khác tên miền.
+        $gateway = strtolower(trim((string)($db['config']['cardGateway'] ?? 'thesieure.com')));
+        $endpoints = [
+            'thesieure.com' => 'https://thesieure.com/chargingws/v2',
+            'doithe1s.vn'   => 'https://doithe1s.vn/chargingws/v2',
+        ];
+        $chargeUrl = $endpoints[$gateway] ?? $endpoints['thesieure.com'];
 
         $post = http_build_query([
             'telco' => $telco, 'code' => $code, 'serial' => $serial, 'amount' => $amount,
             'request_id' => $request_id, 'partner_id' => $partnerId, 'sign' => $sign, 'command' => 'charging'
         ]);
-        $ch = curl_init('https://thesieure.com/chargingws/v2');
+        $ch = curl_init($chargeUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $post);

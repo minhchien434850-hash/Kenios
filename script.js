@@ -84,6 +84,7 @@ window.KENIOS_DEFAULT_DB = {
     bankId: "MBBank",
     bankAccountNo: "0822148411",
     bankAccountName: "NGUYEN TIN HAO",
+    cardGateway: "thesieure.com",
     bannerTagText: "Dịch vụ hàng đầu Việt Nam",
     bannerBtn1Text: "Xem Dịch Vụ",
     bannerBtn2Text: "Nạp Tiền Ngay",
@@ -5350,7 +5351,13 @@ window.KENIOS_DEFAULT_DB = {
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Token được lưu riêng ở máy chủ (secrets.php), không hiển thị lại và không gửi cho khách truy cập trang.</p>
         </div>
 
-        <div class="admin-form-section">Nạp thẻ cào (thesieure.com)</div>
+        <div class="admin-form-section">Nạp thẻ cào (chọn cổng: thesieure.com hoặc doithe1s.vn)</div>
+        <label class="span-2">Cổng nạp thẻ đang dùng
+          <select name="cardGateway">
+            <option value="thesieure.com" ${(c.cardGateway || 'thesieure.com') === 'thesieure.com' ? 'selected' : ''}>thesieure.com</option>
+            <option value="doithe1s.vn" ${c.cardGateway === 'doithe1s.vn' ? 'selected' : ''}>doithe1s.vn (doithe1s.com.vn)</option>
+          </select>
+        </label>
         <div class="secret-box span-2" id="cardApiBox">
           <div class="secret-status" id="cardApiStatus">Đang kiểm tra trạng thái…</div>
           <label>Partner ID
@@ -5359,14 +5366,14 @@ window.KENIOS_DEFAULT_DB = {
           <label>Partner Key
             <input type="password" id="cardPartnerKeyInput" placeholder="Nhập Partner Key (để trống nếu giữ nguyên)" autocomplete="new-password">
           </label>
-          <label>Callback URL — dán vào ô "Đường dẫn nhận dữ liệu (Callback Url)" bên thesieure.com
+          <label>Callback URL — dán vào ô "Đường dẫn nhận dữ liệu (Callback Url)" bên cổng nạp thẻ
             <span class="input-with-toggle">
               <input type="text" id="cardCallbackUrl" readonly>
               <button type="button" class="pw-toggle-btn" id="copyCardCbBtn" title="Sao chép"></button>
             </span>
           </label>
           <button type="button" class="btn btn-glass btn-sm" id="saveCardApiBtn">🔒 Lưu API thẻ cào</button>
-          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Lấy Partner ID / Partner Key trong mục "Thông tin kết nối" của thesieure.com. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
+          <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Chọn đúng <b>cổng</b> bạn đăng ký, rồi lấy Partner ID / Partner Key trong mục "Thông tin kết nối / API" của cổng đó. Nhớ bấm <b>Lưu cấu hình</b> để lưu lựa chọn cổng. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
         </div>
 
         <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí thesieure.com.</div>
@@ -6224,6 +6231,7 @@ window.KENIOS_DEFAULT_DB = {
         welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
         welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceEnabled: false,
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
+        cardGateway: fd.get('cardGateway') || 'thesieure.com',
         marqueeText: fd.get('marqueeText'), marqueeSpeed: parseInt(fd.get('marqueeSpeed'), 10) || 26,
         ttsEnabled: fd.get('ttsEnabled') === '1',
         aiName: fd.get('aiName'), aiGreeting: fd.get('aiGreeting'),
