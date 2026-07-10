@@ -1,7 +1,7 @@
 # Chặn truy cập trực tiếp vào các file dữ liệu / bí mật (chỉ cho PHP đọc nội bộ).
 # database.json chứa mật khẩu (băm), kho key và cấu hình — chỉ được phục vụ qua
 # api.php?action=get_db (đã lọc bỏ dữ liệu nhạy cảm). secrets.php giữ API key/token.
-<FilesMatch "^(database\.json|database_backup\.json|secrets\.php|lib_secrets\.php|lib_bank\.php|card_callback_log\.txt|\.user\.ini)$">
+<FilesMatch "^(database\.json|database_backup\.json|secrets\.php|lib_secrets\.php|lib_bank\.php|lib_card\.php|card_callback_log\.txt|\.user\.ini)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

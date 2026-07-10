@@ -3977,28 +3977,62 @@ window.KENIOS_DEFAULT_DB = {
     openModal('#downloadsModal');
   }
 
-  // Lịch sử nạp tiền của người dùng hiện tại (giao dịch type='deposit').
-  function openDepositHistoryModal() {
+  // Lịch sử nạp tiền: gồm các lần nạp THÀNH CÔNG (giao dịch type='deposit') + các thẻ cào
+  // ĐANG XỬ LÝ / LỖI (chưa cộng tiền). Mở lịch sử cũng chủ động hỏi cổng trạng thái thẻ.
+  async function openDepositHistoryModal() {
     const user = Store.currentUser();
     if (!user) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
-    const deps = (Store.db.transactions || [])
-      .filter(t => t.userId === user.userId && t.type === 'deposit' && (t.amount || 0) > 0);
-    const total = deps.reduce((s, t) => s + (t.amount || 0), 0);
-    $('#depositHistorySummary').innerHTML = deps.length
-      ? `<div class="dh-summary-row"><span>Tổng đã nạp</span><strong>${fmt(total)}</strong></div>
-         <div class="dh-summary-row"><span>Số lần nạp</span><strong>${deps.length}</strong></div>`
-      : '';
-    $('#depositHistoryList').innerHTML = deps.length
-      ? deps.map(t => `
-        <div class="dh-item">
-          <div class="dh-item-main">
-            <span class="dh-item-amount">+${fmt(t.amount)}</span>
-            <span class="dh-item-desc">${esc(t.description || 'Nạp tiền')}</span>
-          </div>
-          <span class="dh-item-date">${esc(new Date(t.date).toLocaleString('vi-VN'))}</span>
-        </div>`).join('')
-      : '<p class="empty-note">Bạn chưa có giao dịch nạp tiền nào.</p>';
     openModal('#depositHistoryModal');
+    if ($('#depositHistorySummary')) $('#depositHistorySummary').innerHTML = '';
+    $('#depositHistoryList').innerHTML = '<p class="empty-note">Đang tải &amp; kiểm tra thẻ…</p>';
+
+    // Chủ động hỏi cổng trạng thái các thẻ đang xử lý (đồng thời cập nhật số dư + lịch sử).
+    let cardReqs = [];
+    let serverDeps = null;
+    try {
+      const res = await Store.cardStatus();
+      if (res && res.status === 'success') { cardReqs = res.requests || []; if (Array.isArray(res.deposits)) serverDeps = res.deposits; }
+    } catch (e) { /* offline: chỉ hiện dữ liệu cục bộ */ }
+
+    // Ưu tiên lịch sử nạp MỚI NHẤT từ máy chủ (kể cả thẻ vừa cộng); offline thì dùng cục bộ.
+    const deps = serverDeps !== null ? serverDeps
+      : (Store.db.transactions || []).filter(t => t.userId === user.userId && t.type === 'deposit' && (t.amount || 0) > 0);
+    const total = deps.reduce((s, t) => s + (t.amount || 0), 0);
+    // Thẻ THÀNH CÔNG đã nằm trong deps (qua transaction) rồi → chỉ thêm ĐANG XỬ LÝ / LỖI.
+    const openCards = cardReqs.filter(r => r.status === 'pending' || r.status === 'failed');
+
+    const items = [];
+    deps.forEach(t => items.push({ ts: Date.parse(t.date) || 0, kind: 'ok', amount: t.amount, desc: t.description || 'Nạp tiền', date: t.date }));
+    openCards.forEach(r => items.push({ ts: Date.parse(r.date) || 0, kind: r.status, telco: r.telco, declared: r.declaredAmount, date: r.date }));
+    items.sort((a, b) => b.ts - a.ts);
+
+    const pendCount = openCards.filter(r => r.status === 'pending').length;
+    if ($('#depositHistorySummary')) $('#depositHistorySummary').innerHTML =
+      `<div class="dh-summary-row"><span>Tổng đã nạp</span><strong>${fmt(total)}</strong></div>
+       <div class="dh-summary-row"><span>Số lần nạp thành công</span><strong>${deps.length}</strong></div>`
+      + (pendCount ? `<div class="dh-summary-row"><span>Thẻ đang xử lý</span><strong>${pendCount}</strong></div>` : '');
+
+    const badge = { pending: '<span class="dh-status pending">⏳ Đang xử lý</span>', failed: '<span class="dh-status failed">❌ Thẻ lỗi/sai</span>' };
+    $('#depositHistoryList').innerHTML = items.length
+      ? items.map(it => {
+          const when = it.date ? new Date(it.date).toLocaleString('vi-VN') : '';
+          if (it.kind === 'ok') {
+            return `<div class="dh-item">
+              <div class="dh-item-main">
+                <span class="dh-item-amount">+${fmt(it.amount)}</span>
+                <span class="dh-item-desc">${esc(it.desc)}</span>
+              </div>
+              <span class="dh-item-date">${esc(when)}</span>
+            </div>`;
+          }
+          return `<div class="dh-item dh-item-${it.kind}">
+            <div class="dh-item-main">
+              <span class="dh-item-desc">Nạp thẻ cào ${esc(it.telco || '')} ${fmt(it.declared || 0)} ${badge[it.kind] || ''}</span>
+            </div>
+            <span class="dh-item-date">${esc(when)}</span>
+          </div>`;
+        }).join('')
+      : '<p class="empty-note">Bạn chưa có giao dịch nạp tiền nào.</p>';
   }
 
   // Lịch sử GIAO DỊCH đầy đủ của khách: nạp, mua, admin cộng/trừ — hiện trong menu 3 gạch.

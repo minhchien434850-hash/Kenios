@@ -1533,6 +1533,11 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
 .dh-item-amount { color: #6ee7b7; font-weight: 700; font-size: .98rem; }
 .dh-item-desc { color: var(--muted); font-size: .78rem; word-break: break-word; }
 .dh-item-date { color: var(--muted); font-size: .74rem; white-space: nowrap; flex-shrink: 0; }
+.dh-item-pending { border-color: rgba(255,183,3,.35); }
+.dh-item-failed { border-color: rgba(239,68,68,.35); }
+.dh-status { display: inline-block; margin-left: 6px; font-weight: 700; font-size: .72rem; }
+.dh-status.pending { color: var(--gold-soft); }
+.dh-status.failed { color: #f87171; }
 
 .auth-head { text-align: center; margin-bottom: 18px; }
 .auth-logo { width: 52px; height: 52px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(139,92,246,.28), rgba(255,183,3,.16)); border: 1px solid rgba(139,92,246,.25); margin-bottom: 8px; }

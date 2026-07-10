@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/lib_secrets.php';
+require_once __DIR__ . '/lib_card.php';
 
 $db_file = __DIR__ . '/database.json';
 $action = $_GET['action'] ?? '';
@@ -534,6 +535,9 @@ switch ($action) {
                 }
             }
         }
+        // Không trả lịch sử nạp thẻ (chứa code/serial + dữ liệu riêng của khách) ra public.
+        // Khách xem thẻ của mình qua action=card_status; admin xem qua action=card_requests.
+        unset($db['cardRequests']);
         echo json_encode($db, JSON_UNESCAPED_UNICODE);
         break;
 
@@ -1422,7 +1426,11 @@ switch ($action) {
             array_unshift($db2['cardRequests'], [
                 'request_id' => $request_id, 'userId' => $userId, 'telco' => $telco,
                 'declaredAmount' => $amount, 'status' => 'pending',
-                'gatewayStatus' => $gwStatus, 'date' => date('c')
+                'gatewayStatus' => $gwStatus, 'date' => date('c'),
+                // Lưu code/serial để CHỦ ĐỘNG hỏi lại cổng trạng thái (không phụ thuộc callback).
+                // database.json bị .htaccess chặn + get_db đã bỏ cardRequests nên không lộ ra ngoài.
+                // Xoá đi sau khi thẻ xử lý xong (thành công/thất bại) ở card_status.
+                'code' => $code, 'serial' => $serial
             ]);
             // Chỉ giữ 500 yêu cầu gần nhất cho gọn.
             if (count($db2['cardRequests']) > 500) $db2['cardRequests'] = array_slice($db2['cardRequests'], 0, 500);
@@ -1443,16 +1451,93 @@ switch ($action) {
         }
         break;
 
-    // Khách KIỂM TRA trạng thái các thẻ đã nạp + lấy số dư mới nhất (callback đã cộng chưa).
+    // Khách KIỂM TRA trạng thái các thẻ đã nạp. CHỦ ĐỘNG hỏi lại cổng (không chờ callback):
+    // gửi lại request_id + code + serial lên card2k, nếu cổng báo success thì cộng tiền NGAY.
     case 'card_status':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $userId = (string)($input['userId'] ?? '');
         $token = (string)($input['token'] ?? '');
         if ($userId === '') { echo json_encode(["status" => "error", "message" => "Thiếu tài khoản."]); exit; }
         $db = read_db($db_file);
-        $balance = null; $meFound = false;
-        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $balance = $u['balance']; $meFound = $u; break; } }
+        $meFound = false;
+        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $meFound = $u; break; } }
         if ($meFound && !token_ok($meFound, $token)) { echo json_encode(["status" => "error", "message" => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."]); exit; }
+
+        // 1) Gom các thẻ ĐANG XỬ LÝ gần đây của khách (còn code/serial) để hỏi lại cổng.
+        $secrets = read_secrets();
+        $partnerId  = trim((string)($secrets['cardPartnerId'] ?? ''));
+        $partnerKey = trim((string)($secrets['cardPartnerKey'] ?? ''));
+        $gatewayUrl = card_gateway_url($db['config'] ?? []);
+        $toQuery = [];
+        if ($partnerId !== '' && $partnerKey !== '') {
+            foreach (($db['cardRequests'] ?? []) as $r) {
+                if (($r['userId'] ?? '') !== $userId) continue;
+                if (($r['status'] ?? 'pending') !== 'pending') continue;
+                if (empty($r['code']) || empty($r['serial'])) continue;
+                $ts = strtotime($r['date'] ?? '');
+                if ($ts && $ts < time() - 3 * 86400) continue; // bỏ thẻ quá cũ (>3 ngày)
+                $toQuery[] = $r;
+                if (count($toQuery) >= 5) break;
+            }
+        }
+        // 2) Hỏi cổng NGOÀI khóa file (curl chậm). Ghi lại kết quả theo request_id.
+        $gwResult = [];
+        foreach ($toQuery as $r) {
+            $gwResult[$r['request_id']] = card_query_status($r, $partnerId, $partnerKey, $gatewayUrl);
+        }
+        // 3) Áp kết quả DƯỚI khóa file: success -> cộng tiền (chống trùng), failed -> đánh dấu.
+        if ($gwResult) {
+            $fp = fopen($db_file, 'c+');
+            if ($fp && flock($fp, LOCK_EX)) {
+                $raw = stream_get_contents($fp);
+                $db = $raw ? (json_decode($raw, true) ?: []) : [];
+                $cfgDisc = (isset($db['config']['cardDiscounts']) && is_array($db['config']['cardDiscounts'])) ? $db['config']['cardDiscounts'] : [];
+                foreach (($db['cardRequests'] ?? []) as $i => $r) {
+                    $rid = $r['request_id'] ?? '';
+                    if (!isset($gwResult[$rid])) continue;
+                    $st = $gwResult[$rid]['status'];
+                    if ($st === 1 || $st === 2) {
+                        // Đã cộng trước đó chưa?
+                        $done = ($r['status'] ?? '') === 'success';
+                        foreach (($db['transactions'] ?? []) as $t) { if (($t['cardRef'] ?? '') === $rid) { $done = true; break; } }
+                        if (!$done) {
+                            $face = intval($gwResult[$rid]['value'] ?? 0); if ($face <= 0) $face = intval($r['declaredAmount'] ?? 0);
+                            $credit = card_compute_credit($r['telco'] ?? '', $face, intval($gwResult[$rid]['amount'] ?? 0), $cfgDisc);
+                            $uid = $r['userId'] ?? '';
+                            foreach (($db['users'] ?? []) as $ui => $u) {
+                                if (($u['userId'] ?? '') === $uid) {
+                                    $db['users'][$ui]['balance'] = floatval($u['balance'] ?? 0) + $credit;
+                                    if (!isset($db['transactions'])) $db['transactions'] = [];
+                                    array_unshift($db['transactions'], [
+                                        'id' => 'TX' . time() . rand(100, 999), 'userId' => $uid, 'type' => 'deposit',
+                                        'amount' => $credit, 'date' => date('c'),
+                                        'description' => "Nạp thẻ cào " . ($r['telco'] ?? '') . " (nhận " . number_format($credit) . "đ)",
+                                        'cardRef' => $rid
+                                    ]);
+                                    break;
+                                }
+                            }
+                            $db['cardRequests'][$i]['status'] = 'success';
+                            $db['cardRequests'][$i]['realAmount'] = $credit;
+                        }
+                        unset($db['cardRequests'][$i]['code'], $db['cardRequests'][$i]['serial']);
+                    } elseif ($st === 3) {
+                        $db['cardRequests'][$i]['status'] = 'failed';
+                        unset($db['cardRequests'][$i]['code'], $db['cardRequests'][$i]['serial']);
+                    }
+                }
+                $db['cardRequests'] = array_values($db['cardRequests'] ?? []);
+                ftruncate($fp, 0); rewind($fp);
+                fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                fflush($fp); flock($fp, LOCK_UN);
+            }
+            if ($fp) fclose($fp);
+        }
+
+        // 4) Trả về số dư mới + danh sách thẻ + lịch sử nạp thành công (để hiện ngay, kể cả
+        //    thẻ vừa được cộng trong lần kiểm tra này mà client chưa tải lại trang).
+        $balance = null;
+        foreach (($db['users'] ?? []) as $u) { if (($u['userId'] ?? '') === $userId) { $balance = $u['balance']; break; } }
         $mine = [];
         foreach (($db['cardRequests'] ?? []) as $r) {
             if (($r['userId'] ?? '') !== $userId) continue;
@@ -1463,7 +1548,13 @@ switch ($action) {
             ];
             if (count($mine) >= 10) break;
         }
-        echo json_encode(["status" => "success", "balance" => $balance, "requests" => $mine]);
+        $deposits = [];
+        foreach (($db['transactions'] ?? []) as $t) {
+            if (($t['userId'] ?? '') !== $userId || ($t['type'] ?? '') !== 'deposit' || floatval($t['amount'] ?? 0) <= 0) continue;
+            $deposits[] = ['amount' => $t['amount'], 'description' => $t['description'] ?? '', 'date' => $t['date'] ?? ''];
+            if (count($deposits) >= 50) break;
+        }
+        echo json_encode(["status" => "success", "balance" => $balance, "requests" => $mine, "deposits" => $deposits]);
         break;
 
     // Admin xem danh sách yêu cầu NẠP THẺ CÀO của khách (mới nhất trước).

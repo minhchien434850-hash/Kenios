@@ -4,6 +4,7 @@
 // Khi thẻ được duyệt, cổng POST kết quả về đây; ta xác minh chữ ký rồi cộng số dư.
 header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . '/lib_secrets.php';
+require_once __DIR__ . '/lib_card.php';
 
 $db_file = __DIR__ . '/database.json';
 
@@ -83,35 +84,8 @@ foreach (($db['transactions'] ?? []) as $t) {
 $telcoReq = ($reqIdx !== -1) ? strtoupper((string)($db['cardRequests'][$reqIdx]['telco'] ?? '')) : '';
 $discounts = (isset($db['config']['cardDiscounts']) && is_array($db['config']['cardDiscounts'])) ? $db['config']['cardDiscounts'] : [];
 $face = $value > 0 ? $value : intval(($reqIdx !== -1 ? ($db['cardRequests'][$reqIdx]['declaredAmount'] ?? 0) : 0));
-// Bảng % chiết khấu MẶC ĐỊNH lấy ĐÚNG theo bảng phí đổi thẻ cào card2k.net (mức
-// "Thành viên"). Viettel/Vina/Mobifone/Gate/Vcoin khác nhau theo mệnh giá; các cổng còn lại
-// một mức. 'default' dùng cho mệnh giá không liệt kê. Phải khớp DEFAULT_CARD_DISCOUNTS trong script.js.
-$DEFAULT_DISC = [
-    'VIETTEL'   => [10000=>19, 20000=>19, 30000=>20, 50000=>18.5, 100000=>18.5, 200000=>18.5, 300000=>18.5, 500000=>20.5, 1000000=>20.5, 'default'=>20.5],
-    'VINAPHONE' => [10000=>19.5, 20000=>19.5, 30000=>19.5, 50000=>16.5, 100000=>15.5, 200000=>16, 300000=>16, 500000=>15.5, 'default'=>15.5],
-    'MOBIFONE'  => [10000=>26, 20000=>26, 30000=>26, 50000=>25.5, 100000=>25, 200000=>23, 300000=>23, 500000=>22, 'default'=>22],
-    'GARENA'    => [5000=>19.5, 10000=>18.5, 20000=>18.5, 50000=>18.5, 100000=>18.5, 200000=>18.5, 500000=>18.5, 'default'=>18.5],
-    'ZING'      => ['default'=>18.5],
-    'GATE'      => [10000=>17, 20000=>17, 50000=>17, 100000=>17, 200000=>17, 300000=>23.5, 500000=>17, 1000000=>17, 2000000=>23.5, 5000000=>17, 'default'=>17],
-    'VCOIN'     => [2000000=>21, 5000000=>21.5, 'default'=>19.5],
-    'SCOIN'     => ['default'=>32.5],
-];
-// Ưu tiên % admin tự đặt (một mức phẳng cho mọi mệnh giá); nếu chưa đặt thì tra bảng
-// mặc định theo mệnh giá thực của thẻ ($face).
-if (isset($discounts[$telcoReq]) && $discounts[$telcoReq] !== '' && !is_array($discounts[$telcoReq])) {
-    $discPct = floatval($discounts[$telcoReq]);
-} elseif (isset($DEFAULT_DISC[$telcoReq])) {
-    $tbl = $DEFAULT_DISC[$telcoReq];
-    $discPct = ($face > 0 && isset($tbl[$face])) ? floatval($tbl[$face]) : floatval($tbl['default'] ?? 0);
-} else {
-    $discPct = 0;
-}
-if ($discPct > 0) {
-    $credit = (int)floor($face * (100 - $discPct) / 100);
-    if ($amount > 0 && $credit > $amount) $credit = $amount;
-} else {
-    $credit = $amount > 0 ? $amount : $face;
-}
+// Số tiền cộng cho khách = mệnh giá × (100 − %); không cộng quá tiền cổng thực trả ($amount).
+$credit = card_compute_credit($telcoReq, $face, $amount, $discounts);
 
 if ($success && !$already && $reqIdx !== -1 && $credit > 0) {
     $uid = $db['cardRequests'][$reqIdx]['userId'] ?? '';
