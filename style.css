@@ -502,7 +502,8 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .service-card .thumb { height: 160px; background-size: cover; background-position: center; position: relative; overflow: hidden; transition: background-size .5s ease; }
 .thumb-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
 .service-card:hover .thumb-video { transform: scale(1.08); }
-.service-card .thumb .badge { position: absolute; top: 12px; right: 12px; }
+.service-card .thumb .thumb-badges { position: absolute; top: 12px; right: 12px; z-index: 2; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 24px); }
+.service-card .thumb .thumb-badges .badge { position: static; top: auto; right: auto; }
 .badge {
   font-size: .72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;
   background: rgba(34,197,94,.18); color: #4ade80; border: 1px solid rgba(34,197,94,.35);
@@ -1077,7 +1078,7 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
 /* Giá gạch ngang / giá sale trên thẻ sản phẩm khi Flash Sale */
 .price-old { color: var(--muted); font-size: .82rem; text-decoration: line-through; font-weight: 500; }
 .price-sale { color: #fca5a5; }
-.badge.flash-badge { left: auto; right: 10px; background: linear-gradient(135deg,#f43f5e,#f97316); color: #fff; border: none; }
+.badge.flash-badge { background: linear-gradient(135deg,#f43f5e,#f97316); color: #fff; border: none; }
 
 /* Banner FLASH SALE + đếm ngược */
 .flash-sale-bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 9px 16px;
@@ -1699,7 +1700,8 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
   /* Service grid — 3 cột NHỎ GỌN, tách theo từng danh mục (không gộp chung) */
   .service-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .service-card .thumb { height: 74px; }
-  .service-card .thumb .badge { top: 5px; right: 5px; padding: 2px 6px; font-size: .54rem; }
+  .service-card .thumb .thumb-badges { top: 5px; right: 5px; gap: 4px; }
+  .service-card .thumb .badge { padding: 2px 6px; font-size: .54rem; }
   .service-card .views-badge { font-size: .54rem; padding: 1px 5px; left: 5px; bottom: 5px; }
   .service-card .body { padding: 7px 7px 8px; gap: 4px; }
   .service-card h3 { font-size: .72rem; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

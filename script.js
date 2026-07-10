@@ -3138,8 +3138,10 @@ window.KENIOS_DEFAULT_DB = {
       <article class="service-card ${inStock ? '' : 'out-of-stock'}" data-service="${esc(s.id)}">
         <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
           ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
-          <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
-          ${flash.active ? `<span class="badge flash-badge">-${flash.percent}%</span>` : ''}
+          <div class="thumb-badges">
+            <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
+            ${flash.active ? `<span class="badge flash-badge">-${flash.percent}%</span>` : ''}
+          </div>
           <span class="views-badge">${ICONS.eye}<b>${viewsFor(s.id)}</b></span>
         </div>
         <div class="body">
