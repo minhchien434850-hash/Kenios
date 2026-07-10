@@ -1838,3 +1838,8 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
 .cart-foot { border-top: 1px solid var(--border); padding-top: 14px; }
 .cart-total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 1rem; }
 .cart-total-row strong { color: var(--gold); font-size: 1.2rem; }
+
+/* Bảng % chiết khấu nạp thẻ theo nhà mạng (admin) */
+.card-discount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.card-discount-grid label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--muted); }
+@media (max-width: 640px) { .card-discount-grid { grid-template-columns: repeat(2, 1fr); } }

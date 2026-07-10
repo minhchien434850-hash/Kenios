@@ -20,10 +20,10 @@ $statusCode = (string)($in['status'] ?? '');
 $code       = (string)($in['code'] ?? '');
 $serial     = (string)($in['serial'] ?? '');
 $callbackSign = (string)($in['callback_sign'] ?? ($in['sign'] ?? ''));
-// Số tiền thực nhận về (đã trừ chiết khấu cổng). Nếu không có thì lấy mệnh giá thực.
+// Số tiền cổng thực trả về ví (đã trừ phí) và mệnh giá thực của thẻ. $credit tính sau
+// (dựa trên tỷ lệ % theo nhà mạng admin cấu hình), khi đã đọc DB.
 $amount = intval($in['amount'] ?? 0);
 $value  = intval($in['value'] ?? 0);
-$credit = $amount > 0 ? $amount : $value;
 
 $secrets = read_secrets();
 $partnerKey = trim((string)($secrets['cardPartnerKey'] ?? ''));
@@ -53,6 +53,20 @@ foreach (($db['cardRequests'] ?? []) as $i => $r) {
 $already = false;
 foreach (($db['transactions'] ?? []) as $t) {
     if (($t['cardRef'] ?? '') === $request_id) { $already = true; break; }
+}
+
+// TÍNH SỐ TIỀN CỘNG theo TỶ LỆ % của nhà mạng (admin cấu hình cho khớp thesieure.com):
+// khách nhận = mệnh giá thực × (100 - %)/100. An toàn: KHÔNG cộng quá số tiền cổng thực
+// trả về ví ($amount) để shop không bị lỗ. Chưa đặt % thì cộng đúng tiền cổng trả.
+$telcoReq = ($reqIdx !== -1) ? strtoupper((string)($db['cardRequests'][$reqIdx]['telco'] ?? '')) : '';
+$discounts = (isset($db['config']['cardDiscounts']) && is_array($db['config']['cardDiscounts'])) ? $db['config']['cardDiscounts'] : [];
+$discPct = isset($discounts[$telcoReq]) ? floatval($discounts[$telcoReq]) : 0;
+$face = $value > 0 ? $value : intval(($reqIdx !== -1 ? ($db['cardRequests'][$reqIdx]['declaredAmount'] ?? 0) : 0));
+if ($discPct > 0) {
+    $credit = (int)floor($face * (100 - $discPct) / 100);
+    if ($amount > 0 && $credit > $amount) $credit = $amount;
+} else {
+    $credit = $amount > 0 ? $amount : $face;
 }
 
 if ($success && !$already && $reqIdx !== -1 && $credit > 0) {

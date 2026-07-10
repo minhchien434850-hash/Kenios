@@ -3489,6 +3489,23 @@ window.KENIOS_DEFAULT_DB = {
       });
     });
 
+    // Ước tính số tiền khách nhận theo % chiết khấu nhà mạng (khớp bảng phí thesieure).
+    function updateCardReceiveNote() {
+      const noteEl = $('#cardReceiveNote');
+      if (!noteEl) return;
+      const telco = $('#cardTelco')?.value || '';
+      const amount = parseInt($('#cardAmount')?.value, 10) || 0;
+      const pct = parseFloat(((Store.db.config && Store.db.config.cardDiscounts) || {})[telco]) || 0;
+      if (pct > 0 && amount > 0) {
+        const recv = Math.floor(amount * (100 - pct) / 100);
+        noteEl.hidden = false;
+        noteEl.innerHTML = `Chiết khấu <b>${pct}%</b> — bạn sẽ nhận <b>${fmt(recv)}</b> vào số dư.`;
+      } else { noteEl.hidden = true; }
+    }
+    $('#cardTelco')?.addEventListener('change', updateCardReceiveNote);
+    $('#cardAmount')?.addEventListener('change', updateCardReceiveNote);
+    updateCardReceiveNote();
+
     // Nạp thẻ cào
     $('#submitCardBtn')?.addEventListener('click', () => {
       if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp thẻ.', 'error'); return; }
@@ -5280,6 +5297,16 @@ window.KENIOS_DEFAULT_DB = {
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Lấy Partner ID / Partner Key trong mục "Thông tin kết nối" của thesieure.com. Khóa được lưu riêng ở máy chủ (secrets.php), không hiển thị lại. Sau khi lưu, khách sẽ nạp được thẻ cào ở mục "Nạp tiền → Thẻ cào".</p>
         </div>
 
+        <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí thesieure.com.</div>
+        <div class="card-discount-grid span-2">
+          ${['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','GATE','VCOIN'].map(t => {
+            const telcoName = { VIETTEL:'Viettel', MOBIFONE:'Mobifone', VINAPHONE:'Vinaphone', VIETNAMOBILE:'Vietnamobile', ZING:'Zing', GARENA:'Garena', GATE:'Gate', VCOIN:'Vcoin' }[t];
+            const val = ((c.cardDiscounts || {})[t] != null) ? (c.cardDiscounts || {})[t] : '';
+            return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="1" value="${esc(String(val))}" placeholder="VD: 25"></label>`;
+          }).join('')}
+        </div>
+        <p class="muted span-2" style="font-size:.75rem;margin:0;">VD Viettel = 25 → khách nạp thẻ Viettel 100.000đ nhận 75.000đ. Nhập đúng % theo <b>bảng phí thesieure.com</b> để khách nhận giống hệt. Để trống = cộng đúng số tiền cổng trả về. Hệ thống luôn <b>không cộng quá</b> số tiền thực nhận nên bạn không lỗ.</p>
+
         <div class="admin-form-section">Thông báo Popup khi vào Web</div>
         <label>Bật thông báo popup
           <select name="welcomePopupEnabled">
@@ -6099,7 +6126,14 @@ window.KENIOS_DEFAULT_DB = {
       renderAdminTab('categories');
       autoSyncToServer('Đã lưu thư mục con và đồng bộ lên máy chủ.', 'Đã lưu thư mục con (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
     } else if (formType === 'config') {
+      const cardDiscounts = {};
+      ['VIETTEL','MOBIFONE','VINAPHONE','VIETNAMOBILE','ZING','GARENA','GATE','VCOIN'].forEach(t => {
+        const raw = fd.get('cardDiscount_' + t);
+        const v = parseFloat(raw);
+        if (raw !== null && raw !== '' && !isNaN(v) && v > 0) cardDiscounts[t] = Math.max(0, Math.min(90, v));
+      });
       Store.adminUpdateConfig({
+        cardDiscounts,
         logoText: fd.get('logoText'), logoSubtext: fd.get('logoSubtext'),
         logoUrl: fd.get('logoUrl'), logoFont: fd.get('logoFont'), logoColor: fd.get('logoColor'),
         logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
