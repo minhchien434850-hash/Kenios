@@ -470,6 +470,9 @@ video.category-media { width: calc(100% + 36px); object-fit: cover; }
   background: rgba(34,197,94,.18); color: #4ade80; border: 1px solid rgba(34,197,94,.35);
 }
 .badge.out { background: rgba(248,113,113,.18); color: #f87171; border-color: rgba(248,113,113,.35); }
+/* Sản phẩm hết hàng: làm mờ ảnh + xám nhẹ để khách nhận ra ngay (badge "Hết hàng" vẫn rõ). */
+.service-card.out-of-stock .thumb { filter: grayscale(.7) opacity(.6); }
+.service-card.out-of-stock .body h3 { opacity: .8; }
 .service-card .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 .service-card h3 { margin: 0; font-size: 1.02rem; }
 .service-card p.desc { margin: 0; color: var(--muted); font-size: .85rem; flex: 1; }

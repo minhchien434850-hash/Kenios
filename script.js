@@ -682,6 +682,19 @@ window.KENIOS_DEFAULT_DB = {
       return pkg && typeof pkg.keyCount === 'number';
     },
 
+    // 1 gói còn bán được không: gói quản kho key thì phải còn key; gói không quản kho key
+    // coi như còn hàng.
+    pkgBuyable(pkg) {
+      return !!pkg && (!this.usesRealKeyStock(pkg) || (pkg.keyCount || 0) > 0);
+    },
+    // Sản phẩm CÒN HÀNG thực tế: admin không đặt "hết hàng" VÀ còn ít nhất 1 gói bán được.
+    // Dùng cho nhãn "Hết hàng" + khoá nút Mua để khách không bấm mua hụt.
+    serviceInStock(service) {
+      if (!service || service.status === 'outofstock') return false;
+      const pkgs = service.packages || [];
+      return pkgs.length > 0 && pkgs.some(p => this.pkgBuyable(p));
+    },
+
     // Hệ điều hành / nền tảng của sản phẩm = tên thư mục con (nếu có), ngược lại tên danh mục.
     serviceOs(service) {
       const sub = (this.db.subcategories || []).find(s => s.id === service.subcategoryId);
@@ -3035,7 +3048,7 @@ window.KENIOS_DEFAULT_DB = {
 
   function serviceCardHtml(s) {
     const minPrice = Math.min(...(s.packages || []).map(p => p.price));
-    const inStock = s.status === 'instock';
+    const inStock = Store.serviceInStock(s);
     const isVideo = isVideoUrl(s.image);
     const flash = Store.flashSaleInfo();
     const rCount = Store.ratingCount(s.id);
@@ -3044,7 +3057,7 @@ window.KENIOS_DEFAULT_DB = {
       ? `<span class="price"><del class="price-old">Từ ${fmt(minPrice)}</del> <b class="price-sale">Từ ${fmt(salePrice)}</b></span>`
       : `<span class="price">Từ ${fmt(minPrice)}</span>`;
     return `
-      <article class="service-card" data-service="${esc(s.id)}">
+      <article class="service-card ${inStock ? '' : 'out-of-stock'}" data-service="${esc(s.id)}">
         <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
           ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
           <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
@@ -3817,7 +3830,7 @@ window.KENIOS_DEFAULT_DB = {
       modalImg.hidden = false;
       modalVideo.hidden = true;
     }
-    const inStock = service.status === 'instock';
+    const inStock = Store.serviceInStock(service);
     $('#serviceModalBadge').textContent = inStock ? 'Còn hàng' : 'Hết hàng';
     $('#serviceModalBadge').className = 'badge' + (inStock ? '' : ' out');
     setText('#serviceModalTitle', service.name);
@@ -3844,6 +3857,12 @@ window.KENIOS_DEFAULT_DB = {
         </span>
       </div>`;
     }).join('');
+    // Khoá/mở nút Mua theo gói ĐANG chọn (gói hết key thì không mua được dù sản phẩm còn gói khác).
+    const updateBuyBtnStock = () => {
+      const ok = Store.serviceInStock(service) && Store.pkgBuyable(currentPackage);
+      $('#serviceModalBuyBtn').disabled = !ok;
+      $('#serviceModalBuyBtn').textContent = ok ? 'Mua Ngay' : 'Hết Hàng';
+    };
     pkgWrap.querySelectorAll('.package-option').forEach(el => {
       el.addEventListener('click', () => {
         pkgWrap.querySelectorAll('.package-option').forEach(o => o.classList.remove('selected'));
@@ -3852,6 +3871,7 @@ window.KENIOS_DEFAULT_DB = {
         syncServiceModalPasswordField();
         // Đổi gói -> tính lại mã giảm giá (nếu có) theo giá gói mới.
         applyServiceDiscount();
+        updateBuyBtnStock();
       });
     });
 
@@ -3867,8 +3887,7 @@ window.KENIOS_DEFAULT_DB = {
     syncServiceModalPasswordField();
     $('#serviceModalError').textContent = '';
     $('#serviceModalPassword').value = '';
-    $('#serviceModalBuyBtn').disabled = !inStock;
-    $('#serviceModalBuyBtn').textContent = inStock ? 'Mua Ngay' : 'Hết Hàng';
+    updateBuyBtnStock();
     renderServiceReviews(serviceId);
     openModal('#serviceModal');
   }
