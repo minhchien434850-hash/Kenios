@@ -4555,6 +4555,7 @@ window.KENIOS_DEFAULT_DB = {
     else if (tab === 'services') body.innerHTML = adminServicesHtml();
     else if (tab === 'categories') body.innerHTML = adminCategoriesHtml();
     else if (tab === 'orders') { body.innerHTML = adminOrdersHtml(); wireAdminTableTools('orders'); }
+    else if (tab === 'report') { body.innerHTML = adminReportHtml(); wireAdminReport(); }
     else if (tab === 'users') { body.innerHTML = adminUsersHtml(); wireAdminTableTools('users'); }
     else if (tab === 'media') body.innerHTML = adminMediaHtml();
     else if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();
@@ -5294,6 +5295,107 @@ window.KENIOS_DEFAULT_DB = {
         ['Tên đăng nhập', 'Mã KH', 'Vai trò', 'Số dư', 'Trạng thái', 'Ngày tạo'], rows);
       toast(`Đã xuất ${rows.length} người dùng ra CSV.`, 'success');
     }
+  }
+
+  // ---- Báo cáo doanh thu theo khoảng thời gian ----
+  const _ymd = d => d.toISOString().slice(0, 10);
+  function adminReportHtml() {
+    const today = new Date();
+    const from = _ymd(new Date(today.getTime() - 29 * 86400000));
+    const to = _ymd(today);
+    return `
+      <div class="report-toolbar">
+        <label>Từ ngày <input type="date" id="reportFrom" value="${from}"></label>
+        <label>Đến ngày <input type="date" id="reportTo" value="${to}"></label>
+        <button type="button" class="btn btn-primary btn-sm" id="reportApplyBtn">Xem</button>
+        <button type="button" class="btn btn-glass btn-sm" data-report-quick="7">7 ngày</button>
+        <button type="button" class="btn btn-glass btn-sm" data-report-quick="30">30 ngày</button>
+        <button type="button" class="btn btn-glass btn-sm" data-report-quick="month">Tháng này</button>
+        <button type="button" class="btn btn-glass btn-sm" id="reportExportBtn">⬇ Xuất CSV</button>
+      </div>
+      <div id="reportBody"></div>`;
+  }
+  // Tính báo cáo từ đơn hàng trong khoảng [from, to] (bỏ đơn đã hoàn tiền).
+  function computeReport(from, to) {
+    const start = new Date(from + 'T00:00:00');
+    const end = new Date(to + 'T23:59:59');
+    const orders = (Store.db.orders || []).filter(o => {
+      const d = new Date(o.date || o.purchaseDate || 0);
+      return d >= start && d <= end && !o.refunded;
+    });
+    const revenue = orders.reduce((s, o) => s + (parseFloat(o.price) || 0), 0);
+    const byUser = {}, byService = {};
+    orders.forEach(o => {
+      const uname = (Store.db.users.find(u => u.userId === o.userId) || {}).username || o.userId;
+      byUser[uname] = (byUser[uname] || 0) + (parseFloat(o.price) || 0);
+      const sn = o.serviceName || '(không tên)';
+      if (!byService[sn]) byService[sn] = { revenue: 0, count: 0 };
+      byService[sn].revenue += (parseFloat(o.price) || 0);
+      byService[sn].count += 1;
+    });
+    return {
+      revenue, count: orders.length, avg: orders.length ? revenue / orders.length : 0,
+      topUsers: Object.entries(byUser).sort((a, b) => b[1] - a[1]).slice(0, 10),
+      topServices: Object.entries(byService).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 10)
+    };
+  }
+  function renderReportBody(from, to) {
+    const box = $('#reportBody');
+    if (!box) return;
+    const r = computeReport(from, to);
+    const tiles = [
+      { label: 'Doanh thu', value: fmt(r.revenue) },
+      { label: 'Số đơn', value: r.count },
+      { label: 'TB/đơn', value: fmt(Math.round(r.avg)) }
+    ];
+    box.innerHTML = `
+      <div class="report-tiles">
+        ${tiles.map(t => `<div class="report-tile"><strong>${t.value}</strong><span>${t.label}</span></div>`).join('')}
+      </div>
+      <div class="report-cols">
+        <div class="report-col">
+          <h4>🏆 Khách mua nhiều nhất</h4>
+          ${r.topUsers.length ? `<table class="admin-table"><tbody>
+            ${r.topUsers.map(([n, v], i) => `<tr><td>${i + 1}. ${esc(n)}</td><td style="text-align:right">${fmt(v)}</td></tr>`).join('')}
+          </tbody></table>` : '<p class="muted">Chưa có đơn nào trong khoảng này.</p>'}
+        </div>
+        <div class="report-col">
+          <h4>🔥 Sản phẩm bán chạy</h4>
+          ${r.topServices.length ? `<table class="admin-table"><tbody>
+            ${r.topServices.map(([n, o], i) => `<tr><td>${i + 1}. ${esc(n)}</td><td style="text-align:right">${fmt(o.revenue)} <small class="muted">(${o.count} đơn)</small></td></tr>`).join('')}
+          </tbody></table>` : '<p class="muted">—</p>'}
+        </div>
+      </div>`;
+  }
+  function wireAdminReport() {
+    const apply = () => renderReportBody($('#reportFrom').value, $('#reportTo').value);
+    $('#reportApplyBtn')?.addEventListener('click', apply);
+    $$('[data-report-quick]').forEach(b => b.addEventListener('click', () => {
+      const q = b.dataset.reportQuick;
+      const today = new Date();
+      let from;
+      if (q === 'month') from = new Date(today.getFullYear(), today.getMonth(), 1);
+      else from = new Date(today.getTime() - (parseInt(q, 10) - 1) * 86400000);
+      $('#reportFrom').value = _ymd(from);
+      $('#reportTo').value = _ymd(today);
+      apply();
+    }));
+    $('#reportExportBtn')?.addEventListener('click', () => {
+      const from = $('#reportFrom').value, to = $('#reportTo').value;
+      const start = new Date(from + 'T00:00:00'), end = new Date(to + 'T23:59:59');
+      const rows = (Store.db.orders || []).filter(o => {
+        const d = new Date(o.date || o.purchaseDate || 0);
+        return d >= start && d <= end && !o.refunded;
+      }).map(o => {
+        const u = Store.db.users.find(x => x.userId === o.userId);
+        return [o.id, u?.username || o.userId, o.serviceName, o.packageName, o.price || 0,
+          o.date ? new Date(o.date).toLocaleString('vi-VN') : ''];
+      });
+      downloadCsv(`kenios-baocao-${from}_${to}.csv`,
+        ['Mã đơn', 'Người dùng', 'Dịch vụ', 'Gói', 'Giá', 'Thời gian'], rows);
+      toast(`Đã xuất ${rows.length} đơn (${from} → ${to}) ra CSV.`, 'success');
+    });
+    apply();
   }
 
   function adminUsersHtml() {
