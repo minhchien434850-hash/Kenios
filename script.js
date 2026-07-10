@@ -3925,11 +3925,20 @@ window.KENIOS_DEFAULT_DB = {
     const modalImg = $('#serviceModalImg');
     const modalVideo = $('#serviceModalVideo');
     const modalMedia = modalImg.closest('.service-modal-media');
+    // Canh khung theo ĐÚNG tỷ lệ thật của ảnh/video (9:16, 3:4, 4:3, 16:9...) để media lấp
+    // vừa khung, ở giữa, không dải đen. Giới hạn tỷ lệ để không quá cao/rộng.
+    const setMediaAR = (w, h) => {
+      if (!modalMedia || !(w > 0) || !(h > 0)) return;
+      const r = Math.min(Math.max(w / h, 0.62), 1.9); // ~ giữa 3:5 và 1.9:1
+      modalMedia.style.setProperty('--media-ar', r.toFixed(4));
+    };
+    if (modalMedia) modalMedia.style.removeProperty('--media-ar'); // reset về mặc định 16:9
     if (isVideoUrl(service.image)) {
       modalVideo.src = service.image;
       modalVideo.hidden = false;
       modalImg.hidden = true;
       if (modalMedia) modalMedia.style.backgroundImage = '';
+      modalVideo.onloadedmetadata = () => setMediaAR(modalVideo.videoWidth, modalVideo.videoHeight);
     } else {
       modalImg.src = service.image;
       modalImg.alt = service.name;
@@ -3937,6 +3946,7 @@ window.KENIOS_DEFAULT_DB = {
       modalVideo.hidden = true;
       // Đặt nền cho khung modal = chính ảnh, để lớp mờ ::before lấp hai bên (ảnh hiện full).
       if (modalMedia) modalMedia.style.backgroundImage = service.image ? `url('${String(service.image).replace(/'/g, "%27")}')` : '';
+      modalImg.onload = () => setMediaAR(modalImg.naturalWidth, modalImg.naturalHeight);
     }
     const inStock = Store.serviceInStock(service);
     $('#serviceModalBadge').textContent = inStock ? 'Còn hàng' : 'Hết hàng';

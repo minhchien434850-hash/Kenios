@@ -476,7 +476,7 @@ video.hero-banner-bg { width: 100%; height: 100%; object-fit: cover; }
   transition: transform .5s ease;
 }
 .category-card:hover .category-media::after { transform: scale(1.04); }
-video.category-media { width: calc(100% + 36px); object-fit: contain; background: #05050a; }
+video.category-media { width: calc(100% + 36px); object-fit: cover; }
 .category-media.img-fallback { background: linear-gradient(135deg, rgba(139,92,246,.25), rgba(255,183,3,.15)); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
 .category-media.img-fallback::before, .category-media.img-fallback::after { display: none; }
 
@@ -541,7 +541,7 @@ video.category-media { width: calc(100% + 36px); object-fit: contain; background
   transition: transform .5s ease;
 }
 .thumb.img-fallback::before, .thumb.img-fallback::after { display: none; }
-.thumb-video { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: contain; background: #05050a; transition: transform .5s ease; }
+.thumb-video { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
 .service-card:hover .thumb-video { transform: scale(1.08); }
 .service-card .thumb .thumb-badges { position: absolute; top: 12px; right: 12px; z-index: 2; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 24px); }
 .service-card .thumb .thumb-badges .badge { position: static; top: auto; right: auto; }
@@ -666,7 +666,9 @@ video.category-media { width: calc(100% + 36px); object-fit: contain; background
 #confirmDepositBtn .btn-ico svg { width: 18px; height: 18px; }
 
 .service-modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
-.service-modal-media { position: relative; border-radius: 14px; overflow: hidden; min-height: 220px; background-size: cover; background-position: center; background-color: #05050a; }
+/* Khung tự canh theo ĐÚNG tỷ lệ ảnh/video (JS set --media-ar). Mặc định 16:9; giới hạn
+   cao tối đa 70vh để media dọc (9:16) không chiếm hết màn hình. */
+.service-modal-media { position: relative; border-radius: 14px; overflow: hidden; width: 100%; aspect-ratio: var(--media-ar, 16 / 9); max-height: 70vh; background-size: cover; background-position: center; background-color: #05050a; }
 /* Nền mờ lấp hai bên (chính ảnh làm mờ) -> ảnh hiện FULL không viền đen */
 .service-modal-media::before {
   content: ""; position: absolute; inset: -14%; z-index: 0;
@@ -1485,7 +1487,7 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
 @media (max-width: 860px) {
   .footer-grid { grid-template-columns: 1fr; }
   .service-modal-body { grid-template-columns: 1fr; }
-  .service-modal-media { min-height: 180px; }
+  .service-modal-media { max-height: 60vh; }
   .admin-form { grid-template-columns: 1fr; }
   .admin-form label.span-2 { grid-column: span 1; }
 }
@@ -1538,7 +1540,7 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
   .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stat-chip { padding: 14px 8px; }
   .modal { padding: 20px 16px; }
-  .service-modal-media { min-height: 140px; }
+  .service-modal-media { max-height: 56vh; }
 }
 
 /* ===== Bổ sung: nút Lưu giao diện, link tải, showcase, media link ===== */
@@ -1777,7 +1779,7 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
 
   /* Service modal — stack dọc */
   .service-modal-body { grid-template-columns: 1fr; gap: 16px; }
-  .service-modal-media { min-height: 200px; position: relative; height: 200px; }
+  .service-modal-media { position: relative; max-height: 60vh; }
 
   /* Footer */
   .footer-grid { grid-template-columns: 1fr; gap: 24px; }
