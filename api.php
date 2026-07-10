@@ -1255,6 +1255,9 @@ switch ($action) {
             exit;
         }
 
+        // Khóa API (_secrets) chỉ nằm trong secrets.php — không bao giờ lưu vào database.json.
+        unset($input['_secrets']);
+
         // Gộp các mảng nhạy cảm về đồng thời (orders/transactions/tickets) để tránh mất dữ liệu
         // khi admin lưu cấu hình trong lúc có giao dịch mới phát sinh song song.
         foreach (['orders', 'transactions'] as $field) {
@@ -1910,6 +1913,17 @@ switch ($action) {
         if (!admin_authenticated($db, $admin_user, $admin_pass)) {
             echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
         }
+        // Gói kèm khóa API vào bản sao lưu (chỉ admin tải được) để khôi phục là ĐỦ toàn bộ
+        // cấu hình: token ngân hàng tự động, Partner ID/Key nạp thẻ, Telegram, TTS.
+        $sec = read_secrets();
+        $db['_secrets'] = [
+            'bankToken'        => (string)($sec['bankToken'] ?? ''),
+            'cardPartnerId'    => (string)($sec['cardPartnerId'] ?? ''),
+            'cardPartnerKey'   => (string)($sec['cardPartnerKey'] ?? ''),
+            'telegramBotToken' => (string)($sec['telegramBotToken'] ?? ''),
+            'telegramChatId'   => (string)($sec['telegramChatId'] ?? ''),
+            'ttsApiKey'        => (string)($sec['ttsApiKey'] ?? ''),
+        ];
         echo json_encode(["status" => "success", "db" => $db], JSON_UNESCAPED_UNICODE);
         break;
 

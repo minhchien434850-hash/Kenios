@@ -1379,10 +1379,23 @@ window.KENIOS_DEFAULT_DB = {
     // Nạp 1 file sao lưu (.json) từ máy admin rồi đẩy lên server.
     async importDb(dbObj, u, p) {
       if (!dbObj || !dbObj.config || !Array.isArray(dbObj.users)) throw new Error('File sao lưu không hợp lệ (thiếu config/users).');
+      // Tách khóa API (nếu bản sao lưu có kèm) ra để ghi riêng vào secrets.php, KHÔNG lưu
+      // vào database.json.
+      const secrets = (dbObj._secrets && typeof dbObj._secrets === 'object') ? dbObj._secrets : null;
+      delete dbObj._secrets;
       this.db = dbObj;
       this._clearLocalOverrides();
       this._emit();
-      return await this.trySaveToServer(u, p);
+      const res = await this.trySaveToServer(u, p);
+      // Khôi phục khóa API: token ngân hàng tự động, Partner ID/Key nạp thẻ, Telegram, TTS.
+      if (secrets) {
+        const patch = {};
+        ['bankToken', 'cardPartnerId', 'cardPartnerKey', 'telegramBotToken', 'telegramChatId', 'ttsApiKey'].forEach(k => {
+          if (secrets[k] != null && String(secrets[k]).trim() !== '') patch[k] = String(secrets[k]).trim();
+        });
+        if (Object.keys(patch).length) { try { await this.saveSecrets(u, p, patch); } catch (e) { /* bỏ qua nếu lỗi */ } }
+      }
+      return res;
     }
   };
 
@@ -6018,8 +6031,8 @@ window.KENIOS_DEFAULT_DB = {
             </div>
             <div class="backup-card">
               <div class="backup-card-title"><span class="backup-card-ico">${ICONS.web}</span> Trên thiết bị</div>
-              <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Giữ thêm 1 bản trên máy để phòng khi cần.</p>
-              <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico">${ICONS.download}</span> Tải bản sao lưu về máy</button>
+              <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Giữ thêm 1 bản trên máy để phòng khi cần. Bản này lưu <b>đầy đủ cấu hình</b> — kể cả <b>khóa API ngân hàng tự động &amp; nạp thẻ cào</b>, khôi phục là chạy được ngay. ${ICONS.warn ? '<span class="inline-ico" style="color:var(--gold)">'+ICONS.warn+'</span>' : ''} File chứa khóa bí mật, hãy giữ kín.</p>
+              <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico">${ICONS.download}</span> Tải bản sao lưu về máy (kèm khóa API)</button>
               <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn" style="width:100%;"><span class="btn-ico">${ICONS.upload}</span> Phục hồi từ file trên máy</button>
               <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
             </div>
