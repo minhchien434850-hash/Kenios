@@ -45,10 +45,33 @@ function card_gateway_url($config) {
     return 'https://card2k.net/chargingws/v2';
 }
 
-// HỎI LẠI trạng thái 1 thẻ: gửi lại đúng request_id + code + serial lên cổng. Cổng nhận ra
-// request_id trùng và trả về trạng thái hiện tại (không tạo giao dịch mới). Trả về mảng
-// ['status'=>int|null, 'value'=>int, 'amount'=>int, 'raw'=>...]. status: 1/2=thành công,
-// 3=thẻ sai/lỗi, 99/100=đang xử lý, null=không gọi được.
+// Ghi log 1 dòng để soi lỗi khi hỏi trạng thái thẻ (bị .htaccess chặn tải về).
+function card_query_log($line) {
+    @file_put_contents(__DIR__ . '/card_query_log.txt', '[' . date('c') . '] ' . $line . "\n", FILE_APPEND | LOCK_EX);
+}
+
+// Gửi 1 POST tới cổng, trả về mảng JSON đã giải mã (hoặc null nếu lỗi/không phải JSON).
+function _card_gateway_post($gatewayUrl, $params) {
+    $ch = curl_init($gatewayUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    $resp = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+    if ($resp === false) { card_query_log('POST ' . ($params['command'] ?? '?') . ' curl_error=' . $err); return null; }
+    $j = json_decode($resp, true);
+    card_query_log('POST ' . ($params['command'] ?? '?') . ' rid=' . ($params['request_id'] ?? '') . ' resp=' . substr($resp, 0, 400));
+    return is_array($j) ? $j : null;
+}
+
+// HỎI LẠI trạng thái 1 thẻ. QUAN TRỌNG: cổng card2k/thesieure trả trạng thái ĐÃ XỬ LÝ qua
+// lệnh 'check' (KHÔNG phải 'charging' — gửi lại 'charging' chỉ báo lại "đang xử lý"). Ta thử
+// 'check' trước; nếu cổng không trả trạng thái hợp lệ thì thử lại 'charging' để phòng hờ.
+// Trả về ['status'=>int|null, 'value'=>int, 'amount'=>int, 'raw'=>...].
+// status: 1/2=thành công, 3=thẻ sai/lỗi, 4/99/100=đang xử lý, null=không gọi được.
 function card_query_status($req, $partnerId, $partnerKey, $gatewayUrl) {
     $code = (string)($req['code'] ?? '');
     $serial = (string)($req['serial'] ?? '');
@@ -57,25 +80,29 @@ function card_query_status($req, $partnerId, $partnerKey, $gatewayUrl) {
     $request_id = (string)($req['request_id'] ?? '');
     if ($code === '' || $serial === '' || $request_id === '') return ['status' => null];
     $sign = md5($partnerKey . $code . $serial);
-    $post = http_build_query([
+    $base = [
         'telco' => strtoupper($telco), 'code' => $code, 'serial' => $serial, 'amount' => $amount,
-        'request_id' => $request_id, 'partner_id' => $partnerId, 'sign' => $sign, 'command' => 'charging'
-    ]);
-    $ch = curl_init($gatewayUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-    $resp = curl_exec($ch);
-    curl_close($ch);
-    if ($resp === false) return ['status' => null];
-    $j = json_decode($resp, true);
-    if (!is_array($j)) return ['status' => null, 'raw' => $resp];
-    $st = isset($j['status']) ? intval($j['status']) : null;
-    return [
-        'status' => $st,
-        'value'  => intval($j['value'] ?? ($j['declared_value'] ?? 0)),
-        'amount' => intval($j['amount'] ?? 0),
-        'raw'    => $j,
+        'request_id' => $request_id, 'partner_id' => $partnerId, 'sign' => $sign,
     ];
+    $last = null;
+    foreach (['check', 'charging'] as $cmd) {
+        $j = _card_gateway_post($gatewayUrl, array_merge($base, ['command' => $cmd]));
+        if (!is_array($j)) continue;
+        $last = $j;
+        if (isset($j['status'])) {
+            $st = intval($j['status']);
+            // 'check' đã cho trạng thái ĐÃ RESOLVED (1/2/3) -> dùng luôn, khỏi thử 'charging'.
+            if ($cmd === 'check' && ($st === 1 || $st === 2 || $st === 3)) {
+                return ['status' => $st, 'value' => intval($j['value'] ?? ($j['declared_value'] ?? 0)), 'amount' => intval($j['amount'] ?? 0), 'raw' => $j];
+            }
+            // Với 'charging' (fallback) hoặc 'check' báo đang xử lý: nhớ lại, thử tiếp.
+            if ($cmd === 'charging') {
+                return ['status' => $st, 'value' => intval($j['value'] ?? ($j['declared_value'] ?? 0)), 'amount' => intval($j['amount'] ?? 0), 'raw' => $j];
+            }
+        }
+    }
+    if (is_array($last) && isset($last['status'])) {
+        return ['status' => intval($last['status']), 'value' => intval($last['value'] ?? 0), 'amount' => intval($last['amount'] ?? 0), 'raw' => $last];
+    }
+    return ['status' => null, 'raw' => $last];
 }

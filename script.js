@@ -3768,6 +3768,26 @@ window.KENIOS_DEFAULT_DB = {
     $('#cardAmount')?.addEventListener('change', updateCardReceiveNote);
     updateCardReceiveNote();
 
+    // Sau khi gửi thẻ: TỰ ĐỘNG hỏi lại cổng vài lần (10s/lần, tối đa ~2 phút) để cộng tiền
+    // ngay khi cổng duyệt xong mà khách KHÔNG cần bấm "Kiểm tra thẻ đã nạp".
+    let cardPollTimer = null;
+    function autoPollCardStatus() {
+      if (cardPollTimer) { clearInterval(cardPollTimer); cardPollTimer = null; }
+      const u0 = Store.currentUser();
+      const before = (u0 && u0.balance) || 0;
+      let n = 0;
+      cardPollTimer = setInterval(async () => {
+        n++;
+        let res = null;
+        try { res = await Store.cardStatus(); } catch (e) { /* offline */ }
+        const u1 = Store.currentUser();
+        const after = (u1 && u1.balance) || 0;
+        const pend = (res && Array.isArray(res.requests)) ? res.requests.filter(r => r.status === 'pending').length : 1;
+        if (after > before) { toast('Thẻ đã được duyệt! Số dư +' + fmt(after - before) + 'đ.', 'success'); }
+        if (after > before || pend === 0 || n >= 12) { clearInterval(cardPollTimer); cardPollTimer = null; }
+      }, 10000);
+    }
+
     // Nạp thẻ cào
     $('#submitCardBtn')?.addEventListener('click', () => {
       if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp thẻ.', 'error'); return; }
@@ -3786,6 +3806,7 @@ window.KENIOS_DEFAULT_DB = {
             setMsg(res.message || 'Đã gửi thẻ, đang chờ hệ thống duyệt.', true);
             toast('Đã gửi thẻ! Số dư sẽ cộng khi thẻ được duyệt.', 'success');
             $('#cardSerial').value = ''; $('#cardCode').value = '';
+            autoPollCardStatus(); // tự động kiểm tra để cộng tiền, khỏi cần bấm tay
           } else {
             setMsg(res.message || 'Nạp thẻ thất bại.', false);
             toast(res.message || 'Nạp thẻ thất bại.', 'error');
