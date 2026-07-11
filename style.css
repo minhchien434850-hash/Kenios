@@ -2315,3 +2315,95 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 
 
 /* ---- Icon danh mục: bệ tròn kính + quầng neon (thế hệ mới) ---- */
 .category-icon { filter: drop-shadow(0 0 12px rgba(34,211,238,.45)); }
+
+/* =========================================================
+   PRESTIGE v6 — "thế hệ mới cao cấp hơn nữa", áp dụng TOÀN BỘ giao diện web
+   (trang chủ, popup, admin, drawer, form, bảng...). Viền tơ gradient, chiều
+   sâu nhiều lớp, kính mờ tinh, đèn theo con trỏ, giá ánh kim. Không đổi chức năng.
+========================================================= */
+
+/* ---- Viền tơ (hairline) + chiều sâu nhiều lớp cho MỌI khối bề mặt ---- */
+.service-card, .category-card, .combo-card, .post-card, .media-card,
+.modal, .stat-chip, .report-tile, .admin-panel, .admin-card, .admin-section,
+.linkgen-card, .showcase-item, .live-card, .cart-panel, .drawer {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 0 0 1px rgba(124,162,255,.10),
+    0 22px 48px -30px rgba(0,0,0,.85),
+    0 4px 14px -10px rgba(0,0,0,.6);
+}
+:root[data-theme="light"] .service-card, :root[data-theme="light"] .category-card,
+:root[data-theme="light"] .modal, :root[data-theme="light"] .stat-chip {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 0 0 1px rgba(60,80,160,.10), 0 22px 48px -30px rgba(30,40,90,.35);
+}
+
+/* ---- Kính mờ tinh hơn cho popup & lớp nổi ---- */
+.modal { backdrop-filter: blur(26px) saturate(1.6); }
+.modal-overlay { backdrop-filter: blur(6px); background: rgba(4,5,12,.62); }
+
+/* ---- Form cao cấp: nền kính, viền tơ, sáng nhẹ khi focus (toàn site) ---- */
+input, select, textarea {
+  background: linear-gradient(180deg, rgba(130,150,255,.05), rgba(130,150,255,.02));
+  border: 1px solid rgba(124,162,255,.16);
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+input:hover, select:hover, textarea:hover { border-color: rgba(124,162,255,.3); }
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(34,211,238,.55);
+  box-shadow: 0 0 0 3px rgba(34,211,238,.14), inset 0 1px 0 rgba(255,255,255,.05);
+  background: linear-gradient(180deg, rgba(34,211,238,.06), rgba(130,150,255,.02));
+}
+
+/* ---- Bảng admin: hàng tiêu đề gradient, đường kẻ tơ, hover sáng ---- */
+table thead th {
+  background: linear-gradient(180deg, rgba(154,107,255,.14), rgba(34,211,238,.06));
+  border-bottom: 1px solid rgba(124,162,255,.22) !important;
+  letter-spacing: .3px;
+}
+table tbody tr { transition: background .18s ease; }
+table tbody tr:hover { background: rgba(124,162,255,.06); }
+
+/* ---- Đèn theo con trỏ trên thẻ (signature cao cấp) ---- */
+.service-card::after, .category-card::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0;
+  background: radial-gradient(240px circle at var(--mx,50%) var(--my,50%), rgba(150,180,255,.16), rgba(34,211,238,.06) 42%, transparent 64%);
+  transform: none; transition: opacity .35s ease;
+}
+.service-card:hover::after, .category-card:hover::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .service-card::after, .category-card::after { display: none; }
+}
+
+/* ---- Giá tiền: chữ ánh kim vàng chuyển động (premium) ---- */
+.price {
+  background: linear-gradient(90deg, #ffb703, #ffe08a 42%, #fff6d0 50%, #ffe08a 58%, #ffb703);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  text-shadow: none;
+  animation: ngGrad 6.5s linear infinite;
+}
+:root[data-theme="light"] .price {
+  background: linear-gradient(90deg, #b57900, #d99a00 45%, #8a5a00 55%, #b57900);
+  background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+}
+@media (prefers-reduced-motion: reduce) { .price { animation: none; } }
+
+/* ---- Quầng sáng nền hero mềm & sang hơn (chiều sâu) ---- */
+.hero::before { width: 380px; height: 380px; filter: blur(10px);
+  background: radial-gradient(circle, rgba(154,107,255,.5), transparent 68%); }
+.hero::after { width: 440px; height: 440px; filter: blur(12px);
+  background: radial-gradient(circle, rgba(34,211,238,.42), transparent 68%); }
+
+/* ---- Dải phân cách tơ giữa các mục lớn ---- */
+.section + .section::before {
+  content: ""; position: absolute; top: 0; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124,162,255,.22), rgba(34,211,238,.22), transparent);
+}
+
+/* ---- Nút kính nâng cấp: viền tơ sáng ---- */
+.btn-glass, .btn-ghost, .icon-btn { box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+
+/* ---- Chip số liệu: viền tơ + nền kính chuyển sắc ---- */
+.stat-chip { background: linear-gradient(160deg, rgba(154,107,255,.08), rgba(34,211,238,.04) 60%, rgba(130,150,255,.02)); }
+.stat-chip::before { background: linear-gradient(90deg, transparent, rgba(34,211,238,.6), rgba(154,107,255,.5), transparent); }

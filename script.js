@@ -6816,3 +6816,24 @@ window.KENIOS_DEFAULT_DB = {
   function setText(sel, text) { const el = $(sel); if (el) el.textContent = text ?? ''; }
   function setAttr(sel, attr, val) { const el = $(sel); if (el && val) el.setAttribute(attr, val); }
 })();
+
+/* PRESTIGE v6 — đèn nền theo con trỏ trên thẻ (cao cấp). Tách riêng, không đụng
+   logic hiện có: chỉ lắng nghe di chuột và đặt biến CSS --mx/--my cho thẻ đang trỏ.
+   Tự tắt trên cảm ứng hoặc khi người dùng chọn giảm chuyển động. */
+(function () {
+  try {
+    var mq = window.matchMedia;
+    if (mq && (mq('(hover: none)').matches || mq('(prefers-reduced-motion: reduce)').matches)) return;
+    var SEL = '.service-card, .category-card';
+    document.addEventListener('pointermove', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var card = t.closest(SEL);
+      if (!card) return;
+      var r = card.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    }, { passive: true });
+  } catch (_) { /* im lặng, không ảnh hưởng trang */ }
+})();
