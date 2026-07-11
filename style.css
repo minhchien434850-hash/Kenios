@@ -46,7 +46,9 @@
   --shadow: 0 22px 60px -24px rgba(30,40,90,.28);
   --neon-glow: 0 0 16px rgba(124,58,237,.28), 0 0 30px rgba(34,211,238,.16);
 }
-:root[data-theme="light"] body { background: var(--bg); }
+/* Light mode: nền gốc do <html> lo; GIỮ body trong suốt để lớp video/ảnh nền vẫn hiện. */
+:root[data-theme="light"] html { background: var(--bg); }
+:root[data-theme="light"] body { background: transparent; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
