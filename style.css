@@ -590,6 +590,15 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 
 /* ---------- Footer ---------- */
 .site-footer { background: var(--bg-alt); border-top: 1px solid var(--border); padding: 56px 0 24px; }
+
+/* ===== NỀN ẢNH/VIDEO TOÀN TRANG (khi bật siteBgUrl) =====
+   Khi <html> có class .site-bg-on: các mảng nền TỐI đặc (section xen kẽ, footer, header)
+   chuyển sang trong suốt / bán trong suốt để lộ video-ảnh nền phía sau (z-index:-1). Khi
+   KHÔNG dùng nền, không có class này -> giao diện tối như cũ, không đổi. Lớp .site-bg-overlay
+   đã tạo độ tương phản để chữ vẫn đọc rõ trên nền. */
+.site-bg-on .section-alt { background: transparent; }
+.site-bg-on .site-footer { background: rgba(6,8,18,.55); }
+.site-bg-on .site-header { background: rgba(6,8,18,.55); }
 .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px; }
 .footer-desc { color: var(--muted); font-size: .88rem; margin-top: 12px; max-width: 340px; }
 .footer-grid h4 { margin: 0 0 14px; font-size: .95rem; }

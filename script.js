@@ -3007,6 +3007,10 @@ window.KENIOS_DEFAULT_DB = {
     const imgEl = $('#siteBgImg');
     const videoEl = $('#siteBgVideo');
     if (!wrap) return;
+    // Bật/tắt lớp .site-bg-on trên <html>: khi CÓ nền ảnh/video thì các mảng nền tối
+    // (section, footer, header) chuyển sang trong suốt để thấy được nền phía sau; khi
+    // KHÔNG dùng nền thì giữ nguyên giao diện tối như cũ.
+    document.documentElement.classList.toggle('site-bg-on', !!url);
     if (!url) {
       wrap.hidden = true;
       videoEl.hidden = true;videoEl.removeAttribute('src');
