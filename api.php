@@ -1256,7 +1256,9 @@ switch ($action) {
         }
 
         // Khóa API (_secrets) chỉ nằm trong secrets.php — không bao giờ lưu vào database.json.
+        // File media (_uploads) khôi phục riêng qua action=restore_uploads — không nhét vào DB.
         unset($input['_secrets']);
+        unset($input['_uploads']);
 
         // Gộp các mảng nhạy cảm về đồng thời (orders/transactions/tickets) để tránh mất dữ liệu
         // khi admin lưu cấu hình trong lúc có giao dịch mới phát sinh song song.
@@ -1932,7 +1934,69 @@ switch ($action) {
             'telegramChatId'   => (string)($sec['telegramChatId'] ?? ''),
             'ttsApiKey'        => (string)($sec['ttsApiKey'] ?? ''),
         ];
+        // GÓI KÈM FILE MEDIA ĐÃ TẢI LÊN (uploads/) vào bản sao lưu — ảnh/video/hoạt ảnh nền,
+        // ảnh danh mục/sản phẩm... Trước đây bản sao lưu chỉ có ĐƯỜNG DẪN (uploads/xxx.mp4)
+        // chứ không có FILE, nên sau khi up bản web mới (thư mục uploads/ trống) rồi khôi phục
+        // thì các link này 404 -> video/hoạt ảnh không dùng được. Nay nhúng luôn nội dung file
+        // (base64) để khôi phục là ĐỦ, tự ghi lại file vào uploads/.
+        $db['_uploads'] = [];
+        $up_dir = __DIR__ . '/uploads/';
+        $embedded = 0; $skipped = [];
+        $per_file_cap = 80 * 1024 * 1024;   // bỏ qua từng file > 80MB (quá lớn cho backup 1 file)
+        $total_cap    = 480 * 1024 * 1024;  // tổng dữ liệu nhúng tối đa (an toàn với memory_limit 640M)
+        $total = 0;
+        if (is_dir($up_dir)) {
+            $names = @scandir($up_dir) ?: [];
+            foreach ($names as $name) {
+                if ($name === '.' || $name === '..') continue;
+                if ($name[0] === '.') continue;                 // bỏ .gitkeep, .htaccess...
+                $path = $up_dir . $name;
+                if (!is_file($path)) continue;
+                $size = filesize($path);
+                if ($size === false || $size === 0) continue;
+                if ($size > $per_file_cap || ($total + $size) > $total_cap) { $skipped[] = $name; continue; }
+                $data = @file_get_contents($path);
+                if ($data === false) { $skipped[] = $name; continue; }
+                $db['_uploads'][] = ['n' => $name, 'd' => base64_encode($data)];
+                $total += $size; $embedded++;
+                unset($data);
+            }
+        }
+        $db['_uploadsMeta'] = ['embedded' => $embedded, 'skipped' => $skipped];
         echo json_encode(["status" => "success", "db" => $db], JSON_UNESCAPED_UNICODE);
+        break;
+
+    // Khôi phục file media (uploads/) từ bản sao lưu — nhận mảng {n, d(base64)} và ghi lại
+    // vào thư mục uploads/ để các đường dẫn ảnh/video/hoạt ảnh hoạt động sau khi phục hồi.
+    case 'restore_uploads':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_encode(["status" => "error", "message" => "POST required"]); exit; }
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) { echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit; }
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $items = (isset($input['uploads']) && is_array($input['uploads'])) ? $input['uploads'] : [];
+        $up_dir = __DIR__ . '/uploads/';
+        if (!is_dir($up_dir)) @mkdir($up_dir, 0755, true);
+        // Chỉ cho phép các đuôi media/tệp an toàn (giống upload_file) — CHẶN mã chạy máy chủ.
+        $ok_ext = ['jpg','jpeg','jfif','png','gif','webp','svg','bmp','avif','heic','heif','ico','apng',
+                   'mp4','webm','ogg','ogv','mov','m4v','mkv','avi','3gp','flv','wmv',
+                   'zip','rar','7z','apk','ipa','exe','msi','dmg','obb','txt','pdf','json','dll','bin'];
+        $written = 0; $failed = 0;
+        foreach ($items as $it) {
+            $name = (string)($it['n'] ?? '');
+            $b64  = (string)($it['d'] ?? '');
+            // Chống path traversal: chỉ nhận tên file thuần (không thư mục), ký tự an toàn.
+            $name = basename($name);
+            if ($name === '' || $name[0] === '.' || !preg_match('/^[A-Za-z0-9._-]+$/', $name)) { $failed++; continue; }
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            if (!in_array($ext, $ok_ext, true)) { $failed++; continue; }
+            $data = base64_decode($b64, true);
+            if ($data === false) { $failed++; continue; }
+            if (@file_put_contents($up_dir . $name, $data) !== false) { $written++; } else { $failed++; }
+            unset($data);
+        }
+        echo json_encode(["status" => "success", "written" => $written, "failed" => $failed]);
         break;
 
     case 'secrets_status':

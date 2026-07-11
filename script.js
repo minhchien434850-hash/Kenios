@@ -1376,16 +1376,36 @@ window.KENIOS_DEFAULT_DB = {
       try {const r = await fetch(`${API_URL}?action=recover_orders`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
       catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
+    // Gửi lại các FILE MEDIA (uploads/) từ bản sao lưu để ghi vào thư mục uploads/ trên máy chủ.
+    async restoreUploads(u, p, uploads) {
+      try {
+        const r = await fetch(`${API_URL}?action=restore_uploads`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Admin-User': u, 'X-Admin-Pass': p },
+          body: JSON.stringify({ uploads })
+        });
+        return await r.json();
+      } catch (e) { return { status: 'error', message: 'Không gửi được file media.' }; }
+    },
     // Nạp 1 file sao lưu (.json) từ máy admin rồi đẩy lên server.
     async importDb(dbObj, u, p) {
       if (!dbObj || !dbObj.config || !Array.isArray(dbObj.users)) throw new Error('File sao lưu không hợp lệ (thiếu config/users).');
       // Tách khóa API (nếu bản sao lưu có kèm) ra để ghi riêng vào secrets.php, KHÔNG lưu
       // vào database.json.
       const secrets = dbObj._secrets && typeof dbObj._secrets === 'object' ? dbObj._secrets : null;
+      // Tách FILE MEDIA (ảnh/video/hoạt ảnh nền...) để ghi lại vào thư mục uploads/ — nhờ vậy
+      // các đường dẫn uploads/xxx hoạt động trở lại sau khi khôi phục.
+      const uploads = Array.isArray(dbObj._uploads) ? dbObj._uploads : null;
       delete dbObj._secrets;
+      delete dbObj._uploads;
+      delete dbObj._uploadsMeta;
       this.db = dbObj;
       this._clearLocalOverrides();
       this._emit();
+      // Ghi lại file media TRƯỚC khi lưu DB để khi trang tải lại là link đã có file.
+      if (uploads && uploads.length) {
+        try { await this.restoreUploads(u, p, uploads); } catch (e) {/* bỏ qua nếu lỗi */}
+      }
       const res = await this.trySaveToServer(u, p);
       // Khôi phục khóa API: token ngân hàng tự động, Partner ID/Key nạp thẻ, Telegram, TTS.
       if (secrets) {
@@ -4915,7 +4935,11 @@ window.KENIOS_DEFAULT_DB = {
             a.href = url;a.download = 'kenios-backup-' + stamp + '.json';
             document.body.appendChild(a);a.click();a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 2000);
-            setMsg('Đã tải bản sao lưu về máy.', true);
+            const meta = res.db._uploadsMeta || {};
+            let extra = '';
+            if (meta.embedded) extra = ' (kèm ' + meta.embedded + ' file ảnh/video)';
+            if (meta.skipped && meta.skipped.length) extra += ' — bỏ qua ' + meta.skipped.length + ' file quá lớn (>80MB), cần lưu tay riêng';
+            setMsg('Đã tải bản sao lưu về máy' + extra + '.', true);
           } catch (e) {setMsg('Không tạo được file tải về.', false);}
         } else {setMsg(res.message || 'Không lấy được dữ liệu để tải.', false);toast(res.message || 'Tải thất bại.', 'error');}
       });
