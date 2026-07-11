@@ -4939,18 +4939,21 @@ window.KENIOS_DEFAULT_DB = {
       // DÒNG file sao lưu (kèm ảnh/video) và đặt Content-Disposition, trình duyệt tự tải về
       // đĩa. Nhờ vậy dù bản sao lưu nặng (có video) vẫn tải được trên điện thoại, không còn
       // lỗi "không kết nối được máy chủ" do phải nạp cả file khổng lồ vào bộ nhớ.
+      // iOS Safari KHÔNG hỗ trợ tốt thuộc tính download trên thẻ <a> (bấm bằng JS bị chặn/
+      // báo lỗi), nên MỞ THẲNG URL: máy chủ đã đặt Content-Disposition: attachment nên trình
+      // duyệt tự tải về thay vì mở xem. Thử tab mới trước (lỡ lỗi cũng không rời trang), bị
+      // chặn thì điều hướng thẳng.
+      const dlUrl = API_URL + '?action=export_db&download=1'
+        + '&admin_user=' + encodeURIComponent(c.username)
+        + '&admin_pass=' + encodeURIComponent(c.password)
+        + '&t=' + Date.now();
       try {
-        const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-        const url = API_URL + '?action=export_db&download=1'
-          + '&admin_user=' + encodeURIComponent(c.username)
-          + '&admin_pass=' + encodeURIComponent(c.password)
-          + '&t=' + Date.now();
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'kenios-backup-' + stamp + '.json';
-        document.body.appendChild(a);a.click();a.remove();
-        setMsg('Đang tải bản sao lưu về máy… (file có kèm ảnh/video nên có thể hơi lâu, xem mục Tải về của trình duyệt).', true);
-      } catch (e) {setMsg('Không mở được liên kết tải về.', false);toast('Tải thất bại.', 'error');}
+        const w = window.open(dlUrl, '_blank');
+        if (!w || w.closed || typeof w.closed === 'undefined') { window.location.href = dlUrl; }
+        setMsg('Đang tải bản sao lưu… Trên iPhone bấm biểu tượng Tải về (mũi tên ⌄) cạnh thanh địa chỉ; trên máy tính xem mục Tải về (Downloads).', true);
+      } catch (e) {
+        try { window.location.href = dlUrl; } catch (_) { setMsg('Không mở được liên kết tải về.', false); toast('Tải thất bại.', 'error'); }
+      }
     });
 
     (_$32 = $('#backupImportBtn')) === null || _$32 === void 0 || _$32.addEventListener('click', () => {var _$33;return (_$33 = $('#backupImportInput')) === null || _$33 === void 0 ? void 0 : _$33.click();});
