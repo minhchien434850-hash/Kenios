@@ -58,7 +58,9 @@ html {
 }
 body {
   margin: 0;
-  background: var(--bg);
+  /* TRONG SUỐT để lớp nền video/ảnh (.site-bg) và mesh (nằm z-index -1, sau body) hiện
+     xuyên qua. Màu nền gốc do <html> đảm nhiệm (var(--bg)). */
+  background: transparent;
   color: var(--ink);
   font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.5;
