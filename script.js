@@ -3566,6 +3566,15 @@ window.KENIOS_DEFAULT_DB = {
     });
     $('#mobileNavBackdrop').addEventListener('click', closeMobileNav);
     $$('.mobile-nav-link', $('#mobileNav')).forEach(a => a.addEventListener('click', closeMobileNav));
+
+    // Bấm LOGO (header hoặc menu) -> TẢI LẠI TRANG (làm mới hoàn toàn, về đầu trang).
+    $$('.brand, .mobile-nav-brand').forEach(el => el.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeMobileNav();
+      // Xoá hash (#...) rồi tải lại để luôn về đầu trang và làm mới nội dung.
+      if (window.location.hash) window.location.href = window.location.pathname + window.location.search;
+      else window.location.reload();
+    }));
     $('#mobileNavDeposit').addEventListener('click', () => {
       if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
       openModal('#depositModal');
