@@ -35,14 +35,14 @@ window.KENIOS_DEFAULT_DB = {
     hotline: "",
     zaloLink: "",
     contactChannels: [
-      { id: "zalo", label: "Zalo", icon: "", url: "", enabled: false },
-      { id: "phone", label: "Hotline", icon: "", url: "", enabled: false },
-      { id: "telegram", label: "Telegram", icon: "", url: "", enabled: false },
-      { id: "facebook", label: "Facebook", icon: "", url: "", enabled: false },
-      { id: "instagram", label: "Instagram", icon: "", url: "", enabled: false },
-      { id: "tiktok", label: "TikTok", icon: "", url: "", enabled: false },
-      { id: "email", label: "Email", icon: "", url: "", enabled: false }
-    ],
+    { id: "zalo", label: "Zalo", icon: "", url: "", enabled: false },
+    { id: "phone", label: "Hotline", icon: "", url: "", enabled: false },
+    { id: "telegram", label: "Telegram", icon: "", url: "", enabled: false },
+    { id: "facebook", label: "Facebook", icon: "", url: "", enabled: false },
+    { id: "instagram", label: "Instagram", icon: "", url: "", enabled: false },
+    { id: "tiktok", label: "TikTok", icon: "", url: "", enabled: false },
+    { id: "email", label: "Email", icon: "", url: "", enabled: false }],
+
     contactAdminName: "ADMIN SHOP",
     contactAdminSub: "Chủ sở hữu hệ thống",
     contactAdminDesc: "Chuyên cung cấp phụ kiện gaming và dịch vụ thiết kế website chất lượng cao, giúp nâng tầm trải nghiệm của bạn.",
@@ -55,32 +55,32 @@ window.KENIOS_DEFAULT_DB = {
     aiResponseFallback: "Mình chưa hiểu rõ câu hỏi này 🥲. Bạn có thể hỏi mình về: cách nạp tiền, cách mua/nhận key, bảng giá, bảo hành, thiết kế web… hoặc nhắn Zalo Admin để được hỗ trợ ngay nhé!",
     // Bộ câu trả lời sẵn — khách nhắn chứa từ khoá nào (cách nhau bởi dấu phẩy) thì trả lời câu tương ứng.
     aiKnowledge: [
-      { k: "nạp tiền, nap tien, nạp, vietqr, chuyển khoản, ck, nạp thế nào", a: "Nạp tiền 100% TỰ ĐỘNG 👍: vào mục \"Nạp tiền\", nhập số tiền rồi quét mã VietQR bằng app ngân hàng. Số dư cộng NGAY sau khi chuyển khoản thành công, không cần chờ duyệt." },
-      { k: "mua key, cách mua, mua thế nào, đặt hàng, mua hàng, mua sao", a: "Cách mua: chọn sản phẩm → chọn gói → bấm \"Mua Ngay\" (trừ vào số dư). Key hiện NGAY trong mục \"Đơn hàng của tôi\", bạn copy dùng liền 🔑." },
-      { k: "bao lâu, khi nào nhận, chờ bao lâu, nhận key lâu, giao key", a: "Key giao TỰ ĐỘNG & TỨC THÌ ngay sau khi thanh toán, không phải chờ đợi. Xem trong \"Đơn hàng của tôi\" nhé." },
-      { k: "nhận key ở đâu, key đâu, lấy key ở đâu, xem key", a: "Key nằm trong mục \"Đơn hàng của tôi\" (bấm avatar hoặc menu). Mỗi đơn có nút sao chép key." },
-      { k: "bảo hành, bao hanh, key lỗi, lỗi key, không dùng được, không vào được", a: "Sản phẩm được BẢO HÀNH trong suốt thời gian gói ✅. Nếu key lỗi, bạn nhắn Admin kèm mã đơn để được kiểm tra & đổi key ngay." },
-      { k: "hoàn tiền, hoan tien, refund, trả lại tiền, đổi trả", a: "Vì là sản phẩm số cấp phát tức thì nên shop không hoàn tiền sau khi đã nhận key, trừ trường hợp lỗi từ hệ thống. Gặp sự cố hãy liên hệ Admin trong 24h nhé." },
-      { k: "an toàn, có bị khóa, khóa nick, khóa acc, ban, có an toàn không, tố", a: "Tụi mình luôn cập nhật bản MỚI & AN TOÀN nhất 🔒. Game online vẫn có rủi ro nhất định, bạn dùng đúng hướng dẫn để hạn chế tối đa. Liên Quân có bản CHỐNG TỐ riêng." },
-      { k: "cài đặt, cai dat, hướng dẫn, dùng thế nào, sử dụng, setup", a: "Sau khi mua, bạn xem hướng dẫn cài đặt đi kèm hoặc nhắn Admin để được gửi video hướng dẫn chi tiết từng bước 📹." },
-      { k: "thiết kế web, thiet ke web, website, làm web, landing", a: "Shop nhận THIẾT KẾ WEBSITE hiện đại, chuẩn SEO, chạy mượt trên mọi thiết bị 💻. Xem mục \"Thiết Kế Web\" hoặc nhắn Admin để được báo giá theo yêu cầu." },
-      { k: "uy tín, lừa đảo, scam, có thật không, tin được không, thật không", a: "Shop UY TÍN, giao dịch tự động minh bạch, có cộng đồng đông đảo ❤️. Bạn xem phần đánh giá & giao dịch gần đây trên trang để yên tâm hơn nhé." },
-      { k: "khuyến mãi, khuyen mai, giảm giá, sale, ưu đãi, mã giảm, khuyến mại", a: "Ưu đãi & mã giảm giá được cập nhật thường xuyên trong nhóm Zalo/Telegram 🎁. Tham gia nhóm ở phần Liên Hệ để không bỏ lỡ nhé!" },
-      { k: "giờ làm việc, mấy giờ, còn hoạt động, có online, làm việc lúc nào", a: "Hệ thống bán & giao key hoạt động TỰ ĐỘNG 24/7 ⏰. Admin hỗ trợ tư vấn gần như cả ngày." },
-      { k: "nhiều máy, mấy máy, mấy thiết bị, share, dùng chung", a: "Mỗi key dùng cho 1 thiết bị theo gói. Nếu cần nhiều máy, bạn mua thêm key hoặc hỏi Admin gói phù hợp nhé." },
-      { k: "gia hạn, gia han, hết hạn, renew, còn hạn", a: "Gần hết hạn, bạn chỉ cần mua lại gói tương ứng là được gia hạn. Cần hỗ trợ nhanh thì nhắn Admin nhé." },
-      { k: "thanh toán, momo, thẻ cào, the cao, ngân hàng nào, banking", a: "Shop nhận chuyển khoản VietQR của TẤT CẢ ngân hàng, cộng tiền tự động. Hình thức khác (Momo/thẻ) vui lòng hỏi Admin." },
-      { k: "số dư, so du, còn bao nhiêu tiền, kiểm tra tiền, tài khoản", a: "Số dư hiển thị ở góc trên khi đăng nhập và trong menu tài khoản. Muốn nạp thêm thì vào mục \"Nạp tiền\" nhé." },
-      { k: "đăng ký, dang ky, đăng nhập, tạo tài khoản, quên mật khẩu, login", a: "Bấm \"Đăng nhập\" để tạo tài khoản mới hoặc đăng nhập bằng Google. Quên mật khẩu thì dùng chức năng \"Quên mật khẩu\" hoặc nhắn Admin." },
-      { k: "pubg, pu bg", a: "PUBG có nhiều tool xịn: VNHAX, OASIS, KING, TIMO, VINGODL… cho cả iOS & Android 🎮. Bấm danh mục PUBG để xem giá từng gói." },
-      { k: "free fire, freefire, ff", a: "🔥 FREE FIRE: 550K/Tháng · 250K/Tuần. Bấm danh mục Free Fire để xem chi tiết và mua nhé." },
-      { k: "liên quân, lien quan, lq", a: "⚔️ LIÊN QUÂN: 250K/Tháng · 120K/Tuần (có bản CHỐNG TỐ). Xem danh mục Liên Quân để biết thêm nhé." },
-      { k: "tốc chiến, toc chien, lmht", a: "Tốc Chiến có tool hỗ trợ & mod skin. Bạn bấm danh mục Tốc Chiến để xem các gói và giá nhé." },
-      { k: "liên hệ, lien he, zalo, telegram, admin, số điện thoại, hotline, facebook", a: "Bạn liên hệ Admin qua Zalo/Telegram ở phần \"Liên Hệ & Cộng Đồng\" (kéo xuống cuối trang) hoặc nút liên hệ góc phải màn hình 💬." },
-      { k: "hỗ trợ, support, giúp, tư vấn, cần giúp", a: "Shop hỗ trợ 24/7 nhé! Bạn cứ hỏi mình ở đây, hoặc nhắn Zalo Admin để được tư vấn trực tiếp." },
-      { k: "cảm ơn, cam on, thanks, thank, tks", a: "Không có gì ạ! 😄 Chúc bạn chơi game vui vẻ, cần gì cứ nhắn shop nhé ❤️" },
-      { k: "tạm biệt, bye, tam biet, chào tạm biệt", a: "Tạm biệt bạn! 👋 Hẹn gặp lại, chúc bạn một ngày tốt lành nhé." }
-    ],
+    { k: "nạp tiền, nap tien, nạp, vietqr, chuyển khoản, ck, nạp thế nào", a: "Nạp tiền 100% TỰ ĐỘNG 👍: vào mục \"Nạp tiền\", nhập số tiền rồi quét mã VietQR bằng app ngân hàng. Số dư cộng NGAY sau khi chuyển khoản thành công, không cần chờ duyệt." },
+    { k: "mua key, cách mua, mua thế nào, đặt hàng, mua hàng, mua sao", a: "Cách mua: chọn sản phẩm → chọn gói → bấm \"Mua Ngay\" (trừ vào số dư). Key hiện NGAY trong mục \"Đơn hàng của tôi\", bạn copy dùng liền 🔑." },
+    { k: "bao lâu, khi nào nhận, chờ bao lâu, nhận key lâu, giao key", a: "Key giao TỰ ĐỘNG & TỨC THÌ ngay sau khi thanh toán, không phải chờ đợi. Xem trong \"Đơn hàng của tôi\" nhé." },
+    { k: "nhận key ở đâu, key đâu, lấy key ở đâu, xem key", a: "Key nằm trong mục \"Đơn hàng của tôi\" (bấm avatar hoặc menu). Mỗi đơn có nút sao chép key." },
+    { k: "bảo hành, bao hanh, key lỗi, lỗi key, không dùng được, không vào được", a: "Sản phẩm được BẢO HÀNH trong suốt thời gian gói ✅. Nếu key lỗi, bạn nhắn Admin kèm mã đơn để được kiểm tra & đổi key ngay." },
+    { k: "hoàn tiền, hoan tien, refund, trả lại tiền, đổi trả", a: "Vì là sản phẩm số cấp phát tức thì nên shop không hoàn tiền sau khi đã nhận key, trừ trường hợp lỗi từ hệ thống. Gặp sự cố hãy liên hệ Admin trong 24h nhé." },
+    { k: "an toàn, có bị khóa, khóa nick, khóa acc, ban, có an toàn không, tố", a: "Tụi mình luôn cập nhật bản MỚI & AN TOÀN nhất 🔒. Game online vẫn có rủi ro nhất định, bạn dùng đúng hướng dẫn để hạn chế tối đa. Liên Quân có bản CHỐNG TỐ riêng." },
+    { k: "cài đặt, cai dat, hướng dẫn, dùng thế nào, sử dụng, setup", a: "Sau khi mua, bạn xem hướng dẫn cài đặt đi kèm hoặc nhắn Admin để được gửi video hướng dẫn chi tiết từng bước 📹." },
+    { k: "thiết kế web, thiet ke web, website, làm web, landing", a: "Shop nhận THIẾT KẾ WEBSITE hiện đại, chuẩn SEO, chạy mượt trên mọi thiết bị 💻. Xem mục \"Thiết Kế Web\" hoặc nhắn Admin để được báo giá theo yêu cầu." },
+    { k: "uy tín, lừa đảo, scam, có thật không, tin được không, thật không", a: "Shop UY TÍN, giao dịch tự động minh bạch, có cộng đồng đông đảo ❤️. Bạn xem phần đánh giá & giao dịch gần đây trên trang để yên tâm hơn nhé." },
+    { k: "khuyến mãi, khuyen mai, giảm giá, sale, ưu đãi, mã giảm, khuyến mại", a: "Ưu đãi & mã giảm giá được cập nhật thường xuyên trong nhóm Zalo/Telegram 🎁. Tham gia nhóm ở phần Liên Hệ để không bỏ lỡ nhé!" },
+    { k: "giờ làm việc, mấy giờ, còn hoạt động, có online, làm việc lúc nào", a: "Hệ thống bán & giao key hoạt động TỰ ĐỘNG 24/7 ⏰. Admin hỗ trợ tư vấn gần như cả ngày." },
+    { k: "nhiều máy, mấy máy, mấy thiết bị, share, dùng chung", a: "Mỗi key dùng cho 1 thiết bị theo gói. Nếu cần nhiều máy, bạn mua thêm key hoặc hỏi Admin gói phù hợp nhé." },
+    { k: "gia hạn, gia han, hết hạn, renew, còn hạn", a: "Gần hết hạn, bạn chỉ cần mua lại gói tương ứng là được gia hạn. Cần hỗ trợ nhanh thì nhắn Admin nhé." },
+    { k: "thanh toán, momo, thẻ cào, the cao, ngân hàng nào, banking", a: "Shop nhận chuyển khoản VietQR của TẤT CẢ ngân hàng, cộng tiền tự động. Hình thức khác (Momo/thẻ) vui lòng hỏi Admin." },
+    { k: "số dư, so du, còn bao nhiêu tiền, kiểm tra tiền, tài khoản", a: "Số dư hiển thị ở góc trên khi đăng nhập và trong menu tài khoản. Muốn nạp thêm thì vào mục \"Nạp tiền\" nhé." },
+    { k: "đăng ký, dang ky, đăng nhập, tạo tài khoản, quên mật khẩu, login", a: "Bấm \"Đăng nhập\" để tạo tài khoản mới hoặc đăng nhập bằng Google. Quên mật khẩu thì dùng chức năng \"Quên mật khẩu\" hoặc nhắn Admin." },
+    { k: "pubg, pu bg", a: "PUBG có nhiều tool xịn: VNHAX, OASIS, KING, TIMO, VINGODL… cho cả iOS & Android 🎮. Bấm danh mục PUBG để xem giá từng gói." },
+    { k: "free fire, freefire, ff", a: "🔥 FREE FIRE: 550K/Tháng · 250K/Tuần. Bấm danh mục Free Fire để xem chi tiết và mua nhé." },
+    { k: "liên quân, lien quan, lq", a: "⚔️ LIÊN QUÂN: 250K/Tháng · 120K/Tuần (có bản CHỐNG TỐ). Xem danh mục Liên Quân để biết thêm nhé." },
+    { k: "tốc chiến, toc chien, lmht", a: "Tốc Chiến có tool hỗ trợ & mod skin. Bạn bấm danh mục Tốc Chiến để xem các gói và giá nhé." },
+    { k: "liên hệ, lien he, zalo, telegram, admin, số điện thoại, hotline, facebook", a: "Bạn liên hệ Admin qua Zalo/Telegram ở phần \"Liên Hệ & Cộng Đồng\" (kéo xuống cuối trang) hoặc nút liên hệ góc phải màn hình 💬." },
+    { k: "hỗ trợ, support, giúp, tư vấn, cần giúp", a: "Shop hỗ trợ 24/7 nhé! Bạn cứ hỏi mình ở đây, hoặc nhắn Zalo Admin để được tư vấn trực tiếp." },
+    { k: "cảm ơn, cam on, thanks, thank, tks", a: "Không có gì ạ! 😄 Chúc bạn chơi game vui vẻ, cần gì cứ nhắn shop nhé ❤️" },
+    { k: "tạm biệt, bye, tam biet, chào tạm biệt", a: "Tạm biệt bạn! 👋 Hẹn gặp lại, chúc bạn một ngày tốt lành nhé." }],
+
     bankId: "MBBank",
     bankAccountNo: "0822148411",
     bankAccountName: "NGUYEN TIN HAO",
@@ -107,81 +107,81 @@ window.KENIOS_DEFAULT_DB = {
     vipTiers: []
   },
   categories: [
-    { id: "pubg", name: "PUBG", description: "Công cụ hỗ trợ & phụ kiện cho game PUBG", icon: "🎯",
-      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop" },
-    { id: "lienquan", name: "Liên Quân", description: "Mod skin, bản đồ sáng và dịch vụ hỗ trợ leo rank", icon: "🛡️",
-      image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=600&auto=format&fit=crop" },
-    { id: "freefire", name: "Free Fire", description: "Công cụ hỗ trợ, phụ kiện độc quyền cho Free Fire", icon: "🔥",
-      image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=600&auto=format&fit=crop" },
-    { id: "tocchien", name: "Tốc Chiến", description: "Phần mềm bổ trợ và mod skin cho Tốc Chiến", icon: "⚡",
-      image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop" },
-    { id: "webdesign", name: "Thiết Kế Web", description: "Thiết kế website hiện đại, Glassmorphism, chuẩn SEO", icon: "💻",
-      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop" },
-    { id: "other", name: "Khác", description: "Các sản phẩm, phần mềm và dịch vụ khác", icon: "📁",
-      image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600&auto=format&fit=crop" }
-  ],
+  { id: "pubg", name: "PUBG", description: "Công cụ hỗ trợ & phụ kiện cho game PUBG", icon: "🎯",
+    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop" },
+  { id: "lienquan", name: "Liên Quân", description: "Mod skin, bản đồ sáng và dịch vụ hỗ trợ leo rank", icon: "🛡️",
+    image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=600&auto=format&fit=crop" },
+  { id: "freefire", name: "Free Fire", description: "Công cụ hỗ trợ, phụ kiện độc quyền cho Free Fire", icon: "🔥",
+    image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=600&auto=format&fit=crop" },
+  { id: "tocchien", name: "Tốc Chiến", description: "Phần mềm bổ trợ và mod skin cho Tốc Chiến", icon: "⚡",
+    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop" },
+  { id: "webdesign", name: "Thiết Kế Web", description: "Thiết kế website hiện đại, Glassmorphism, chuẩn SEO", icon: "💻",
+    image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop" },
+  { id: "other", name: "Khác", description: "Các sản phẩm, phần mềm và dịch vụ khác", icon: "📁",
+    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600&auto=format&fit=crop" }],
+
   services: [
-    {
-      id: "pubg-radar", categoryId: "pubg", name: "PUBG ESP Radar Premium",
-      description: "Hiển thị khung xương địch, vị trí, khoảng cách, hướng nhìn, xe cộ và hòm đồ.",
-      status: "instock",
-      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
-      features: ["Test mượt mà, không giật lag", "Cập nhật tự động", "Hỗ trợ setup từ A-Z"],
-      packages: [
-        { id: "pkg-radar-1day", name: "1 Ngày", price: 25000 },
-        { id: "pkg-radar-3day", name: "3 Ngày", price: 65000 },
-        { id: "pkg-radar-7day", name: "7 Ngày", price: 120000 },
-        { id: "pkg-radar-30day", name: "1 Tháng", price: 350000 }
-      ]
-    },
-    {
-      id: "pubg-aimbot", categoryId: "pubg", name: "PUBG Silent Aimbot Max",
-      description: "Hỗ trợ ngắm bắn mượt mà, tùy chỉnh độ nhạy và trường nhìn (FOV).",
-      status: "instock",
-      image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=800&auto=format&fit=crop",
-      features: ["Tùy chỉnh FOV & độ mượt", "Cập nhật tự động"],
-      packages: [
-        { id: "pkg-aimbot-1day", name: "1 Ngày", price: 30000 },
-        { id: "pkg-aimbot-7day", name: "7 Ngày", price: 140000 },
-        { id: "pkg-aimbot-30day", name: "1 Tháng", price: 390000 }
-      ]
-    },
-    {
-      id: "kingmod", categoryId: "pubg", name: "Phụ Kiện KingMod",
-      description: "Phụ kiện hỗ trợ trải nghiệm mượt mà và leo rank dễ dàng hơn.",
-      status: "outofstock",
-      image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=800&auto=format&fit=crop",
-      features: ["Cập nhật tự động"],
-      packages: [{ id: "pkg-kingmod-1m", name: "1 Tháng", price: 200000 }]
-    },
-    {
-      id: "web-landing", categoryId: "webdesign", name: "Thiết Kế Landing Page",
-      description: "Landing Page giới thiệu sản phẩm/dịch vụ với hiệu ứng kính mờ (Glassmorphism), tải trang nhanh, chuẩn SEO.",
-      status: "instock",
-      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop",
-      features: ["Thiết kế phong cách Apple kính mờ", "Tương thích mọi thiết bị", "Chuẩn SEO Google", "Bàn giao toàn bộ mã nguồn", "Bảo hành kỹ thuật trọn đời"],
-      packages: [{ id: "pkg-landing", name: "Trọn gói", price: 1500000 }]
-    },
-    {
-      id: "web-shop", categoryId: "webdesign", name: "Thiết Kế Web Shop Tự Động",
-      description: "Website bán acc/key tích hợp nạp tiền VietQR tự động, quản trị admin thời gian thực.",
-      status: "instock",
-      image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop",
-      features: ["Nạp tiền QR tự động", "Đồng bộ thời gian thực", "Trợ lý ảo AI đàm thoại", "Quản trị Admin đầy đủ"],
-      packages: [{ id: "pkg-webshop", name: "Trọn gói", price: 3500000 }]
-    }
-  ],
+  {
+    id: "pubg-radar", categoryId: "pubg", name: "PUBG ESP Radar Premium",
+    description: "Hiển thị khung xương địch, vị trí, khoảng cách, hướng nhìn, xe cộ và hòm đồ.",
+    status: "instock",
+    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
+    features: ["Test mượt mà, không giật lag", "Cập nhật tự động", "Hỗ trợ setup từ A-Z"],
+    packages: [
+    { id: "pkg-radar-1day", name: "1 Ngày", price: 25000 },
+    { id: "pkg-radar-3day", name: "3 Ngày", price: 65000 },
+    { id: "pkg-radar-7day", name: "7 Ngày", price: 120000 },
+    { id: "pkg-radar-30day", name: "1 Tháng", price: 350000 }]
+
+  },
+  {
+    id: "pubg-aimbot", categoryId: "pubg", name: "PUBG Silent Aimbot Max",
+    description: "Hỗ trợ ngắm bắn mượt mà, tùy chỉnh độ nhạy và trường nhìn (FOV).",
+    status: "instock",
+    image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=800&auto=format&fit=crop",
+    features: ["Tùy chỉnh FOV & độ mượt", "Cập nhật tự động"],
+    packages: [
+    { id: "pkg-aimbot-1day", name: "1 Ngày", price: 30000 },
+    { id: "pkg-aimbot-7day", name: "7 Ngày", price: 140000 },
+    { id: "pkg-aimbot-30day", name: "1 Tháng", price: 390000 }]
+
+  },
+  {
+    id: "kingmod", categoryId: "pubg", name: "Phụ Kiện KingMod",
+    description: "Phụ kiện hỗ trợ trải nghiệm mượt mà và leo rank dễ dàng hơn.",
+    status: "outofstock",
+    image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=800&auto=format&fit=crop",
+    features: ["Cập nhật tự động"],
+    packages: [{ id: "pkg-kingmod-1m", name: "1 Tháng", price: 200000 }]
+  },
+  {
+    id: "web-landing", categoryId: "webdesign", name: "Thiết Kế Landing Page",
+    description: "Landing Page giới thiệu sản phẩm/dịch vụ với hiệu ứng kính mờ (Glassmorphism), tải trang nhanh, chuẩn SEO.",
+    status: "instock",
+    image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop",
+    features: ["Thiết kế phong cách Apple kính mờ", "Tương thích mọi thiết bị", "Chuẩn SEO Google", "Bàn giao toàn bộ mã nguồn", "Bảo hành kỹ thuật trọn đời"],
+    packages: [{ id: "pkg-landing", name: "Trọn gói", price: 1500000 }]
+  },
+  {
+    id: "web-shop", categoryId: "webdesign", name: "Thiết Kế Web Shop Tự Động",
+    description: "Website bán acc/key tích hợp nạp tiền VietQR tự động, quản trị admin thời gian thực.",
+    status: "instock",
+    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop",
+    features: ["Nạp tiền QR tự động", "Đồng bộ thời gian thực", "Trợ lý ảo AI đàm thoại", "Quản trị Admin đầy đủ"],
+    packages: [{ id: "pkg-webshop", name: "Trọn gói", price: 3500000 }]
+  }],
+
   users: [
-    { userId: "10001", username: "kenios", password: "admin1999@", balance: 0, role: "admin", status: "active", createdAt: "2026-06-13" }
-  ],
+  { userId: "10001", username: "kenios", password: "admin1999@", balance: 0, role: "admin", status: "active", createdAt: "2026-06-13" }],
+
   posts: [
-    { id: "1", title: "Hướng dẫn cài đặt an toàn 100%", summary: "Làm sao để trải nghiệm an toàn, không lo mất tài khoản chính? Xem ngay cẩm nang này.", date: "2026-06-10" },
-    { id: "2", title: "Cập nhật hệ thống nạp tiền VietQR siêu tốc", summary: "Hệ thống chính thức nâng cấp cơ chế sinh mã QR tự động theo chuẩn Napas 247.", date: "2026-06-09" }
-  ],
+  { id: "1", title: "Hướng dẫn cài đặt an toàn 100%", summary: "Làm sao để trải nghiệm an toàn, không lo mất tài khoản chính? Xem ngay cẩm nang này.", date: "2026-06-10" },
+  { id: "2", title: "Cập nhật hệ thống nạp tiền VietQR siêu tốc", summary: "Hệ thống chính thức nâng cấp cơ chế sinh mã QR tự động theo chuẩn Napas 247.", date: "2026-06-09" }],
+
   orders: [],
   transactions: [],
   media: [],
-  reviews: []   // Đánh giá sản phẩm: { id, serviceId, userId, username, rating(1-5), text, date }
+  reviews: [] // Đánh giá sản phẩm: { id, serviceId, userId, username, rating(1-5), text, date }
 };
 
 /**
@@ -237,14 +237,14 @@ window.KENIOS_DEFAULT_DB = {
       this.db.config = Object.assign({}, global.KENIOS_DEFAULT_DB.config, this.db.config || {});
       this._mergeLocalOverrides();
       const savedSession = this._readLocal('session');
-      if (savedSession && this.db.users.some(u => u.userId === savedSession.userId)) {
+      if (savedSession && this.db.users.some((u) => u.userId === savedSession.userId)) {
         this.session = savedSession;
       }
       return this.db;
     },
 
-    onChange(fn) { this._listeners.push(fn); },
-    _emit() { this._listeners.forEach(fn => { try { fn(this.db); } catch (e) { console.error(e); } }); },
+    onChange(fn) {this._listeners.push(fn);},
+    _emit() {this._listeners.forEach((fn) => {try {fn(this.db);} catch (e) {console.error(e);}});},
 
     async _loadDb() {
       // Ưu tiên api.php?action=get_db — endpoint này đã LỌC BỎ mật khẩu (băm), key thật
@@ -257,16 +257,16 @@ window.KENIOS_DEFAULT_DB = {
       const fetchWithTimeout = async (url, ms = 12000) => {
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), ms);
-        try { return await fetch(url, { cache: 'no-store', signal: ctrl.signal }); }
-        finally { clearTimeout(timer); }
+        try {return await fetch(url, { cache: 'no-store', signal: ctrl.signal });} finally
+        {clearTimeout(timer);}
       };
       try {
         const res = await fetchWithTimeout(`api.php?action=get_db&t=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
-          if (json && json.config) { this._dbFromServer = true; return json; }
+          if (json && json.config) {this._dbFromServer = true;return json;}
         }
-      } catch (e) { /* thử tiếp database.json */ }
+      } catch (e) {/* thử tiếp database.json */}
       try {
         const res = await fetchWithTimeout(`database.json?v=${Date.now()}`);
         if (res.ok) {
@@ -293,19 +293,19 @@ window.KENIOS_DEFAULT_DB = {
       // Chỉ giữ lại các thứ admin chỉnh CỤC BỘ chưa đồng bộ: sản phẩm, danh mục, thư viện,
       // cấu hình — và vai trò/trạng thái người dùng. Chế độ demo (không backend) giữ nguyên
       // toàn bộ bản cục bộ như trước.
-      const localArrays = fromServer
-        ? ['categories', 'subcategories', 'services', 'media']
-        : ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'];
+      const localArrays = fromServer ?
+      ['categories', 'subcategories', 'services', 'media'] :
+      ['users', 'orders', 'transactions', 'categories', 'subcategories', 'services', 'media'];
       const serverUsers = Array.isArray(this.db.users) ? this.db.users : [];
-      localArrays.forEach(key => {
+      localArrays.forEach((key) => {
         if (Array.isArray(local[key])) this.db[key] = local[key];
       });
       if (fromServer && Array.isArray(local.users)) {
         // Nền là user từ server (đúng số dư + đủ user); phủ lại vai trò/trạng thái đã
         // chỉnh cục bộ chưa đồng bộ để không mất thao tác đổi vai trò/khóa của admin.
         const localById = {};
-        local.users.forEach(u => { if (u && u.userId) localById[u.userId] = u; });
-        this.db.users = serverUsers.map(su => {
+        local.users.forEach((u) => {if (u && u.userId) localById[u.userId] = u;});
+        this.db.users = serverUsers.map((su) => {
           const lu = su && su.userId ? localById[su.userId] : null;
           return lu ? Object.assign({}, su, { role: lu.role, status: lu.status }) : su;
         });
@@ -330,14 +330,14 @@ window.KENIOS_DEFAULT_DB = {
       try {
         localStorage.removeItem(`${LS_KEY}:overrides`);
         localStorage.removeItem(`${LS_KEY}:overrides_dirty`);
-      } catch (e) { /* ignore */ }
+      } catch (e) {/* ignore */}
     },
 
     _readLocal(key) {
-      try { return JSON.parse(localStorage.getItem(`${LS_KEY}:${key}`)); } catch { return null; }
+      try {return JSON.parse(localStorage.getItem(`${LS_KEY}:${key}`));} catch {return null;}
     },
     _writeLocal(key, val) {
-      try { localStorage.setItem(`${LS_KEY}:${key}`, JSON.stringify(val)); } catch { /* ignore */ }
+      try {localStorage.setItem(`${LS_KEY}:${key}`, JSON.stringify(val));} catch {/* ignore */}
     },
 
     async _callApi(action, payload) {
@@ -352,7 +352,7 @@ window.KENIOS_DEFAULT_DB = {
         throw new BackendUnavailableError();
       }
       let json;
-      try { json = await res.json(); } catch (e) { throw new BackendUnavailableError(); }
+      try {json = await res.json();} catch (e) {throw new BackendUnavailableError();}
       if (!json || typeof json.status === 'undefined') throw new BackendUnavailableError();
       return json;
     },
@@ -360,7 +360,7 @@ window.KENIOS_DEFAULT_DB = {
     // ---- Tài khoản ----
     currentUser() {
       if (!this.session) return null;
-      return this.db.users.find(u => u.userId === this.session.userId) || null;
+      return this.db.users.find((u) => u.userId === this.session.userId) || null;
     },
 
     isAdmin() {
@@ -447,7 +447,7 @@ window.KENIOS_DEFAULT_DB = {
 
     // Chế độ demo cục bộ (không có máy chủ PHP): kiểm tra trực tiếp trong dữ liệu đã tải.
     _localRegister(username, password, contact) {
-      if (this.db.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+      if (this.db.users.some((u) => u.username.toLowerCase() === username.toLowerCase())) {
         throw new Error('Tên đăng nhập đã tồn tại.');
       }
       const user = {
@@ -463,7 +463,7 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     _localLogin(username, password) {
-      const user = this.db.users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+      const user = this.db.users.find((u) => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
       if (!user) throw new Error('Sai tên đăng nhập hoặc mật khẩu.');
       if (user.status !== 'active') throw new Error('Tài khoản đã bị khóa.');
       this._setSession(user.userId);
@@ -471,9 +471,9 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     _upsertUser(safeUser) {
-      const idx = this.db.users.findIndex(u => u.userId === safeUser.userId);
-      if (idx >= 0) this.db.users[idx] = Object.assign({}, this.db.users[idx], safeUser);
-      else this.db.users.push(safeUser);
+      const idx = this.db.users.findIndex((u) => u.userId === safeUser.userId);
+      if (idx >= 0) this.db.users[idx] = Object.assign({}, this.db.users[idx], safeUser);else
+      this.db.users.push(safeUser);
       this._persistOverrides();
     },
 
@@ -485,7 +485,7 @@ window.KENIOS_DEFAULT_DB = {
 
     // Mã phiên đăng nhập (do máy chủ cấp khi đăng nhập) — dùng để xác thực mua hàng mà
     // KHÔNG cần nhập lại mật khẩu, đồng thời chặn người khác giả mạo userId để mua hộ.
-    currentToken() { return (this.session && this.session.token) || ''; },
+    currentToken() {return this.session && this.session.token || '';},
 
     logout() {
       this.session = null;
@@ -511,7 +511,7 @@ window.KENIOS_DEFAULT_DB = {
       const code = (codeStr || '').trim().toUpperCase();
       if (!code) return null;
       const list = this.db.config.discountCodes || [];
-      return list.find(d => d && d.enabled !== false && (d.code || '').trim().toUpperCase() === code) || null;
+      return list.find((d) => d && d.enabled !== false && (d.code || '').trim().toUpperCase() === code) || null;
     },
 
     // Tính giá sau khi áp mã giảm giá cho 1 mức giá gốc, có kiểm tra các điều kiện nâng cao:
@@ -542,9 +542,9 @@ window.KENIOS_DEFAULT_DB = {
       if (d.categoryId && opts.categoryId && d.categoryId !== opts.categoryId) {
         return { valid: false, price, discount: 0, reason: 'Mã giảm giá không áp dụng cho sản phẩm này.' };
       }
-      let discount = d.type === 'percent'
-        ? Math.floor(price * (parseFloat(d.value) || 0) / 100)
-        : Math.floor(parseFloat(d.value) || 0);
+      let discount = d.type === 'percent' ?
+      Math.floor(price * (parseFloat(d.value) || 0) / 100) :
+      Math.floor(parseFloat(d.value) || 0);
       discount = Math.max(0, Math.min(discount, price)); // không giảm quá giá gốc
       return { valid: true, price: price - discount, discount, reason: '', code: (d.code || raw).trim().toUpperCase(), type: d.type, value: d.value };
     },
@@ -552,13 +552,13 @@ window.KENIOS_DEFAULT_DB = {
     // Ghi nhận 1 lượt sử dụng mã giảm giá (tăng usedCount) sau khi mua thành công ở chế độ demo.
     recordDiscountUse(codeStr) {
       const d = this.findDiscountCode(codeStr);
-      if (d) { d.usedCount = (parseInt(d.usedCount, 10) || 0) + 1; this._persistOverrides(); }
+      if (d) {d.usedCount = (parseInt(d.usedCount, 10) || 0) + 1;this._persistOverrides();}
     },
 
     // ---- Flash Sale ----
     // Trạng thái flash sale hiện tại: { active, percent, endsAt, remainingMs, title }.
     flashSaleInfo() {
-      const f = (this.db.config && this.db.config.flashSale) || {};
+      const f = this.db.config && this.db.config.flashSale || {};
       const percent = parseFloat(f.percent) || 0;
       const end = f.endsAt ? Date.parse(f.endsAt) : NaN;
       const remainingMs = isNaN(end) ? 0 : end - Date.now();
@@ -576,18 +576,18 @@ window.KENIOS_DEFAULT_DB = {
     // Tổng chi tiêu (tiền đã mua hàng) của 1 user — dùng để xét hạng VIP.
     userTotalSpent(user) {
       if (!user) return 0;
-      return (this.db.orders || [])
-        .filter(o => o.userId === user.userId)
-        .reduce((s, o) => s + (o.price || 0), 0);
+      return (this.db.orders || []).
+      filter((o) => o.userId === user.userId).
+      reduce((s, o) => s + (o.price || 0), 0);
     },
     // Hạng VIP cao nhất mà user đạt được (tổng chi tiêu >= minSpent). Trả null nếu chưa đạt hạng nào.
     vipTierFor(user) {
-      const tiers = (this.db.config && this.db.config.vipTiers) || [];
+      const tiers = this.db.config && this.db.config.vipTiers || [];
       if (!tiers.length || !user) return null;
       const spent = this.userTotalSpent(user);
-      const eligible = tiers
-        .filter(t => spent >= (parseInt(t.minSpent, 10) || 0))
-        .sort((a, b) => (parseInt(b.minSpent, 10) || 0) - (parseInt(a.minSpent, 10) || 0));
+      const eligible = tiers.
+      filter((t) => spent >= (parseInt(t.minSpent, 10) || 0)).
+      sort((a, b) => (parseInt(b.minSpent, 10) || 0) - (parseInt(a.minSpent, 10) || 0));
       return eligible[0] || null;
     },
 
@@ -599,7 +599,7 @@ window.KENIOS_DEFAULT_DB = {
       const flash = this.flashSaleInfo();
       const afterFlash = this.flashSalePrice(base);
       const tier = this.vipTierFor(user);
-      const vipPercent = tier ? (parseFloat(tier.discountPercent) || 0) : 0;
+      const vipPercent = tier ? parseFloat(tier.discountPercent) || 0 : 0;
       const vipCut = Math.floor(afterFlash * vipPercent / 100);
       const afterVip = Math.max(0, afterFlash - vipCut);
       const dc = this.applyDiscountToPrice(afterVip, discountCode, { categoryId: service ? service.categoryId : '' });
@@ -640,7 +640,7 @@ window.KENIOS_DEFAULT_DB = {
     async checkAutoDeposit(note) {
       const res = await this._callApi('poll_acb', { note }); // BackendUnavailableError sẽ propagate ra ngoài
       if (!res || res.status !== 'success') {
-        return { credited: false, serverError: true, message: (res && res.message) || 'Máy chủ chưa kiểm tra được giao dịch.' };
+        return { credited: false, serverError: true, message: res && res.message || 'Máy chủ chưa kiểm tra được giao dịch.' };
       }
       if (res.credited && res.balance !== null && res.balance !== undefined) {
         const user = this.currentUser();
@@ -670,7 +670,7 @@ window.KENIOS_DEFAULT_DB = {
       if (!user) throw new Error('Bạn cần đăng nhập.');
       const res = await this._callApi('card_status', { userId: user.userId, token: this.currentToken() });
       if (res && res.status === 'success' && res.balance !== null && res.balance !== undefined) {
-        if (user.balance !== res.balance) { user.balance = res.balance; this._persistOverrides(); this._emit(); }
+        if (user.balance !== res.balance) {user.balance = res.balance;this._persistOverrides();this._emit();}
       }
       return res;
     },
@@ -692,14 +692,14 @@ window.KENIOS_DEFAULT_DB = {
     serviceInStock(service) {
       if (!service || service.status === 'outofstock') return false;
       const pkgs = service.packages || [];
-      return pkgs.length > 0 && pkgs.some(p => this.pkgBuyable(p));
+      return pkgs.length > 0 && pkgs.some((p) => this.pkgBuyable(p));
     },
 
     // Hệ điều hành / nền tảng của sản phẩm = tên thư mục con (nếu có), ngược lại tên danh mục.
     serviceOs(service) {
-      const sub = (this.db.subcategories || []).find(s => s.id === service.subcategoryId);
+      const sub = (this.db.subcategories || []).find((s) => s.id === service.subcategoryId);
       if (sub) return sub.name;
-      const cat = this.db.categories.find(c => c.id === service.categoryId);
+      const cat = this.db.categories.find((c) => c.id === service.categoryId);
       return cat ? cat.name : '';
     },
 
@@ -714,8 +714,8 @@ window.KENIOS_DEFAULT_DB = {
       if (user) user.balance = result.balance;
       this.db.orders.unshift(result.order);
       // Giảm số key còn lại hiển thị (key đã bị rút khỏi kho trên máy chủ) để UI khớp ngay.
-      const svc = this.db.services.find(s => s.id === service.id);
-      const p = svc && (svc.packages || []).find(x => x.id === pkg.id);
+      const svc = this.db.services.find((s) => s.id === service.id);
+      const p = svc && (svc.packages || []).find((x) => x.id === pkg.id);
       if (p && typeof p.keyCount === 'number') p.keyCount = Math.max(0, p.keyCount - 1);
       this._persistOverrides();
       this._emit();
@@ -730,10 +730,10 @@ window.KENIOS_DEFAULT_DB = {
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
       // Xem trước ĐÚNG key admin đã nhập trong kho (client) để gửi lên máy chủ giao
       // nguyên chuỗi — KHÔNG thêm đuôi. Chỉ rút hẳn khỏi kho SAU khi server nhận.
-      const svc = this.db.services.find(s => s.id === service.id);
-      const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
-      const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
-      const chosenKey = (stock && stock.length) ? stock[0] : '';
+      const svc = this.db.services.find((s) => s.id === service.id);
+      const livePkg = svc && (svc.packages || []).find((x) => x.id === pkg.id);
+      const stock = livePkg && Array.isArray(livePkg.keys) ? livePkg.keys : Array.isArray(pkg.keys) ? pkg.keys : null;
+      const chosenKey = stock && stock.length ? stock[0] : '';
       const result = await this._callApi('purchase', {
         userId: user.userId, username: user.username, token: this.currentToken(),
         serviceId: service.id, packageId: pkg.id,
@@ -780,9 +780,9 @@ window.KENIOS_DEFAULT_DB = {
       if ((user.balance || 0) < finalPrice) throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền.');
       // Phát ĐÚNG key admin đã nhập trong kho của gói (không thêm bất kỳ đuôi nào). KHÔNG
       // sinh key demo: hết key thì báo lỗi & KHÔNG trừ tiền.
-      const svc = this.db.services.find(s => s.id === service.id);
-      const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
-      const stock = (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
+      const svc = this.db.services.find((s) => s.id === service.id);
+      const livePkg = svc && (svc.packages || []).find((x) => x.id === pkg.id);
+      const stock = livePkg && Array.isArray(livePkg.keys) ? livePkg.keys : Array.isArray(pkg.keys) ? pkg.keys : null;
       if (!stock || !stock.length) throw new Error('Gói này tạm hết key trong kho, vui lòng liên hệ Admin.');
       const key = stock.shift(); // rút đúng 1 key thật khỏi kho, giữ nguyên chuỗi
       user.balance -= finalPrice;
@@ -800,9 +800,9 @@ window.KENIOS_DEFAULT_DB = {
       if (p.flashPercent > 0) parts.push(`flash -${p.flashPercent}%`);
       if (p.vipPercent > 0) parts.push(`VIP -${p.vipPercent}%`);
       if (p.code) parts.push(`mã ${p.code}`);
-      const desc = parts.length
-        ? `Mua ${service.name} - ${pkg.name} (${parts.join(', ')} · giảm ${p.totalDiscount.toLocaleString('vi-VN')}đ)`
-        : `Mua ${service.name} - ${pkg.name}`;
+      const desc = parts.length ?
+      `Mua ${service.name} - ${pkg.name} (${parts.join(', ')} · giảm ${p.totalDiscount.toLocaleString('vi-VN')}đ)` :
+      `Mua ${service.name} - ${pkg.name}`;
       this.db.transactions.unshift({
         id: 'TX' + Date.now(), userId: user.userId, amount: -finalPrice, type: 'purchase',
         description: desc, date: purchaseDate
@@ -814,24 +814,24 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     // ---- Combo sản phẩm ----
-    combos() { return (this.db.config && this.db.config.combos) || []; },
+    combos() {return this.db.config && this.db.config.combos || [];},
     // Tổng giá gốc của các sản phẩm trong combo (để hiển thị mức tiết kiệm).
     comboOriginalPrice(combo) {
       return (combo.items || []).reduce((sum, it) => {
-        const svc = this.db.services.find(s => s.id === it.serviceId);
-        const pkg = svc && (svc.packages || []).find(p => p.id === it.packageId);
-        return sum + (pkg ? (pkg.price || 0) : 0);
+        const svc = this.db.services.find((s) => s.id === it.serviceId);
+        const pkg = svc && (svc.packages || []).find((p) => p.id === it.packageId);
+        return sum + (pkg ? pkg.price || 0 : 0);
       }, 0);
     },
     // Mua combo: trừ tiền 1 lần theo giá combo, phát key + tạo đơn cho TỪNG sản phẩm.
     buyCombo(comboId) {
       const user = this.currentUser();
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
-      const combo = this.combos().find(c => c.id === comboId);
+      const combo = this.combos().find((c) => c.id === comboId);
       if (!combo) throw new Error('Không tìm thấy combo.');
-      const items = (combo.items || []).map(it => {
-        const service = this.db.services.find(s => s.id === it.serviceId);
-        const pkg = service && (service.packages || []).find(p => p.id === it.packageId);
+      const items = (combo.items || []).map((it) => {
+        const service = this.db.services.find((s) => s.id === it.serviceId);
+        const pkg = service && (service.packages || []).find((p) => p.id === it.packageId);
         return service && pkg ? { service, pkg } : null;
       }).filter(Boolean);
       if (!items.length) throw new Error('Combo chưa có sản phẩm hợp lệ.');
@@ -840,11 +840,11 @@ window.KENIOS_DEFAULT_DB = {
       // Xác định kho key TỪNG sản phẩm trước; nếu 1 sản phẩm hết key thì báo lỗi & KHÔNG
       // trừ tiền. KHÔNG sinh key demo.
       const stocks = items.map(({ service, pkg }) => {
-        const svc = this.db.services.find(s => s.id === service.id);
-        const livePkg = svc && (svc.packages || []).find(x => x.id === pkg.id);
-        return (livePkg && Array.isArray(livePkg.keys)) ? livePkg.keys : (Array.isArray(pkg.keys) ? pkg.keys : null);
+        const svc = this.db.services.find((s) => s.id === service.id);
+        const livePkg = svc && (svc.packages || []).find((x) => x.id === pkg.id);
+        return livePkg && Array.isArray(livePkg.keys) ? livePkg.keys : Array.isArray(pkg.keys) ? pkg.keys : null;
       });
-      if (stocks.some(st => !st || !st.length)) throw new Error('Một sản phẩm trong combo tạm hết key, vui lòng liên hệ Admin.');
+      if (stocks.some((st) => !st || !st.length)) throw new Error('Một sản phẩm trong combo tạm hết key, vui lòng liên hệ Admin.');
       user.balance -= price;
       const now = new Date().toISOString();
       const orders = items.map(({ service, pkg }, i) => {
@@ -875,13 +875,13 @@ window.KENIOS_DEFAULT_DB = {
       if (!user) throw new Error('Bạn cần đăng nhập trước khi mua.');
       // Gom ĐÚNG key admin đã nhập trong kho (client) cho từng sản phẩm để giao nguyên
       // chuỗi — không thêm đuôi — khi máy chủ chưa có kho key của gói đó.
-      const combo = this.combos().find(c => c.id === comboId);
+      const combo = this.combos().find((c) => c.id === comboId);
       const itemKeys = {};
       if (combo) {
-        (combo.items || []).forEach(it => {
-          const svc = this.db.services.find(s => s.id === it.serviceId);
-          const p = svc && (svc.packages || []).find(x => x.id === it.packageId);
-          const stock = (p && Array.isArray(p.keys)) ? p.keys : null;
+        (combo.items || []).forEach((it) => {
+          const svc = this.db.services.find((s) => s.id === it.serviceId);
+          const p = svc && (svc.packages || []).find((x) => x.id === it.packageId);
+          const stock = p && Array.isArray(p.keys) ? p.keys : null;
           const mapKey = it.serviceId + '::' + it.packageId;
           if (stock && stock.length && !(mapKey in itemKeys)) itemKeys[mapKey] = stock[0];
         });
@@ -891,11 +891,11 @@ window.KENIOS_DEFAULT_DB = {
       });
       if (result.status !== 'success') throw new Error(result.message || 'Mua combo thất bại.');
       user.balance = result.balance;
-      (result.orders || []).forEach(o => this.db.orders.unshift(o));
+      (result.orders || []).forEach((o) => this.db.orders.unshift(o));
       // Rút khỏi kho local những key thật vừa được giao (khớp đầu kho) + giảm keyCount hiển thị.
-      (result.orders || []).forEach(o => {
-        const svc = this.db.services.find(s => s.id === o.serviceId);
-        const p = svc && (svc.packages || []).find(x => x.name === o.packageName);
+      (result.orders || []).forEach((o) => {
+        const svc = this.db.services.find((s) => s.id === o.serviceId);
+        const p = svc && (svc.packages || []).find((x) => x.name === o.packageName);
         if (!p) return;
         if (Array.isArray(p.keys) && p.keys.length && p.keys[0] === o.key) p.keys.shift();
         if (typeof p.keyCount === 'number' && p.keyCount > 0) p.keyCount -= 1;
@@ -923,11 +923,11 @@ window.KENIOS_DEFAULT_DB = {
     adminSaveCombo(data) {
       if (!this.db.config.combos) this.db.config.combos = [];
       const list = this.db.config.combos;
-      const items = (data.items || []).filter(it => it.serviceId && it.packageId);
+      const items = (data.items || []).filter((it) => it.serviceId && it.packageId);
       if (!data.name || !data.name.trim()) throw new Error('Vui lòng nhập tên combo.');
       if (!items.length) throw new Error('Combo cần ít nhất 1 sản phẩm (đã chọn cả gói).');
       if (data.id) {
-        const idx = list.findIndex(c => c.id === data.id);
+        const idx = list.findIndex((c) => c.id === data.id);
         if (idx !== -1) list[idx] = { ...list[idx], name: data.name.trim(), price: data.price, description: data.description, image: data.image, items };
       } else {
         list.unshift({ id: 'CB' + Date.now(), name: data.name.trim(), price: data.price, description: data.description, image: data.image, items });
@@ -937,7 +937,7 @@ window.KENIOS_DEFAULT_DB = {
     },
     adminDeleteCombo(id) {
       if (!this.db.config.combos) return;
-      this.db.config.combos = this.db.config.combos.filter(c => c.id !== id);
+      this.db.config.combos = this.db.config.combos.filter((c) => c.id !== id);
       this._persistOverrides();
       this._emit();
     },
@@ -945,31 +945,31 @@ window.KENIOS_DEFAULT_DB = {
     myOrders() {
       const user = this.currentUser();
       if (!user) return [];
-      return this.db.orders.filter(o => o.userId === user.userId);
+      return this.db.orders.filter((o) => o.userId === user.userId);
     },
 
     // ---- Đánh giá sản phẩm ----
     reviewsFor(serviceId) {
-      return (this.db.reviews || []).filter(r => r.serviceId === serviceId)
-        .sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
+      return (this.db.reviews || []).filter((r) => r.serviceId === serviceId).
+      sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
     },
     avgRating(serviceId) {
       const rs = this.reviewsFor(serviceId);
       if (!rs.length) return 0;
       return rs.reduce((s, r) => s + (parseInt(r.rating, 10) || 0), 0) / rs.length;
     },
-    ratingCount(serviceId) { return this.reviewsFor(serviceId).length; },
+    ratingCount(serviceId) {return this.reviewsFor(serviceId).length;},
     // Khách đã mua sản phẩm này chưa (điều kiện để được đánh giá).
     hasPurchased(serviceId) {
       const user = this.currentUser();
       if (!user) return false;
-      return (this.db.orders || []).some(o => o.userId === user.userId && o.serviceId === serviceId);
+      return (this.db.orders || []).some((o) => o.userId === user.userId && o.serviceId === serviceId);
     },
     // Đánh giá của chính user hiện tại cho 1 sản phẩm (nếu đã đánh giá).
     myReviewFor(serviceId) {
       const user = this.currentUser();
       if (!user) return null;
-      return (this.db.reviews || []).find(r => r.serviceId === serviceId && r.userId === user.userId) || null;
+      return (this.db.reviews || []).find((r) => r.serviceId === serviceId && r.userId === user.userId) || null;
     },
     addReview(serviceId, rating, text) {
       const user = this.currentUser();
@@ -978,9 +978,9 @@ window.KENIOS_DEFAULT_DB = {
       rating = Math.max(1, Math.min(5, parseInt(rating, 10) || 0));
       if (!this.db.reviews) this.db.reviews = [];
       // Mỗi user 1 đánh giá / sản phẩm — có thì cập nhật, chưa có thì thêm mới.
-      const existing = this.db.reviews.find(r => r.serviceId === serviceId && r.userId === user.userId);
+      const existing = this.db.reviews.find((r) => r.serviceId === serviceId && r.userId === user.userId);
       if (existing) {
-        existing.rating = rating; existing.text = (text || '').trim(); existing.date = new Date().toISOString();
+        existing.rating = rating;existing.text = (text || '').trim();existing.date = new Date().toISOString();
       } else {
         this.db.reviews.unshift({
           id: 'RV' + Date.now(), serviceId, userId: user.userId, username: user.username,
@@ -990,8 +990,8 @@ window.KENIOS_DEFAULT_DB = {
       this._persistOverrides();
       this._emit();
       // Cố gắng lưu lên máy chủ (nếu có backend) để mọi khách cùng thấy.
-      this._callApi('add_review', { serviceId, userId: user.userId, username: user.username, rating, text: (text || '').trim() })
-        .catch(() => {});
+      this._callApi('add_review', { serviceId, userId: user.userId, username: user.username, rating, text: (text || '').trim() }).
+      catch(() => {});
     },
     // ---- Giới thiệu bạn bè ----
     // Sinh & lưu mã giới thiệu cố định cho 1 user (nếu chưa có).
@@ -1000,13 +1000,13 @@ window.KENIOS_DEFAULT_DB = {
       if (!user.refCode) {
         // Mã theo TÊN khách cho dễ nhớ & gắn thương hiệu: KENIOS-<TÊN>. Bỏ dấu,
         // in hoa, chỉ giữ chữ/số. Nếu trùng (tên rút gọn giống nhau) thì thêm số.
-        const clean = (user.username || '')
-          .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd')
-          .toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 14);
+        const clean = (user.username || '').
+        normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').
+        toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 14);
         const base = 'KENIOS-' + (clean || Math.random().toString(36).slice(2, 7).toUpperCase());
-        let code = base, n = 1;
-        while (this.db.users.some(u => u !== user && (u.refCode || '') === code)) {
-          n++; code = base + n;
+        let code = base,n = 1;
+        while (this.db.users.some((u) => u !== user && (u.refCode || '') === code)) {
+          n++;code = base + n;
         }
         user.refCode = code;
         this._persistOverrides();
@@ -1016,24 +1016,24 @@ window.KENIOS_DEFAULT_DB = {
     findByRefCode(code) {
       code = (code || '').trim().toUpperCase();
       if (!code) return null;
-      return this.db.users.find(u => (u.refCode || '').toUpperCase() === code) || null;
+      return this.db.users.find((u) => (u.refCode || '').toUpperCase() === code) || null;
     },
     // Gắn người giới thiệu cho tài khoản vừa tạo (gọi sau khi đăng ký).
     applyReferralCode(refereeUserId, code) {
       if (this.db.config.referralEnabled === false) return;
-      const referee = this.db.users.find(u => u.userId === refereeUserId);
+      const referee = this.db.users.find((u) => u.userId === refereeUserId);
       const referrer = this.findByRefCode(code);
       if (!referee || !referrer || referrer.userId === referee.userId) return;
       if (referee.referredBy) return; // đã có người giới thiệu
       referee.referredBy = referrer.refCode;
-      this._persistOverrides(); this._emit();
+      this._persistOverrides();this._emit();
     },
     // Thưởng khi người được giới thiệu NẠP TIỀN lần đầu — cả 2 bên +referralBonus.
     processReferralReward(refereeUserId) {
       const cfg = this.db.config;
       if (cfg.referralEnabled === false) return;
       const bonus = Number(cfg.referralBonus) || 0;
-      const referee = this.db.users.find(u => u.userId === refereeUserId);
+      const referee = this.db.users.find((u) => u.userId === refereeUserId);
       if (!referee || referee.referralRewarded || !referee.referredBy) return;
       const referrer = this.findByRefCode(referee.referredBy);
       referee.referralRewarded = true; // đánh dấu để chỉ thưởng 1 lần dù có tìm thấy người mời hay không
@@ -1044,17 +1044,17 @@ window.KENIOS_DEFAULT_DB = {
         this.db.transactions.unshift({ id: 'TXR' + Date.now(), userId: referee.userId, amount: bonus, type: 'referral', description: 'Thưởng giới thiệu (bạn được mời)', date: now });
         this.db.transactions.unshift({ id: 'TXR' + (Date.now() + 1), userId: referrer.userId, amount: bonus, type: 'referral', description: 'Thưởng giới thiệu bạn ' + (referee.username || ''), date: now });
       }
-      this._persistOverrides(); this._emit();
+      this._persistOverrides();this._emit();
     },
     // Thống kê giới thiệu của user hiện tại.
     myReferralStats() {
       const user = this.currentUser();
       if (!user) return null;
       const code = this.ensureRefCode(user);
-      const invited = this.db.users.filter(u => u.referredBy === code);
-      const earned = (this.db.transactions || [])
-        .filter(t => t.userId === user.userId && t.type === 'referral')
-        .reduce((s, t) => s + (t.amount || 0), 0);
+      const invited = this.db.users.filter((u) => u.referredBy === code);
+      const earned = (this.db.transactions || []).
+      filter((t) => t.userId === user.userId && t.type === 'referral').
+      reduce((s, t) => s + (t.amount || 0), 0);
       return { code, count: invited.length, earned };
     },
 
@@ -1064,53 +1064,53 @@ window.KENIOS_DEFAULT_DB = {
     // trong bảng quản trị mới thực sự ghi vào database.json qua api.php.
     // ============================================================
     adminSaveService(service) {
-      const idx = this.db.services.findIndex(s => s.id === service.id);
-      if (idx >= 0) this.db.services[idx] = service;
-      else this.db.services.push(service);
+      const idx = this.db.services.findIndex((s) => s.id === service.id);
+      if (idx >= 0) this.db.services[idx] = service;else
+      this.db.services.push(service);
       this._persistOverrides();
       this._emit();
     },
 
     adminDeleteService(id) {
-      this.db.services = this.db.services.filter(s => s.id !== id);
+      this.db.services = this.db.services.filter((s) => s.id !== id);
       this._persistOverrides();
       this._emit();
     },
 
     adminSaveCategory(category) {
-      const idx = this.db.categories.findIndex(c => c.id === category.id);
-      if (idx >= 0) this.db.categories[idx] = category;
-      else this.db.categories.push(category);
+      const idx = this.db.categories.findIndex((c) => c.id === category.id);
+      if (idx >= 0) this.db.categories[idx] = category;else
+      this.db.categories.push(category);
       this._persistOverrides();
       this._emit();
     },
 
     adminDeleteCategory(id) {
-      if (this.db.services.some(s => s.categoryId === id)) {
+      if (this.db.services.some((s) => s.categoryId === id)) {
         throw new Error('Không thể xóa danh mục đang có dịch vụ. Hãy xóa hoặc chuyển dịch vụ trước.');
       }
-      if ((this.db.subcategories || []).some(sc => sc.categoryId === id)) {
+      if ((this.db.subcategories || []).some((sc) => sc.categoryId === id)) {
         throw new Error('Không thể xóa danh mục đang có thư mục con. Hãy xóa các thư mục con trước.');
       }
-      this.db.categories = this.db.categories.filter(c => c.id !== id);
+      this.db.categories = this.db.categories.filter((c) => c.id !== id);
       this._persistOverrides();
       this._emit();
     },
 
     adminSaveSubcategory(sub) {
       if (!this.db.subcategories) this.db.subcategories = [];
-      const idx = this.db.subcategories.findIndex(s => s.id === sub.id);
-      if (idx >= 0) this.db.subcategories[idx] = sub;
-      else this.db.subcategories.push(sub);
+      const idx = this.db.subcategories.findIndex((s) => s.id === sub.id);
+      if (idx >= 0) this.db.subcategories[idx] = sub;else
+      this.db.subcategories.push(sub);
       this._persistOverrides();
       this._emit();
     },
 
     adminDeleteSubcategory(id) {
-      if (this.db.services.some(s => s.subcategoryId === id)) {
+      if (this.db.services.some((s) => s.subcategoryId === id)) {
         throw new Error('Không thể xóa thư mục con đang có sản phẩm. Hãy xóa hoặc chuyển sản phẩm trước.');
       }
-      this.db.subcategories = (this.db.subcategories || []).filter(s => s.id !== id);
+      this.db.subcategories = (this.db.subcategories || []).filter((s) => s.id !== id);
       this._persistOverrides();
       this._emit();
     },
@@ -1123,7 +1123,7 @@ window.KENIOS_DEFAULT_DB = {
 
     // Cộng/trừ số dư — bản CỤC BỘ (khi không có máy chủ / chưa nhớ mật khẩu admin).
     adminAdjustBalance(userId, delta) {
-      const user = this.db.users.find(u => u.userId === userId);
+      const user = this.db.users.find((u) => u.userId === userId);
       if (!user) throw new Error('Không tìm thấy người dùng.');
       user.balance = Math.max(0, (user.balance || 0) + delta);
       this._persistOverrides();
@@ -1141,13 +1141,13 @@ window.KENIOS_DEFAULT_DB = {
         });
         const json = await r.json();
         if (json && json.status === 'success') {
-          const user = this.db.users.find(u => u.userId === userId);
+          const user = this.db.users.find((u) => u.userId === userId);
           if (user) user.balance = json.balance;
           this._persistOverrides();
           this._emit();
         }
         return json;
-      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      } catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
 
     // Admin hoàn tiền 1 đơn hàng (server): cộng lại giá đơn cho khách + đánh dấu đã hoàn.
@@ -1160,27 +1160,27 @@ window.KENIOS_DEFAULT_DB = {
         });
         const json = await r.json();
         if (json && json.status === 'success') {
-          const o = this.db.orders.find(x => x.id === orderId);
+          const o = this.db.orders.find((x) => x.id === orderId);
           if (o) {
             o.refunded = true;
-            const u = this.db.users.find(x => x.userId === o.userId);
+            const u = this.db.users.find((x) => x.userId === o.userId);
             if (u) u.balance = json.balance;
           }
           this._persistOverrides();
           this._emit();
         }
         return json;
-      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      } catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
 
     // Xóa người dùng — bản CỤC BỘ (dự phòng khi không có máy chủ).
     adminDeleteUser(userId) {
-      const user = this.db.users.find(u => u.userId === userId);
+      const user = this.db.users.find((u) => u.userId === userId);
       if (!user) throw new Error('Không tìm thấy người dùng.');
       if (user.role === 'admin') throw new Error('Không thể xóa tài khoản quản trị.');
       const me = this.currentUser();
       if (me && me.userId === userId) throw new Error('Không thể tự xóa tài khoản của chính bạn.');
-      this.db.users = this.db.users.filter(u => u.userId !== userId);
+      this.db.users = this.db.users.filter((u) => u.userId !== userId);
       this._persistOverrides();
       this._emit();
     },
@@ -1195,16 +1195,16 @@ window.KENIOS_DEFAULT_DB = {
         });
         const json = await r.json();
         if (json && json.status === 'success') {
-          this.db.users = this.db.users.filter(u => u.userId !== userId);
+          this.db.users = this.db.users.filter((u) => u.userId !== userId);
           this._persistOverrides();
           this._emit();
         }
         return json;
-      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      } catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
 
     adminSetUserStatus(userId, status) {
-      const user = this.db.users.find(u => u.userId === userId);
+      const user = this.db.users.find((u) => u.userId === userId);
       if (!user) throw new Error('Không tìm thấy người dùng.');
       if (user.role === 'admin') throw new Error('Không thể khóa tài khoản quản trị.');
       user.status = status;
@@ -1216,7 +1216,7 @@ window.KENIOS_DEFAULT_DB = {
     adminSetRole(userId, role) {
       const valid = ['member', 'ctv', 'admin'];
       if (!valid.includes(role)) return;
-      const user = this.db.users.find(u => u.userId === userId);
+      const user = this.db.users.find((u) => u.userId === userId);
       if (!user) throw new Error('Không tìm thấy người dùng.');
       const me = this.currentUser();
       if (me && me.userId === userId && me.role === 'admin' && role !== 'admin') {
@@ -1227,8 +1227,8 @@ window.KENIOS_DEFAULT_DB = {
       this._emit();
     },
     // Quyền mở trang quản trị: admin (đầy đủ) hoặc CTV (giới hạn).
-    canAccessAdmin() { const u = this.currentUser(); return !!u && (u.role === 'admin' || u.role === 'ctv'); },
-    isCtv() { const u = this.currentUser(); return !!u && u.role === 'ctv'; },
+    canAccessAdmin() {const u = this.currentUser();return !!u && (u.role === 'admin' || u.role === 'ctv');},
+    isCtv() {const u = this.currentUser();return !!u && u.role === 'ctv';},
 
     adminAddMedia(item) {
       if (!this.db.media) this.db.media = [];
@@ -1238,7 +1238,7 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     adminDeleteMedia(id) {
-      this.db.media = (this.db.media || []).filter(m => m.id !== id);
+      this.db.media = (this.db.media || []).filter((m) => m.id !== id);
       this._persistOverrides();
       this._emit();
     },
@@ -1249,7 +1249,7 @@ window.KENIOS_DEFAULT_DB = {
       fd.append('file', file);
       const res = await fetch(`${API_URL}?action=upload_file`, { method: 'POST', body: fd });
       let json;
-      try { json = await res.json(); } catch (e) { throw new Error('Không có máy chủ PHP để tải file lên (chế độ demo cục bộ không hỗ trợ upload).'); }
+      try {json = await res.json();} catch (e) {throw new Error('Không có máy chủ PHP để tải file lên (chế độ demo cục bộ không hỗ trợ upload).');}
       if (json.status !== 'success') throw new Error(json.message || 'Tải file thất bại.');
       return json.url;
     },
@@ -1281,7 +1281,7 @@ window.KENIOS_DEFAULT_DB = {
       });
       const json = await res.json();
       if (!json || !Array.isArray(json.services)) throw new Error('Không tải được dữ liệu từ máy chủ.');
-      const hasKeys = json.services.some(s => (s.packages || []).some(p => Array.isArray(p.keys)));
+      const hasKeys = json.services.some((s) => (s.packages || []).some((p) => Array.isArray(p.keys)));
       if (!hasKeys) throw new Error('Sai mật khẩu admin hoặc chưa có kho key nào.');
       this.db.services = json.services;
       this._persistOverrides();
@@ -1313,7 +1313,7 @@ window.KENIOS_DEFAULT_DB = {
           body: '{}'
         });
         return await res.json();
-      } catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      } catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
 
     // ---- Đồng bộ Admin lên máy chủ (chỉ hoạt động khi có backend PHP) ----
@@ -1340,48 +1340,48 @@ window.KENIOS_DEFAULT_DB = {
 
     // ---- Sao lưu & Khôi phục dữ liệu (server-side) ----
     async backupNow(u, p) {
-      try { const r = await fetch(`${API_URL}?action=backup_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      try {const r = await fetch(`${API_URL}?action=backup_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
     async backupInfo(u, p) {
-      try { const r = await fetch(`${API_URL}?action=backup_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error' }; }
+      try {const r = await fetch(`${API_URL}?action=backup_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error' };}
     },
     async cardRequestsAdmin(u, p) {
-      try { const r = await fetch(`${API_URL}?action=card_requests`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      try {const r = await fetch(`${API_URL}?action=card_requests`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
     async cardApprove(u, p, requestId, amount) {
-      try { const r = await fetch(`${API_URL}?action=card_approve`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-User': u, 'X-Admin-Pass': p }, body: JSON.stringify({ requestId, amount }) }); return await r.json(); }
-      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      try {const r = await fetch(`${API_URL}?action=card_approve`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-User': u, 'X-Admin-Pass': p }, body: JSON.stringify({ requestId, amount }) });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
     async cardLog(u, p) {
-      try { const r = await fetch(`${API_URL}?action=card_log`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      try {const r = await fetch(`${API_URL}?action=card_log`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
     async restoreFromServer(u, p) {
-      try { const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      try {const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
     async exportDb(u, p) {
-      try { const r = await fetch(`${API_URL}?action=export_db`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      try {const r = await fetch(`${API_URL}?action=export_db`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
     // Kho đơn hàng bền vững: thông tin (số đơn) + phục hồi đơn khách về database.json.
     async ordersArchiveInfo(u, p) {
-      try { const r = await fetch(`${API_URL}?action=orders_archive_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error' }; }
+      try {const r = await fetch(`${API_URL}?action=orders_archive_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error' };}
     },
     async recoverOrders(u, p) {
-      try { const r = await fetch(`${API_URL}?action=recover_orders`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } }); return await r.json(); }
-      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ.' }; }
+      try {const r = await fetch(`${API_URL}?action=recover_orders`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
     // Nạp 1 file sao lưu (.json) từ máy admin rồi đẩy lên server.
     async importDb(dbObj, u, p) {
       if (!dbObj || !dbObj.config || !Array.isArray(dbObj.users)) throw new Error('File sao lưu không hợp lệ (thiếu config/users).');
       // Tách khóa API (nếu bản sao lưu có kèm) ra để ghi riêng vào secrets.php, KHÔNG lưu
       // vào database.json.
-      const secrets = (dbObj._secrets && typeof dbObj._secrets === 'object') ? dbObj._secrets : null;
+      const secrets = dbObj._secrets && typeof dbObj._secrets === 'object' ? dbObj._secrets : null;
       delete dbObj._secrets;
       this.db = dbObj;
       this._clearLocalOverrides();
@@ -1390,10 +1390,10 @@ window.KENIOS_DEFAULT_DB = {
       // Khôi phục khóa API: token ngân hàng tự động, Partner ID/Key nạp thẻ, Telegram, TTS.
       if (secrets) {
         const patch = {};
-        ['bankToken', 'cardPartnerId', 'cardPartnerKey', 'telegramBotToken', 'telegramChatId', 'ttsApiKey'].forEach(k => {
+        ['bankToken', 'cardPartnerId', 'cardPartnerKey', 'telegramBotToken', 'telegramChatId', 'ttsApiKey'].forEach((k) => {
           if (secrets[k] != null && String(secrets[k]).trim() !== '') patch[k] = String(secrets[k]).trim();
         });
-        if (Object.keys(patch).length) { try { await this.saveSecrets(u, p, patch); } catch (e) { /* bỏ qua nếu lỗi */ } }
+        if (Object.keys(patch).length) {try {await this.saveSecrets(u, p, patch);} catch (e) {/* bỏ qua nếu lỗi */}}
       }
       return res;
     }
@@ -1424,15 +1424,15 @@ window.KENIOS_DEFAULT_DB = {
 
     init() {
       if (!('speechSynthesis' in window)) return;
-      const load = () => { this.voices = window.speechSynthesis.getVoices(); };
+      const load = () => {this.voices = window.speechSynthesis.getVoices();};
       load();
       window.speechSynthesis.onvoiceschanged = load;
     },
 
     // Danh sách giọng ưu tiên hiển thị cho người dùng chọn: Google trước, còn lại sau.
     availableVoices() {
-      const vi = this.voices.filter(v => v.lang.startsWith('vi'));
-      const others = this.voices.filter(v => !v.lang.startsWith('vi'));
+      const vi = this.voices.filter((v) => v.lang.startsWith('vi'));
+      const others = this.voices.filter((v) => !v.lang.startsWith('vi'));
       const sortGoogleFirst = (a, b) => {
         const ag = /google/i.test(a.name) ? 0 : 1;
         const bg = /google/i.test(b.name) ? 0 : 1;
@@ -1443,15 +1443,15 @@ window.KENIOS_DEFAULT_DB = {
 
     _pickVoice() {
       if (this.prefs.voiceURI) {
-        const chosen = this.voices.find(v => v.voiceURI === this.prefs.voiceURI);
+        const chosen = this.voices.find((v) => v.voiceURI === this.prefs.voiceURI);
         if (chosen) return chosen;
       }
       // Mặc định: giọng nữ Google tiếng Việt, rồi tới bất kỳ giọng Google nào, cuối cùng là giọng vi-VN bất kỳ.
-      return this.voices.find(v => v.lang.startsWith('vi') && /google/i.test(v.name))
-        || this.voices.find(v => /google/i.test(v.name))
-        || this.voices.find(v => v.lang.startsWith('vi'))
-        || this.voices[0]
-        || null;
+      return this.voices.find((v) => v.lang.startsWith('vi') && /google/i.test(v.name)) ||
+      this.voices.find((v) => /google/i.test(v.name)) ||
+      this.voices.find((v) => v.lang.startsWith('vi')) ||
+      this.voices[0] ||
+      null;
     },
 
     async speak(text) {
@@ -1467,7 +1467,7 @@ window.KENIOS_DEFAULT_DB = {
           body: JSON.stringify({ text, rate: this.prefs.rate, pitch: (this.prefs.pitch - 1) * 10 })
         });
         const json = await res.json();
-        if (json.status !== 'success' || !json.audioContent) { ttsUnavailable = true; return false; }
+        if (json.status !== 'success' || !json.audioContent) {ttsUnavailable = true;return false;}
         const audio = new Audio('data:audio/mp3;base64,' + json.audioContent);
         audio.volume = this.prefs.volume;
         currentAudio = audio;
@@ -1484,8 +1484,8 @@ window.KENIOS_DEFAULT_DB = {
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       const voice = this._pickVoice();
-      if (voice) { utter.voice = voice; utter.lang = voice.lang; }
-      else utter.lang = 'vi-VN';
+      if (voice) {utter.voice = voice;utter.lang = voice.lang;} else
+      utter.lang = 'vi-VN';
       utter.rate = this.prefs.rate;
       utter.pitch = this.prefs.pitch;
       utter.volume = this.prefs.volume;
@@ -1493,7 +1493,7 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     stop() {
-      if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+      if (currentAudio) {currentAudio.pause();currentAudio = null;}
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     },
 
@@ -1504,10 +1504,10 @@ window.KENIOS_DEFAULT_DB = {
   };
 
   function readPrefs() {
-    try { return JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch { return {}; }
+    try {return JSON.parse(localStorage.getItem(PREF_KEY)) || {};} catch {return {};}
   }
   function writePrefs(p) {
-    try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch { /* ignore */ }
+    try {localStorage.setItem(PREF_KEY, JSON.stringify(p));} catch {/* ignore */}
   }
 
   global.Voice = Voice;
@@ -1548,11 +1548,11 @@ window.KENIOS_DEFAULT_DB = {
     prefs: Object.assign({ touchEnabled: true, sound: 'pop', volume: 0.5 }, readPrefs()),
 
     init() {
+
+
       // Đã GỠ hoàn toàn hiệu ứng chạm (gợn sóng + âm thanh) theo yêu cầu — không gắn
       // listener gì nữa để khi chạm màn hình không còn hiệu ứng nào.
-    },
-
-    _onPointer() { /* không dùng nữa */ },
+    }, _onPointer() {/* không dùng nữa */},
 
     setPrefs(patch) {
       Object.assign(this.prefs, patch);
@@ -1592,7 +1592,7 @@ window.KENIOS_DEFAULT_DB = {
       const selSound = panel.querySelector('#fxSound');
       Object.entries(SOUND_PRESETS).forEach(([key, val]) => {
         const opt = document.createElement('option');
-        opt.value = key; opt.textContent = val.label;
+        opt.value = key;opt.textContent = val.label;
         selSound.appendChild(opt);
       });
 
@@ -1635,8 +1635,8 @@ window.KENIOS_DEFAULT_DB = {
     const size = 46;
     const el = document.createElement('div');
     el.className = 'fx-ripple';
-    el.style.left = (x - size / 2) + 'px';
-    el.style.top = (y - size / 2) + 'px';
+    el.style.left = x - size / 2 + 'px';
+    el.style.top = y - size / 2 + 'px';
     el.style.width = size + 'px';
     el.style.height = size + 'px';
     document.body.appendChild(el);
@@ -1666,33 +1666,33 @@ window.KENIOS_DEFAULT_DB = {
       g.gain.setValueAtTime(0.0001, now + start);
       g.gain.exponentialRampToValueAtTime(gain, now + start + 0.01);
       g.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
-      osc.connect(g); g.connect(master);
-      osc.start(now + start); osc.stop(now + start + dur + 0.02);
+      osc.connect(g);g.connect(master);
+      osc.start(now + start);osc.stop(now + start + dur + 0.02);
     };
 
     switch (preset) {
-      case 'pop': tone(900, 0, 0.08, 'sine', 0.5); break;
-      case 'click': tone(1800, 0, 0.03, 'square', 0.25); break;
-      case 'coin': tone(1046, 0, 0.09, 'square', 0.3); tone(1568, 0.08, 0.12, 'square', 0.25); break;
-      case 'wood': tone(220, 0, 0.05, 'triangle', 0.4); tone(160, 0.02, 0.06, 'triangle', 0.25); break;
-      case 'chime': tone(1318, 0, 0.35, 'sine', 0.25); tone(1976, 0.05, 0.4, 'sine', 0.18); break;
-      case 'bubble': tone(500, 0, 0.05, 'sine', 0.3); tone(900, 0.04, 0.08, 'sine', 0.25); break;
-      case 'blip': tone(2400, 0, 0.02, 'square', 0.2); tone(1200, 0.02, 0.03, 'square', 0.18); break;
-      case 'marimba': tone(784, 0, 0.2, 'sine', 0.3); tone(988, 0.03, 0.25, 'sine', 0.2); break;
-      case 'bell': tone(1568, 0, 0.5, 'sine', 0.3); tone(2093, 0.02, 0.5, 'sine', 0.15); break;
-      case 'success': tone(659, 0, 0.1, 'sine', 0.3); tone(880, 0.1, 0.1, 'sine', 0.3); tone(1318, 0.2, 0.2, 'sine', 0.3); break;
-      case 'laser': tone(1800, 0, 0.08, 'sawtooth', 0.2); tone(400, 0.05, 0.1, 'sawtooth', 0.15); break;
-      case 'drop': tone(1200, 0, 0.04, 'sine', 0.3); tone(300, 0.03, 0.15, 'sine', 0.25); break;
-      case 'notify': tone(1046, 0, 0.12, 'triangle', 0.25); tone(1568, 0.1, 0.15, 'triangle', 0.2); break;
-      default: break;
+      case 'pop':tone(900, 0, 0.08, 'sine', 0.5);break;
+      case 'click':tone(1800, 0, 0.03, 'square', 0.25);break;
+      case 'coin':tone(1046, 0, 0.09, 'square', 0.3);tone(1568, 0.08, 0.12, 'square', 0.25);break;
+      case 'wood':tone(220, 0, 0.05, 'triangle', 0.4);tone(160, 0.02, 0.06, 'triangle', 0.25);break;
+      case 'chime':tone(1318, 0, 0.35, 'sine', 0.25);tone(1976, 0.05, 0.4, 'sine', 0.18);break;
+      case 'bubble':tone(500, 0, 0.05, 'sine', 0.3);tone(900, 0.04, 0.08, 'sine', 0.25);break;
+      case 'blip':tone(2400, 0, 0.02, 'square', 0.2);tone(1200, 0.02, 0.03, 'square', 0.18);break;
+      case 'marimba':tone(784, 0, 0.2, 'sine', 0.3);tone(988, 0.03, 0.25, 'sine', 0.2);break;
+      case 'bell':tone(1568, 0, 0.5, 'sine', 0.3);tone(2093, 0.02, 0.5, 'sine', 0.15);break;
+      case 'success':tone(659, 0, 0.1, 'sine', 0.3);tone(880, 0.1, 0.1, 'sine', 0.3);tone(1318, 0.2, 0.2, 'sine', 0.3);break;
+      case 'laser':tone(1800, 0, 0.08, 'sawtooth', 0.2);tone(400, 0.05, 0.1, 'sawtooth', 0.15);break;
+      case 'drop':tone(1200, 0, 0.04, 'sine', 0.3);tone(300, 0.03, 0.15, 'sine', 0.25);break;
+      case 'notify':tone(1046, 0, 0.12, 'triangle', 0.25);tone(1568, 0.1, 0.15, 'triangle', 0.2);break;
+      default:break;
     }
   }
 
   function readPrefs() {
-    try { return JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch { return {}; }
+    try {return JSON.parse(localStorage.getItem(PREF_KEY)) || {};} catch {return {};}
   }
   function writePrefs(p) {
-    try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch { /* ignore */ }
+    try {localStorage.setItem(PREF_KEY, JSON.stringify(p));} catch {/* ignore */}
   }
 
   global.Effects = Effects;
@@ -1713,12 +1713,12 @@ window.KENIOS_DEFAULT_DB = {
   function toLocalDatetimeValue(iso) {
     const d = new Date(iso);
     if (isNaN(d)) return '';
-    const pad = n => String(n).padStart(2, '0');
+    const pad = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+  const esc = (s) => String(s !== null && s !== void 0 ? s : '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
+  })[c]);
 
   // ============================================================
   // BỘ ICON SVG (thay cho emoji "icon máy" — hiển thị đồng nhất, nét mảnh, đẹp trên
@@ -1821,29 +1821,29 @@ window.KENIOS_DEFAULT_DB = {
   const contactChannelIcon = (type) => ICONS[CONTACT_ICON_MAP[type]] || ICONS.headset;
   // Nền tảng liên hệ / nhóm — admin thêm bao nhiêu tuỳ ý, mỗi mục chọn 1 nền tảng.
   const CONTACT_PLATFORMS = [
-    ['zalo', 'Zalo'], ['telegram', 'Telegram'], ['facebook', 'Facebook'], ['messenger', 'Messenger'],
-    ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['discord', 'Discord'],
-    ['phone', 'Hotline'], ['email', 'Email'], ['web', 'Website'], ['other', 'Khác']
-  ];
-  const CONTACT_PLATFORM_LABEL = Object.fromEntries(CONTACT_PLATFORMS);
+  ['zalo', 'Zalo'], ['telegram', 'Telegram'], ['facebook', 'Facebook'], ['messenger', 'Messenger'],
+  ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['discord', 'Discord'],
+  ['phone', 'Hotline'], ['email', 'Email'], ['web', 'Website'], ['other', 'Khác']];
+
+  const CONTACT_PLATFORM_LABEL = CONTACT_PLATFORMS.reduce(function (o, p) { o[p[0]] = p[1]; return o; }, {});
   // Kiểu nền tảng của 1 kênh (tương thích ngược: cấu hình cũ chỉ có id).
   const chType = (ch) => ch.type || ch.id || 'other';
   // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
-  const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
+  const PICKER_ICON_KEYS = ['gamepad', 'target', 'fire', 'bolt', 'shield', 'crown', 'rocket', 'star', 'trophy', 'sword', 'diamond', 'phone', 'web', 'cart', 'tag', 'gift', 'key', 'folder', 'headset', 'bulb', 'heart', 'robot'];
 
   // Nền tảng của SẢN PHẨM — để tách iOS / Android / PC... thành khu riêng NGOÀI danh sách.
   const PLATFORMS = [
-    { key: 'ios', label: 'iOS', icon: 'apple' },
-    { key: 'android', label: 'Android', icon: 'android' },
-    { key: 'pc', label: 'PC / Windows', icon: 'monitor' },
-    { key: 'other', label: 'Khác', icon: 'folder' },
-  ];
-  const platformOf = (s) => PLATFORMS.find(x => x.key === (s && s.platform)) || null;
+  { key: 'ios', label: 'iOS', icon: 'apple' },
+  { key: 'android', label: 'Android', icon: 'android' },
+  { key: 'pc', label: 'PC / Windows', icon: 'monitor' },
+  { key: 'other', label: 'Khác', icon: 'folder' }];
+
+  const platformOf = (s) => PLATFORMS.find((x) => x.key === (s && s.platform)) || null;
 
   function applyIcons(root = document) {
-    $$('[data-icon]', root).forEach(el => {
+    $$('[data-icon]', root).forEach((el) => {
       const name = el.dataset.icon;
-      if (ICONS[name] && !el.dataset.iconDone) { el.innerHTML = ICONS[name]; el.dataset.iconDone = '1'; }
+      if (ICONS[name] && !el.dataset.iconDone) {el.innerHTML = ICONS[name];el.dataset.iconDone = '1';}
     });
   }
   // Trả về SVG cho icon danh mục: ưu tiên key trong ICONS; nếu dữ liệu cũ còn là emoji
@@ -1855,17 +1855,17 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   let selectedCategory = 'all';
-  let selectedSub = 'all';         // lọc theo thư mục con trong mục "Dịch Vụ Nổi Bật"
-  let serviceSort = 'default';     // sắp xếp danh sách sản phẩm
+  let selectedSub = 'all'; // lọc theo thư mục con trong mục "Dịch Vụ Nổi Bật"
+  let serviceSort = 'default'; // sắp xếp danh sách sản phẩm
   let serviceStatusFilter = 'all'; // lọc theo trạng thái còn hàng
-  let browseCategoryId = null;     // null = đang xem danh sách Danh mục; ngược lại = id danh mục đang mở
-  let browseSubId = null;          // null = đang xem Thư mục con; ngược lại = id thư mục con đang mở
+  let browseCategoryId = null; // null = đang xem danh sách Danh mục; ngược lại = id danh mục đang mở
+  let browseSubId = null; // null = đang xem Thư mục con; ngược lại = id thư mục con đang mở
 
   // Sinh ID tự động dạng "01", "02"... cho từng bộ sưu tập (danh mục / thư mục con /
   // sản phẩm) — MỖI bộ có chuỗi số riêng, không dùng chung. Bỏ qua các id chữ cũ.
   function nextSeqId(arr) {
     let max = 0;
-    (arr || []).forEach(item => {
+    (arr || []).forEach((item) => {
       const n = parseInt(String(item.id).replace(/\D/g, ''), 10);
       if (!isNaN(n) && n > max) max = n;
     });
@@ -1875,9 +1875,9 @@ window.KENIOS_DEFAULT_DB = {
   let currentPackage = null;
   let currentDiscount = null; // mã giảm giá đã áp dụng hợp lệ cho sản phẩm đang xem
   let adminActiveTab = 'overview';
-  let adminServiceEditing = null;     // null | 'new' | service id
-  let adminCategoryEditing = null;    // null | 'new' | category id
-  let adminComboEditing = null;       // null | 'new' | combo id
+  let adminServiceEditing = null; // null | 'new' | service id
+  let adminCategoryEditing = null; // null | 'new' | category id
+  let adminComboEditing = null; // null | 'new' | combo id
   let adminSubcategoryEditing = null; // null | 'new' | subcategory id
 
   const LEGAL_CONTENT = {
@@ -1916,13 +1916,13 @@ window.KENIOS_DEFAULT_DB = {
   // Sản phẩm & giá lấy từ bảng giá của trợ lý AI (cfg.aiResponsePrice).
   // ============================================================
   const LiveFeed = (() => {
-    const SURNAMES = ['Nguyễn','Trần','Lê','Phạm','Hoàng','Huỳnh','Phan','Vũ','Võ','Đặng','Bùi','Đỗ','Hồ','Ngô','Dương','Lý','Đinh','Tô','Cao','Mai','Trịnh','Đoàn','Lương','Tạ','Chu'];
-    const GIVENS = ['Minh','Hùng','Quân','Anh','Tuấn','Khoa','Long','Nam','Phúc','Bảo','Đạt','Huy','Kiên','Sơn','Thắng','Vinh','Duy','Tài','Lộc','Phát','Hải','Trung','Dũng','Hoàng','Nghĩa','Khánh','Thịnh','Cường','Đức','Nhân'];
+    const SURNAMES = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Huỳnh', 'Phan', 'Vũ', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý', 'Đinh', 'Tô', 'Cao', 'Mai', 'Trịnh', 'Đoàn', 'Lương', 'Tạ', 'Chu'];
+    const GIVENS = ['Minh', 'Hùng', 'Quân', 'Anh', 'Tuấn', 'Khoa', 'Long', 'Nam', 'Phúc', 'Bảo', 'Đạt', 'Huy', 'Kiên', 'Sơn', 'Thắng', 'Vinh', 'Duy', 'Tài', 'Lộc', 'Phát', 'Hải', 'Trung', 'Dũng', 'Hoàng', 'Nghĩa', 'Khánh', 'Thịnh', 'Cường', 'Đức', 'Nhân'];
 
     let productPool = [];
-    let orders = [];      // {name, product, label, price, time}
-    let deposits = [];    // {name, amount, time}
-    let rank = {};        // name -> tổng nạp tích luỹ
+    let orders = []; // {name, product, label, price, time}
+    let deposits = []; // {name, amount, time}
+    let rank = {}; // name -> tổng nạp tích luỹ
     let timer = null;
     let seenReal = new Set();
 
@@ -1930,12 +1930,12 @@ window.KENIOS_DEFAULT_DB = {
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
     function maskName() {
-      const s = pick(SURNAMES), g = pick(GIVENS);
+      const s = pick(SURNAMES),g = pick(GIVENS);
       switch (rndInt(0, 3)) {
-        case 0: return `${s} ${g[0]}${'*'.repeat(rndInt(2, 4))}`;
-        case 1: return `${s.slice(0, 2)}${'*'.repeat(rndInt(2, 3))} ${g}`;
-        case 2: return `${s} V.${g[0]}${'*'.repeat(2)}`;
-        default: return `${s[0]}${'*'.repeat(3)} ${g}`;
+        case 0:return `${s} ${g[0]}${'*'.repeat(rndInt(2, 4))}`;
+        case 1:return `${s.slice(0, 2)}${'*'.repeat(rndInt(2, 3))} ${g}`;
+        case 2:return `${s} V.${g[0]}${'*'.repeat(2)}`;
+        default:return `${s[0]}${'*'.repeat(3)} ${g}`;
       }
     }
 
@@ -1948,30 +1948,30 @@ window.KENIOS_DEFAULT_DB = {
 
     function buildProductPool(cfg) {
       const pool = [];
-      const text = (cfg && cfg.aiResponsePrice) || '';
+      const text = cfg && cfg.aiResponsePrice || '';
       let current = '';
-      text.split('\n').forEach(raw => {
+      text.split('\n').forEach((raw) => {
         const line = raw.replace(/[\u{1F000}-\u{1FFFF}☀-➿←-⇿️]/gu, '').trim();
         if (!line) return;
-        if (/https?:|zalo|telegram|linkbio|cảm ơn|bảng giá|android|ios/i.test(line) && !/\d+\s*[kK]?\s*\//.test(line)) { return; }
+        if (/https?:|zalo|telegram|linkbio|cảm ơn|bảng giá|android|ios/i.test(line) && !/\d+\s*[kK]?\s*\//.test(line)) {return;}
         const hasPrice = /\d+\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T\b)/i.test(line);
-        if (!hasPrice) { current = line.replace(/[:\-–].*$/, '').trim(); return; }
+        if (!hasPrice) {current = line.replace(/[:\-–].*$/, '').trim();return;}
         let name = current;
         const inline = line.match(/^([^:0-9]+):/);
         if (inline) name = inline[1].trim();
         if (!name) return;
         const re = /(\d+)\s*[kK]?\s*\/\s*(Tháng|Tuần|Ngày|T)\b([^\/\d]*)/gi;
         let m;
-        while ((m = re.exec(line))) {
-          let label = m[2]; if (/^T$/i.test(label)) label = 'Tháng';
+        while (m = re.exec(line)) {
+          let label = m[2];if (/^T$/i.test(label)) label = 'Tháng';
           const extra = (m[3] || '').replace(/[^\p{L}\s]/gu, '').trim();
           if (extra) label += ' ' + extra;
           pool.push({ product: name, label, price: parsePrice(m[1]) });
         }
       });
       if (!pool.length) {
-        ['VNHAX','OASIS VIP','KING','TIMO VIP','FREE FIRE','LIÊN QUÂN'].forEach(p =>
-          pool.push({ product: p, label: pick(['Tháng', 'Tuần']), price: rndInt(2, 12) * 50000 }));
+        ['VNHAX', 'OASIS VIP', 'KING', 'TIMO VIP', 'FREE FIRE', 'LIÊN QUÂN'].forEach((p) =>
+        pool.push({ product: p, label: pick(['Tháng', 'Tuần']), price: rndInt(2, 12) * 50000 }));
       }
       return pool;
     }
@@ -1991,22 +1991,22 @@ window.KENIOS_DEFAULT_DB = {
     function makeFakeOrder(agoMax) {
       const p = pick(productPool);
       return { name: maskName(), product: p.product, label: p.label, price: p.price,
-               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+        time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
     }
     function makeFakeDeposit(agoMax) {
       return { name: maskName(), amount: pick(DEPOSIT_AMOUNTS),
-               time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
+        time: Date.now() - rndInt(3, agoMax || 90) * 1000, fake: true };
     }
 
     function seed() {
-      orders = []; deposits = []; rank = {};
+      orders = [];deposits = [];rank = {};
       // Bảng xếp hạng: một nhóm "đại gia" nạp tích luỹ lớn
       for (let i = 0; i < 12; i++) rank[maskName()] = rndInt(6, 90) * 500000;
       // Lịch sử gần đây
       let t = 5;
-      for (let i = 0; i < 14; i++) { const o = makeFakeOrder(); o.time = Date.now() - t * 1000; orders.push(o); t += rndInt(20, 120); }
+      for (let i = 0; i < 14; i++) {const o = makeFakeOrder();o.time = Date.now() - t * 1000;orders.push(o);t += rndInt(20, 120);}
       t = 8;
-      for (let i = 0; i < 14; i++) { const d = makeFakeDeposit(); d.time = Date.now() - t * 1000; deposits.push(d); rank[d.name] = (rank[d.name] || 0) + d.amount; t += rndInt(20, 120); }
+      for (let i = 0; i < 14; i++) {const d = makeFakeDeposit();d.time = Date.now() - t * 1000;deposits.push(d);rank[d.name] = (rank[d.name] || 0) + d.amount;t += rndInt(20, 120);}
       orders.sort((a, b) => b.time - a.time);
       deposits.sort((a, b) => b.time - a.time);
     }
@@ -2014,15 +2014,15 @@ window.KENIOS_DEFAULT_DB = {
     function mergeReal(db) {
       if (!db) return;
       // Đơn hàng thật -> giao dịch gần đây (mua)
-      (db.orders || []).forEach(o => {
+      (db.orders || []).forEach((o) => {
         const key = 'O' + o.id;
         if (seenReal.has(key)) return;
         seenReal.add(key);
         orders.unshift({ name: 'Bạn', product: o.serviceName || 'Sản phẩm', label: (o.packageName || '').replace(/^Gói\s*/i, ''),
-                         price: o.price || 0, time: Date.parse(o.date) || Date.now(), fake: false, real: true });
+          price: o.price || 0, time: Date.parse(o.date) || Date.now(), fake: false, real: true });
       });
       // Nạp tiền thật -> nạp tiền gần đây + cộng bảng xếp hạng (không mất dữ liệu ảo)
-      (db.transactions || []).filter(x => x.type === 'deposit' && x.amount > 0).forEach(x => {
+      (db.transactions || []).filter((x) => x.type === 'deposit' && x.amount > 0).forEach((x) => {
         const key = 'D' + x.id;
         if (seenReal.has(key)) return;
         seenReal.add(key);
@@ -2035,16 +2035,16 @@ window.KENIOS_DEFAULT_DB = {
 
     function tick() {
       // Thêm 1 mục ảo mới, cập nhật lại thời gian tương đối
-      if (Math.random() < 0.55) { orders.unshift(makeFakeOrder(6)); }
-      else { const d = makeFakeDeposit(6); deposits.unshift(d); rank[d.name] = (rank[d.name] || 0) + d.amount; }
+      if (Math.random() < 0.55) {orders.unshift(makeFakeOrder(6));} else
+      {const d = makeFakeDeposit(6);deposits.unshift(d);rank[d.name] = (rank[d.name] || 0) + d.amount;}
       // Thỉnh thoảng "đại gia" nạp thêm để bảng xếp hạng nhảy
-      if (Math.random() < 0.25) { const names = Object.keys(rank); if (names.length) { const n = pick(names); rank[n] += pick(DEPOSIT_AMOUNTS); } }
+      if (Math.random() < 0.25) {const names = Object.keys(rank);if (names.length) {const n = pick(names);rank[n] += pick(DEPOSIT_AMOUNTS);}}
       if (orders.length > 40) orders.length = 40;
       if (deposits.length > 40) deposits.length = 40;
       render();
     }
 
-    function medal(i) { return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''; }
+    function medal(i) {return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';}
 
     function render() {
       const rankEl = $('#rankList');
@@ -2059,7 +2059,7 @@ window.KENIOS_DEFAULT_DB = {
       }
       const ordEl = $('#orderFeed');
       if (ordEl) {
-        ordEl.innerHTML = orders.slice(0, 8).map(o => `
+        ordEl.innerHTML = orders.slice(0, 8).map((o) => `
           <div class="feed-row${o.real ? ' feed-real' : ''}">
             <span class="feed-ava" data-icon="cart"></span>
             <span class="feed-main"><b>${esc(o.name)}</b> mua <b>${esc(o.product)}</b>${o.label ? ` · ${esc(o.label)}` : ''}<span class="feed-time">${relTime(o.time)}</span></span>
@@ -2069,7 +2069,7 @@ window.KENIOS_DEFAULT_DB = {
       }
       const depEl = $('#depositFeed');
       if (depEl) {
-        depEl.innerHTML = deposits.slice(0, 8).map(d => `
+        depEl.innerHTML = deposits.slice(0, 8).map((d) => `
           <div class="feed-row${d.real ? ' feed-real' : ''}">
             <span class="feed-ava dep" data-icon="wallet"></span>
             <span class="feed-main"><b>${esc(d.name)}</b> đã nạp<span class="feed-time">${relTime(d.time)}</span></span>
@@ -2086,7 +2086,7 @@ window.KENIOS_DEFAULT_DB = {
       render();
       if (timer) clearInterval(timer);
       timer = setInterval(tick, rndInt(6000, 9000));
-      Store.onChange(db => { mergeReal(db); render(); });
+      Store.onChange((db) => {mergeReal(db);render();});
     }
 
     return { init };
@@ -2105,7 +2105,7 @@ window.KENIOS_DEFAULT_DB = {
     track.style.animation = 'none';
     track.style.willChange = 'transform';
 
-    if (_marqueeRaf) { cancelAnimationFrame(_marqueeRaf); _marqueeRaf = null; }
+    if (_marqueeRaf) {cancelAnimationFrame(_marqueeRaf);_marqueeRaf = null;}
 
     let pos = 0;
     let lastTime = null;
@@ -2137,7 +2137,7 @@ window.KENIOS_DEFAULT_DB = {
     const bar = $('#flashSaleBar');
     if (!bar) return;
     const f = Store.flashSaleInfo();
-    if (!f.active) { bar.hidden = true; return; }
+    if (!f.active) {bar.hidden = true;return;}
     bar.hidden = false;
     setText('#flashSaleTitle', f.title || 'FLASH SALE');
     setText('#flashSaleDesc', `Giảm ${f.percent}% toàn bộ sản phẩm`);
@@ -2146,10 +2146,10 @@ window.KENIOS_DEFAULT_DB = {
       const ms = f.remainingMs;
       const s = Math.floor(ms / 1000);
       const d = Math.floor(s / 86400);
-      const h = Math.floor((s % 86400) / 3600);
-      const m = Math.floor((s % 3600) / 60);
+      const h = Math.floor(s % 86400 / 3600);
+      const m = Math.floor(s % 3600 / 60);
       const sec = s % 60;
-      const pad = n => String(n).padStart(2, '0');
+      const pad = (n) => String(n).padStart(2, '0');
       cd.textContent = (d > 0 ? `${d} ngày ` : '') + `${pad(h)}:${pad(m)}:${pad(sec)}`;
       cd.hidden = false;
     } else {
@@ -2175,22 +2175,22 @@ window.KENIOS_DEFAULT_DB = {
     const t = theme === 'light' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', t);
     // Cập nhật MỌI nút chuyển sáng/tối (hiện chỉ còn 1 nút trong menu 3 gạch).
-    $$('[data-theme-toggle]').forEach(btn => {
-      btn.innerHTML = t === 'light' ? (ICONS.moon || '🌙') : (ICONS.sun || '☀️');
+    $$('[data-theme-toggle]').forEach((btn) => {
+      btn.innerHTML = t === 'light' ? ICONS.moon || '🌙' : ICONS.sun || '☀️';
       btn.setAttribute('aria-label', t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng');
       btn.title = t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng';
     });
   }
   function wireThemeToggle() {
     let saved = 'dark';
-    try { saved = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
+    try {saved = localStorage.getItem(THEME_KEY) || 'dark';} catch {}
     applyTheme(saved);
-    $$('[data-theme-toggle]').forEach(btn => btn.addEventListener('click', (e) => {
-      e.preventDefault(); e.stopPropagation();
+    $$('[data-theme-toggle]').forEach((btn) => btn.addEventListener('click', (e) => {
+      e.preventDefault();e.stopPropagation();
       const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
       const next = cur === 'light' ? 'dark' : 'light';
       applyTheme(next);
-      try { localStorage.setItem(THEME_KEY, next); } catch {}
+      try {localStorage.setItem(THEME_KEY, next);} catch {}
     }));
   }
 
@@ -2199,7 +2199,7 @@ window.KENIOS_DEFAULT_DB = {
     // Đăng ký service worker NGAY (boot chạy sau khi trang đã tải nên không cần chờ 'load';
     // đợi 'load' sẽ lỡ sự kiện vì boot await fetch xong mới tới đây).
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./sw.js').catch(() => { /* không sao nếu thất bại */ });
+      navigator.serviceWorker.register('./sw.js').catch(() => {/* không sao nếu thất bại */});
     }
     const btn = $('#installAppBtn');
     if (!btn) return;
@@ -2213,7 +2213,7 @@ window.KENIOS_DEFAULT_DB = {
       deferredPrompt = e;
       btn.hidden = false;
     });
-    window.addEventListener('appinstalled', () => { btn.hidden = true; deferredPrompt = null; toast('Đã cài KENIOS.STORE vào màn hình chính!', 'success'); });
+    window.addEventListener('appinstalled', () => {btn.hidden = true;deferredPrompt = null;toast('Đã cài KENIOS.STORE vào màn hình chính!', 'success');});
 
     // iPhone/iPad Safari không có beforeinstallprompt -> hiện nút kèm hướng dẫn thủ công.
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -2222,7 +2222,7 @@ window.KENIOS_DEFAULT_DB = {
     btn.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        try { await deferredPrompt.userChoice; } catch { /* ignore */ }
+        try {await deferredPrompt.userChoice;} catch {/* ignore */}
         deferredPrompt = null;
         btn.hidden = true;
       } else if (isIos) {
@@ -2247,7 +2247,7 @@ window.KENIOS_DEFAULT_DB = {
   async function boot() {
     // Chạy từng bước có bọc lỗi: một hàm lỗi (VD thiếu phần tử) KHÔNG được làm sập
     // cả trang và kẹt màn hình chờ. Ghi log để còn gỡ lỗi.
-    const step = (fn, name) => { try { fn(); } catch (e) { console.error('Boot lỗi ở ' + name + ':', e); } };
+    const step = (fn, name) => {try {fn();} catch (e) {console.error('Boot lỗi ở ' + name + ':', e);}};
     // Phao cứu: dù có bất kỳ lỗi/treo nào, sau 12s vẫn gỡ màn hình chờ để người dùng
     // thấy được trang (đặc biệt trên trình duyệt trong app Telegram/Zalo).
     const failsafe = setTimeout(hideBootLoader, 12000);
@@ -2260,7 +2260,7 @@ window.KENIOS_DEFAULT_DB = {
       console.error('Store.init lỗi, dùng dữ liệu mặc định:', e);
       // Dùng window.* (không phải global.* — IIFE này không có tham số global nên sẽ lỗi
       // ReferenceError khiến fallback không chạy, web trắng khi máy chủ chậm/lỗi).
-      try { Store.db = JSON.parse(JSON.stringify(window.KENIOS_DEFAULT_DB)); } catch (_) {}
+      try {Store.db = JSON.parse(JSON.stringify(window.KENIOS_DEFAULT_DB));} catch (_) {}
     }
     step(() => Store.onChange(renderDynamic), 'onChange');
 
@@ -2336,7 +2336,7 @@ window.KENIOS_DEFAULT_DB = {
     applySiteBackground(cfg.siteBgUrl);
 
     const m = `${ico('megaphone')} ${esc(cfg.marqueeText || '')}`;
-    const mq1 = $('#marqueeText1'), mq2 = $('#marqueeText2');
+    const mq1 = $('#marqueeText1'),mq2 = $('#marqueeText2');
     if (mq1) mq1.innerHTML = m;
     if (mq2) mq2.innerHTML = m;
     // Marquee chạy bằng JS requestAnimationFrame — không bị block bởi prefers-reduced-motion hay CSS cache
@@ -2355,15 +2355,15 @@ window.KENIOS_DEFAULT_DB = {
 
   // ---- Đăng nhập bằng Google (một chạm, không cần mã xác nhận) ----
   let _gsiScriptLoading = null;
-  function loadGoogleScript() {
-    if (window.google?.accounts?.id) return Promise.resolve();
+  function loadGoogleScript() {var _window$google;
+    if ((_window$google = window.google) !== null && _window$google !== void 0 && (_window$google = _window$google.accounts) !== null && _window$google !== void 0 && _window$google.id) return Promise.resolve();
     if (_gsiScriptLoading) return _gsiScriptLoading;
     _gsiScriptLoading = new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = 'https://accounts.google.com/gsi/client';
       s.async = true;
       s.onload = resolve;
-      s.onerror = () => { _gsiScriptLoading = null; reject(new Error('Không tải được Google Sign-In script.')); };
+      s.onerror = () => {_gsiScriptLoading = null;reject(new Error('Không tải được Google Sign-In script.'));};
       document.head.appendChild(s);
     });
     return _gsiScriptLoading;
@@ -2373,7 +2373,7 @@ window.KENIOS_DEFAULT_DB = {
     const box = $('#googleSignInBox');
     const fallback = $('#googleFallbackBtn');
     if (!box) return;
-    if (!cfg.googleClientId) { box.hidden = true; return; }
+    if (!cfg.googleClientId) {box.hidden = true;return;}
     try {
       await loadGoogleScript();
       box.hidden = false;
@@ -2394,25 +2394,25 @@ window.KENIOS_DEFAULT_DB = {
     Store.loginWithGoogle(response.credential).then(() => {
       closeModal('#authModal');
       toast('Đăng nhập bằng Google thành công!', 'success');
-    }).catch(err => toast(err.message, 'error'));
+    }).catch((err) => toast(err.message, 'error'));
   }
 
   // ---- Thương hiệu: logo (ảnh/font/màu) + màu chủ đạo toàn site ----
   // Font chữ logo — gồm font chữ thường + nhiều font ĐẬM / 3D / display cho logo game.
   // (Bungee Shade có sẵn hiệu ứng bóng 3D; Russo One/Black Ops One/Anton… kiểu chữ khối 3D.)
   const LOGO_FONTS = [
-    'Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Pacifico',
-    'Orbitron', 'Russo One', 'Black Ops One', 'Anton', 'Staatliches', 'Archivo Black',
-    'Bungee', 'Bungee Shade', 'Bungee Inline', 'Titan One', 'Bowlby One SC',
-    'Rubik Mono One', 'Passion One', 'Luckiest Guy', 'Bangers', 'Fredoka',
-    'Righteous', 'Monoton', 'Faster One',
-  ];
+  'Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Pacifico',
+  'Orbitron', 'Russo One', 'Black Ops One', 'Anton', 'Staatliches', 'Archivo Black',
+  'Bungee', 'Bungee Shade', 'Bungee Inline', 'Titan One', 'Bowlby One SC',
+  'Rubik Mono One', 'Passion One', 'Luckiest Guy', 'Bangers', 'Fredoka',
+  'Righteous', 'Monoton', 'Faster One'];
+
   // Font có nhiều độ đậm (nạp kèm trục wght); còn lại là font 1 độ đậm → nạp trơn.
   const WEIGHTED_FONTS = new Set(['Be Vietnam Pro', 'Poppins', 'Montserrat', 'Playfair Display', 'Fredoka']);
   const BANK_OPTIONS = [
-    'ACB', 'Vietcombank', 'VietinBank', 'BIDV', 'MBBank', 'Techcombank', 'VPBank',
-    'TPBank', 'Sacombank', 'HDBank', 'SHB', 'OCB', 'MSB', 'SeABank', 'VIB', 'Agribank'
-  ];
+  'ACB', 'Vietcombank', 'VietinBank', 'BIDV', 'MBBank', 'Techcombank', 'VPBank',
+  'TPBank', 'Sacombank', 'HDBank', 'SHB', 'OCB', 'MSB', 'SeABank', 'VIB', 'Agribank'];
+
   const _loadedFonts = new Set(['Be Vietnam Pro']);
 
   function ensureFontLoaded(fontName) {
@@ -2442,14 +2442,14 @@ window.KENIOS_DEFAULT_DB = {
     const grid = $('#contactGroups');
     const empty = $('#contactEmpty');
     if (!grid) return;
-    const enabled = (cfg.contactChannels || []).filter(c => c.enabled && c.url);
+    const enabled = (cfg.contactChannels || []).filter((c) => c.enabled && c.url);
     if (!enabled.length) {
       grid.innerHTML = '';
       if (empty) empty.hidden = false;
       return;
     }
     if (empty) empty.hidden = true;
-    grid.innerHTML = enabled.map(c => {
+    grid.innerHTML = enabled.map((c) => {
       const t = chType(c);
       const isTel = c.url.startsWith('tel:') || c.url.startsWith('mailto:');
       const attrs = isTel ? '' : 'target="_blank" rel="noopener"';
@@ -2469,16 +2469,16 @@ window.KENIOS_DEFAULT_DB = {
 
   function renderContactWidget(container, channels, opts = {}) {
     if (!container) return;
-    const enabled = channels.filter(c => c.enabled && c.url);
+    const enabled = channels.filter((c) => c.enabled && c.url);
     container.innerHTML = '';
-    if (!enabled.length) { container.hidden = true; return; }
+    if (!enabled.length) {container.hidden = true;return;}
     container.hidden = false;
 
     if (enabled.length === 1) {
       const c = enabled[0];
       const a = document.createElement('a');
       a.href = c.url;
-      if (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
+      if (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) {a.target = '_blank';a.rel = 'noopener';}
       a.className = opts.btnClass;
       a.innerHTML = `<span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}`;
       container.appendChild(a);
@@ -2493,11 +2493,11 @@ window.KENIOS_DEFAULT_DB = {
     btn.innerHTML = `${ico('headset')} Liên hệ`;
     const dropdown = document.createElement('div');
     dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
-    dropdown.innerHTML = enabled.map(c => {
-      const targetAttrs = (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) ? 'target="_blank" rel="noopener"' : '';
+    dropdown.innerHTML = enabled.map((c) => {
+      const targetAttrs = !c.url.startsWith('tel:') && !c.url.startsWith('mailto:') ? 'target="_blank" rel="noopener"' : '';
       return `<a href="${esc(c.url)}" ${targetAttrs}><span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}</a>`;
     }).join('');
-    btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
+    btn.addEventListener('click', (e) => {e.stopPropagation();dropdown.classList.toggle('open');});
     document.addEventListener('click', () => dropdown.classList.remove('open'));
     wrap.appendChild(btn);
     wrap.appendChild(dropdown);
@@ -2509,22 +2509,22 @@ window.KENIOS_DEFAULT_DB = {
     // viền/nền trang trí) như app-icon, dù admin có đặt logo riêng hay không.
     const hasPhoto = true;
     const logoUrl = cfg.logoUrl || '';
-    const isVid = isVideoUrl(logoUrl);           // logo là VIDEO -> dùng <video>, không phải <img>
+    const isVid = isVideoUrl(logoUrl); // logo là VIDEO -> dùng <video>, không phải <img>
     const src = logoUrl || './logo.png';
-    $$('.brand-mark-wrap, .mobile-nav-brand-mark, .auth-logo').forEach(w => {
+    $$('.brand-mark-wrap, .mobile-nav-brand-mark, .auth-logo').forEach((w) => {
       w.classList.toggle('has-photo', hasPhoto);
       const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
-      w.innerHTML = isVid
-        ? `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline></video>`
-        : `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
+      w.innerHTML = isVid ?
+      `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline></video>` :
+      `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
     });
 
     // Áp logo cho MỌI chỗ khác có logo: favicon (tab trình duyệt), apple-touch-icon, màn
     // hình chờ, màn bảo trì, logo modal đăng nhập. Logo dạng VIDEO không dùng được cho các
     // chỗ này (favicon/ảnh) nên tự động dùng ảnh logo mặc định.
-    const imgLogo = (logoUrl && !isVid) ? logoUrl : './logo.png';
-    document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach(l => { l.href = imgLogo; });
-    document.querySelectorAll('.maintenance-logo, .boot-loader-mark').forEach(img => { if (img.tagName === 'IMG') img.src = imgLogo; });
+    const imgLogo = logoUrl && !isVid ? logoUrl : './logo.png';
+    document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach((l) => {l.href = imgLogo;});
+    document.querySelectorAll('.maintenance-logo, .boot-loader-mark').forEach((img) => {if (img.tagName === 'IMG') img.src = imgLogo;});
     const authLogoImg = document.querySelector('.auth-logo img');
     if (authLogoImg) authLogoImg.src = imgLogo;
 
@@ -2549,10 +2549,10 @@ window.KENIOS_DEFAULT_DB = {
     const motionMode = cfg.logoMotionMode || 'none';
     // Áp hiệu ứng cho logo header, logo menu 3 gạch VÀ logo banner hero — để hero
     // luôn ĐỒNG BỘ (màu chạy + chuyển động) với logo chính khi admin đổi cấu hình.
-    $$('#brandName, #mobileNavBrandName, #heroBrandName').forEach(el => {
+    $$('#brandName, #mobileNavBrandName, #heroBrandName').forEach((el) => {
       el.classList.remove(
-        ...LOGO_COLOR_MODES.map(m => 'logo-color-' + m),
-        ...LOGO_MOTION_MODES.map(m => 'logo-motion-' + m)
+        ...LOGO_COLOR_MODES.map((m) => 'logo-color-' + m),
+        ...LOGO_MOTION_MODES.map((m) => 'logo-motion-' + m)
       );
       const anims = [];
       if (LOGO_COLOR_ANIM[colorMode]) {
@@ -2582,7 +2582,7 @@ window.KENIOS_DEFAULT_DB = {
       logoMotionMode: fd.get('logoMotionMode') || 'none',
       logoMotionSpeed: parseFloat(fd.get('logoMotionSpeed')) || 2,
       accentColor: fd.get('accentColor') || Store.db.config.accentColor,
-      logoUrl: fd.get('logoUrl') != null ? fd.get('logoUrl') : Store.db.config.logoUrl,
+      logoUrl: fd.get('logoUrl') != null ? fd.get('logoUrl') : Store.db.config.logoUrl
     });
     applyBranding(preview);
   }
@@ -2637,19 +2637,19 @@ window.KENIOS_DEFAULT_DB = {
   // danh sách sản phẩm kèm giá & tình trạng còn hàng. Giúp lên kết quả tìm kiếm đẹp hơn.
   function injectSeoJsonLd() {
     try {
-      const cfg = (Store.db && Store.db.config) || {};
+      const cfg = Store.db && Store.db.config || {};
       const base = location.origin + location.pathname.replace(/[^/]*$/, '');
       const storeName = cfg.logoText || 'KENIOS.STORE';
-      const abs = u => (u && /^https?:/i.test(u)) ? u : '';
+      const abs = (u) => u && /^https?:/i.test(u) ? u : '';
       const desc = cfg.metaDescription || cfg.welcomePopupMessage || 'Cửa hàng dịch vụ game & thiết kế website.';
-      const store = { '@type': 'OnlineStore', name: storeName, url: base, logo: abs(cfg.logoUrl) || (base + 'logo.png'), description: desc };
-      const sameAs = (cfg.contactChannels || []).filter(c => c && c.enabled && abs(c.url)).map(c => c.url);
+      const store = { '@type': 'OnlineStore', name: storeName, url: base, logo: abs(cfg.logoUrl) || base + 'logo.png', description: desc };
+      const sameAs = (cfg.contactChannels || []).filter((c) => c && c.enabled && abs(c.url)).map((c) => c.url);
       if (sameAs.length) store.sameAs = sameAs;
-      const services = (Store.db && Store.db.services) || [];
+      const services = Store.db && Store.db.services || [];
       const items = services.slice(0, 50).map((s, i) => {
-        const prices = (s.packages || []).map(p => parseFloat(p.price)).filter(n => n > 0);
+        const prices = (s.packages || []).map((p) => parseFloat(p.price)).filter((n) => n > 0);
         const minPrice = prices.length ? Math.min(...prices) : 0;
-        const inStock = (s.packages || []).some(p => p.keyCount == null || p.keyCount > 0 || (p.keys && p.keys.length));
+        const inStock = (s.packages || []).some((p) => p.keyCount == null || p.keyCount > 0 || p.keys && p.keys.length);
         const product = {
           '@type': 'Product', name: s.name || 'Sản phẩm', description: s.description || storeName,
           offers: { '@type': 'Offer', price: minPrice, priceCurrency: 'VND', url: base,
@@ -2662,9 +2662,9 @@ window.KENIOS_DEFAULT_DB = {
       if (items.length) graph.push({ '@type': 'ItemList', name: 'Sản phẩm & dịch vụ', itemListElement: items });
       const json = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
       let el = document.getElementById('seoJsonLd');
-      if (!el) { el = document.createElement('script'); el.type = 'application/ld+json'; el.id = 'seoJsonLd'; document.head.appendChild(el); }
+      if (!el) {el = document.createElement('script');el.type = 'application/ld+json';el.id = 'seoJsonLd';document.head.appendChild(el);}
       el.textContent = json;
-    } catch (e) { console.error('SEO JSON-LD lỗi:', e); }
+    } catch (e) {console.error('SEO JSON-LD lỗi:', e);}
   }
 
   // Hiển thị các combo ưu đãi ở trang chủ (ẩn section nếu chưa có combo nào).
@@ -2673,17 +2673,17 @@ window.KENIOS_DEFAULT_DB = {
     const grid = $('#comboGrid');
     if (!section || !grid) return;
     const combos = Store.combos();
-    if (!combos.length) { section.hidden = true; grid.innerHTML = ''; return; }
+    if (!combos.length) {section.hidden = true;grid.innerHTML = '';return;}
     section.hidden = false;
-    grid.innerHTML = combos.map(c => {
+    grid.innerHTML = combos.map((c) => {
       const orig = Store.comboOriginalPrice(c);
       const save = orig - (Number(c.price) || 0);
-      const mediaHtml = c.image ? (isVideoUrl(c.image)
-        ? `<video class="combo-media" src="${esc(c.image)}" muted loop autoplay playsinline></video>`
-        : `<div class="combo-media" style="background-image:url('${esc(c.image)}')"></div>`) : '';
-      const itemsHtml = (c.items || []).map(it => {
-        const svc = Store.db.services.find(s => s.id === it.serviceId);
-        const pkg = svc && (svc.packages || []).find(p => p.id === it.packageId);
+      const mediaHtml = c.image ? isVideoUrl(c.image) ?
+      `<video class="combo-media" src="${esc(c.image)}" muted loop autoplay playsinline></video>` :
+      `<div class="combo-media" style="background-image:url('${esc(c.image)}')"></div>` : '';
+      const itemsHtml = (c.items || []).map((it) => {
+        const svc = Store.db.services.find((s) => s.id === it.serviceId);
+        const pkg = svc && (svc.packages || []).find((p) => p.id === it.packageId);
         return svc && pkg ? `<li>${esc(svc.name)} — ${esc(pkg.name)}</li>` : '';
       }).join('');
       return `
@@ -2701,12 +2701,12 @@ window.KENIOS_DEFAULT_DB = {
           </div>
         </div>`;
     }).join('');
-    $$('[data-buy-combo]', grid).forEach(btn => { btn.onclick = () => buyComboFlow(btn.dataset.buyCombo); });
+    $$('[data-buy-combo]', grid).forEach((btn) => {btn.onclick = () => buyComboFlow(btn.dataset.buyCombo);});
   }
 
   function buyComboFlow(comboId) {
-    if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi mua.', 'error'); openModal('#authModal'); return; }
-    const combo = Store.combos().find(c => c.id === comboId);
+    if (!Store.currentUser()) {toast('Vui lòng đăng nhập trước khi mua.', 'error');openModal('#authModal');return;}
+    const combo = Store.combos().find((c) => c.id === comboId);
     if (!combo) return;
     // Nhắc nhẹ trước khi mua combo (tránh bấm nhầm mất tiền).
     if (!confirm(`Mua combo "${combo.name}" với giá ${fmt(combo.price)}? Số tiền sẽ trừ vào số dư của bạn.`)) return;
@@ -2715,7 +2715,7 @@ window.KENIOS_DEFAULT_DB = {
         await Store.purchaseCombo(comboId);
         toast('Mua combo thành công! Xem key trong "Đơn hàng của tôi".', 'success');
         openOrdersModal();
-      } catch (err) { toast(err.message, 'error'); }
+      } catch (err) {toast(err.message, 'error');}
     })();
   }
 
@@ -2726,15 +2726,15 @@ window.KENIOS_DEFAULT_DB = {
     if (!grid || !section) return;
     // Mặc định ẨN mục "Hình ảnh & Video" cho web nhẹ (không tải ảnh/video thừa).
     // Admin có thể bật lại: Cấu hình → "Hiện mục Hình ảnh & Video".
-    if (Store.db.config.showcaseEnabled !== true) { section.hidden = true; grid.innerHTML = ''; return; }
-    const media = (Store.db.media || []).filter(m => m.showcase !== false);
-    if (!media.length) { section.hidden = true; grid.innerHTML = ''; return; }
+    if (Store.db.config.showcaseEnabled !== true) {section.hidden = true;grid.innerHTML = '';return;}
+    const media = (Store.db.media || []).filter((m) => m.showcase !== false);
+    if (!media.length) {section.hidden = true;grid.innerHTML = '';return;}
     section.hidden = false;
-    grid.innerHTML = media.map(m => `
+    grid.innerHTML = media.map((m) => `
       <div class="showcase-item">
-        ${m.type === 'video'
-          ? `<video src="${esc(m.url)}" muted loop autoplay playsinline></video>`
-          : `<img src="${esc(m.url)}" alt="${esc(m.name || '')}" loading="lazy">`}
+        ${m.type === 'video' ?
+    `<video src="${esc(m.url)}" muted loop autoplay playsinline></video>` :
+    `<img src="${esc(m.url)}" alt="${esc(m.name || '')}" loading="lazy">`}
       </div>`).join('');
   }
 
@@ -2760,16 +2760,16 @@ window.KENIOS_DEFAULT_DB = {
 
   function renderBreadcrumb() {
     const bc = $('#categoryBreadcrumb');
-    if (!browseCategoryId) { bc.hidden = true; bc.innerHTML = ''; return; }
-    const cat = Store.db.categories.find(c => c.id === browseCategoryId);
-    const sub = browseSubId ? (Store.db.subcategories || []).find(s => s.id === browseSubId) : null;
+    if (!browseCategoryId) {bc.hidden = true;bc.innerHTML = '';return;}
+    const cat = Store.db.categories.find((c) => c.id === browseCategoryId);
+    const sub = browseSubId ? (Store.db.subcategories || []).find((s) => s.id === browseSubId) : null;
     const crumbs = [
-      `<button class="crumb" data-crumb="root"><span class="crumb-ico" data-crumb-back>${ICONS.back}</span>Danh mục</button>`,
-      `<span class="crumb-sep">${ICONS.chevron}</span>`,
-      sub
-        ? `<button class="crumb" data-crumb="category">${esc(cat ? cat.name : '')}</button>`
-        : `<span class="crumb current">${esc(cat ? cat.name : '')}</span>`
-    ];
+    `<button class="crumb" data-crumb="root"><span class="crumb-ico" data-crumb-back>${ICONS.back}</span>Danh mục</button>`,
+    `<span class="crumb-sep">${ICONS.chevron}</span>`,
+    sub ?
+    `<button class="crumb" data-crumb="category">${esc(cat ? cat.name : '')}</button>` :
+    `<span class="crumb current">${esc(cat ? cat.name : '')}</span>`];
+
     if (sub) {
       crumbs.push(`<span class="crumb-sep">${ICONS.chevron}</span>`, `<span class="crumb current">${esc(sub.name)}</span>`);
     }
@@ -2784,24 +2784,24 @@ window.KENIOS_DEFAULT_DB = {
 
     if (!browseCategoryId) {
       // Cấp 1: danh sách Danh mục (bỏ webdesign vì đã có mục "Thiết Kế Website" riêng).
-      const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
-      grid.innerHTML = cats.map(c => categoryCardHtml(c, 'category')).join('')
-        || '<p class="empty-note">Chưa có danh mục nào.</p>';
+      const cats = Store.db.categories.filter((c) => c.id !== 'webdesign');
+      grid.innerHTML = cats.map((c) => categoryCardHtml(c, 'category')).join('') ||
+      '<p class="empty-note">Chưa có danh mục nào.</p>';
     } else {
-      const subs = (Store.db.subcategories || []).filter(s => s.categoryId === browseCategoryId);
+      const subs = (Store.db.subcategories || []).filter((s) => s.categoryId === browseCategoryId);
       if (!browseSubId && subs.length) {
         // Cấp 2: các Thư mục con của danh mục + sản phẩm gắn thẳng danh mục (nếu có).
-        const directProducts = Store.db.services.filter(s => s.categoryId === browseCategoryId && !s.subcategoryId);
-        grid.innerHTML = subs.map(s => categoryCardHtml(s, 'subcategory')).join('')
-          + directProducts.map(serviceCardHtml).join('');
+        const directProducts = Store.db.services.filter((s) => s.categoryId === browseCategoryId && !s.subcategoryId);
+        grid.innerHTML = subs.map((s) => categoryCardHtml(s, 'subcategory')).join('') +
+        directProducts.map(serviceCardHtml).join('');
       } else {
         // Cấp 3: sản phẩm trong thư mục con (hoặc trong danh mục nếu danh mục không có thư mục con).
-        const products = browseSubId
-          ? Store.db.services.filter(s => s.subcategoryId === browseSubId)
-          : Store.db.services.filter(s => s.categoryId === browseCategoryId);
-        grid.innerHTML = products.length
-          ? products.map(serviceCardHtml).join('')
-          : '<p class="empty-note">Chưa có sản phẩm nào trong mục này.</p>';
+        const products = browseSubId ?
+        Store.db.services.filter((s) => s.subcategoryId === browseSubId) :
+        Store.db.services.filter((s) => s.categoryId === browseCategoryId);
+        grid.innerHTML = products.length ?
+        products.map(serviceCardHtml).join('') :
+        '<p class="empty-note">Chưa có sản phẩm nào trong mục này.</p>';
       }
     }
     applyImageFallbacks(grid, '.category-media');
@@ -2829,8 +2829,8 @@ window.KENIOS_DEFAULT_DB = {
     bc.onclick = (e) => {
       const crumb = e.target.closest('[data-crumb]');
       if (!crumb) return;
-      if (crumb.dataset.crumb === 'root') { browseCategoryId = null; browseSubId = null; }
-      else if (crumb.dataset.crumb === 'category') { browseSubId = null; }
+      if (crumb.dataset.crumb === 'root') {browseCategoryId = null;browseSubId = null;} else
+      if (crumb.dataset.crumb === 'category') {browseSubId = null;}
       renderCategories();
     };
 
@@ -2841,16 +2841,16 @@ window.KENIOS_DEFAULT_DB = {
   function renderDrawerCategories() {
     const listEl = $('#drawerCategoriesList');
     if (!listEl) return;
-    const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
-    listEl.innerHTML = cats.map(c => {
+    const cats = Store.db.categories.filter((c) => c.id !== 'webdesign');
+    listEl.innerHTML = cats.map((c) => {
       // Tìm các thư mục con (subcategories) cho danh mục này
-      const subs = (Store.db.subcategories || []).filter(s => s.categoryId === c.id);
-      
+      const subs = (Store.db.subcategories || []).filter((s) => s.categoryId === c.id);
+
       let subHtml = '';
       if (subs.length > 0) {
         subHtml = `
           <div class="drawer-subcat-list">
-            ${subs.map(s => `
+            ${subs.map((s) => `
               <button type="button" class="drawer-subcat-link" data-cat="${esc(c.id)}" data-sub="${esc(s.id)}">
                 ${ico('chevron')} ${esc(s.name)}
               </button>
@@ -2858,7 +2858,7 @@ window.KENIOS_DEFAULT_DB = {
           </div>
         `;
       }
-      
+
       return `
         <div class="drawer-cat-item">
           <button type="button" class="drawer-cat-btn" data-cat="${esc(c.id)}">
@@ -2872,58 +2872,58 @@ window.KENIOS_DEFAULT_DB = {
         </div>
       `;
     }).join('');
-    
+
     // Wire sự kiện click cho các nút danh mục chính
-    $$('.drawer-cat-btn', listEl).forEach(btn => {
+    $$('.drawer-cat-btn', listEl).forEach((btn) => {
       btn.onclick = () => {
         const catId = btn.dataset.cat;
-        
+
         // Cập nhật bộ lọc 3 cấp
         browseCategoryId = catId;
         browseSubId = null;
         renderCategories();
-        
+
         // Cập nhật bộ lọc tabs dịch vụ nổi bật (nếu có)
         selectedCategory = catId;
         selectedSub = 'all';
         const filterWrap = $('#filterTabs');
         if (filterWrap) {
-          $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b.dataset.filter === catId));
+          $$('.filter-tab', filterWrap).forEach((b) => b.classList.toggle('active', b.dataset.filter === catId));
         }
         renderSubFilterTabs();
         renderServiceGrid();
-        
+
         closeMobileNavGlobal();
         const target = $('#categories');
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
     });
-    
+
     // Wire sự kiện click cho các nút thư mục con
-    $$('.drawer-subcat-link', listEl).forEach(link => {
+    $$('.drawer-subcat-link', listEl).forEach((link) => {
       link.onclick = () => {
         const catId = link.dataset.cat;
         const subId = link.dataset.sub;
-        
+
         // Cập nhật bộ lọc 3 cấp
         browseCategoryId = catId;
         browseSubId = subId;
         renderCategories();
-        
+
         // Cập nhật bộ lọc tabs dịch vụ nổi bật (nếu có)
         selectedCategory = catId;
         selectedSub = subId;
         const filterWrap = $('#filterTabs');
         if (filterWrap) {
-          $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b.dataset.filter === catId));
+          $$('.filter-tab', filterWrap).forEach((b) => b.classList.toggle('active', b.dataset.filter === catId));
         }
         renderSubFilterTabs();
         const subFilterWrap = $('#subFilterTabs');
         if (subFilterWrap) {
-          $$('.filter-tab', subFilterWrap).forEach(b => b.classList.toggle('active', b.dataset.subfilter === subId));
+          $$('.filter-tab', subFilterWrap).forEach((b) => b.classList.toggle('active', b.dataset.subfilter === subId));
         }
         renderServiceGrid();
-        
+
         closeMobileNavGlobal();
         const target = $('#categories');
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2934,16 +2934,16 @@ window.KENIOS_DEFAULT_DB = {
   function renderFilterTabs() {
     const filterWrap = $('#filterTabs');
     if (!filterWrap) return;
-    const cats = Store.db.categories.filter(c => c.id !== 'webdesign');
-    filterWrap.innerHTML = [`<button class="filter-tab ${selectedCategory === 'all' ? 'active' : ''}" data-filter="all">Tất cả</button>`]
-      .concat(cats.map(c => `<button class="filter-tab ${selectedCategory === c.id ? 'active' : ''}" data-filter="${esc(c.id)}"><span class="filter-ico">${catIcon(c.icon)}</span> ${esc(c.name)}</button>`))
-      .join('');
+    const cats = Store.db.categories.filter((c) => c.id !== 'webdesign');
+    filterWrap.innerHTML = [`<button class="filter-tab ${selectedCategory === 'all' ? 'active' : ''}" data-filter="all">Tất cả</button>`].
+    concat(cats.map((c) => `<button class="filter-tab ${selectedCategory === c.id ? 'active' : ''}" data-filter="${esc(c.id)}"><span class="filter-ico">${catIcon(c.icon)}</span> ${esc(c.name)}</button>`)).
+    join('');
     filterWrap.onclick = (e) => {
       const btn = e.target.closest('.filter-tab');
       if (!btn) return;
       selectedCategory = btn.dataset.filter;
       selectedSub = 'all'; // đổi danh mục thì reset thư mục con
-      $$('.filter-tab', filterWrap).forEach(b => b.classList.toggle('active', b === btn));
+      $$('.filter-tab', filterWrap).forEach((b) => b.classList.toggle('active', b === btn));
       renderSubFilterTabs();
       renderServiceGrid();
     };
@@ -2955,26 +2955,26 @@ window.KENIOS_DEFAULT_DB = {
   function renderSubFilterTabs() {
     const wrap = $('#subFilterTabs');
     if (!wrap) return;
-    const subs = selectedCategory === 'all'
-      ? []
-      : (Store.db.subcategories || []).filter(s => s.categoryId === selectedCategory);
-    if (!subs.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+    const subs = selectedCategory === 'all' ?
+    [] :
+    (Store.db.subcategories || []).filter((s) => s.categoryId === selectedCategory);
+    if (!subs.length) {wrap.hidden = true;wrap.innerHTML = '';return;}
     wrap.hidden = false;
-    wrap.innerHTML = [`<button class="filter-tab sub ${selectedSub === 'all' ? 'active' : ''}" data-subfilter="all">Tất cả</button>`]
-      .concat(subs.map(s => `<button class="filter-tab sub ${selectedSub === s.id ? 'active' : ''}" data-subfilter="${esc(s.id)}"><span class="filter-ico">${catIcon(s.icon)}</span> ${esc(s.name)}</button>`))
-      .join('');
+    wrap.innerHTML = [`<button class="filter-tab sub ${selectedSub === 'all' ? 'active' : ''}" data-subfilter="all">Tất cả</button>`].
+    concat(subs.map((s) => `<button class="filter-tab sub ${selectedSub === s.id ? 'active' : ''}" data-subfilter="${esc(s.id)}"><span class="filter-ico">${catIcon(s.icon)}</span> ${esc(s.name)}</button>`)).
+    join('');
     wrap.onclick = (e) => {
       const btn = e.target.closest('.filter-tab');
       if (!btn) return;
       selectedSub = btn.dataset.subfilter;
-      $$('.filter-tab', wrap).forEach(b => b.classList.toggle('active', b === btn));
+      $$('.filter-tab', wrap).forEach((b) => b.classList.toggle('active', b === btn));
       renderServiceGrid();
     };
   }
 
   function renderPosts() {
     const grid = $('#postGrid');
-    grid.innerHTML = Store.db.posts.map(p => `
+    grid.innerHTML = Store.db.posts.map((p) => `
       <article class="post-card">
         <time>${esc(p.date)}</time>
         <h3>${esc(p.title)}</h3>
@@ -2984,16 +2984,16 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // Nền Hero hỗ trợ cả ảnh và video (tự nhận diện qua đuôi file .mp4/.webm/.ogg).
-  function isVideoUrl(url) { return /\.(mp4|webm|ogg|ogv|mov|m4v|mkv|avi|3gp|flv|wmv)(\?|#|$)/i.test(url || ''); }
+  function isVideoUrl(url) {return /\.(mp4|webm|ogg|ogv|mov|m4v|mkv|avi|3gp|flv|wmv)(\?|#|$)/i.test(url || '');}
 
   function applyHeroBackground(url) {
     const imgEl = $('#heroBg');
     const videoEl = $('#heroBgVideo');
-    if (!url) { imgEl.style.backgroundImage = 'none'; videoEl.hidden = true; return; }
+    if (!url) {imgEl.style.backgroundImage = 'none';videoEl.hidden = true;return;}
     if (isVideoUrl(url)) {
       videoEl.src = url;
       videoEl.hidden = false;
-      videoEl.onerror = () => { videoEl.hidden = true; };
+      videoEl.onerror = () => {videoEl.hidden = true;};
       imgEl.style.backgroundImage = 'none';
     } else {
       videoEl.hidden = true;
@@ -3009,40 +3009,40 @@ window.KENIOS_DEFAULT_DB = {
     if (!wrap) return;
     if (!url) {
       wrap.hidden = true;
-      videoEl.hidden = true; videoEl.removeAttribute('src');
-      imgEl.hidden = true; imgEl.style.backgroundImage = 'none';
+      videoEl.hidden = true;videoEl.removeAttribute('src');
+      imgEl.hidden = true;imgEl.style.backgroundImage = 'none';
       return;
     }
     wrap.hidden = false;
     if (isVideoUrl(url)) {
-      imgEl.hidden = true; imgEl.style.backgroundImage = 'none';
+      imgEl.hidden = true;imgEl.style.backgroundImage = 'none';
       // iOS/Android CHỈ tự chạy video khi: muted + playsinline + gọi .play() (thuộc tính
       // autoplay không đủ khi src được gán bằng JS). Đặt đủ rồi ép chạy, thử lại khi tải xong.
-      videoEl.muted = true; videoEl.defaultMuted = true; videoEl.setAttribute('muted', '');
-      videoEl.playsInline = true; videoEl.setAttribute('playsinline', '');
+      videoEl.muted = true;videoEl.defaultMuted = true;videoEl.setAttribute('muted', '');
+      videoEl.playsInline = true;videoEl.setAttribute('playsinline', '');
       videoEl.setAttribute('webkit-playsinline', '');
-      videoEl.loop = true; videoEl.autoplay = true;
+      videoEl.loop = true;videoEl.autoplay = true;
       if (videoEl.src !== url) videoEl.src = url;
       videoEl.hidden = false;
-      const tryPlay = () => { try { const p = videoEl.play(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ } };
+      const tryPlay = () => {try {const p = videoEl.play();if (p && p.catch) p.catch(() => {});} catch (e) {/* ignore */}};
       videoEl.onloadeddata = tryPlay;
       videoEl.oncanplay = tryPlay;
-      videoEl.onerror = () => { videoEl.hidden = true; };
+      videoEl.onerror = () => {videoEl.hidden = true;};
       videoEl.load();
       tryPlay();
     } else {
-      videoEl.hidden = true; videoEl.removeAttribute('src');
-      imgEl.hidden = false; imgEl.style.backgroundImage = `url(${url})`;
+      videoEl.hidden = true;videoEl.removeAttribute('src');
+      imgEl.hidden = false;imgEl.style.backgroundImage = `url(${url})`;
     }
   }
 
   // ---- FAQ ----
   const FAQ_ITEMS = [
-    { q: 'Nạp tiền vào tài khoản như thế nào?', a: 'Vào mục "Nạp tiền", nhập số tiền muốn nạp rồi quét mã VietQR hiển thị. Số dư được cộng tự động ngay sau khi hệ thống xác nhận giao dịch thành công, không cần chờ duyệt thủ công.' },
-    { q: 'Mua xong bao lâu thì nhận được key?', a: 'Key được cấp phát tự động ngay lập tức sau khi thanh toán, hiển thị trong mục "Đơn hàng của tôi" và có thể sao chép trực tiếp.' },
-    { q: 'Có được hoàn tiền không?', a: 'Do đây là sản phẩm số cấp phát tức thì, đơn hàng đã giao key không thể hoàn tiền trừ khi lỗi từ phía hệ thống. Vui lòng liên hệ Admin trong vòng 24 giờ nếu gặp sự cố.' },
-    { q: 'Tôi cần hỗ trợ thêm thì liên hệ ở đâu?', a: 'Bạn có thể nhắn Zalo/Hotline của Admin (góc phải header) hoặc trò chuyện trực tiếp với trợ lý ảo AI ở góc dưới màn hình, hỗ trợ 24/7.' }
-  ];
+  { q: 'Nạp tiền vào tài khoản như thế nào?', a: 'Vào mục "Nạp tiền", nhập số tiền muốn nạp rồi quét mã VietQR hiển thị. Số dư được cộng tự động ngay sau khi hệ thống xác nhận giao dịch thành công, không cần chờ duyệt thủ công.' },
+  { q: 'Mua xong bao lâu thì nhận được key?', a: 'Key được cấp phát tự động ngay lập tức sau khi thanh toán, hiển thị trong mục "Đơn hàng của tôi" và có thể sao chép trực tiếp.' },
+  { q: 'Có được hoàn tiền không?', a: 'Do đây là sản phẩm số cấp phát tức thì, đơn hàng đã giao key không thể hoàn tiền trừ khi lỗi từ phía hệ thống. Vui lòng liên hệ Admin trong vòng 24 giờ nếu gặp sự cố.' },
+  { q: 'Tôi cần hỗ trợ thêm thì liên hệ ở đâu?', a: 'Bạn có thể nhắn Zalo/Hotline của Admin (góc phải header) hoặc trò chuyện trực tiếp với trợ lý ảo AI ở góc dưới màn hình, hỗ trợ 24/7.' }];
+
 
   function renderFaq() {
     const list = $('#faqList');
@@ -3082,13 +3082,13 @@ window.KENIOS_DEFAULT_DB = {
 
   function renderSearchResults(query) {
     const results = $('#searchResults');
-    const list = Store.db.services.filter(s => !query || s.name.toLowerCase().includes(query) || s.description.toLowerCase().includes(query));
+    const list = Store.db.services.filter((s) => !query || s.name.toLowerCase().includes(query) || s.description.toLowerCase().includes(query));
     if (!query) {
       results.innerHTML = `<p class="empty-note">Nhập từ khóa để tìm dịch vụ (VD: PUBG, Landing Page, Aimbot...)</p>`;
       return;
     }
-    results.innerHTML = list.length ? list.map(s => {
-      const minPrice = Math.min(...s.packages.map(p => p.price));
+    results.innerHTML = list.length ? list.map((s) => {
+      const minPrice = Math.min(...s.packages.map((p) => p.price));
       return `
         <button type="button" class="search-result-item" data-search-service="${esc(s.id)}">
           <span>${esc(s.name)}</span><span class="price">Từ ${fmt(minPrice)}</span>
@@ -3101,7 +3101,7 @@ window.KENIOS_DEFAULT_DB = {
   function wireScrollReveal() {
     const items = $$('[data-reveal]');
     if (!items.length) return;
-    const reveal = el => el.classList.add('revealed');
+    const reveal = (el) => el.classList.add('revealed');
     const revealAll = () => items.forEach(reveal);
 
     // PHAO CỨU ĐẶT TRƯỚC TIÊN: dù observer lỗi/không chạy (webview Telegram hay không
@@ -3110,16 +3110,16 @@ window.KENIOS_DEFAULT_DB = {
     const failsafe = setTimeout(revealAll, 1000);
 
     // Hiện ngay các mục đang nằm trong khung nhìn (khỏi chờ).
-    const inView = el => {
+    const inView = (el) => {
       const r = el.getBoundingClientRect();
       const vh = window.innerHeight || document.documentElement.clientHeight;
       return r.top < vh && r.bottom > 0;
     };
-    requestAnimationFrame(() => items.forEach(el => { if (inView(el)) reveal(el); }));
+    requestAnimationFrame(() => items.forEach((el) => {if (inView(el)) reveal(el);}));
 
     // Chạm/cuộn lần đầu -> hiện hết ngay (webview thường cần một tương tác mới "thức dậy").
-    const wake = () => { clearTimeout(failsafe); revealAll();
-      window.removeEventListener('scroll', wake); window.removeEventListener('touchstart', wake); };
+    const wake = () => {clearTimeout(failsafe);revealAll();
+      window.removeEventListener('scroll', wake);window.removeEventListener('touchstart', wake);};
     window.addEventListener('scroll', wake, { passive: true, once: true });
     window.addEventListener('touchstart', wake, { passive: true, once: true });
 
@@ -3127,11 +3127,11 @@ window.KENIOS_DEFAULT_DB = {
     if ('IntersectionObserver' in window) {
       try {
         const io = new IntersectionObserver((entries) => {
-          entries.forEach(entry => { if (entry.isIntersecting) { reveal(entry.target); io.unobserve(entry.target); } });
+          entries.forEach((entry) => {if (entry.isIntersecting) {reveal(entry.target);io.unobserve(entry.target);}});
         }, { threshold: 0.08 });
-        items.forEach(el => io.observe(el));
-      } catch (e) { revealAll(); }
-    } else { revealAll(); }
+        items.forEach((el) => io.observe(el));
+      } catch (e) {revealAll();}
+    } else {revealAll();}
   }
 
   // ---- Nút lên đầu trang & xuống cuối trang ----
@@ -3143,7 +3143,7 @@ window.KENIOS_DEFAULT_DB = {
     const overlay = $('.modal-overlay:not([hidden])');
     if (!overlay) return null;
     const cands = overlay.querySelectorAll('.admin-panel-body, .admin-modal, .legal-content, .orders-list, .downloads-list, .deposit-history-list, .modal');
-    for (const el of cands) { if (el.scrollHeight > el.clientHeight + 8) return el; }
+    for (const el of cands) {if (el.scrollHeight > el.clientHeight + 8) return el;}
     return overlay.querySelector('.admin-modal, .modal');
   }
   function wireScrollTopButton() {
@@ -3152,11 +3152,11 @@ window.KENIOS_DEFAULT_DB = {
     _updateScrollBtns = () => {
       const sc = currentScroller();
       const y = sc ? sc.scrollTop : window.scrollY;
-      const dist = sc ? (sc.scrollHeight - sc.scrollTop - sc.clientHeight)
-                      : (document.documentElement.scrollHeight - window.scrollY - window.innerHeight);
+      const dist = sc ? sc.scrollHeight - sc.scrollTop - sc.clientHeight :
+      document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
       const th = sc ? 200 : 500; // trong modal ngưỡng nhỏ hơn cho dễ hiện
-      if (btn) { const s = y > th; btn.hidden = !s; btn.classList.toggle('visible', s); }
-      if (btnDown) { const s = dist > th; btnDown.hidden = !s; btnDown.classList.toggle('visible', s); }
+      if (btn) {const s = y > th;btn.hidden = !s;btn.classList.toggle('visible', s);}
+      if (btnDown) {const s = dist > th;btnDown.hidden = !s;btnDown.classList.toggle('visible', s);}
     };
     window.addEventListener('scroll', _updateScrollBtns, { passive: true });
     document.addEventListener('scroll', _updateScrollBtns, { capture: true, passive: true }); // bắt cuộn TRONG modal
@@ -3164,8 +3164,8 @@ window.KENIOS_DEFAULT_DB = {
     _updateScrollBtns();
     const doScroll = (toBottom) => {
       const sc = currentScroller();
-      if (sc) sc.scrollTo({ top: toBottom ? sc.scrollHeight : 0, behavior: 'smooth' });
-      else window.scrollTo({ top: toBottom ? document.documentElement.scrollHeight : 0, behavior: 'smooth' });
+      if (sc) sc.scrollTo({ top: toBottom ? sc.scrollHeight : 0, behavior: 'smooth' });else
+      window.scrollTo({ top: toBottom ? document.documentElement.scrollHeight : 0, behavior: 'smooth' });
     };
     if (btn) btn.addEventListener('click', () => doScroll(false));
     if (btnDown) btnDown.addEventListener('click', () => doScroll(true));
@@ -3174,12 +3174,12 @@ window.KENIOS_DEFAULT_DB = {
   function renderHeroStats() {
     const db = Store.db;
     const stats = [
-      { label: 'Dịch Vụ', value: db.services.length, icon: 'gamepad' },
-      { label: 'Danh Mục', value: db.categories.length, icon: 'grid' },
-      { label: 'Đơn Hàng', value: db.orders.length, icon: 'box' },
-      { label: 'Hoạt Động', value: '24/7', icon: 'bolt' }
-    ];
-    $('#heroStats').innerHTML = stats.map(s => `
+    { label: 'Dịch Vụ', value: db.services.length, icon: 'gamepad' },
+    { label: 'Danh Mục', value: db.categories.length, icon: 'grid' },
+    { label: 'Đơn Hàng', value: db.orders.length, icon: 'box' },
+    { label: 'Hoạt Động', value: '24/7', icon: 'bolt' }];
+
+    $('#heroStats').innerHTML = stats.map((s) => `
       <div class="stat-chip"><span class="stat-chip-ico">${ICONS[s.icon] || ''}</span><strong>${s.value}</strong><span>${s.label}</span></div>
     `).join('');
   }
@@ -3193,15 +3193,15 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function serviceCardHtml(s) {
-    const minPrice = Math.min(...(s.packages || []).map(p => p.price));
+    const minPrice = Math.min(...(s.packages || []).map((p) => p.price));
     const inStock = Store.serviceInStock(s);
     const isVideo = isVideoUrl(s.image);
     const flash = Store.flashSaleInfo();
     const rCount = Store.ratingCount(s.id);
     const salePrice = Store.flashSalePrice(minPrice);
-    const priceHtml = flash.active && salePrice < minPrice
-      ? `<span class="price"><del class="price-old">Từ ${fmt(minPrice)}</del> <b class="price-sale">Từ ${fmt(salePrice)}</b></span>`
-      : `<span class="price">Từ ${fmt(minPrice)}</span>`;
+    const priceHtml = flash.active && salePrice < minPrice ?
+    `<span class="price"><del class="price-old">Từ ${fmt(minPrice)}</del> <b class="price-sale">Từ ${fmt(salePrice)}</b></span>` :
+    `<span class="price">Từ ${fmt(minPrice)}</span>`;
     return `
       <article class="service-card ${inStock ? '' : 'out-of-stock'}" data-service="${esc(s.id)}">
         <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
@@ -3226,41 +3226,41 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   const VIEWS_KEY = 'kenios_views_v1';
-  function _views() { try { return JSON.parse(localStorage.getItem(VIEWS_KEY)) || {}; } catch { return {}; } }
+  function _views() {try {return JSON.parse(localStorage.getItem(VIEWS_KEY)) || {};} catch {return {};}}
   function viewsFor(id) {
     const v = _views();
-    if (v[id] == null) { v[id] = 20 + Math.floor(Math.random() * 180); try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {} }
+    if (v[id] == null) {v[id] = 20 + Math.floor(Math.random() * 180);try {localStorage.setItem(VIEWS_KEY, JSON.stringify(v));} catch {}}
     return v[id];
   }
   function bumpViews(id) {
     const v = _views();
     v[id] = (v[id] || viewsFor(id)) + 1;
-    try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch {}
+    try {localStorage.setItem(VIEWS_KEY, JSON.stringify(v));} catch {}
     return v[id];
   }
 
   // Sắp xếp danh sách sản phẩm theo lựa chọn hiện tại.
   function sortServiceList(arr) {
-    const minP = s => Math.min(...(s.packages || [{ price: 0 }]).map(p => p.price));
+    const minP = (s) => Math.min(...(s.packages || [{ price: 0 }]).map((p) => p.price));
     const list = arr.slice();
-    if (serviceSort === 'price-asc') list.sort((a, b) => minP(a) - minP(b));
-    else if (serviceSort === 'price-desc') list.sort((a, b) => minP(b) - minP(a));
-    else if (serviceSort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
-    else if (serviceSort === 'rating') list.sort((a, b) => Store.avgRating(b.id) - Store.avgRating(a.id));
+    if (serviceSort === 'price-asc') list.sort((a, b) => minP(a) - minP(b));else
+    if (serviceSort === 'price-desc') list.sort((a, b) => minP(b) - minP(a));else
+    if (serviceSort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'vi'));else
+    if (serviceSort === 'rating') list.sort((a, b) => Store.avgRating(b.id) - Store.avgRating(a.id));
     return list;
   }
 
   // Trả về HTML danh sách sản phẩm, TÁCH RIÊNG theo nền tảng nếu có sản phẩm được gán
   // (iOS 1 khu, Android 1 khu...). Sản phẩm chưa gán nền tảng hiện phẳng như cũ ở đầu.
   function renderGroupedByPlatform(list) {
-    if (!list.some(s => platformOf(s))) {
+    if (!list.some((s) => platformOf(s))) {
       return `<div class="service-grid">${list.map(serviceCardHtml).join('')}</div>`;
     }
     let html = '';
-    const ungrouped = list.filter(s => !platformOf(s));
+    const ungrouped = list.filter((s) => !platformOf(s));
     if (ungrouped.length) html += `<div class="service-grid">${ungrouped.map(serviceCardHtml).join('')}</div>`;
-    PLATFORMS.forEach(pl => {
-      const grp = list.filter(s => (s.platform || '') === pl.key);
+    PLATFORMS.forEach((pl) => {
+      const grp = list.filter((s) => (s.platform || '') === pl.key);
       if (!grp.length) return;
       html += `<div class="plat-group-head"><span class="plat-group-ico">${ICONS[pl.icon] || ''}</span><span>${pl.label}</span><span class="plat-group-count">${grp.length}</span></div>`;
       html += `<div class="service-grid">${grp.map(serviceCardHtml).join('')}</div>`;
@@ -3270,30 +3270,30 @@ window.KENIOS_DEFAULT_DB = {
 
   function renderServiceGrid() {
     const grid = $('#serviceGrid');
-    const statusOk = s => !(serviceStatusFilter === 'instock' && s.status !== 'instock');
+    const statusOk = (s) => !(serviceStatusFilter === 'instock' && s.status !== 'instock');
 
     // Khi ĐÃ chọn 1 danh mục / thư mục con cụ thể -> hiển thị lưới phẳng của mục đó.
     if (selectedCategory !== 'all' || selectedSub !== 'all') {
-      const list = sortServiceList(Store.db.services.filter(s =>
-        s.categoryId !== 'webdesign' && statusOk(s)
-        && (selectedCategory === 'all' || s.categoryId === selectedCategory)
-        && (selectedSub === 'all' || s.subcategoryId === selectedSub)
+      const list = sortServiceList(Store.db.services.filter((s) =>
+      s.categoryId !== 'webdesign' && statusOk(s) && (
+      selectedCategory === 'all' || s.categoryId === selectedCategory) && (
+      selectedSub === 'all' || s.subcategoryId === selectedSub)
       ));
       grid.className = 'service-plat-wrap';
-      grid.innerHTML = list.length
-        ? renderGroupedByPlatform(list)
-        : `<p class="empty-note">Chưa có dịch vụ nào phù hợp bộ lọc.</p>`;
+      grid.innerHTML = list.length ?
+      renderGroupedByPlatform(list) :
+      `<p class="empty-note">Chưa có dịch vụ nào phù hợp bộ lọc.</p>`;
       applyImageFallbacks(grid);
       return;
     }
 
     // "Tất cả" -> NHÓM THEO DANH MỤC: mỗi danh mục 1 tiêu đề + lưới riêng (không gộp chung).
     grid.className = 'service-groups';
-    const cats = (Store.db.categories || []).filter(c => c.id !== 'webdesign');
-    const known = new Set(cats.map(c => c.id));
+    const cats = (Store.db.categories || []).filter((c) => c.id !== 'webdesign');
+    const known = new Set(cats.map((c) => c.id));
     let html = '';
-    cats.forEach(c => {
-      const list = sortServiceList(Store.db.services.filter(s => s.categoryId === c.id && statusOk(s)));
+    cats.forEach((c) => {
+      const list = sortServiceList(Store.db.services.filter((s) => s.categoryId === c.id && statusOk(s)));
       if (!list.length) return;
       html += `
         <section class="cat-group">
@@ -3306,7 +3306,7 @@ window.KENIOS_DEFAULT_DB = {
         </section>`;
     });
     // Sản phẩm không thuộc danh mục nào còn tồn tại -> gom vào nhóm "Khác".
-    const orphan = sortServiceList(Store.db.services.filter(s => s.categoryId !== 'webdesign' && !known.has(s.categoryId) && statusOk(s)));
+    const orphan = sortServiceList(Store.db.services.filter((s) => s.categoryId !== 'webdesign' && !known.has(s.categoryId) && statusOk(s)));
     if (orphan.length) {
       html += `
         <section class="cat-group">
@@ -3321,12 +3321,12 @@ window.KENIOS_DEFAULT_DB = {
   function wireServiceFilters() {
     const sortSel = $('#serviceSort');
     const statusSel = $('#serviceStatusFilter');
-    if (sortSel) sortSel.addEventListener('change', () => { serviceSort = sortSel.value; renderServiceGrid(); });
-    if (statusSel) statusSel.addEventListener('change', () => { serviceStatusFilter = statusSel.value; renderServiceGrid(); });
+    if (sortSel) sortSel.addEventListener('change', () => {serviceSort = sortSel.value;renderServiceGrid();});
+    if (statusSel) statusSel.addEventListener('change', () => {serviceStatusFilter = statusSel.value;renderServiceGrid();});
   }
 
   function renderWebdesignGrid() {
-    const list = Store.db.services.filter(s => s.categoryId === 'webdesign');
+    const list = Store.db.services.filter((s) => s.categoryId === 'webdesign');
     $('#webdesignGrid').innerHTML = list.map(serviceCardHtml).join('');
     applyImageFallbacks($('#webdesignGrid'));
   }
@@ -3334,11 +3334,11 @@ window.KENIOS_DEFAULT_DB = {
   // Ảnh minh họa lấy từ Unsplash có thể chậm/không tải được tùy mạng — khi lỗi,
   // hiển thị nền gradient thay vì để trống mảng xám khó chịu.
   function applyImageFallbacks(root, selector) {
-    $$(`${selector || '.thumb'}[data-fallback-bg]`, root).forEach(el => {
+    $$(`${selector || '.thumb'}[data-fallback-bg]`, root).forEach((el) => {
       const url = el.dataset.fallbackBg;
       if (!url) return;
       const img = new Image();
-      img.onerror = () => { el.classList.add('img-fallback'); el.textContent = ''; el.style.backgroundImage = 'none'; };
+      img.onerror = () => {el.classList.add('img-fallback');el.textContent = '';el.style.backgroundImage = 'none';};
       img.src = url;
     });
   }
@@ -3348,16 +3348,16 @@ window.KENIOS_DEFAULT_DB = {
   // Lưu trong localStorage để nhớ QUA CẢ khi đóng/mở lại tab → không bắt đăng nhập
   // lại mỗi lần lưu/đồng bộ cấu hình. (Đọc kèm sessionStorage cho bản cũ.)
   function rememberAdminCreds(username, password) {
-    try { localStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify({ username, password })); } catch { /* ignore */ }
+    try {localStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify({ username, password }));} catch {/* ignore */}
   }
   function getAdminCreds() {
     try {
-      return JSON.parse(localStorage.getItem(ADMIN_CREDS_KEY))
-        || JSON.parse(sessionStorage.getItem(ADMIN_CREDS_KEY)) || null;
-    } catch { return null; }
+      return JSON.parse(localStorage.getItem(ADMIN_CREDS_KEY)) ||
+      JSON.parse(sessionStorage.getItem(ADMIN_CREDS_KEY)) || null;
+    } catch {return null;}
   }
   function clearAdminCreds() {
-    try { localStorage.removeItem(ADMIN_CREDS_KEY); sessionStorage.removeItem(ADMIN_CREDS_KEY); } catch { /* ignore */ }
+    try {localStorage.removeItem(ADMIN_CREDS_KEY);sessionStorage.removeItem(ADMIN_CREDS_KEY);} catch {/* ignore */}
   }
 
   function renderAuthArea() {
@@ -3367,7 +3367,7 @@ window.KENIOS_DEFAULT_DB = {
     const adminLink = $('#mobileNavAdminLink');
     if (user && (user.role === 'admin' || user.role === 'ctv')) {
       if (adminLabel) adminLabel.hidden = false;
-      if (adminLink) { adminLink.hidden = false; adminLink.querySelector('span:last-child').textContent = user.role === 'ctv' ? 'Trang Cộng tác viên' : 'Cấu hình & Quản trị Shop'; }
+      if (adminLink) {adminLink.hidden = false;adminLink.querySelector('span:last-child').textContent = user.role === 'ctv' ? 'Trang Cộng tác viên' : 'Cấu hình & Quản trị Shop';}
     } else {
       if (adminLabel) adminLabel.hidden = true;
       if (adminLink) adminLink.hidden = true;
@@ -3402,11 +3402,11 @@ window.KENIOS_DEFAULT_DB = {
     if (!tiers.length) return '';
     const spent = Store.userTotalSpent(user);
     const current = Store.vipTierFor(user);
-    const next = tiers.find(t => spent < (parseInt(t.minSpent, 10) || 0));
+    const next = tiers.find((t) => spent < (parseInt(t.minSpent, 10) || 0));
     let progress = '';
     if (next) {
       const need = (parseInt(next.minSpent, 10) || 0) - spent;
-      const base = current ? (parseInt(current.minSpent, 10) || 0) : 0;
+      const base = current ? parseInt(current.minSpent, 10) || 0 : 0;
       const pct = Math.max(0, Math.min(100, Math.round((spent - base) / ((parseInt(next.minSpent, 10) || 1) - base) * 100)));
       progress = `<div class="vip-progress"><span style="width:${pct}%"></span></div>
         <small style="color:var(--muted);">Mua thêm <b style="color:var(--gold-soft);">${fmt(need)}</b> để lên hạng <b>${esc(next.name)}</b> (giảm ${parseFloat(next.discountPercent) || 0}%)</small>`;
@@ -3432,7 +3432,7 @@ window.KENIOS_DEFAULT_DB = {
     const user = Store.currentUser();
     if (!user) return;
     const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
-    
+
     body.innerHTML = `
       <div class="profile-head" style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.02);padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:20px;">
         <label id="profAvatarEdit" title="Bấm để đổi ảnh đại diện" style="position:relative;flex-shrink:0;cursor:pointer;width:64px;height:64px;">
@@ -3454,9 +3454,9 @@ window.KENIOS_DEFAULT_DB = {
       </div>
       ${vipBadgeHtml(user)}
       ${Store.db.config.referralEnabled !== false ? (() => {
-        const st = Store.myReferralStats();
-        const bonus = Number(Store.db.config.referralBonus) || 0;
-        return `
+      const st = Store.myReferralStats();
+      const bonus = Number(Store.db.config.referralBonus) || 0;
+      return `
       <div class="profile-referral">
         <div class="pr-head">${ico('gift')} Giới thiệu bạn bè${bonus > 0 ? ` — cả hai +<b>${fmt(bonus)}</b> khi bạn của bạn nạp tiền lần đầu` : ''}</div>
         <div class="pr-code-row">
@@ -3465,7 +3465,7 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <div class="pr-stats"><span>Đã mời: <b>${st.count}</b></span><span>Thưởng đã nhận: <b>${fmt(st.earned)}</b></span></div>
       </div>`;
-      })() : ''}
+    })() : ''}
       <div class="profile-actions" style="display:flex;flex-direction:column;gap:10px;">
         <button type="button" class="btn btn-glass btn-block" id="profDepositBtn" style="justify-content:flex-start;text-align:left;gap:12px;padding:12px 16px;">
           <span class="btn-ico">${ICONS.card}</span> Nạp tiền tự động
@@ -3487,8 +3487,8 @@ window.KENIOS_DEFAULT_DB = {
     if (avatarInput) avatarInput.onchange = async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      if (!file.type || !file.type.startsWith('image/')) { toast('Vui lòng chọn file ảnh.', 'error'); e.target.value = ''; return; }
-      if (file.size > 5 * 1024 * 1024) { toast('Ảnh đại diện tối đa 5MB.', 'error'); e.target.value = ''; return; }
+      if (!file.type || !file.type.startsWith('image/')) {toast('Vui lòng chọn file ảnh.', 'error');e.target.value = '';return;}
+      if (file.size > 5 * 1024 * 1024) {toast('Ảnh đại diện tối đa 5MB.', 'error');e.target.value = '';return;}
       const editLabel = $('#profAvatarEdit');
       if (editLabel) editLabel.style.opacity = '.5';
       try {
@@ -3503,17 +3503,17 @@ window.KENIOS_DEFAULT_DB = {
     };
 
     // Gán sự kiện click cho các nút
-    $('#profDepositBtn').onclick = () => { closeModal('#profileModal'); openModal('#depositModal'); };
-    $('#profOrdersBtn').onclick = () => { closeModal('#profileModal'); openOrdersModal(); };
-    $('#profPasswordBtn').onclick = () => { closeModal('#profileModal'); openPasswordModal(); };
+    $('#profDepositBtn').onclick = () => {closeModal('#profileModal');openModal('#depositModal');};
+    $('#profOrdersBtn').onclick = () => {closeModal('#profileModal');openOrdersModal();};
+    $('#profPasswordBtn').onclick = () => {closeModal('#profileModal');openPasswordModal();};
     const refCopyBtn = $('#profRefCopy');
-    if (refCopyBtn) refCopyBtn.onclick = () => {
-      const code = $('#profRefCode')?.value || '';
+    if (refCopyBtn) refCopyBtn.onclick = () => {var _$, _navigator$clipboard;
+      const code = ((_$ = $('#profRefCode')) === null || _$ === void 0 ? void 0 : _$.value) || '';
       const done = () => toast('Đã sao chép mã giới thiệu!', 'success');
-      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done));
-      else fallbackCopy(code, done);
+      if ((_navigator$clipboard = navigator.clipboard) !== null && _navigator$clipboard !== void 0 && _navigator$clipboard.writeText) navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done));else
+      fallbackCopy(code, done);
     };
-    $('#profLogoutBtn').onclick = () => { closeModal('#profileModal'); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); };
+    $('#profLogoutBtn').onclick = () => {closeModal('#profileModal');clearAdminCreds();Store.logout();toast('Đã đăng xuất.', 'success');};
   }
 
   // Hộp thông tin người dùng trong menu 3 gạch: ID, số dư, đổi mật khẩu (hoặc nút đăng nhập).
@@ -3522,7 +3522,7 @@ window.KENIOS_DEFAULT_DB = {
     if (!box) return;
     if (!user) {
       box.innerHTML = `<button type="button" class="btn btn-primary btn-block" id="drawerLoginBtn">Đăng nhập / Đăng ký</button>`;
-      $('#drawerLoginBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#authModal'); });
+      $('#drawerLoginBtn').addEventListener('click', () => {closeMobileNavGlobal();openModal('#authModal');});
       return;
     }
     const avatar = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.username)}`;
@@ -3540,20 +3540,20 @@ window.KENIOS_DEFAULT_DB = {
         <button type="button" class="btn btn-glass btn-sm" id="drawerPasswordBtn"><span class="btn-ico">${ICONS.lock}</span> Đổi mật khẩu</button>
         <button type="button" class="btn btn-ghost btn-sm" id="drawerLogoutBtn"><span class="btn-ico">${ICONS.logout}</span> Đăng xuất</button>
       </div>`;
-    $('#drawerDepositBtn').addEventListener('click', () => { closeMobileNavGlobal(); openModal('#depositModal'); });
-    $('#drawerPasswordBtn').addEventListener('click', () => { closeMobileNavGlobal(); openPasswordModal(); });
-    $('#drawerLogoutBtn').addEventListener('click', () => { closeMobileNavGlobal(); clearAdminCreds(); Store.logout(); toast('Đã đăng xuất.', 'success'); });
+    $('#drawerDepositBtn').addEventListener('click', () => {closeMobileNavGlobal();openModal('#depositModal');});
+    $('#drawerPasswordBtn').addEventListener('click', () => {closeMobileNavGlobal();openPasswordModal();});
+    $('#drawerLogoutBtn').addEventListener('click', () => {closeMobileNavGlobal();clearAdminCreds();Store.logout();toast('Đã đăng xuất.', 'success');});
   }
 
-  function closeMobileNavGlobal() {
-    $('#mobileNav')?.classList.remove('open');
-    $('#mobileNavBackdrop')?.classList.remove('open');
+  function closeMobileNavGlobal() {var _$2, _$3, _$4;
+    (_$2 = $('#mobileNav')) === null || _$2 === void 0 || _$2.classList.remove('open');
+    (_$3 = $('#mobileNavBackdrop')) === null || _$3 === void 0 || _$3.classList.remove('open');
     document.body.classList.remove('drawer-open');
-    $('#menuToggle')?.setAttribute('aria-expanded', 'false');
+    (_$4 = $('#menuToggle')) === null || _$4 === void 0 || _$4.setAttribute('aria-expanded', 'false');
   }
 
   function openPasswordModal() {
-    if (!Store.currentUser()) { openModal('#authModal'); return; }
+    if (!Store.currentUser()) {openModal('#authModal');return;}
     $('#passwordForm').reset();
     $('#passwordError').textContent = '';
     openModal('#passwordModal');
@@ -3562,25 +3562,25 @@ window.KENIOS_DEFAULT_DB = {
   // ============================================================
   // MODAL helpers
   // ============================================================
-  function openModal(sel) { $(sel).hidden = false; document.body.style.overflow = 'hidden'; document.body.classList.add('modal-open'); if (sel === '#depositModal') updateDepositBonusNote(); setTimeout(() => _updateScrollBtns && _updateScrollBtns(), 60); }
-  function closeModal(sel) { $(sel).hidden = true; document.body.style.overflow = ''; if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open'); if (_updateScrollBtns) _updateScrollBtns(); }
+  function openModal(sel) {$(sel).hidden = false;document.body.style.overflow = 'hidden';document.body.classList.add('modal-open');if (sel === '#depositModal') updateDepositBonusNote();setTimeout(() => _updateScrollBtns && _updateScrollBtns(), 60);}
+  function closeModal(sel) {$(sel).hidden = true;document.body.style.overflow = '';if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open');if (_updateScrollBtns) _updateScrollBtns();}
 
   async function withLoading(btn, fn) {
     btn.classList.add('is-loading');
     btn.disabled = true;
-    try { await fn(); } finally { btn.classList.remove('is-loading'); btn.disabled = false; }
+    try {await fn();} finally {btn.classList.remove('is-loading');btn.disabled = false;}
   }
 
-  function wireGlobalUI() {
+  function wireGlobalUI() {var _$5, _$7;
     // Nút đồng bộ máy chủ nằm trong tab Config của admin — wire trong wireAdminConfigSecretBoxes()
 
     // Đổi mật khẩu
-    $('#passwordForm')?.addEventListener('submit', (e) => {
+    (_$5 = $('#passwordForm')) === null || _$5 === void 0 || _$5.addEventListener('submit', (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
       const errEl = $('#passwordError');
       errEl.textContent = '';
-      if (fd.get('new') !== fd.get('confirm')) { errEl.textContent = 'Mật khẩu mới nhập lại không khớp.'; return; }
+      if (fd.get('new') !== fd.get('confirm')) {errEl.textContent = 'Mật khẩu mới nhập lại không khớp.';return;}
       const submitBtn = e.target.querySelector('button[type=submit]');
       withLoading(submitBtn, async () => {
         try {
@@ -3590,20 +3590,20 @@ window.KENIOS_DEFAULT_DB = {
           closeModal('#passwordModal');
           e.target.reset();
           toast('Đã đổi mật khẩu thành công!', 'success');
-        } catch (err) { errEl.textContent = err.message; }
+        } catch (err) {errEl.textContent = err.message;}
       });
     });
-    $$('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal('#' + overlay.id); });
+    $$('.modal-overlay').forEach((overlay) => {
+      overlay.addEventListener('click', (e) => {if (e.target === overlay) closeModal('#' + overlay.id);});
     });
-    $$('[data-close-modal]').forEach(btn => {
+    $$('[data-close-modal]').forEach((btn) => {
       btn.addEventListener('click', () => closeModal('#' + btn.closest('.modal-overlay').id));
     });
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') $$('.modal-overlay').forEach(o => { if (!o.hidden) closeModal('#' + o.id); });
+      if (e.key === 'Escape') $$('.modal-overlay').forEach((o) => {if (!o.hidden) closeModal('#' + o.id);});
     });
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.user-menu')) $('#userDropdown')?.classList.remove('open');
+    document.addEventListener('click', (e) => {var _$6;
+      if (!e.target.closest('.user-menu')) (_$6 = $('#userDropdown')) === null || _$6 === void 0 || _$6.classList.remove('open');
     });
 
     const closeMobileNav = () => {
@@ -3619,29 +3619,29 @@ window.KENIOS_DEFAULT_DB = {
       $('#menuToggle').setAttribute('aria-expanded', String(open));
     });
     $('#mobileNavBackdrop').addEventListener('click', closeMobileNav);
-    $$('.mobile-nav-link', $('#mobileNav')).forEach(a => a.addEventListener('click', closeMobileNav));
+    $$('.mobile-nav-link', $('#mobileNav')).forEach((a) => a.addEventListener('click', closeMobileNav));
 
     // Bấm LOGO (header hoặc menu) -> TẢI LẠI TRANG (làm mới hoàn toàn, về đầu trang).
-    $$('.brand, .mobile-nav-brand').forEach(el => el.addEventListener('click', (e) => {
+    $$('.brand, .mobile-nav-brand').forEach((el) => el.addEventListener('click', (e) => {
       e.preventDefault();
       closeMobileNav();
       // Xoá hash (#...) rồi tải lại để luôn về đầu trang và làm mới nội dung.
-      if (window.location.hash) window.location.href = window.location.pathname + window.location.search;
-      else window.location.reload();
+      if (window.location.hash) window.location.href = window.location.pathname + window.location.search;else
+      window.location.reload();
     }));
     $('#mobileNavDeposit').addEventListener('click', () => {
-      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
+      if (!Store.currentUser()) {toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error');openModal('#authModal');return;}
       openModal('#depositModal');
     });
     $('#mobileNavDepositHistory').addEventListener('click', () => openDepositHistoryModal());
-    $('#mobileNavTxHistory')?.addEventListener('click', () => { closeMobileNavGlobal(); openTxHistoryModal(); });
+    (_$7 = $('#mobileNavTxHistory')) === null || _$7 === void 0 || _$7.addEventListener('click', () => {closeMobileNavGlobal();openTxHistoryModal();});
     $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
-    $('#mobileNavDownloads').addEventListener('click', () => { closeMobileNav(); openDownloadsModal(); });
+    $('#mobileNavDownloads').addEventListener('click', () => {closeMobileNav();openDownloadsModal();});
     const adminNavBtn2 = $('#mobileNavAdminLink');
-    if (adminNavBtn2) adminNavBtn2.addEventListener('click', () => { closeMobileNavGlobal(); openAdminModal(); });
+    if (adminNavBtn2) adminNavBtn2.addEventListener('click', () => {closeMobileNavGlobal();openAdminModal();});
 
     $('#heroBtn2').addEventListener('click', () => {
-      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error'); openModal('#authModal'); return; }
+      if (!Store.currentUser()) {toast('Vui lòng đăng nhập trước khi nạp tiền.', 'error');openModal('#authModal');return;}
       openModal('#depositModal');
     });
 
@@ -3663,15 +3663,15 @@ window.KENIOS_DEFAULT_DB = {
       }
 
       const legalLink = e.target.closest('[data-legal]');
-      if (legalLink) { e.preventDefault(); openLegalModal(legalLink.dataset.legal); }
+      if (legalLink) {e.preventDefault();openLegalModal(legalLink.dataset.legal);}
     });
   }
 
   // ---- Đăng nhập / Đăng ký ----
-  function wireAuthModal() {
-    $$('.auth-tab').forEach(tab => {
+  function wireAuthModal() {var _$8, _$9, _$0;
+    $$('.auth-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
-        $$('.auth-tab').forEach(t => t.classList.toggle('active', t === tab));
+        $$('.auth-tab').forEach((t) => t.classList.toggle('active', t === tab));
         const isLogin = tab.dataset.authTab === 'login';
         $('#loginForm').hidden = !isLogin;
         $('#registerForm').hidden = isLogin;
@@ -3690,7 +3690,7 @@ window.KENIOS_DEFAULT_DB = {
           e.target.reset();
           $('#loginError').textContent = '';
           toast('Đăng nhập thành công!', 'success');
-        } catch (err) { $('#loginError').textContent = err.message; }
+        } catch (err) {$('#loginError').textContent = err.message;}
       });
     });
 
@@ -3707,12 +3707,12 @@ window.KENIOS_DEFAULT_DB = {
           e.target.reset();
           $('#registerError').textContent = '';
           toast('Tạo tài khoản thành công! Chào mừng bạn.', 'success');
-        } catch (err) { $('#registerError').textContent = err.message; }
+        } catch (err) {$('#registerError').textContent = err.message;}
       });
     });
 
-    $('#forgotPwBtn')?.addEventListener('click', () => { closeModal('#authModal'); $('#forgotForm').reset(); $('#forgotError').textContent = ''; openModal('#forgotModal'); });
-    $('#forgotForm')?.addEventListener('submit', (e) => {
+    (_$8 = $('#forgotPwBtn')) === null || _$8 === void 0 || _$8.addEventListener('click', () => {closeModal('#authModal');$('#forgotForm').reset();$('#forgotError').textContent = '';openModal('#forgotModal');});
+    (_$9 = $('#forgotForm')) === null || _$9 === void 0 || _$9.addEventListener('submit', (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
       const submitBtn = e.target.querySelector('button[type=submit]');
@@ -3722,25 +3722,25 @@ window.KENIOS_DEFAULT_DB = {
           closeModal('#forgotModal');
           toast('Đã đặt lại mật khẩu! Đăng nhập bằng mật khẩu mới.', 'success');
           openModal('#authModal');
-        } catch (err) { $('#forgotError').textContent = err.message; }
+        } catch (err) {$('#forgotError').textContent = err.message;}
       });
     });
 
-    $('#googleFallbackBtn')?.addEventListener('click', () => {
-      if (window.google?.accounts?.id) { window.google.accounts.id.prompt(); }
-      else if (!Store.db.config.googleClientId) { toast('Admin chưa cấu hình Google Client ID trong tab Cấu hình.', 'error'); }
-      else { toast('Đang tải Google… thử lại sau vài giây.', 'error'); }
+    (_$0 = $('#googleFallbackBtn')) === null || _$0 === void 0 || _$0.addEventListener('click', () => {var _window$google2;
+      if ((_window$google2 = window.google) !== null && _window$google2 !== void 0 && (_window$google2 = _window$google2.accounts) !== null && _window$google2 !== void 0 && _window$google2.id) {window.google.accounts.id.prompt();} else
+      if (!Store.db.config.googleClientId) {toast('Admin chưa cấu hình Google Client ID trong tab Cấu hình.', 'error');} else
+      {toast('Đang tải Google… thử lại sau vài giây.', 'error');}
     });
   }
 
   // ---- Nạp tiền VietQR ----
   // Cập nhật dòng thông báo khuyến mãi theo số tiền khách đang nhập.
-  function updateDepositBonusNote() {
+  function updateDepositBonusNote() {var _$1;
     const noteEl = $('#depositBonusNote');
     if (!noteEl) return;
     const c = Store.db.config || {};
-    const amount = parseInt($('#depositAmount')?.value, 10) || 0;
-    if (!c.depositBonusEnabled || (parseFloat(c.depositBonusPercent) || 0) <= 0) { noteEl.hidden = true; return; }
+    const amount = parseInt((_$1 = $('#depositAmount')) === null || _$1 === void 0 ? void 0 : _$1.value, 10) || 0;
+    if (!c.depositBonusEnabled || (parseFloat(c.depositBonusPercent) || 0) <= 0) {noteEl.hidden = true;return;}
     const percent = parseFloat(c.depositBonusPercent) || 0;
     const min = parseInt(c.depositBonusMin, 10) || 0;
     const bonus = Store.depositBonusFor(amount);
@@ -3754,74 +3754,74 @@ window.KENIOS_DEFAULT_DB = {
     noteEl.hidden = false;
   }
 
-  function wireDepositModal() {
+  function wireDepositModal() {var _$12, _$13, _$14, _$15;
     const quick = $('#quickAmounts');
-    [50000, 100000, 200000, 500000, 1000000].forEach(v => {
+    [50000, 100000, 200000, 500000, 1000000].forEach((v) => {
       const b = document.createElement('button');
-      b.type = 'button'; b.textContent = fmt(v);
-      b.addEventListener('click', () => { $('#depositAmount').value = v; updateDepositBonusNote(); });
+      b.type = 'button';b.textContent = fmt(v);
+      b.addEventListener('click', () => {$('#depositAmount').value = v;updateDepositBonusNote();});
       quick.appendChild(b);
     });
     $('#depositAmount').addEventListener('input', updateDepositBonusNote);
     updateDepositBonusNote();
 
     // Chuyển tab VietQR / Thẻ cào
-    $$('.deposit-tab').forEach(tab => {
+    $$('.deposit-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         const which = tab.dataset.depositTab;
-        $$('.deposit-tab').forEach(t => t.classList.toggle('active', t === tab));
+        $$('.deposit-tab').forEach((t) => t.classList.toggle('active', t === tab));
         $('#depositPaneVietqr').hidden = which !== 'vietqr';
         $('#depositPaneCard').hidden = which !== 'card';
       });
     });
 
     // Ước tính số tiền khách nhận theo % chiết khấu nhà mạng (khớp bảng phí thesieure).
-    function updateCardReceiveNote() {
+    function updateCardReceiveNote() {var _$10, _$11;
       const noteEl = $('#cardReceiveNote');
       if (!noteEl) return;
-      const telco = $('#cardTelco')?.value || '';
-      const amount = parseInt($('#cardAmount')?.value, 10) || 0;
+      const telco = ((_$10 = $('#cardTelco')) === null || _$10 === void 0 ? void 0 : _$10.value) || '';
+      const amount = parseInt((_$11 = $('#cardAmount')) === null || _$11 === void 0 ? void 0 : _$11.value, 10) || 0;
       const pct = cardDiscountPct(telco, amount);
       if (pct > 0 && amount > 0) {
         const recv = Math.floor(amount * (100 - pct) / 100);
         noteEl.hidden = false;
         noteEl.innerHTML = `Chiết khấu <b>${pct}%</b> — bạn sẽ nhận <b>${fmt(recv)}</b> vào số dư.`;
-      } else { noteEl.hidden = true; }
+      } else {noteEl.hidden = true;}
     }
-    $('#cardTelco')?.addEventListener('change', updateCardReceiveNote);
-    $('#cardAmount')?.addEventListener('change', updateCardReceiveNote);
+    (_$12 = $('#cardTelco')) === null || _$12 === void 0 || _$12.addEventListener('change', updateCardReceiveNote);
+    (_$13 = $('#cardAmount')) === null || _$13 === void 0 || _$13.addEventListener('change', updateCardReceiveNote);
     updateCardReceiveNote();
 
     // Sau khi gửi thẻ: TỰ ĐỘNG hỏi lại cổng vài lần (10s/lần, tối đa ~2 phút) để cộng tiền
     // ngay khi cổng duyệt xong mà khách KHÔNG cần bấm "Kiểm tra thẻ đã nạp".
     let cardPollTimer = null;
     function autoPollCardStatus() {
-      if (cardPollTimer) { clearInterval(cardPollTimer); cardPollTimer = null; }
+      if (cardPollTimer) {clearInterval(cardPollTimer);cardPollTimer = null;}
       const u0 = Store.currentUser();
-      const before = (u0 && u0.balance) || 0;
+      const before = u0 && u0.balance || 0;
       let n = 0;
       cardPollTimer = setInterval(async () => {
         n++;
         let res = null;
-        try { res = await Store.cardStatus(); } catch (e) { /* offline */ }
+        try {res = await Store.cardStatus();} catch (e) {/* offline */}
         const u1 = Store.currentUser();
-        const after = (u1 && u1.balance) || 0;
-        const pend = (res && Array.isArray(res.requests)) ? res.requests.filter(r => r.status === 'pending').length : 1;
-        if (after > before) { toast('Thẻ đã được duyệt! Số dư +' + fmt(after - before) + 'đ.', 'success'); }
-        if (after > before || pend === 0 || n >= 12) { clearInterval(cardPollTimer); cardPollTimer = null; }
+        const after = u1 && u1.balance || 0;
+        const pend = res && Array.isArray(res.requests) ? res.requests.filter((r) => r.status === 'pending').length : 1;
+        if (after > before) {toast('Thẻ đã được duyệt! Số dư +' + fmt(after - before) + 'đ.', 'success');}
+        if (after > before || pend === 0 || n >= 12) {clearInterval(cardPollTimer);cardPollTimer = null;}
       }, 10000);
     }
 
     // Nạp thẻ cào
-    $('#submitCardBtn')?.addEventListener('click', () => {
-      if (!Store.currentUser()) { toast('Vui lòng đăng nhập trước khi nạp thẻ.', 'error'); return; }
+    (_$14 = $('#submitCardBtn')) === null || _$14 === void 0 || _$14.addEventListener('click', () => {
+      if (!Store.currentUser()) {toast('Vui lòng đăng nhập trước khi nạp thẻ.', 'error');return;}
       const msgEl = $('#cardChargeMsg');
-      const setMsg = (t, ok) => { if (msgEl) { msgEl.hidden = false; msgEl.textContent = t; msgEl.style.color = ok === false ? 'var(--danger)' : (ok ? 'var(--success)' : 'var(--muted)'); } };
+      const setMsg = (t, ok) => {if (msgEl) {msgEl.hidden = false;msgEl.textContent = t;msgEl.style.color = ok === false ? 'var(--danger)' : ok ? 'var(--success)' : 'var(--muted)';}};
       const telco = $('#cardTelco').value;
       const amount = parseInt($('#cardAmount').value, 10) || 0;
       const serial = $('#cardSerial').value.trim();
       const code = $('#cardCode').value.trim();
-      if (!serial || !code) { setMsg('Vui lòng nhập đủ Serial và Mã thẻ.', false); return; }
+      if (!serial || !code) {setMsg('Vui lòng nhập đủ Serial và Mã thẻ.', false);return;}
       withLoading($('#submitCardBtn'), async () => {
         setMsg('Đang gửi thẻ, vui lòng đợi…');
         try {
@@ -3829,7 +3829,7 @@ window.KENIOS_DEFAULT_DB = {
           if (res.status === 'success') {
             setMsg(res.message || 'Đã gửi thẻ, đang chờ hệ thống duyệt.', true);
             toast('Đã gửi thẻ! Số dư sẽ cộng khi thẻ được duyệt.', 'success');
-            $('#cardSerial').value = ''; $('#cardCode').value = '';
+            $('#cardSerial').value = '';$('#cardCode').value = '';
             autoPollCardStatus(); // tự động kiểm tra để cộng tiền, khỏi cần bấm tay
           } else {
             setMsg(res.message || 'Nạp thẻ thất bại.', false);
@@ -3843,20 +3843,20 @@ window.KENIOS_DEFAULT_DB = {
     });
 
     // Kiểm tra thẻ đã nạp: xem trạng thái + cập nhật số dư nếu đã cộng.
-    $('#checkCardBtn')?.addEventListener('click', () => {
-      if (!Store.currentUser()) { toast('Vui lòng đăng nhập.', 'error'); return; }
+    (_$15 = $('#checkCardBtn')) === null || _$15 === void 0 || _$15.addEventListener('click', () => {
+      if (!Store.currentUser()) {toast('Vui lòng đăng nhập.', 'error');return;}
       const listEl = $('#cardStatusList');
       const before = Store.currentUser().balance || 0;
       withLoading($('#checkCardBtn'), async () => {
         try {
           const res = await Store.cardStatus();
-          if (!res || res.status !== 'success') { toast((res && res.message) || 'Không kiểm tra được.', 'error'); return; }
+          if (!res || res.status !== 'success') {toast(res && res.message || 'Không kiểm tra được.', 'error');return;}
           const after = Store.currentUser().balance || 0;
           if (after > before) toast(`Đã cộng tiền! Số dư: ${fmt(after)}.`, 'success');
           const reqs = res.requests || [];
-          if (!reqs.length) { listEl.hidden = false; listEl.innerHTML = '<p class="muted" style="font-size:.8rem;margin:0;">Bạn chưa nạp thẻ nào.</p>'; return; }
+          if (!reqs.length) {listEl.hidden = false;listEl.innerHTML = '<p class="muted" style="font-size:.8rem;margin:0;">Bạn chưa nạp thẻ nào.</p>';return;}
           listEl.hidden = false;
-          listEl.innerHTML = reqs.map(r => {
+          listEl.innerHTML = reqs.map((r) => {
             const st = cardStatusLabel(r.status, 'Thẻ lỗi/sai');
             const amt = r.status === 'success' && r.realAmount ? ` · nhận ${fmt(r.realAmount)}` : '';
             const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
@@ -3871,11 +3871,11 @@ window.KENIOS_DEFAULT_DB = {
     $('#genQrBtn').addEventListener('click', () => {
       const cfg = Store.db.config;
       const amount = parseInt($('#depositAmount').value, 10);
-      if (!amount || amount < 10000) { toast('Số tiền nạp tối thiểu là 10.000đ.', 'error'); return; }
+      if (!amount || amount < 10000) {toast('Số tiền nạp tối thiểu là 10.000đ.', 'error');return;}
       const user = Store.currentUser();
       const note = `NAP${user.userId}${Date.now().toString().slice(-6)}`;
-      const url = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankId)}-${cfg.bankAccountNo}-qr_only.png`
-        + `?amount=${amount}&addInfo=${encodeURIComponent(note)}&accountName=${encodeURIComponent(cfg.bankAccountName)}`;
+      const url = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankId)}-${cfg.bankAccountNo}-qr_only.png` +
+      `?amount=${amount}&addInfo=${encodeURIComponent(note)}&accountName=${encodeURIComponent(cfg.bankAccountName)}`;
       $('#depositQrImg').src = url;
       setText('#qrBank', cfg.bankId);
       setText('#qrOwner', cfg.bankAccountName);
@@ -3885,11 +3885,11 @@ window.KENIOS_DEFAULT_DB = {
       $('#depositQrBox').hidden = false;
       $('#confirmDepositBtn').dataset.amount = amount;
       $('#confirmDepositBtn').dataset.note = note;
-      $('#copyAccountBtn').onclick = () => {
-        navigator.clipboard?.writeText(cfg.bankAccountNo).then(() => toast('Đã sao chép số tài khoản!', 'success'));
+      $('#copyAccountBtn').onclick = () => {var _navigator$clipboard2;
+        (_navigator$clipboard2 = navigator.clipboard) === null || _navigator$clipboard2 === void 0 || _navigator$clipboard2.writeText(cfg.bankAccountNo).then(() => toast('Đã sao chép số tài khoản!', 'success'));
       };
-      $('#copyNoteBtn').onclick = () => {
-        navigator.clipboard?.writeText(note).then(() => toast('Đã sao chép nội dung chuyển khoản!', 'success'));
+      $('#copyNoteBtn').onclick = () => {var _navigator$clipboard3;
+        (_navigator$clipboard3 = navigator.clipboard) === null || _navigator$clipboard3 === void 0 || _navigator$clipboard3.writeText(note).then(() => toast('Đã sao chép nội dung chuyển khoản!', 'success'));
       };
     });
 
@@ -3924,9 +3924,9 @@ window.KENIOS_DEFAULT_DB = {
   // Cập nhật dòng "Thành tiền" trong modal sản phẩm: Flash Sale + VIP + mã giảm giá.
   function updateServiceModalTotal() {
     const totalEl = $('#serviceModalTotal');
-    if (!totalEl || !currentPackage) { if (totalEl) totalEl.innerHTML = ''; return; }
-    const service = Store.db.services.find(s => s.id === currentServiceId);
-    const codeStr = (currentDiscount && currentDiscount.valid) ? currentDiscount.code : '';
+    if (!totalEl || !currentPackage) {if (totalEl) totalEl.innerHTML = '';return;}
+    const service = Store.db.services.find((s) => s.id === currentServiceId);
+    const codeStr = currentDiscount && currentDiscount.valid ? currentDiscount.code : '';
     const p = Store.computePurchasePrice(service, currentPackage, codeStr, Store.currentUser());
     const tags = [];
     if (p.flashPercent > 0) tags.push(`<span class="save-tag flash">Flash -${p.flashPercent}%</span>`);
@@ -3952,7 +3952,7 @@ window.KENIOS_DEFAULT_DB = {
       updateServiceModalTotal();
       return;
     }
-    const service = Store.db.services.find(s => s.id === currentServiceId);
+    const service = Store.db.services.find((s) => s.id === currentServiceId);
     // Áp mã trên giá SAU Flash Sale + VIP (đúng như khi mua thật).
     const p = Store.computePurchasePrice(service, currentPackage, codeStr, Store.currentUser());
     if (p.codeValid) {
@@ -3969,27 +3969,27 @@ window.KENIOS_DEFAULT_DB = {
     updateServiceModalTotal();
   }
 
-  function wireServiceModal() {
+  function wireServiceModal() {var _$16;
     $('#serviceModalApplyDiscountBtn').addEventListener('click', applyServiceDiscount);
     $('#serviceModalDiscountCode').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); applyServiceDiscount(); }
+      if (e.key === 'Enter') {e.preventDefault();applyServiceDiscount();}
     });
 
-    $('#serviceModalCartBtn')?.addEventListener('click', () => {
-      if (!currentPackage) { $('#serviceModalError').textContent = 'Vui lòng chọn một gói.'; return; }
+    (_$16 = $('#serviceModalCartBtn')) === null || _$16 === void 0 || _$16.addEventListener('click', () => {
+      if (!currentPackage) {$('#serviceModalError').textContent = 'Vui lòng chọn một gói.';return;}
       addToCart(currentServiceId, currentPackage.id);
       toast('Đã thêm vào giỏ hàng!', 'success');
     });
 
     $('#serviceModalBuyBtn').addEventListener('click', () => {
-      const service = Store.db.services.find(s => s.id === currentServiceId);
+      const service = Store.db.services.find((s) => s.id === currentServiceId);
       const errEl = $('#serviceModalError');
       errEl.textContent = '';
-      if (!Store.currentUser()) { errEl.textContent = 'Vui lòng đăng nhập trước khi mua.'; return; }
-      if (!currentPackage) { errEl.textContent = 'Vui lòng chọn một gói.'; return; }
+      if (!Store.currentUser()) {errEl.textContent = 'Vui lòng đăng nhập trước khi mua.';return;}
+      if (!currentPackage) {errEl.textContent = 'Vui lòng chọn một gói.';return;}
 
       // Mã giảm giá dùng khi mua = mã đã áp dụng hợp lệ cho đúng gói đang chọn.
-      const codeStr = (currentDiscount && currentDiscount.valid) ? currentDiscount.code : '';
+      const codeStr = currentDiscount && currentDiscount.valid ? currentDiscount.code : '';
 
       withLoading($('#serviceModalBuyBtn'), async () => {
         try {
@@ -4003,13 +4003,13 @@ window.KENIOS_DEFAULT_DB = {
           closeModal('#serviceModal');
           const saved = order.discountAmount > 0 ? ` (đã giảm ${fmt(order.discountAmount)})` : '';
           toast(`Mua thành công${saved}! Key: ${order.key}`, 'success');
-        } catch (err) { errEl.textContent = err.message; }
+        } catch (err) {errEl.textContent = err.message;}
       });
     });
   }
 
   function openServiceModal(serviceId) {
-    const service = Store.db.services.find(s => s.id === serviceId);
+    const service = Store.db.services.find((s) => s.id === serviceId);
     if (!service) return;
     currentServiceId = serviceId;
     currentPackage = service.packages[0] || null;
@@ -4047,18 +4047,18 @@ window.KENIOS_DEFAULT_DB = {
     setText('#serviceModalDesc', service.description);
     $('#serviceModalViews').innerHTML = `${ICONS.eye}<b>${bumpViews(serviceId)}</b> lượt xem`;
     const dl = $('#serviceModalDownload');
-    if (service.downloadUrl) { dl.hidden = false; dl.href = service.downloadUrl; dl.innerHTML = `${ICONS.download} Tải bản game`; }
-    else { dl.hidden = true; }
-    $('#serviceModalFeatures').innerHTML = (service.features || []).map(f => `<li>${esc(f)}</li>`).join('');
+    if (service.downloadUrl) {dl.hidden = false;dl.href = service.downloadUrl;dl.innerHTML = `${ICONS.download} Tải bản game`;} else
+    {dl.hidden = true;}
+    $('#serviceModalFeatures').innerHTML = (service.features || []).map((f) => `<li>${esc(f)}</li>`).join('');
 
     const pkgWrap = $('#serviceModalPackages');
     const flash = Store.flashSaleInfo();
     const selId = currentPackage && currentPackage.id;
     const optHtml = (p) => {
       const sale = Store.flashSalePrice(p.price);
-      const priceCell = flash.active && sale < p.price
-        ? `<del class="price-old">${fmt(p.price)}</del> <strong>${fmt(sale)}</strong>`
-        : `<strong>${fmt(p.price)}</strong>`;
+      const priceCell = flash.active && sale < p.price ?
+      `<del class="price-old">${fmt(p.price)}</del> <strong>${fmt(sale)}</strong>` :
+      `<strong>${fmt(p.price)}</strong>`;
       return `
       <div class="package-option ${p.id === selId ? 'selected' : ''}" data-pkg="${esc(p.id)}">
         <span>${esc(p.name)}</span>
@@ -4075,11 +4075,11 @@ window.KENIOS_DEFAULT_DB = {
       $('#serviceModalBuyBtn').disabled = !ok;
       $('#serviceModalBuyBtn').textContent = ok ? 'Mua Ngay' : 'Hết Hàng';
     };
-    pkgWrap.querySelectorAll('.package-option').forEach(el => {
+    pkgWrap.querySelectorAll('.package-option').forEach((el) => {
       el.addEventListener('click', () => {
-        pkgWrap.querySelectorAll('.package-option').forEach(o => o.classList.remove('selected'));
+        pkgWrap.querySelectorAll('.package-option').forEach((o) => o.classList.remove('selected'));
         el.classList.add('selected');
-        currentPackage = service.packages.find(p => p.id === el.dataset.pkg);
+        currentPackage = service.packages.find((p) => p.id === el.dataset.pkg);
         syncServiceModalPasswordField();
         // Đổi gói -> tính lại mã giảm giá (nếu có) theo giá gói mới.
         applyServiceDiscount();
@@ -4092,7 +4092,7 @@ window.KENIOS_DEFAULT_DB = {
     $('#serviceModalDiscountCode').value = '';
     $('#serviceModalDiscountMsg').hidden = true;
     // Ẩn ô mã giảm giá nếu admin chưa tạo mã nào đang bật (tránh khách nhập vô ích).
-    const hasCodes = (Store.db.config.discountCodes || []).some(d => d && d.enabled !== false && (d.code || '').trim());
+    const hasCodes = (Store.db.config.discountCodes || []).some((d) => d && d.enabled !== false && (d.code || '').trim());
     $('#serviceModalDiscountRow').hidden = !hasCodes;
     updateServiceModalTotal();
 
@@ -4119,11 +4119,11 @@ window.KENIOS_DEFAULT_DB = {
     const avg = Store.avgRating(serviceId);
     const canReview = Store.hasPurchased(serviceId);
     const mine = Store.myReviewFor(serviceId);
-    reviewDraftRating = mine ? (parseInt(mine.rating, 10) || 5) : 5;
-    const head = reviews.length
-      ? `<div class="review-summary">${starsHtml(avg)} <b>${avg.toFixed(1)}</b>/5 · ${reviews.length} đánh giá</div>`
-      : `<p class="muted" style="font-size:.85rem;margin:0;">Chưa có đánh giá nào. ${canReview ? 'Hãy là người đầu tiên đánh giá!' : 'Mua sản phẩm để đánh giá.'}</p>`;
-    const list = reviews.map(r => `
+    reviewDraftRating = mine ? parseInt(mine.rating, 10) || 5 : 5;
+    const head = reviews.length ?
+    `<div class="review-summary">${starsHtml(avg)} <b>${avg.toFixed(1)}</b>/5 · ${reviews.length} đánh giá</div>` :
+    `<p class="muted" style="font-size:.85rem;margin:0;">Chưa có đánh giá nào. ${canReview ? 'Hãy là người đầu tiên đánh giá!' : 'Mua sản phẩm để đánh giá.'}</p>`;
+    const list = reviews.map((r) => `
       <div class="review-item">
         <div class="review-item-head">
           <span class="review-item-user">${esc(r.username || 'Khách')}</span>
@@ -4133,7 +4133,7 @@ window.KENIOS_DEFAULT_DB = {
       </div>`).join('');
     let form = '';
     if (canReview) {
-      const pick = [1, 2, 3, 4, 5].map(n => `<span data-star="${n}" class="rs-star${n <= reviewDraftRating ? ' on' : ''}">${ICONS.star}</span>`).join('');
+      const pick = [1, 2, 3, 4, 5].map((n) => `<span data-star="${n}" class="rs-star${n <= reviewDraftRating ? ' on' : ''}">${ICONS.star}</span>`).join('');
       form = `
         <div class="review-form">
           <strong style="font-size:.9rem;">${mine ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn'}</strong>
@@ -4152,10 +4152,10 @@ window.KENIOS_DEFAULT_DB = {
     // Wire chọn sao
     const pickEl = $('#reviewStarPick');
     if (pickEl) {
-      pickEl.querySelectorAll('[data-star]').forEach(star => {
+      pickEl.querySelectorAll('[data-star]').forEach((star) => {
         star.addEventListener('click', () => {
           reviewDraftRating = parseInt(star.dataset.star, 10);
-          pickEl.querySelectorAll('[data-star]').forEach(s2 => s2.classList.toggle('on', parseInt(s2.dataset.star, 10) <= reviewDraftRating));
+          pickEl.querySelectorAll('[data-star]').forEach((s2) => s2.classList.toggle('on', parseInt(s2.dataset.star, 10) <= reviewDraftRating));
         });
       });
     }
@@ -4166,12 +4166,12 @@ window.KENIOS_DEFAULT_DB = {
         toast('Cảm ơn bạn đã đánh giá!', 'success');
         renderServiceReviews(serviceId);
         renderServiceGrid();
-      } catch (err) { toast(err.message, 'error'); }
+      } catch (err) {toast(err.message, 'error');}
     });
   }
 
   // ---- Đơn hàng của tôi ----
-  const fmtDateTime = (iso) => { try { return new Date(iso).toLocaleString('vi-VN'); } catch { return ''; } };
+  const fmtDateTime = (iso) => {try {return new Date(iso).toLocaleString('vi-VN');} catch {return '';}};
 
   // Trạng thái hết hạn của 1 đơn: {cls, text} hoặc null nếu vĩnh viễn / còn xa.
   function orderExpiryWarn(o) {
@@ -4188,12 +4188,12 @@ window.KENIOS_DEFAULT_DB = {
     return null;
   }
 
-  function orderCardHtml(o) {
-    const contact = Store.db.config.zaloLink || (Store.db.config.contactChannels || []).find(c => c.enabled && c.url)?.url || '';
+  function orderCardHtml(o) {var _find;
+    const contact = Store.db.config.zaloLink || ((_find = (Store.db.config.contactChannels || []).find((c) => c.enabled && c.url)) === null || _find === void 0 ? void 0 : _find.url) || '';
     const expiry = o.expiryDate ? fmtDateTime(o.expiryDate) : 'Vĩnh viễn (không hết hạn)';
     const purchased = fmtDateTime(o.purchaseDate || o.date);
-    const svc = Store.db.services.find(s => s.id === o.serviceId);
-    const download = (svc && svc.downloadUrl) || o.downloadUrl || '';
+    const svc = Store.db.services.find((s) => s.id === o.serviceId);
+    const download = svc && svc.downloadUrl || o.downloadUrl || '';
     const warn = orderExpiryWarn(o);
     return `
       <div class="order-card">
@@ -4219,40 +4219,40 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function openOrdersModal() {
-    if (!Store.currentUser()) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
+    if (!Store.currentUser()) {toast('Vui lòng đăng nhập.', 'error');openModal('#authModal');return;}
     const orders = Store.myOrders();
     // Banner tổng hợp số key sắp/đã hết hạn để khách chú ý gia hạn.
-    const warnCount = orders.filter(o => orderExpiryWarn(o)).length;
-    const banner = warnCount > 0
-      ? `<div class="order-expiry-warn expired" style="display:block;margin-bottom:12px;">${ico('bell')} Bạn có <b>${warnCount}</b> key sắp/đã hết hạn — hãy gia hạn để không gián đoạn.</div>`
-      : '';
-    $('#ordersList').innerHTML = orders.length
-      ? banner + orders.map(orderCardHtml).join('')
-      : `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
-    $$('[data-copy-key]', $('#ordersList')).forEach(btn => {
-      btn.addEventListener('click', () => {
-        navigator.clipboard?.writeText(btn.dataset.copyKey).then(() => toast('Đã sao chép key!', 'success'));
+    const warnCount = orders.filter((o) => orderExpiryWarn(o)).length;
+    const banner = warnCount > 0 ?
+    `<div class="order-expiry-warn expired" style="display:block;margin-bottom:12px;">${ico('bell')} Bạn có <b>${warnCount}</b> key sắp/đã hết hạn — hãy gia hạn để không gián đoạn.</div>` :
+    '';
+    $('#ordersList').innerHTML = orders.length ?
+    banner + orders.map(orderCardHtml).join('') :
+    `<p class="empty-note">Bạn chưa có đơn hàng nào.</p>`;
+    $$('[data-copy-key]', $('#ordersList')).forEach((btn) => {
+      btn.addEventListener('click', () => {var _navigator$clipboard4;
+        (_navigator$clipboard4 = navigator.clipboard) === null || _navigator$clipboard4 === void 0 || _navigator$clipboard4.writeText(btn.dataset.copyKey).then(() => toast('Đã sao chép key!', 'success'));
       });
     });
-    $$('[data-renew-service]', $('#ordersList')).forEach(btn => {
-      btn.addEventListener('click', () => { closeModal('#ordersModal'); openServiceModal(btn.dataset.renewService); });
+    $$('[data-renew-service]', $('#ordersList')).forEach((btn) => {
+      btn.addEventListener('click', () => {closeModal('#ordersModal');openServiceModal(btn.dataset.renewService);});
     });
     openModal('#ordersModal');
   }
 
   // Tải xuống — đồng bộ với link tải của từng sản phẩm.
   function openDownloadsModal() {
-    const items = Store.db.services.filter(s => s.downloadUrl);
-    $('#downloadsList').innerHTML = items.length
-      ? items.map(s => `
+    const items = Store.db.services.filter((s) => s.downloadUrl);
+    $('#downloadsList').innerHTML = items.length ?
+    items.map((s) => `
         <div class="download-item">
           <div class="download-item-info">
             <span class="download-ico">${ICONS.download}</span>
             <div><strong>${esc(s.name)}</strong><small>${esc(Store.serviceOs ? Store.serviceOs(s) : '')}</small></div>
           </div>
           <a class="btn btn-primary btn-sm" href="${esc(s.downloadUrl)}" target="_blank" rel="noopener">Tải bản này</a>
-        </div>`).join('')
-      : '<p class="empty-note">Chưa có bản tải nào. Admin thêm link tải cho sản phẩm ở tab Dịch vụ.</p>';
+        </div>`).join('') :
+    '<p class="empty-note">Chưa có bản tải nào. Admin thêm link tải cho sản phẩm ở tab Dịch vụ.</p>';
     openModal('#downloadsModal');
   }
 
@@ -4262,7 +4262,7 @@ window.KENIOS_DEFAULT_DB = {
     const ico = {
       pending: `<span class="cs-ico pending">${ICONS.clock}</span>`,
       success: `<span class="cs-ico ok">${ICONS.check}</span>`,
-      failed:  `<span class="cs-ico fail">${ICONS.close}</span>`
+      failed: `<span class="cs-ico fail">${ICONS.close}</span>`
     }[status] || '';
     const txt = { pending: 'Đang xử lý', success: 'Thành công', failed: failText || 'Thẻ lỗi/sai' }[status] || status;
     return `${ico} ${txt}`;
@@ -4272,7 +4272,7 @@ window.KENIOS_DEFAULT_DB = {
   // ĐANG XỬ LÝ / LỖI (chưa cộng tiền). Mở lịch sử cũng chủ động hỏi cổng trạng thái thẻ.
   async function openDepositHistoryModal() {
     const user = Store.currentUser();
-    if (!user) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
+    if (!user) {toast('Vui lòng đăng nhập.', 'error');openModal('#authModal');return;}
     openModal('#depositHistoryModal');
     if ($('#depositHistorySummary')) $('#depositHistorySummary').innerHTML = '';
     $('#depositHistoryList').innerHTML = '<p class="empty-note">Đang tải &amp; kiểm tra thẻ…</p>';
@@ -4282,62 +4282,62 @@ window.KENIOS_DEFAULT_DB = {
     let serverDeps = null;
     try {
       const res = await Store.cardStatus();
-      if (res && res.status === 'success') { cardReqs = res.requests || []; if (Array.isArray(res.deposits)) serverDeps = res.deposits; }
-    } catch (e) { /* offline: chỉ hiện dữ liệu cục bộ */ }
+      if (res && res.status === 'success') {cardReqs = res.requests || [];if (Array.isArray(res.deposits)) serverDeps = res.deposits;}
+    } catch (e) {/* offline: chỉ hiện dữ liệu cục bộ */}
 
     // Ưu tiên lịch sử nạp MỚI NHẤT từ máy chủ (kể cả thẻ vừa cộng); offline thì dùng cục bộ.
-    const deps = serverDeps !== null ? serverDeps
-      : (Store.db.transactions || []).filter(t => t.userId === user.userId && t.type === 'deposit' && (t.amount || 0) > 0);
+    const deps = serverDeps !== null ? serverDeps :
+    (Store.db.transactions || []).filter((t) => t.userId === user.userId && t.type === 'deposit' && (t.amount || 0) > 0);
     const total = deps.reduce((s, t) => s + (t.amount || 0), 0);
     // Thẻ THÀNH CÔNG đã nằm trong deps (qua transaction) rồi → chỉ thêm ĐANG XỬ LÝ / LỖI.
-    const openCards = cardReqs.filter(r => r.status === 'pending' || r.status === 'failed');
+    const openCards = cardReqs.filter((r) => r.status === 'pending' || r.status === 'failed');
 
     const items = [];
-    deps.forEach(t => items.push({ ts: Date.parse(t.date) || 0, kind: 'ok', amount: t.amount, desc: t.description || 'Nạp tiền', date: t.date }));
-    openCards.forEach(r => items.push({ ts: Date.parse(r.date) || 0, kind: r.status, telco: r.telco, declared: r.declaredAmount, date: r.date }));
+    deps.forEach((t) => items.push({ ts: Date.parse(t.date) || 0, kind: 'ok', amount: t.amount, desc: t.description || 'Nạp tiền', date: t.date }));
+    openCards.forEach((r) => items.push({ ts: Date.parse(r.date) || 0, kind: r.status, telco: r.telco, declared: r.declaredAmount, date: r.date }));
     items.sort((a, b) => b.ts - a.ts);
 
-    const pendCount = openCards.filter(r => r.status === 'pending').length;
+    const pendCount = openCards.filter((r) => r.status === 'pending').length;
     if ($('#depositHistorySummary')) $('#depositHistorySummary').innerHTML =
-      `<div class="dh-summary-row"><span>Tổng đã nạp</span><strong>${fmt(total)}</strong></div>
-       <div class="dh-summary-row"><span>Số lần nạp thành công</span><strong>${deps.length}</strong></div>`
-      + (pendCount ? `<div class="dh-summary-row"><span>Thẻ đang xử lý</span><strong>${pendCount}</strong></div>` : '');
+    `<div class="dh-summary-row"><span>Tổng đã nạp</span><strong>${fmt(total)}</strong></div>
+       <div class="dh-summary-row"><span>Số lần nạp thành công</span><strong>${deps.length}</strong></div>` + (
+    pendCount ? `<div class="dh-summary-row"><span>Thẻ đang xử lý</span><strong>${pendCount}</strong></div>` : '');
 
     const badge = {
       pending: `<span class="dh-status pending">${cardStatusLabel('pending')}</span>`,
       failed: `<span class="dh-status failed">${cardStatusLabel('failed', 'Thẻ lỗi/sai')}</span>`
     };
-    $('#depositHistoryList').innerHTML = items.length
-      ? items.map(it => {
-          const when = it.date ? new Date(it.date).toLocaleString('vi-VN') : '';
-          if (it.kind === 'ok') {
-            return `<div class="dh-item">
+    $('#depositHistoryList').innerHTML = items.length ?
+    items.map((it) => {
+      const when = it.date ? new Date(it.date).toLocaleString('vi-VN') : '';
+      if (it.kind === 'ok') {
+        return `<div class="dh-item">
               <div class="dh-item-main">
                 <span class="dh-item-amount">+${fmt(it.amount)}</span>
                 <span class="dh-item-desc">${esc(it.desc)}</span>
               </div>
               <span class="dh-item-date">${esc(when)}</span>
             </div>`;
-          }
-          return `<div class="dh-item dh-item-${it.kind}">
+      }
+      return `<div class="dh-item dh-item-${it.kind}">
             <div class="dh-item-main">
               <span class="dh-item-desc">Nạp thẻ cào ${esc(it.telco || '')} ${fmt(it.declared || 0)} ${badge[it.kind] || ''}</span>
             </div>
             <span class="dh-item-date">${esc(when)}</span>
           </div>`;
-        }).join('')
-      : '<p class="empty-note">Bạn chưa có giao dịch nạp tiền nào.</p>';
+    }).join('') :
+    '<p class="empty-note">Bạn chưa có giao dịch nạp tiền nào.</p>';
   }
 
   // Lịch sử GIAO DỊCH đầy đủ của khách: nạp, mua, admin cộng/trừ — hiện trong menu 3 gạch.
   function openTxHistoryModal() {
     const user = Store.currentUser();
-    if (!user) { toast('Vui lòng đăng nhập.', 'error'); openModal('#authModal'); return; }
-    const txs = (Store.db.transactions || []).filter(t => t.userId === user.userId);
-    $('#txHistoryList').innerHTML = txs.length
-      ? txs.map(t => {
-          const plus = (t.amount || 0) >= 0;
-          return `
+    if (!user) {toast('Vui lòng đăng nhập.', 'error');openModal('#authModal');return;}
+    const txs = (Store.db.transactions || []).filter((t) => t.userId === user.userId);
+    $('#txHistoryList').innerHTML = txs.length ?
+    txs.map((t) => {
+      const plus = (t.amount || 0) >= 0;
+      return `
         <div class="dh-item">
           <div class="dh-item-main">
             <span class="dh-item-amount" style="color:${plus ? 'var(--success)' : 'var(--danger)'}">${plus ? '+' : ''}${fmt(t.amount || 0)}</span>
@@ -4345,8 +4345,8 @@ window.KENIOS_DEFAULT_DB = {
           </div>
           <span class="dh-item-date">${esc(new Date(t.date).toLocaleString('vi-VN'))}</span>
         </div>`;
-        }).join('')
-      : '<p class="empty-note">Bạn chưa có giao dịch nào.</p>';
+    }).join('') :
+    '<p class="empty-note">Bạn chưa có giao dịch nào.</p>';
     openModal('#txHistoryModal');
   }
 
@@ -4355,19 +4355,19 @@ window.KENIOS_DEFAULT_DB = {
   // nên dùng bảng theo mệnh giá; các cổng còn lại một mức. `default` dùng cho mệnh giá không
   // liệt kê. Phải khớp $DEFAULT_DISC trong card.php.
   const DEFAULT_CARD_DISCOUNTS = {
-    VIETTEL:   { 10000: 19, 20000: 19, 30000: 20, 50000: 18.5, 100000: 18.5, 200000: 18.5, 300000: 18.5, 500000: 20.5, 1000000: 20.5, default: 20.5 },
+    VIETTEL: { 10000: 19, 20000: 19, 30000: 20, 50000: 18.5, 100000: 18.5, 200000: 18.5, 300000: 18.5, 500000: 20.5, 1000000: 20.5, default: 20.5 },
     VINAPHONE: { 10000: 19.5, 20000: 19.5, 30000: 19.5, 50000: 16.5, 100000: 15.5, 200000: 16, 300000: 16, 500000: 15.5, default: 15.5 },
-    MOBIFONE:  { 10000: 26, 20000: 26, 30000: 26, 50000: 25.5, 100000: 25, 200000: 23, 300000: 23, 500000: 22, default: 22 },
-    GARENA:    { 5000: 19.5, 10000: 18.5, 20000: 18.5, 50000: 18.5, 100000: 18.5, 200000: 18.5, 500000: 18.5, default: 18.5 },
-    ZING:      { default: 18.5 },
-    GATE:      { 10000: 17, 20000: 17, 50000: 17, 100000: 17, 200000: 17, 300000: 23.5, 500000: 17, 1000000: 17, 2000000: 23.5, 5000000: 17, default: 17 },
-    VCOIN:     { 2000000: 21, 5000000: 21.5, default: 19.5 },
-    SCOIN:     { default: 32.5 }
+    MOBIFONE: { 10000: 26, 20000: 26, 30000: 26, 50000: 25.5, 100000: 25, 200000: 23, 300000: 23, 500000: 22, default: 22 },
+    GARENA: { 5000: 19.5, 10000: 18.5, 20000: 18.5, 50000: 18.5, 100000: 18.5, 200000: 18.5, 500000: 18.5, default: 18.5 },
+    ZING: { default: 18.5 },
+    GATE: { 10000: 17, 20000: 17, 50000: 17, 100000: 17, 200000: 17, 300000: 23.5, 500000: 17, 1000000: 17, 2000000: 23.5, 5000000: 17, default: 17 },
+    VCOIN: { 2000000: 21, 5000000: 21.5, default: 19.5 },
+    SCOIN: { default: 32.5 }
   };
   // Lấy % chiết khấu theo nhà mạng + mệnh giá. Ưu tiên admin tự đặt (một mức phẳng cho mọi
   // mệnh giá); nếu chưa đặt thì dùng bảng mặc định theo mệnh giá ở trên.
   function cardDiscountPct(telco, amount) {
-    const cfg = (Store.db.config && Store.db.config.cardDiscounts) || {};
+    const cfg = Store.db.config && Store.db.config.cardDiscounts || {};
     const ov = cfg[telco];
     if (ov != null && ov !== '' && typeof ov !== 'object') return parseFloat(ov) || 0;
     const tbl = DEFAULT_CARD_DISCOUNTS[telco];
@@ -4378,25 +4378,25 @@ window.KENIOS_DEFAULT_DB = {
   // Giá trị hiển thị tham khảo (dùng cho placeholder ô cấu hình admin).
   function cardDiscountHint(telco) {
     const tbl = DEFAULT_CARD_DISCOUNTS[telco];
-    return tbl ? (tbl.default || 0) : 0;
+    return tbl ? tbl.default || 0 : 0;
   }
 
   // ---- Giỏ hàng (mua nhiều sản phẩm cùng lúc) ----
   const CART_KEY = 'kenios_cart_v1';
-  function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } }
-  function saveCart(c) { try { localStorage.setItem(CART_KEY, JSON.stringify(c)); } catch { /* ignore */ } updateCartBadge(); }
-  function addToCart(serviceId, packageId) { const c = getCart(); c.push({ serviceId, packageId }); saveCart(c); }
+  function getCart() {try {return JSON.parse(localStorage.getItem(CART_KEY)) || [];} catch {return [];}}
+  function saveCart(c) {try {localStorage.setItem(CART_KEY, JSON.stringify(c));} catch {/* ignore */}updateCartBadge();}
+  function addToCart(serviceId, packageId) {const c = getCart();c.push({ serviceId, packageId });saveCart(c);}
   function updateCartBadge() {
     const n = getCart().length;
     const b = $('#cartBadge');
-    if (b) { b.textContent = n; b.hidden = n === 0; }
+    if (b) {b.textContent = n;b.hidden = n === 0;}
   }
   function cartItemInfo(it) {
-    const service = Store.db.services.find(s => s.id === it.serviceId);
-    const pkg = service && (service.packages || []).find(p => p.id === it.packageId);
+    const service = Store.db.services.find((s) => s.id === it.serviceId);
+    const pkg = service && (service.packages || []).find((p) => p.id === it.packageId);
     if (!service || !pkg) return null;
     let price = pkg.price;
-    try { price = Store.computePurchasePrice(service, pkg, '', Store.currentUser()).final; } catch (e) { /* dùng giá gốc */ }
+    try {price = Store.computePurchasePrice(service, pkg, '', Store.currentUser()).final;} catch (e) {/* dùng giá gốc */}
     return { service, pkg, price };
   }
   function renderCart() {
@@ -4407,7 +4407,7 @@ window.KENIOS_DEFAULT_DB = {
     const rows = [];
     cart.forEach((it, i) => {
       const info = cartItemInfo(it);
-      if (!info) { rows.push(`<div class="cart-item"><div class="cart-item-main"><strong>Sản phẩm không còn</strong></div><button class="cart-item-del" data-cart-remove="${i}" title="Xóa">${ico('close')}</button></div>`); return; }
+      if (!info) {rows.push(`<div class="cart-item"><div class="cart-item-main"><strong>Sản phẩm không còn</strong></div><button class="cart-item-del" data-cart-remove="${i}" title="Xóa">${ico('close')}</button></div>`);return;}
       total += info.price;
       rows.push(`<div class="cart-item">
         <div class="cart-item-main"><strong>${esc(info.service.name)}</strong><span>${esc(info.pkg.name)}</span></div>
@@ -4420,22 +4420,22 @@ window.KENIOS_DEFAULT_DB = {
     if ($('#cartFoot')) $('#cartFoot').hidden = !rows.length;
     if ($('#cartError')) $('#cartError').textContent = '';
   }
-  function openCartModal() { renderCart(); openModal('#cartModal'); }
+  function openCartModal() {renderCart();openModal('#cartModal');}
 
   async function checkoutCart() {
     const user = Store.currentUser();
-    if (!user) { toast('Vui lòng đăng nhập trước khi mua.', 'error'); openModal('#authModal'); return; }
+    if (!user) {toast('Vui lòng đăng nhập trước khi mua.', 'error');openModal('#authModal');return;}
     const cart = getCart();
     if (!cart.length) return;
-    let ok = 0; const failed = []; const remaining = [];
+    let ok = 0;const failed = [];const remaining = [];
     for (const it of cart) {
       const info = cartItemInfo(it);
       if (!info) continue; // món không còn -> bỏ khỏi giỏ luôn
       try {
-        if (Store.usesRealKeyStock(info.pkg)) await Store.redeemKeyOnServer(user.username, '', info.service, info.pkg, '');
-        else await Store.purchase(info.service, info.pkg, '');
+        if (Store.usesRealKeyStock(info.pkg)) await Store.redeemKeyOnServer(user.username, '', info.service, info.pkg, '');else
+        await Store.purchase(info.service, info.pkg, '');
         ok++;
-      } catch (e) { failed.push(`${info.service.name} - ${info.pkg.name}: ${e.message}`); remaining.push(it); }
+      } catch (e) {failed.push(`${info.service.name} - ${info.pkg.name}: ${e.message}`);remaining.push(it);}
     }
     saveCart(remaining); // giữ lại các món chưa mua được (hết key / thiếu tiền) để thử lại
     renderCart();
@@ -4448,14 +4448,14 @@ window.KENIOS_DEFAULT_DB = {
     }
   }
 
-  function wireCart() {
+  function wireCart() {var _$17, _$18, _$19, _$20;
     updateCartBadge();
-    $('#mobileNavCart')?.addEventListener('click', () => { closeMobileNavGlobal(); openCartModal(); });
-    $('#cartClearBtn')?.addEventListener('click', () => { if (confirm('Xóa hết sản phẩm trong giỏ?')) { saveCart([]); renderCart(); } });
-    $('#cartCheckoutBtn')?.addEventListener('click', () => withLoading($('#cartCheckoutBtn'), checkoutCart));
-    $('#cartList')?.addEventListener('click', (e) => {
+    (_$17 = $('#mobileNavCart')) === null || _$17 === void 0 || _$17.addEventListener('click', () => {closeMobileNavGlobal();openCartModal();});
+    (_$18 = $('#cartClearBtn')) === null || _$18 === void 0 || _$18.addEventListener('click', () => {if (confirm('Xóa hết sản phẩm trong giỏ?')) {saveCart([]);renderCart();}});
+    (_$19 = $('#cartCheckoutBtn')) === null || _$19 === void 0 || _$19.addEventListener('click', () => withLoading($('#cartCheckoutBtn'), checkoutCart));
+    (_$20 = $('#cartList')) === null || _$20 === void 0 || _$20.addEventListener('click', (e) => {
       const del = e.target.closest('[data-cart-remove]');
-      if (del) { const c = getCart(); c.splice(parseInt(del.dataset.cartRemove, 10), 1); saveCart(c); renderCart(); }
+      if (del) {const c = getCart();c.splice(parseInt(del.dataset.cartRemove, 10), 1);saveCart(c);renderCart();}
     });
   }
 
@@ -4478,14 +4478,14 @@ window.KENIOS_DEFAULT_DB = {
     $('#aiAvatar').src = cfg.aiAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=kenios-ai`;
 
     const quick = [
-      { icon: 'card', label: 'Nạp tiền', text: 'Cách nạp tiền' },
-      { icon: 'tag', label: 'Bảng giá', text: 'Xem bảng giá' },
-      { icon: 'cart', label: 'Cách mua key', text: 'Cách mua key' },
-      { icon: 'shield', label: 'Bảo hành', text: 'Chính sách bảo hành' },
-      { icon: 'web', label: 'Thiết kế web', text: 'Dịch vụ thiết kế web' },
-      { icon: 'headset', label: 'Liên hệ Admin', text: 'Liên hệ admin' }
-    ];
-    $('#aiQuickReplies').innerHTML = quick.map(q => `<button data-q="${esc(q.text)}"><span class="qr-ico">${ICONS[q.icon]}</span>${esc(q.label)}</button>`).join('');
+    { icon: 'card', label: 'Nạp tiền', text: 'Cách nạp tiền' },
+    { icon: 'tag', label: 'Bảng giá', text: 'Xem bảng giá' },
+    { icon: 'cart', label: 'Cách mua key', text: 'Cách mua key' },
+    { icon: 'shield', label: 'Bảo hành', text: 'Chính sách bảo hành' },
+    { icon: 'web', label: 'Thiết kế web', text: 'Dịch vụ thiết kế web' },
+    { icon: 'headset', label: 'Liên hệ Admin', text: 'Liên hệ admin' }];
+
+    $('#aiQuickReplies').innerHTML = quick.map((q) => `<button data-q="${esc(q.text)}"><span class="qr-ico">${ICONS[q.icon]}</span>${esc(q.label)}</button>`).join('');
     $('#aiQuickReplies').addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (btn) sendAiMessage(btn.dataset.q);
@@ -4499,7 +4499,7 @@ window.KENIOS_DEFAULT_DB = {
         addAiMessage(cfg.aiGreeting, 'bot');
       }
     });
-    $('#aiClose').addEventListener('click', () => { $('#aiPanel').hidden = true; });
+    $('#aiClose').addEventListener('click', () => {$('#aiPanel').hidden = true;});
 
     $('#aiForm').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -4522,27 +4522,27 @@ window.KENIOS_DEFAULT_DB = {
   function sendAiMessage(text) {
     addAiMessage(text, 'user');
     const reply = getAiReply(text.toLowerCase());
-    setTimeout(() => { addAiMessage(reply, 'bot'); }, 350);
+    setTimeout(() => {addAiMessage(reply, 'bot');}, 350);
   }
 
   // Bảng giá theo từng mục — khách hỏi đúng mục nào thì trả lời riêng mục đó,
   // chỉ đưa ra toàn bộ bảng giá (cfg.aiResponsePrice) khi khách hỏi chung chung.
   const PRICE_ITEMS = [
-    { keys: ['vnhax mod skin', 'mod skin vn', 'mod skin'], text: '💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần' },
-    { keys: ['vnhax'], text: '💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần' },
-    { keys: ['oasis'], text: '💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần' },
-    { keys: ['king'], text: '💎 KING\n💰 900K/Tháng\n💰 450K/Tuần' },
-    { keys: ['timo'], text: '💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày' },
-    { keys: ['vingodl', 'vin godl'], text: '💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần' },
-    { keys: ['zolo'], text: 'PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
-    { keys: ['vnb'], text: 'PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
-    { keys: ['root'], text: 'PUBG ANDROID — ROOT\n💰 650K/Tháng' },
-    { keys: ['mg'], text: 'PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
-    { keys: ['liên quân', 'lien quan'], text: '⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500K/Tháng chống tố\n💰 250K/Tuần chống tố' },
-    { keys: ['free fire', 'freefire'], text: '🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần' },
-    { keys: ['pubg ios', 'ios'], text: '🎮 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
-    { keys: ['pubg android', 'android'], text: 'PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }
-  ];
+  { keys: ['vnhax mod skin', 'mod skin vn', 'mod skin'], text: '💎 VNHAX MOD SKIN VN\n💰 450K/Tháng\n💰 225K/Tuần' },
+  { keys: ['vnhax'], text: '💎 VNHAX\n💰 600K/Tháng\n💰 300K/Tuần' },
+  { keys: ['oasis'], text: '💎 OASIS VIP\n💰 800K/Tháng\n💰 400K/Tuần' },
+  { keys: ['king'], text: '💎 KING\n💰 900K/Tháng\n💰 450K/Tuần' },
+  { keys: ['timo'], text: '💎 TIMO VIP\n💰 500K/Tháng\n💰 250K/Tuần\n💰 50K/Ngày' },
+  { keys: ['vingodl', 'vin godl'], text: '💎 VINGODL\n💰 550K/Tháng\n💰 250K/Tuần' },
+  { keys: ['zolo'], text: 'PUBG ANDROID — ZOLO\n💰 500K/Tháng\n💰 250K/Tuần' },
+  { keys: ['vnb'], text: 'PUBG ANDROID — VNB\n💰 500K/Tháng\n💰 250K/Tuần' },
+  { keys: ['root'], text: 'PUBG ANDROID — ROOT\n💰 650K/Tháng' },
+  { keys: ['mg'], text: 'PUBG ANDROID — MG\n💰 500K/Tháng\n💰 250K/Tuần' },
+  { keys: ['liên quân', 'lien quan'], text: '⚔️ LIÊN QUÂN\n💰 250K/Tháng\n💰 120K/Tuần\n💰 500K/Tháng chống tố\n💰 250K/Tuần chống tố' },
+  { keys: ['free fire', 'freefire'], text: '🔥 FREE FIRE\n💰 550K/Tháng\n💰 250K/Tuần' },
+  { keys: ['pubg ios', 'ios'], text: '🎮 PUBG IOS\n\n💎 VNHAX: 600K/Tháng - 300K/Tuần\n💎 VNHAX MOD SKIN VN: 450K/Tháng - 225K/Tuần\n💎 OASIS VIP: 800K/Tháng - 400K/Tuần\n💎 KING: 900K/Tháng - 450K/Tuần\n💎 TIMO VIP: 500K/Tháng - 250K/Tuần - 50K/Ngày\n💎 VINGODL: 550K/Tháng - 250K/Tuần' },
+  { keys: ['pubg android', 'android'], text: 'PUBG ANDROID\n\n💰 ZOLO: 500K/Tháng - 250K/Tuần\n💰 MG: 500K/Tháng - 250K/Tuần\n💰 VNB: 500K/Tháng - 250K/Tuần\n💰 ROOT: 650K/Tháng' }];
+
 
   function matchPriceItem(t) {
     const norm = t.toLowerCase();
@@ -4566,9 +4566,9 @@ window.KENIOS_DEFAULT_DB = {
     // 3) Hỏi chung về bảng giá -> đưa cả bảng
     if (/bảng giá|bang gia|giá cả|xem giá|full giá|price list|có những gói/.test(t)) return cfg.aiResponsePrice;
     // 4) Bộ câu trả lời sẵn (admin thêm được nhiều tuỳ ý)
-    for (const item of (cfg.aiKnowledge || [])) {
-      const kws = String(item.k || '').split(/[,\n]/).map(s => s.trim().toLowerCase()).filter(Boolean);
-      if (kws.some(k => t.includes(k))) return item.a;
+    for (const item of cfg.aiKnowledge || []) {
+      const kws = String(item.k || '').split(/[,\n]/).map((s) => s.trim().toLowerCase()).filter(Boolean);
+      if (kws.some((k) => t.includes(k))) return item.a;
     }
     // 5) Không khớp -> câu mặc định
     return cfg.aiResponseFallback;
@@ -4581,7 +4581,7 @@ window.KENIOS_DEFAULT_DB = {
   // trên mobile), tránh trường hợp tab đầu/cuối bị khuất mép.
   function scrollAdminTabIntoView(btn) {
     if (!btn || typeof btn.scrollIntoView !== 'function') return;
-    try { btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (_) {}
+    try {btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });} catch (_) {}
   }
 
   // Các tab Cộng tác viên được phép xem: Tổng quan, Đơn hàng, Dịch vụ (thêm/sửa
@@ -4589,13 +4589,13 @@ window.KENIOS_DEFAULT_DB = {
   const CTV_TABS = ['overview', 'orders', 'services', 'media'];
 
   function openAdminModal() {
-    if (!Store.canAccessAdmin()) { toast('Bạn không có quyền truy cập.', 'error'); return; }
+    if (!Store.canAccessAdmin()) {toast('Bạn không có quyền truy cập.', 'error');return;}
     const ctv = Store.isCtv();
     // Ẩn các tab nhạy cảm với CTV; admin thấy đủ.
-    $$('.admin-tab').forEach(t => { t.hidden = ctv && !CTV_TABS.includes(t.dataset.adminTab); });
+    $$('.admin-tab').forEach((t) => {t.hidden = ctv && !CTV_TABS.includes(t.dataset.adminTab);});
     adminActiveTab = 'overview';
     const first = $('.admin-tab[data-admin-tab="overview"]');
-    $$('.admin-tab').forEach(t => t.classList.toggle('active', t === first));
+    $$('.admin-tab').forEach((t) => t.classList.toggle('active', t === first));
     if ($('#adminTabs')) $('#adminTabs').scrollLeft = 0; // luôn bắt đầu từ tab đầu tiên
     renderAdminTab('overview');
     $('#adminSyncMsg').textContent = '';
@@ -4607,7 +4607,7 @@ window.KENIOS_DEFAULT_DB = {
       const btn = e.target.closest('.admin-tab');
       if (!btn) return;
       adminActiveTab = btn.dataset.adminTab;
-      $$('.admin-tab', $('#adminTabs')).forEach(t => t.classList.toggle('active', t === btn));
+      $$('.admin-tab', $('#adminTabs')).forEach((t) => t.classList.toggle('active', t === btn));
       scrollAdminTabIntoView(btn);
       renderAdminTab(adminActiveTab);
     });
@@ -4620,13 +4620,13 @@ window.KENIOS_DEFAULT_DB = {
     $('#adminLoadKeysBtn').addEventListener('click', () => {
       const user = Store.currentUser();
       const creds = getAdminCreds();
-      if (!creds) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!creds) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       withLoading($('#adminLoadKeysBtn'), async () => {
         try {
           await Store.fetchFullServiceKeys(user.username, creds.password);
           renderAdminTab('services');
           toast('Đã tải kho key đầy đủ từ máy chủ.', 'success');
-        } catch (err) { $('#adminSyncMsg').textContent = err.message; }
+        } catch (err) {$('#adminSyncMsg').textContent = err.message;}
       });
     });
   }
@@ -4636,13 +4636,13 @@ window.KENIOS_DEFAULT_DB = {
   async function saveUiToServer() {
     let creds = getAdminCreds();
     const user = Store.currentUser();
-    if (!user || user.role !== 'admin') { toast('Chỉ admin mới lưu được giao diện.', 'error'); return; }
+    if (!user || user.role !== 'admin') {toast('Chỉ admin mới lưu được giao diện.', 'error');return;}
     // Thiếu mật khẩu đã nhớ (vd. đăng nhập bằng Google, hoặc bản cũ) → KHÔNG đăng
     // xuất nữa. Hỏi mật khẩu 1 lần rồi nhớ lại; nếu bỏ qua thì vẫn giữ bản đã lưu
     // cục bộ, không bắt đăng nhập lại.
     if (!creds || creds.username.toLowerCase() !== user.username.toLowerCase()) {
       let pw = null;
-      try { pw = window.prompt('Nhập mật khẩu admin 1 lần để đồng bộ lên máy chủ (sẽ được nhớ, không hỏi lại):'); } catch { pw = null; }
+      try {pw = window.prompt('Nhập mật khẩu admin 1 lần để đồng bộ lên máy chủ (sẽ được nhớ, không hỏi lại):');} catch {pw = null;}
       if (!pw) {
         toast('Đã lưu cục bộ. Chưa đồng bộ lên máy chủ (bỏ qua nhập mật khẩu).', 'success');
         return;
@@ -4679,8 +4679,8 @@ window.KENIOS_DEFAULT_DB = {
     }
     try {
       const res = await Store.trySaveToServer(creds.username, creds.password);
-      if (res && res.status === 'success') { toast(ok, 'success'); return true; }
-      toast((res && res.message) ? res.message : local, res && res.message ? 'error' : 'success');
+      if (res && res.status === 'success') {toast(ok, 'success');return true;}
+      toast(res && res.message ? res.message : local, res && res.message ? 'error' : 'success');
       return false;
     } catch (e) {
       toast(local, 'success');
@@ -4692,45 +4692,45 @@ window.KENIOS_DEFAULT_DB = {
     const body = $('#adminPanelBody');
     // Nút "Tải kho key đầy đủ" chỉ liên quan tới sản phẩm → chỉ hiện ở tab Dịch vụ.
     const loadKeysBtn = $('#adminLoadKeysBtn');
-    if (loadKeysBtn) loadKeysBtn.hidden = (tab !== 'services');
+    if (loadKeysBtn) loadKeysBtn.hidden = tab !== 'services';
     // Chốt chặn: Cộng tác viên chỉ được xem các tab cho phép.
     if (Store.isCtv() && !CTV_TABS.includes(tab)) {
       body.innerHTML = '<p class="empty-note">Bạn (Cộng tác viên) không có quyền xem mục này.</p>';
       return;
     }
-    if (tab === 'overview') body.innerHTML = adminOverviewHtml();
-    else if (tab === 'services') body.innerHTML = adminServicesHtml();
-    else if (tab === 'categories') body.innerHTML = adminCategoriesHtml();
-    else if (tab === 'orders') { body.innerHTML = adminOrdersHtml(); wireAdminTableTools('orders'); }
-    else if (tab === 'report') { body.innerHTML = adminReportHtml(); wireAdminReport(); }
-    else if (tab === 'users') { body.innerHTML = adminUsersHtml(); wireAdminTableTools('users'); }
-    else if (tab === 'media') body.innerHTML = adminMediaHtml();
-    else if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();
-    else if (tab === 'combos') body.innerHTML = adminCombosHtml();
-    else if (tab === 'promo') { body.innerHTML = adminPromoHtml(); $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer()); }
-    else if (tab === 'cards') { body.innerHTML = adminCardsHtml(); wireAdminCards(); }
-    else if (tab === 'config') { body.innerHTML = adminConfigHtml(); wireAdminConfigSecretBoxes(); }
-    else if (tab === 'backup') { body.innerHTML = adminBackupHtml(); wireBackupBox(); }
+    if (tab === 'overview') body.innerHTML = adminOverviewHtml();else
+    if (tab === 'services') body.innerHTML = adminServicesHtml();else
+    if (tab === 'categories') body.innerHTML = adminCategoriesHtml();else
+    if (tab === 'orders') {body.innerHTML = adminOrdersHtml();wireAdminTableTools('orders');} else
+    if (tab === 'report') {body.innerHTML = adminReportHtml();wireAdminReport();} else
+    if (tab === 'users') {body.innerHTML = adminUsersHtml();wireAdminTableTools('users');} else
+    if (tab === 'media') body.innerHTML = adminMediaHtml();else
+    if (tab === 'linkgen') body.innerHTML = adminLinkGenHtml();else
+    if (tab === 'combos') body.innerHTML = adminCombosHtml();else
+    if (tab === 'promo') {var _$21;body.innerHTML = adminPromoHtml();(_$21 = $('#adminSyncServerBtn')) === null || _$21 === void 0 || _$21.addEventListener('click', () => saveUiToServer());} else
+    if (tab === 'cards') {body.innerHTML = adminCardsHtml();wireAdminCards();} else
+    if (tab === 'config') {body.innerHTML = adminConfigHtml();wireAdminConfigSecretBoxes();} else
+    if (tab === 'backup') {body.innerHTML = adminBackupHtml();wireBackupBox();}
   }
 
-  function wireAdminConfigSecretBoxes() {
+  function wireAdminConfigSecretBoxes() {var _$22, _$23, _$24, _$25, _$26, _$27;
     // Wire nút Đồng bộ lên máy chủ (chỉ nằm trong tab Config)
-    $('#adminSyncServerBtn')?.addEventListener('click', () => saveUiToServer());
+    (_$22 = $('#adminSyncServerBtn')) === null || _$22 === void 0 || _$22.addEventListener('click', () => saveUiToServer());
 
     const baseUrl = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`;
     $('#bankWebhookUrl').value = `${baseUrl}bank_callback.php`;
-    $('#copyWebhookUrlBtn').addEventListener('click', () => {
-      navigator.clipboard?.writeText($('#bankWebhookUrl').value).then(() => toast('Đã sao chép URL webhook!', 'success'));
+    $('#copyWebhookUrlBtn').addEventListener('click', () => {var _navigator$clipboard5;
+      (_navigator$clipboard5 = navigator.clipboard) === null || _navigator$clipboard5 === void 0 || _navigator$clipboard5.writeText($('#bankWebhookUrl').value).then(() => toast('Đã sao chép URL webhook!', 'success'));
     });
     if ($('#cardCallbackUrl')) $('#cardCallbackUrl').value = `${baseUrl}card.php`;
-    $('#copyCardCbBtn')?.addEventListener('click', () => {
-      navigator.clipboard?.writeText($('#cardCallbackUrl').value).then(() => toast('Đã sao chép Callback URL!', 'success'));
+    (_$23 = $('#copyCardCbBtn')) === null || _$23 === void 0 || _$23.addEventListener('click', () => {var _navigator$clipboard6;
+      (_navigator$clipboard6 = navigator.clipboard) === null || _navigator$clipboard6 === void 0 || _navigator$clipboard6.writeText($('#cardCallbackUrl').value).then(() => toast('Đã sao chép Callback URL!', 'success'));
     });
 
     const user = Store.currentUser();
     const creds = getAdminCreds();
     const pass = creds ? creds.password : '';
-    Store.secretsStatus(user.username, pass).then(res => {
+    Store.secretsStatus(user.username, pass).then((res) => {
       if (res.status !== 'success') {
         $('#bankTokenStatus').textContent = 'Chưa xác định được trạng thái (đăng nhập lại admin nếu cần).';
         return;
@@ -4747,79 +4747,79 @@ window.KENIOS_DEFAULT_DB = {
     $('#saveBankTokenBtn').addEventListener('click', () => {
       const token = $('#bankTokenInput').value.trim();
       const c = getAdminCreds();
-      if (!token) { toast('Vui lòng nhập token trước khi lưu.', 'error'); return; }
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!token) {toast('Vui lòng nhập token trước khi lưu.', 'error');return;}
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       withLoading($('#saveBankTokenBtn'), async () => {
         const res = await Store.saveSecrets(c.username, c.password, { bankToken: token });
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
-        if (res.status === 'success') { $('#bankTokenInput').value = ''; renderAdminTab('config'); }
+        if (res.status === 'success') {$('#bankTokenInput').value = '';renderAdminTab('config');}
       });
     });
 
-    $('#saveCardApiBtn')?.addEventListener('click', () => {
+    (_$24 = $('#saveCardApiBtn')) === null || _$24 === void 0 || _$24.addEventListener('click', () => {
       const pid = $('#cardPartnerIdInput').value.trim();
       const pkey = $('#cardPartnerKeyInput').value.trim();
       const c = getAdminCreds();
-      if (!pid && !pkey) { toast('Nhập Partner ID và/hoặc Partner Key trước khi lưu.', 'error'); return; }
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!pid && !pkey) {toast('Nhập Partner ID và/hoặc Partner Key trước khi lưu.', 'error');return;}
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       const patch = {};
       if (pid) patch.cardPartnerId = pid;
       if (pkey) patch.cardPartnerKey = pkey;
       withLoading($('#saveCardApiBtn'), async () => {
         const res = await Store.saveSecrets(c.username, c.password, patch);
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
-        if (res.status === 'success') { $('#cardPartnerIdInput').value = ''; $('#cardPartnerKeyInput').value = ''; renderAdminTab('config'); }
+        if (res.status === 'success') {$('#cardPartnerIdInput').value = '';$('#cardPartnerKeyInput').value = '';renderAdminTab('config');}
       });
     });
 
     // ---- Thông báo Telegram ----
-    $('#saveTelegramBtn')?.addEventListener('click', () => {
+    (_$25 = $('#saveTelegramBtn')) === null || _$25 === void 0 || _$25.addEventListener('click', () => {
       const tok = $('#telegramTokenInput').value.trim();
       const chat = $('#telegramChatInput').value.trim();
       const c = getAdminCreds();
-      if (!tok && !chat) { toast('Nhập Bot Token và/hoặc Chat ID trước khi lưu.', 'error'); return; }
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!tok && !chat) {toast('Nhập Bot Token và/hoặc Chat ID trước khi lưu.', 'error');return;}
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       const patch = {};
       if (tok) patch.telegramBotToken = tok;
       if (chat) patch.telegramChatId = chat;
       withLoading($('#saveTelegramBtn'), async () => {
         const res = await Store.saveSecrets(c.username, c.password, patch);
         toast(res.message || (res.status === 'success' ? 'Đã lưu.' : 'Lưu thất bại.'), res.status === 'success' ? 'success' : 'error');
-        if (res.status === 'success') { $('#telegramTokenInput').value = ''; $('#telegramChatInput').value = ''; renderAdminTab('config'); }
+        if (res.status === 'success') {$('#telegramTokenInput').value = '';$('#telegramChatInput').value = '';renderAdminTab('config');}
       });
     });
-    $('#testTelegramBtn')?.addEventListener('click', () => {
+    (_$26 = $('#testTelegramBtn')) === null || _$26 === void 0 || _$26.addEventListener('click', () => {
       const c = getAdminCreds();
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       withLoading($('#testTelegramBtn'), async () => {
         const res = await Store.testTelegram(c.username, c.password);
         toast(res.message || (res.status === 'success' ? 'Đã gửi tin thử — kiểm tra Telegram!' : 'Gửi thất bại.'), res.status === 'success' ? 'success' : 'error');
       });
     });
-    $('#clearTelegramBtn')?.addEventListener('click', () => {
+    (_$27 = $('#clearTelegramBtn')) === null || _$27 === void 0 || _$27.addEventListener('click', () => {
       const c = getAdminCreds();
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       if (!confirm('Tắt thông báo Telegram? Bạn sẽ không nhận tin nữa cho tới khi cấu hình lại.')) return;
       withLoading($('#clearTelegramBtn'), async () => {
         const res = await Store.saveSecrets(c.username, c.password, { telegramBotToken: '-', telegramChatId: '-' });
-        toast(res.status === 'success' ? 'Đã tắt thông báo Telegram.' : (res.message || 'Thất bại.'), res.status === 'success' ? 'success' : 'error');
+        toast(res.status === 'success' ? 'Đã tắt thông báo Telegram.' : res.message || 'Thất bại.', res.status === 'success' ? 'success' : 'error');
         if (res.status === 'success') renderAdminTab('config');
       });
     });
   }
 
   // ---- Sao lưu & Khôi phục dữ liệu trên máy chủ ----
-  function wireBackupBox() {
+  function wireBackupBox() {var _$28, _$29, _$30, _$31, _$32, _$34;
     const infoEl = $('#backupInfoStatus');
     const msgEl = $('#backupMsg');
-    const setMsg = (t, ok) => { if (msgEl) { msgEl.textContent = t; msgEl.style.color = ok === false ? 'var(--danger, #ef4444)' : (ok ? 'var(--success, #22c55e)' : 'var(--muted)'); } };
+    const setMsg = (t, ok) => {if (msgEl) {msgEl.textContent = t;msgEl.style.color = ok === false ? 'var(--danger, #ef4444)' : ok ? 'var(--success, #22c55e)' : 'var(--muted)';}};
 
     function refreshInfo() {
       const c = getAdminCreds();
       if (!infoEl) return;
-      if (!c) { infoEl.textContent = 'Đăng nhập lại admin 1 lần để xem trạng thái sao lưu.'; return; }
-      Store.backupInfo(c.username, c.password).then(res => {
-        if (res.status !== 'success') { infoEl.textContent = res.message || 'Không kiểm tra được bản sao lưu.'; return; }
+      if (!c) {infoEl.textContent = 'Đăng nhập lại admin 1 lần để xem trạng thái sao lưu.';return;}
+      Store.backupInfo(c.username, c.password).then((res) => {
+        if (res.status !== 'success') {infoEl.textContent = res.message || 'Không kiểm tra được bản sao lưu.';return;}
         if (res.exists) {
           const when = res.time ? new Date(res.time).toLocaleString('vi-VN') : '(không rõ thời gian)';
           const kb = res.size ? ' · ' + Math.max(1, Math.round(res.size / 1024)) + ' KB' : '';
@@ -4827,7 +4827,7 @@ window.KENIOS_DEFAULT_DB = {
         } else {
           infoEl.textContent = 'Chưa có bản sao lưu. Bấm "Sao lưu ngay" hoặc "Đồng bộ lên máy chủ" để tạo.';
         }
-      }).catch(() => { infoEl.textContent = 'Không kiểm tra được bản sao lưu.'; });
+      }).catch(() => {infoEl.textContent = 'Không kiểm tra được bản sao lưu.';});
     }
     refreshInfo();
 
@@ -4836,22 +4836,22 @@ window.KENIOS_DEFAULT_DB = {
       const el = $('#ordersArchiveStatus');
       if (!el) return;
       const c = getAdminCreds();
-      if (!c) { el.textContent = 'Đăng nhập lại admin 1 lần để xem kho đơn hàng.'; return; }
-      Store.ordersArchiveInfo(c.username, c.password).then(res => {
-        if (!res || res.status !== 'success') { el.textContent = 'Không kiểm tra được kho đơn hàng.'; return; }
+      if (!c) {el.textContent = 'Đăng nhập lại admin 1 lần để xem kho đơn hàng.';return;}
+      Store.ordersArchiveInfo(c.username, c.password).then((res) => {
+        if (!res || res.status !== 'success') {el.textContent = 'Không kiểm tra được kho đơn hàng.';return;}
         if (res.exists && res.count > 0) {
           const when = res.time ? new Date(res.time).toLocaleString('vi-VN') : '';
           el.innerHTML = '<span class="backup-ok-ico">' + ICONS.check + '</span> Đang lưu <b>' + res.count + '</b> đơn hàng khách' + (when ? ' · Cập nhật: ' + esc(when) : '');
         } else {
           el.textContent = 'Chưa có đơn hàng nào trong kho (sẽ tự lưu khi có khách mua hoặc khi bấm Đồng bộ).';
         }
-      }).catch(() => { el.textContent = 'Không kiểm tra được kho đơn hàng.'; });
+      }).catch(() => {el.textContent = 'Không kiểm tra được kho đơn hàng.';});
     }
     refreshOrdersInfo();
 
-    $('#recoverOrdersBtn')?.addEventListener('click', () => {
+    (_$28 = $('#recoverOrdersBtn')) === null || _$28 === void 0 || _$28.addEventListener('click', () => {
       const c = getAdminCreds();
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       if (!confirm('Phục hồi các đơn hàng khách đang thiếu từ kho đơn hàng về web? Sản phẩm/cấu hình hiện tại KHÔNG bị đụng tới.')) return;
       withLoading($('#recoverOrdersBtn'), async () => {
         setMsg('Đang phục hồi đơn hàng…');
@@ -4860,26 +4860,26 @@ window.KENIOS_DEFAULT_DB = {
           const n = res.recovered || 0;
           setMsg(n > 0 ? `Đã phục hồi ${n} đơn hàng khách. Đang tải lại…` : 'Không có đơn nào cần phục hồi (web đang đủ đơn).', true);
           toast(n > 0 ? `Đã phục hồi ${n} đơn hàng!` : 'Web đang đủ đơn hàng.', 'success');
-          if (n > 0) { Store._clearLocalOverrides(); setTimeout(() => location.reload(), 900); }
-          else refreshOrdersInfo();
-        } else { setMsg(res.message || 'Phục hồi thất bại.', false); toast(res.message || 'Phục hồi thất bại.', 'error'); }
+          if (n > 0) {Store._clearLocalOverrides();setTimeout(() => location.reload(), 900);} else
+          refreshOrdersInfo();
+        } else {setMsg(res.message || 'Phục hồi thất bại.', false);toast(res.message || 'Phục hồi thất bại.', 'error');}
       });
     });
 
-    $('#backupNowBtn')?.addEventListener('click', () => {
+    (_$29 = $('#backupNowBtn')) === null || _$29 === void 0 || _$29.addEventListener('click', () => {
       const c = getAdminCreds();
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       withLoading($('#backupNowBtn'), async () => {
         setMsg('Đang sao lưu…');
         const res = await Store.backupNow(c.username, c.password);
-        if (res.status === 'success') { setMsg('Đã tạo bản sao lưu trên máy chủ lúc ' + new Date().toLocaleTimeString('vi-VN') + '.', true); toast('Đã sao lưu lên máy chủ!', 'success'); refreshInfo(); }
-        else { setMsg(res.message || 'Sao lưu thất bại.', false); toast(res.message || 'Sao lưu thất bại.', 'error'); }
+        if (res.status === 'success') {setMsg('Đã tạo bản sao lưu trên máy chủ lúc ' + new Date().toLocaleTimeString('vi-VN') + '.', true);toast('Đã sao lưu lên máy chủ!', 'success');refreshInfo();} else
+        {setMsg(res.message || 'Sao lưu thất bại.', false);toast(res.message || 'Sao lưu thất bại.', 'error');}
       });
     });
 
-    $('#backupRestoreBtn')?.addEventListener('click', () => {
+    (_$30 = $('#backupRestoreBtn')) === null || _$30 === void 0 || _$30.addEventListener('click', () => {
       const c = getAdminCreds();
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       if (!confirm('Khôi phục sẽ ghi đè toàn bộ dữ liệu hiện tại bằng bản sao lưu trên máy chủ. Trang sẽ tải lại sau khi khôi phục. Tiếp tục?')) return;
       withLoading($('#backupRestoreBtn'), async () => {
         setMsg('Đang khôi phục…');
@@ -4892,13 +4892,13 @@ window.KENIOS_DEFAULT_DB = {
           setMsg('Đã khôi phục. Đang tải lại trang…', true);
           toast('Đã khôi phục dữ liệu từ máy chủ!', 'success');
           setTimeout(() => location.reload(), 900);
-        } else { setMsg(res.message || 'Khôi phục thất bại.', false); toast(res.message || 'Khôi phục thất bại.', 'error'); }
+        } else {setMsg(res.message || 'Khôi phục thất bại.', false);toast(res.message || 'Khôi phục thất bại.', 'error');}
       });
     });
 
-    $('#backupDownloadBtn')?.addEventListener('click', () => {
+    (_$31 = $('#backupDownloadBtn')) === null || _$31 === void 0 || _$31.addEventListener('click', () => {
       const c = getAdminCreds();
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       withLoading($('#backupDownloadBtn'), async () => {
         setMsg('Đang tải bản sao lưu…');
         const res = await Store.exportDb(c.username, c.password);
@@ -4908,27 +4908,27 @@ window.KENIOS_DEFAULT_DB = {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-            a.href = url; a.download = 'kenios-backup-' + stamp + '.json';
-            document.body.appendChild(a); a.click(); a.remove();
+            a.href = url;a.download = 'kenios-backup-' + stamp + '.json';
+            document.body.appendChild(a);a.click();a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 2000);
             setMsg('Đã tải bản sao lưu về máy.', true);
-          } catch (e) { setMsg('Không tạo được file tải về.', false); }
-        } else { setMsg(res.message || 'Không lấy được dữ liệu để tải.', false); toast(res.message || 'Tải thất bại.', 'error'); }
+          } catch (e) {setMsg('Không tạo được file tải về.', false);}
+        } else {setMsg(res.message || 'Không lấy được dữ liệu để tải.', false);toast(res.message || 'Tải thất bại.', 'error');}
       });
     });
 
-    $('#backupImportBtn')?.addEventListener('click', () => $('#backupImportInput')?.click());
-    $('#backupImportInput')?.addEventListener('change', (e) => {
+    (_$32 = $('#backupImportBtn')) === null || _$32 === void 0 || _$32.addEventListener('click', () => {var _$33;return (_$33 = $('#backupImportInput')) === null || _$33 === void 0 ? void 0 : _$33.click();});
+    (_$34 = $('#backupImportInput')) === null || _$34 === void 0 || _$34.addEventListener('change', (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       const c = getAdminCreds();
-      if (!c) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); e.target.value = ''; return; }
-      if (!confirm('Phục hồi từ file "' + file.name + '" sẽ ghi đè toàn bộ dữ liệu hiện tại và đồng bộ lên máy chủ. Trang sẽ tải lại. Tiếp tục?')) { e.target.value = ''; return; }
+      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');e.target.value = '';return;}
+      if (!confirm('Phục hồi từ file "' + file.name + '" sẽ ghi đè toàn bộ dữ liệu hiện tại và đồng bộ lên máy chủ. Trang sẽ tải lại. Tiếp tục?')) {e.target.value = '';return;}
       const reader = new FileReader();
       reader.onload = async () => {
         let dbObj;
-        try { dbObj = JSON.parse(reader.result); }
-        catch (err) { setMsg('File không phải JSON hợp lệ.', false); toast('File sao lưu lỗi.', 'error'); e.target.value = ''; return; }
+        try {dbObj = JSON.parse(reader.result);}
+        catch (err) {setMsg('File không phải JSON hợp lệ.', false);toast('File sao lưu lỗi.', 'error');e.target.value = '';return;}
         setMsg('Đang phục hồi từ file…');
         try {
           const res = await Store.importDb(dbObj, c.username, c.password);
@@ -4936,8 +4936,8 @@ window.KENIOS_DEFAULT_DB = {
             setMsg('Đã phục hồi từ file. Đang tải lại trang…', true);
             toast('Đã phục hồi dữ liệu từ file!', 'success');
             setTimeout(() => location.reload(), 900);
-          } else { setMsg((res && res.message) || 'Phục hồi thất bại.', false); toast((res && res.message) || 'Phục hồi thất bại.', 'error'); }
-        } catch (err) { setMsg(err.message || 'File sao lưu không hợp lệ.', false); toast(err.message || 'File sao lưu không hợp lệ.', 'error'); }
+          } else {setMsg(res && res.message || 'Phục hồi thất bại.', false);toast(res && res.message || 'Phục hồi thất bại.', 'error');}
+        } catch (err) {setMsg(err.message || 'File sao lưu không hợp lệ.', false);toast(err.message || 'File sao lưu không hợp lệ.', 'error');}
         e.target.value = '';
       };
       reader.readAsText(file);
@@ -4948,30 +4948,30 @@ window.KENIOS_DEFAULT_DB = {
     const db = Store.db;
     const revenue = db.orders.reduce((sum, o) => sum + (o.price || 0), 0);
     const totalBalance = db.users.reduce((sum, u) => sum + (u.balance || 0), 0);
-    const totalDeposit = (db.transactions || []).filter(t => t.type === 'deposit').reduce((s, t) => s + (t.amount || 0), 0);
+    const totalDeposit = (db.transactions || []).filter((t) => t.type === 'deposit').reduce((s, t) => s + (t.amount || 0), 0);
     const stats = [
-      { label: 'Người dùng', value: db.users.length },
-      { label: 'Đơn hàng', value: db.orders.length },
-      { label: 'Doanh thu', value: fmt(revenue) },
-      { label: 'Tổng đã nạp', value: fmt(totalDeposit) },
-      { label: 'Tổng số dư ví', value: fmt(totalBalance) }
-    ];
+    { label: 'Người dùng', value: db.users.length },
+    { label: 'Đơn hàng', value: db.orders.length },
+    { label: 'Doanh thu', value: fmt(revenue) },
+    { label: 'Tổng đã nạp', value: fmt(totalDeposit) },
+    { label: 'Tổng số dư ví', value: fmt(totalBalance) }];
+
     const recent = db.orders.slice(0, 5);
 
     // ----- Doanh thu 14 ngày gần nhất (từ đơn hàng) -----
     const days = 14;
     const byDay = [];
     for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
-      const start = d.getTime(), end = start + 86400000;
+      const d = new Date();d.setHours(0, 0, 0, 0);d.setDate(d.getDate() - i);
+      const start = d.getTime(),end = start + 86400000;
       const total = db.orders.reduce((s, o) => {
         const t = Date.parse(o.purchaseDate || o.date);
-        return (!isNaN(t) && t >= start && t < end) ? s + (o.price || 0) : s;
+        return !isNaN(t) && t >= start && t < end ? s + (o.price || 0) : s;
       }, 0);
       byDay.push({ label: `${d.getDate()}/${d.getMonth() + 1}`, total });
     }
-    const maxDay = Math.max(1, ...byDay.map(x => x.total));
-    const chart = byDay.map(x => `
+    const maxDay = Math.max(1, ...byDay.map((x) => x.total));
+    const chart = byDay.map((x) => `
       <div class="revenue-bar-wrap" title="${x.label}: ${fmt(x.total)}">
         <span class="revenue-bar-val">${x.total > 0 ? Math.round(x.total / 1000) + 'k' : ''}</span>
         <div class="revenue-bar" style="height:${Math.round(x.total / maxDay * 100)}%"></div>
@@ -4980,19 +4980,19 @@ window.KENIOS_DEFAULT_DB = {
 
     // ----- Sản phẩm bán chạy (theo doanh thu) -----
     const prodMap = {};
-    db.orders.forEach(o => {
+    db.orders.forEach((o) => {
       const k = o.serviceName || 'Khác';
       if (!prodMap[k]) prodMap[k] = { name: k, count: 0, revenue: 0 };
-      prodMap[k].count++; prodMap[k].revenue += (o.price || 0);
+      prodMap[k].count++;prodMap[k].revenue += o.price || 0;
     });
     const topProducts = Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 6);
-    const maxProd = Math.max(1, ...topProducts.map(p => p.revenue));
+    const maxProd = Math.max(1, ...topProducts.map((p) => p.revenue));
 
     // ----- Cảnh báo kho key sắp hết (gói có kho key thật, còn ≤ 5) -----
     const LOW = 5;
     const lowStock = [];
-    (db.services || []).forEach(s => {
-      (s.packages || []).forEach(p => {
+    (db.services || []).forEach((s) => {
+      (s.packages || []).forEach((p) => {
         if (typeof p.keyCount === 'number' && p.keyCount <= LOW) {
           lowStock.push({ svc: s.name, pkg: p.name, count: p.keyCount });
         }
@@ -5002,13 +5002,13 @@ window.KENIOS_DEFAULT_DB = {
       <div class="admin-lowstock">
         <div class="admin-lowstock-head">${ico('warn')} <b>${lowStock.length}</b> gói sắp/đã hết key — hãy nhập thêm để không gián đoạn bán hàng</div>
         <div class="admin-lowstock-list">
-          ${lowStock.map(x => `<span class="admin-lowstock-item ${x.count === 0 ? 'out' : ''}">${esc(x.svc)} · ${esc(x.pkg)}: <b>${x.count === 0 ? 'HẾT KEY' : 'còn ' + x.count}</b></span>`).join('')}
+          ${lowStock.map((x) => `<span class="admin-lowstock-item ${x.count === 0 ? 'out' : ''}">${esc(x.svc)} · ${esc(x.pkg)}: <b>${x.count === 0 ? 'HẾT KEY' : 'còn ' + x.count}</b></span>`).join('')}
         </div>
       </div>` : '';
 
     // ----- Lịch sử dùng mã giảm giá -----
-    const codes = (db.config.discountCodes || []).filter(d => (parseInt(d.usedCount, 10) || 0) > 0)
-      .sort((a, b) => (parseInt(b.usedCount, 10) || 0) - (parseInt(a.usedCount, 10) || 0));
+    const codes = (db.config.discountCodes || []).filter((d) => (parseInt(d.usedCount, 10) || 0) > 0).
+    sort((a, b) => (parseInt(b.usedCount, 10) || 0) - (parseInt(a.usedCount, 10) || 0));
 
     return `
       <div class="admin-guide">
@@ -5017,7 +5017,7 @@ window.KENIOS_DEFAULT_DB = {
         cập nhật theo đơn hàng & giao dịch thực tế.
       </div>
       <div class="admin-stat-grid">
-        ${stats.map(s => `<div class="admin-stat-card"><strong>${s.value}</strong><span>${s.label}</span></div>`).join('')}
+        ${stats.map((s) => `<div class="admin-stat-card"><strong>${s.value}</strong><span>${s.label}</span></div>`).join('')}
       </div>
 
       ${lowStockHtml}
@@ -5027,7 +5027,7 @@ window.KENIOS_DEFAULT_DB = {
 
       <h4 class="admin-section-title">Sản phẩm bán chạy (theo doanh thu)</h4>
       <div class="top-products">
-        ${topProducts.length ? topProducts.map(p => `
+        ${topProducts.length ? topProducts.map((p) => `
           <div class="top-product-row">
             <span style="flex:0 0 34%;">${esc(p.name)}</span>
             <span class="top-product-bar"><span style="width:${Math.round(p.revenue / maxProd * 100)}%"></span></span>
@@ -5040,7 +5040,7 @@ window.KENIOS_DEFAULT_DB = {
         <table class="admin-table">
           <thead><tr><th>Mã</th><th>Loại</th><th>Đã dùng</th><th>Giới hạn</th></tr></thead>
           <tbody>
-            ${codes.length ? codes.map(d => `
+            ${codes.length ? codes.map((d) => `
               <tr><td><b>${esc(d.code)}</b></td><td>${d.type === 'amount' ? 'Giảm ' + fmt(parseInt(d.value, 10) || 0) : 'Giảm ' + (parseFloat(d.value) || 0) + '%'}</td><td>${parseInt(d.usedCount, 10) || 0}</td><td>${(parseInt(d.maxUses, 10) || 0) > 0 ? d.maxUses : 'Không giới hạn'}</td></tr>
             `).join('') : '<tr><td colspan="4">Chưa có mã giảm giá nào được sử dụng.</td></tr>'}
           </tbody>
@@ -5052,7 +5052,7 @@ window.KENIOS_DEFAULT_DB = {
         <table class="admin-table">
           <thead><tr><th>Dịch vụ</th><th>Gói</th><th>Giá</th><th>Thời gian</th></tr></thead>
           <tbody>
-            ${recent.length ? recent.map(o => `
+            ${recent.length ? recent.map((o) => `
               <tr><td>${esc(o.serviceName)}</td><td>${esc(o.packageName)}</td><td>${fmt(o.price)}</td><td>${new Date(o.date).toLocaleString('vi-VN')}</td></tr>
             `).join('') : '<tr><td colspan="4">Chưa có đơn hàng nào.</td></tr>'}
           </tbody>
@@ -5065,22 +5065,22 @@ window.KENIOS_DEFAULT_DB = {
     const services = Store.db.services;
     const categories = Store.db.categories;
     const editing = adminServiceEditing;
-    const editTarget = editing && editing !== 'new' ? services.find(s => s.id === editing) : null;
+    const editTarget = editing && editing !== 'new' ? services.find((s) => s.id === editing) : null;
     let formHtml = '';
-    if (editing) {
-      const s = editTarget || { id: '', name: '', categoryId: categories[0]?.id || '', subcategoryId: '', description: '', image: '', status: 'instock', features: [], packages: [{ name: '1 Ngày', price: 0 }] };
-      const subsForCat = (Store.db.subcategories || []).filter(sc => sc.categoryId === s.categoryId);
+    if (editing) {var _categories$;
+      const s = editTarget || { id: '', name: '', categoryId: ((_categories$ = categories[0]) === null || _categories$ === void 0 ? void 0 : _categories$.id) || '', subcategoryId: '', description: '', image: '', status: 'instock', features: [], packages: [{ name: '1 Ngày', price: 0 }] };
+      const subsForCat = (Store.db.subcategories || []).filter((sc) => sc.categoryId === s.categoryId);
       formHtml = `
         <form class="admin-form" data-admin-form="service">
           <input type="hidden" name="_originalId" value="${esc(s.id)}">
           <label>Mã sản phẩm (tự động) <input class="auto-id" value="#${editTarget ? esc(s.id) : nextSeqId(services)}" readonly tabindex="-1"></label>
           <label>Danh mục
-            <select name="categoryId" id="adminServiceCategory">${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+            <select name="categoryId" id="adminServiceCategory">${categories.map((c) => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
           </label>
           <label>Thư mục con (tùy chọn)
             <select name="subcategoryId" id="adminServiceSubcat">
               <option value="">— Không thuộc thư mục con —</option>
-              ${subsForCat.map(sc => `<option value="${esc(sc.id)}" ${sc.id === s.subcategoryId ? 'selected' : ''}>${esc(sc.name)}</option>`).join('')}
+              ${subsForCat.map((sc) => `<option value="${esc(sc.id)}" ${sc.id === s.subcategoryId ? 'selected' : ''}>${esc(sc.name)}</option>`).join('')}
             </select>
           </label>
           <label class="span-2">Tên dịch vụ <input name="name" value="${esc(s.name)}" required></label>
@@ -5103,12 +5103,12 @@ window.KENIOS_DEFAULT_DB = {
           <label>Nền tảng (tách riêng ngoài danh sách)
             <select name="platform">
               <option value="" ${!s.platform ? 'selected' : ''}>— Không tách —</option>
-              ${PLATFORMS.map(pl => `<option value="${pl.key}" ${s.platform === pl.key ? 'selected' : ''}>${pl.label}</option>`).join('')}
+              ${PLATFORMS.map((pl) => `<option value="${pl.key}" ${s.platform === pl.key ? 'selected' : ''}>${pl.label}</option>`).join('')}
             </select>
           </label>
           <label class="span-2">Tính năng (mỗi dòng một mục) <textarea name="features">${esc((s.features || []).join('\n'))}</textarea></label>
           <div class="admin-pkg-rows" id="adminPkgRows">
-            ${(s.packages || []).map(p => adminPkgRowHtml(p)).join('')}
+            ${(s.packages || []).map((p) => adminPkgRowHtml(p)).join('')}
           </div>
           <div class="admin-form-actions">
             <button type="button" class="btn btn-glass btn-sm" id="adminAddPkgRow">+ Thêm gói</button>
@@ -5127,21 +5127,21 @@ window.KENIOS_DEFAULT_DB = {
         <table class="admin-table">
           <thead><tr><th>Tên</th><th>Danh mục › Thư mục con</th><th>Giá từ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
           <tbody>
-            ${services.map(s => {
-              const catName = categories.find(c => c.id === s.categoryId)?.name || s.categoryId;
-              const subName = s.subcategoryId ? ((Store.db.subcategories || []).find(x => x.id === s.subcategoryId)?.name || '') : '';
-              return `
+            ${services.map((s) => {var _categories$find, _find2;
+      const catName = ((_categories$find = categories.find((c) => c.id === s.categoryId)) === null || _categories$find === void 0 ? void 0 : _categories$find.name) || s.categoryId;
+      const subName = s.subcategoryId ? ((_find2 = (Store.db.subcategories || []).find((x) => x.id === s.subcategoryId)) === null || _find2 === void 0 ? void 0 : _find2.name) || '' : '';
+      return `
               <tr>
                 <td>${esc(s.name)}</td>
                 <td>${esc(catName)}${subName ? ' › ' + esc(subName) : ''}</td>
-                <td>${fmt(Math.min(...(s.packages || [{ price: 0 }]).map(p => p.price)))}</td>
+                <td>${fmt(Math.min(...(s.packages || [{ price: 0 }]).map((p) => p.price)))}</td>
                 <td>${s.status === 'instock' ? 'Còn hàng' : 'Hết hàng'}</td>
                 <td class="admin-row-actions">
                   <button data-admin-edit-service="${esc(s.id)}">Sửa</button>
                   <button class="danger" data-admin-delete-service="${esc(s.id)}">Xóa</button>
                 </td>
               </tr>`;
-            }).join('')}
+    }).join('')}
           </tbody>
         </table>
       </div>
@@ -5154,7 +5154,7 @@ window.KENIOS_DEFAULT_DB = {
     // để bảo mật). Hiển thị keyCount để admin thấy ĐÚNG số lượng kho — tránh tưởng nhầm là
     // mất key sau khi khôi phục/cập nhật. Muốn xem/sửa từng key thì bấm "Tải kho key đầy đủ".
     const keysLoaded = Array.isArray(p.keys);
-    const stockCount = keysLoaded ? keys.length : (typeof p.keyCount === 'number' ? p.keyCount : 0);
+    const stockCount = keysLoaded ? keys.length : typeof p.keyCount === 'number' ? p.keyCount : 0;
     const needLoad = !keysLoaded && stockCount > 0;
     return `
       <div class="admin-pkg-row" data-pkg-id="${esc(p.id || '')}">
@@ -5180,9 +5180,9 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function pkgKeyListItems(keys) {
-    return keys.length
-      ? keys.map((k, i) => `<li><span>${esc(k)}</span><button type="button" data-remove-pkg-key="${i}" title="Xóa key này">${ico('close')}</button></li>`).join('')
-      : '<li class="empty-note">Chưa có key nào trong kho.</li>';
+    return keys.length ?
+    keys.map((k, i) => `<li><span>${esc(k)}</span><button type="button" data-remove-pkg-key="${i}" title="Xóa key này">${ico('close')}</button></li>`).join('') :
+    '<li class="empty-note">Chưa có key nào trong kho.</li>';
   }
 
   function refreshPkgKeyList(row, keys) {
@@ -5192,11 +5192,11 @@ window.KENIOS_DEFAULT_DB = {
 
   // Bộ chọn icon SVG cho Danh mục / Thư mục con (không dùng emoji "icon máy").
   function iconPickerHtml(selectedKey, hiddenName) {
-    const sel = (selectedKey && ICONS[selectedKey]) ? selectedKey : 'folder';
+    const sel = selectedKey && ICONS[selectedKey] ? selectedKey : 'folder';
     return `
       <div class="icon-picker" data-icon-picker>
         <input type="hidden" name="${hiddenName}" value="${esc(sel)}">
-        ${PICKER_ICON_KEYS.map(k => `
+        ${PICKER_ICON_KEYS.map((k) => `
           <button type="button" class="icon-pick ${k === sel ? 'selected' : ''}" data-icon-pick="${k}" title="${k}" aria-label="${k}">${ICONS[k]}</button>
         `).join('')}
       </div>`;
@@ -5204,27 +5204,27 @@ window.KENIOS_DEFAULT_DB = {
 
   // Hai nhóm hiệu ứng logo TÁCH BIỆT hoàn toàn: MÀU CHẠY và CHUYỂN ĐỘNG (kết hợp được).
   const LOGO_COLOR_FX = [
-    ['solid', 'Mặc định'], ['rainbow', 'Cầu vồng'], ['shine', 'Ánh kim'], ['gradient', 'Gradient'],
-    ['glow', 'Phát sáng'], ['sparkle', 'Lung linh'], ['neon', 'Neon'],
-    ['fire', 'Lửa'], ['ice', 'Băng giá'], ['ocean', 'Đại dương'], ['sunset', 'Hoàng hôn'],
-    ['candy', 'Kẹo ngọt'], ['gold', 'Vàng kim'], ['aurora', 'Cực quang'], ['matrix', 'Ma trận'],
-  ];
+  ['solid', 'Mặc định'], ['rainbow', 'Cầu vồng'], ['shine', 'Ánh kim'], ['gradient', 'Gradient'],
+  ['glow', 'Phát sáng'], ['sparkle', 'Lung linh'], ['neon', 'Neon'],
+  ['fire', 'Lửa'], ['ice', 'Băng giá'], ['ocean', 'Đại dương'], ['sunset', 'Hoàng hôn'],
+  ['candy', 'Kẹo ngọt'], ['gold', 'Vàng kim'], ['aurora', 'Cực quang'], ['matrix', 'Ma trận']];
+
   const LOGO_MOTION_FX = [
-    ['none', 'Không'], ['pulse', 'Nhịp đập'], ['bounce', 'Nảy'], ['wave', 'Lắc lư'], ['flip', 'Lật 3D'],
-  ];
-  const LOGO_COLOR_MODES = LOGO_COLOR_FX.map(([v]) => v).filter(v => v !== 'solid');
-  const LOGO_MOTION_MODES = LOGO_MOTION_FX.map(([v]) => v).filter(v => v !== 'none');
+  ['none', 'Không'], ['pulse', 'Nhịp đập'], ['bounce', 'Nảy'], ['wave', 'Lắc lư'], ['flip', 'Lật 3D']];
+
+  const LOGO_COLOR_MODES = LOGO_COLOR_FX.map(([v]) => v).filter((v) => v !== 'solid');
+  const LOGO_MOTION_MODES = LOGO_MOTION_FX.map(([v]) => v).filter((v) => v !== 'none');
   // Tên keyframe + kiểu chạy cho từng hiệu ứng (để gộp animation inline khi kết hợp màu + chuyển động).
   const LOGO_COLOR_ANIM = {
     rainbow: ['logoRainbowCycle', 'linear'], shine: ['logoShineSweep', 'linear'], gradient: ['logoGradientMove', 'linear'],
     glow: ['logoGlow', 'ease-in-out'], sparkle: ['logoSparkle', 'ease-in-out'], neon: ['logoNeon', 'ease-in-out'],
     fire: ['logoGradientMove', 'linear'], ice: ['logoGradientMove', 'linear'], ocean: ['logoGradientMove', 'linear'],
     sunset: ['logoGradientMove', 'linear'], candy: ['logoGradientMove', 'linear'], gold: ['logoGradientMove', 'linear'],
-    aurora: ['logoGradientMove', 'linear'], matrix: ['logoMatrix', 'ease-in-out'],
+    aurora: ['logoGradientMove', 'linear'], matrix: ['logoMatrix', 'ease-in-out']
   };
   const LOGO_MOTION_ANIM = {
     pulse: ['logoPulse', 'ease-in-out'], bounce: ['logoBounce', 'ease-in-out'],
-    wave: ['logoWave', 'ease-in-out'], flip: ['logoFlip', 'ease-in-out'],
+    wave: ['logoWave', 'ease-in-out'], flip: ['logoFlip', 'ease-in-out']
   };
 
   // Bộ chọn hiệu ứng: mỗi ô xem trước ngay trên chữ "Kenios" (không icon máy/emoji).
@@ -5250,7 +5250,7 @@ window.KENIOS_DEFAULT_DB = {
     return `
       <div class="fx-picker font-picker" data-fx-picker>
         <input type="hidden" name="logoFont" value="${esc(sel)}">
-        ${LOGO_FONTS.map(f => `
+        ${LOGO_FONTS.map((f) => `
           <button type="button" class="fx-pick ${f === sel ? 'selected' : ''}" data-fx-pick="${esc(f)}" title="${esc(f)}">
             <span class="fx-pick-demo" style="font-family:'${esc(f)}', sans-serif; font-size:1.05rem">Kenios</span>
             <span class="fx-pick-label">${esc(f)}</span>
@@ -5265,7 +5265,7 @@ window.KENIOS_DEFAULT_DB = {
 
     // ----- Form Danh mục -----
     const cEditing = adminCategoryEditing;
-    const cEditTarget = cEditing && cEditing !== 'new' ? categories.find(c => c.id === cEditing) : null;
+    const cEditTarget = cEditing && cEditing !== 'new' ? categories.find((c) => c.id === cEditing) : null;
     let catForm = '';
     if (cEditing) {
       const c = cEditTarget || { id: '', name: '', icon: 'folder', description: '', image: '' };
@@ -5285,15 +5285,15 @@ window.KENIOS_DEFAULT_DB = {
 
     // ----- Form Thư mục con -----
     const sEditing = adminSubcategoryEditing;
-    const sEditTarget = sEditing && sEditing !== 'new' ? subcategories.find(s => s.id === sEditing) : null;
+    const sEditTarget = sEditing && sEditing !== 'new' ? subcategories.find((s) => s.id === sEditing) : null;
     let subForm = '';
-    if (sEditing) {
-      const s = sEditTarget || { id: '', categoryId: categories[0]?.id || '', name: '', icon: 'folder', description: '', image: '' };
+    if (sEditing) {var _categories$2;
+      const s = sEditTarget || { id: '', categoryId: ((_categories$2 = categories[0]) === null || _categories$2 === void 0 ? void 0 : _categories$2.id) || '', name: '', icon: 'folder', description: '', image: '' };
       subForm = `
         <form class="admin-form" data-admin-form="subcategory">
           <label>Mã thư mục con (tự động) <input class="auto-id" value="#${sEditTarget ? esc(s.id) : nextSeqId(subcategories)}" readonly tabindex="-1"></label>
           <label>Thuộc danh mục
-            <select name="categoryId" required>${categories.map(c => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+            <select name="categoryId" required>${categories.map((c) => `<option value="${esc(c.id)}" ${c.id === s.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
           </label>
           <label class="span-2">Tên thư mục con (VD: PUBG IOS) <input name="name" value="${esc(s.name)}" required></label>
           <label class="span-2">Chọn icon thư mục con ${iconPickerHtml(s.icon, 'icon')}</label>
@@ -5315,11 +5315,11 @@ window.KENIOS_DEFAULT_DB = {
         <table class="admin-table">
           <thead><tr><th>Icon</th><th>Tên</th><th>Thư mục con</th><th>Mô tả</th><th>Thao tác</th></tr></thead>
           <tbody>
-            ${categories.map(c => `
+            ${categories.map((c) => `
               <tr>
                 <td><span class="admin-cell-ico">${catIcon(c.icon)}</span></td>
                 <td>${esc(c.name)}</td>
-                <td>${subcategories.filter(s => s.categoryId === c.id).length}</td>
+                <td>${subcategories.filter((s) => s.categoryId === c.id).length}</td>
                 <td>${esc(c.description || '')}</td>
                 <td class="admin-row-actions">
                   <button data-admin-edit-category="${esc(c.id)}">Sửa</button>
@@ -5340,18 +5340,18 @@ window.KENIOS_DEFAULT_DB = {
         <table class="admin-table">
           <thead><tr><th>Icon</th><th>Tên thư mục con</th><th>Thuộc danh mục</th><th>Số sản phẩm</th><th>Thao tác</th></tr></thead>
           <tbody>
-            ${subcategories.length ? subcategories.map(s => `
+            ${subcategories.length ? subcategories.map((s) => {var _categories$find2;return `
               <tr>
                 <td><span class="admin-cell-ico">${catIcon(s.icon)}</span></td>
                 <td>${esc(s.name)}</td>
-                <td>${esc(categories.find(c => c.id === s.categoryId)?.name || s.categoryId)}</td>
-                <td>${Store.db.services.filter(x => x.subcategoryId === s.id).length}</td>
+                <td>${esc(((_categories$find2 = categories.find((c) => c.id === s.categoryId)) === null || _categories$find2 === void 0 ? void 0 : _categories$find2.name) || s.categoryId)}</td>
+                <td>${Store.db.services.filter((x) => x.subcategoryId === s.id).length}</td>
                 <td class="admin-row-actions">
                   <button data-admin-edit-subcategory="${esc(s.id)}">Sửa</button>
                   <button class="danger" data-admin-delete-subcategory="${esc(s.id)}">Xóa</button>
                 </td>
               </tr>
-            `).join('') : '<tr><td colspan="5" class="empty-note">Chưa có thư mục con. VD: danh mục PUBG → thư mục con "PUBG IOS".</td></tr>'}
+            `;}).join('') : '<tr><td colspan="5" class="empty-note">Chưa có thư mục con. VD: danh mục PUBG → thư mục con "PUBG IOS".</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -5366,18 +5366,18 @@ window.KENIOS_DEFAULT_DB = {
         <table class="admin-table" data-admin-table="orders">
           <thead><tr><th>Mã đơn</th><th>Người dùng</th><th>Dịch vụ</th><th>Gói</th><th>Giá</th><th>Key</th><th>Thời gian</th><th>Thao tác</th></tr></thead>
           <tbody>
-            ${orders.length ? orders.map(o => {
-              const user = Store.db.users.find(u => u.userId === o.userId);
-              const refundable = (o.price || 0) > 0 && !o.refunded;
-              return `<tr data-admin-row>
-                <td>${esc(o.id)}</td><td>${esc(user?.username || o.userId)}</td><td>${esc(o.serviceName)}</td>
+            ${orders.length ? orders.map((o) => {
+      const user = Store.db.users.find((u) => u.userId === o.userId);
+      const refundable = (o.price || 0) > 0 && !o.refunded;
+      return `<tr data-admin-row>
+                <td>${esc(o.id)}</td><td>${esc((user === null || user === void 0 ? void 0 : user.username) || o.userId)}</td><td>${esc(o.serviceName)}</td>
                 <td>${esc(o.packageName)}</td><td>${fmt(o.price)}</td><td>${esc(o.key)}</td>
                 <td>${new Date(o.date).toLocaleString('vi-VN')}</td>
-                <td class="admin-row-actions">${refundable
-                  ? `<button data-refund-order="${esc(o.id)}" title="Hoàn tiền đơn này vào số dư khách">${ico('undo')} Hoàn tiền</button>`
-                  : (o.refunded ? '<span class="muted" style="font-size:.75rem;">Đã hoàn</span>' : '—')}</td>
+                <td class="admin-row-actions">${refundable ?
+      `<button data-refund-order="${esc(o.id)}" title="Hoàn tiền đơn này vào số dư khách">${ico('undo')} Hoàn tiền</button>` :
+      o.refunded ? '<span class="muted" style="font-size:.75rem;">Đã hoàn</span>' : '—'}</td>
               </tr>`;
-            }).join('') : '<tr><td colspan="8">Chưa có đơn hàng nào.</td></tr>'}
+    }).join('') : '<tr><td colspan="8">Chưa có đơn hàng nào.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -5395,63 +5395,63 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // Lọc các dòng bảng theo từ khoá (khớp nội dung hiển thị) + cập nhật bộ đếm.
-  function wireAdminTableTools(kind) {
+  function wireAdminTableTools(kind) {var _$35;
     const search = $(`[data-admin-search="${kind}"]`);
     const table = $(`[data-admin-table="${kind}"]`);
     const countEl = $(`[data-admin-count="${kind}"]`);
     if (!table) return;
     const rows = $$('tbody tr[data-admin-row]', table);
     const applyFilter = () => {
-      const term = (search?.value || '').trim().toLowerCase();
+      const term = ((search === null || search === void 0 ? void 0 : search.value) || '').trim().toLowerCase();
       let shown = 0;
-      rows.forEach(tr => {
+      rows.forEach((tr) => {
         const match = !term || tr.textContent.toLowerCase().includes(term);
         tr.hidden = !match;
         if (match) shown++;
       });
       if (countEl) countEl.textContent = term ? `${shown}/${rows.length} dòng` : `${rows.length} dòng`;
     };
-    search?.addEventListener('input', applyFilter);
+    search === null || search === void 0 || search.addEventListener('input', applyFilter);
     applyFilter();
-    $(`[data-admin-export="${kind}"]`)?.addEventListener('click', () => exportAdminCsv(kind, (search?.value || '').trim().toLowerCase()));
+    (_$35 = $(`[data-admin-export="${kind}"]`)) === null || _$35 === void 0 || _$35.addEventListener('click', () => exportAdminCsv(kind, ((search === null || search === void 0 ? void 0 : search.value) || '').trim().toLowerCase()));
   }
 
   // Xuất CSV (kèm BOM để Excel đọc đúng tiếng Việt). Tôn trọng từ khoá đang lọc.
   function downloadCsv(filename, headers, rows) {
-    const cell = v => { const s = String(v == null ? '' : v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const lines = [headers.map(cell).join(',')].concat(rows.map(r => r.map(cell).join(',')));
+    const cell = (v) => {const s = String(v == null ? '' : v);return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;};
+    const lines = [headers.map(cell).join(',')].concat(rows.map((r) => r.map(cell).join(',')));
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
+    a.href = url;a.download = filename;
+    document.body.appendChild(a);a.click();a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function exportAdminCsv(kind, term) {
     const stamp = new Date().toISOString().slice(0, 10);
-    const hit = txt => !term || String(txt).toLowerCase().includes(term);
+    const hit = (txt) => !term || String(txt).toLowerCase().includes(term);
     if (kind === 'orders') {
-      const rows = (Store.db.orders || []).map(o => {
-        const user = Store.db.users.find(u => u.userId === o.userId);
-        return [o.id, user?.username || o.userId, o.serviceName, o.packageName, o.price || 0,
-          o.key, o.date ? new Date(o.date).toLocaleString('vi-VN') : '', o.refunded ? 'Đã hoàn' : ''];
-      }).filter(r => hit(r.join(' ')));
+      const rows = (Store.db.orders || []).map((o) => {
+        const user = Store.db.users.find((u) => u.userId === o.userId);
+        return [o.id, (user === null || user === void 0 ? void 0 : user.username) || o.userId, o.serviceName, o.packageName, o.price || 0,
+        o.key, o.date ? new Date(o.date).toLocaleString('vi-VN') : '', o.refunded ? 'Đã hoàn' : ''];
+      }).filter((r) => hit(r.join(' ')));
       downloadCsv(`kenios-donhang-${stamp}.csv`,
-        ['Mã đơn', 'Người dùng', 'Dịch vụ', 'Gói', 'Giá', 'Key', 'Thời gian', 'Hoàn tiền'], rows);
+      ['Mã đơn', 'Người dùng', 'Dịch vụ', 'Gói', 'Giá', 'Key', 'Thời gian', 'Hoàn tiền'], rows);
       toast(`Đã xuất ${rows.length} đơn hàng ra CSV.`, 'success');
     } else if (kind === 'users') {
-      const rows = (Store.db.users || []).map(u => [
-        u.username, u.userId, u.role === 'admin' ? 'Admin' : (u.role === 'ctv' ? 'Cộng tác viên' : 'Thành viên'),
-        u.balance || 0, u.status === 'banned' ? 'Đã khóa' : 'Hoạt động', u.createdAt || ''
-      ]).filter(r => hit(r.join(' ')));
+      const rows = (Store.db.users || []).map((u) => [
+      u.username, u.userId, u.role === 'admin' ? 'Admin' : u.role === 'ctv' ? 'Cộng tác viên' : 'Thành viên',
+      u.balance || 0, u.status === 'banned' ? 'Đã khóa' : 'Hoạt động', u.createdAt || '']
+      ).filter((r) => hit(r.join(' ')));
       downloadCsv(`kenios-nguoidung-${stamp}.csv`,
-        ['Tên đăng nhập', 'Mã KH', 'Vai trò', 'Số dư', 'Trạng thái', 'Ngày tạo'], rows);
+      ['Tên đăng nhập', 'Mã KH', 'Vai trò', 'Số dư', 'Trạng thái', 'Ngày tạo'], rows);
       toast(`Đã xuất ${rows.length} người dùng ra CSV.`, 'success');
     }
   }
 
   // ---- Báo cáo doanh thu theo khoảng thời gian ----
-  const _ymd = d => d.toISOString().slice(0, 10);
+  const _ymd = (d) => d.toISOString().slice(0, 10);
   function adminReportHtml() {
     const today = new Date();
     const from = _ymd(new Date(today.getTime() - 29 * 86400000));
@@ -5478,18 +5478,18 @@ window.KENIOS_DEFAULT_DB = {
   function computeReport(from, to) {
     const start = new Date(from + 'T00:00:00');
     const end = new Date(to + 'T23:59:59');
-    const orders = (Store.db.orders || []).filter(o => {
+    const orders = (Store.db.orders || []).filter((o) => {
       const d = new Date(o.date || o.purchaseDate || 0);
       return d >= start && d <= end && !o.refunded;
     });
     const revenue = orders.reduce((s, o) => s + (parseFloat(o.price) || 0), 0);
-    const byUser = {}, byService = {};
-    orders.forEach(o => {
-      const uname = (Store.db.users.find(u => u.userId === o.userId) || {}).username || o.userId;
+    const byUser = {},byService = {};
+    orders.forEach((o) => {
+      const uname = (Store.db.users.find((u) => u.userId === o.userId) || {}).username || o.userId;
       byUser[uname] = (byUser[uname] || 0) + (parseFloat(o.price) || 0);
       const sn = o.serviceName || '(không tên)';
       if (!byService[sn]) byService[sn] = { revenue: 0, count: 0 };
-      byService[sn].revenue += (parseFloat(o.price) || 0);
+      byService[sn].revenue += parseFloat(o.price) || 0;
       byService[sn].count += 1;
     });
     return {
@@ -5503,13 +5503,13 @@ window.KENIOS_DEFAULT_DB = {
     if (!box) return;
     const r = computeReport(from, to);
     const tiles = [
-      { label: 'Doanh thu', value: fmt(r.revenue) },
-      { label: 'Số đơn', value: r.count },
-      { label: 'TB/đơn', value: fmt(Math.round(r.avg)) }
-    ];
+    { label: 'Doanh thu', value: fmt(r.revenue) },
+    { label: 'Số đơn', value: r.count },
+    { label: 'TB/đơn', value: fmt(Math.round(r.avg)) }];
+
     box.innerHTML = `
       <div class="report-tiles">
-        ${tiles.map(t => `<div class="report-tile"><strong>${t.value}</strong><span>${t.label}</span></div>`).join('')}
+        ${tiles.map((t) => `<div class="report-tile"><strong>${t.value}</strong><span>${t.label}</span></div>`).join('')}
       </div>
       <div class="report-cols">
         <div class="report-col">
@@ -5526,32 +5526,32 @@ window.KENIOS_DEFAULT_DB = {
         </div>
       </div>`;
   }
-  function wireAdminReport() {
+  function wireAdminReport() {var _$36, _$37;
     const apply = () => renderReportBody($('#reportFrom').value, $('#reportTo').value);
-    $('#reportApplyBtn')?.addEventListener('click', apply);
-    $$('[data-report-quick]').forEach(b => b.addEventListener('click', () => {
+    (_$36 = $('#reportApplyBtn')) === null || _$36 === void 0 || _$36.addEventListener('click', apply);
+    $$('[data-report-quick]').forEach((b) => b.addEventListener('click', () => {
       const q = b.dataset.reportQuick;
       const today = new Date();
       let from;
-      if (q === 'month') from = new Date(today.getFullYear(), today.getMonth(), 1);
-      else from = new Date(today.getTime() - (parseInt(q, 10) - 1) * 86400000);
+      if (q === 'month') from = new Date(today.getFullYear(), today.getMonth(), 1);else
+      from = new Date(today.getTime() - (parseInt(q, 10) - 1) * 86400000);
       $('#reportFrom').value = _ymd(from);
       $('#reportTo').value = _ymd(today);
       apply();
     }));
-    $('#reportExportBtn')?.addEventListener('click', () => {
-      const from = $('#reportFrom').value, to = $('#reportTo').value;
-      const start = new Date(from + 'T00:00:00'), end = new Date(to + 'T23:59:59');
-      const rows = (Store.db.orders || []).filter(o => {
+    (_$37 = $('#reportExportBtn')) === null || _$37 === void 0 || _$37.addEventListener('click', () => {
+      const from = $('#reportFrom').value,to = $('#reportTo').value;
+      const start = new Date(from + 'T00:00:00'),end = new Date(to + 'T23:59:59');
+      const rows = (Store.db.orders || []).filter((o) => {
         const d = new Date(o.date || o.purchaseDate || 0);
         return d >= start && d <= end && !o.refunded;
-      }).map(o => {
-        const u = Store.db.users.find(x => x.userId === o.userId);
-        return [o.id, u?.username || o.userId, o.serviceName, o.packageName, o.price || 0,
-          o.date ? new Date(o.date).toLocaleString('vi-VN') : ''];
+      }).map((o) => {
+        const u = Store.db.users.find((x) => x.userId === o.userId);
+        return [o.id, (u === null || u === void 0 ? void 0 : u.username) || o.userId, o.serviceName, o.packageName, o.price || 0,
+        o.date ? new Date(o.date).toLocaleString('vi-VN') : ''];
       });
       downloadCsv(`kenios-baocao-${from}_${to}.csv`,
-        ['Mã đơn', 'Người dùng', 'Dịch vụ', 'Gói', 'Giá', 'Thời gian'], rows);
+      ['Mã đơn', 'Người dùng', 'Dịch vụ', 'Gói', 'Giá', 'Thời gian'], rows);
       toast(`Đã xuất ${rows.length} đơn (${from} → ${to}) ra CSV.`, 'success');
     });
     apply();
@@ -5565,7 +5565,7 @@ window.KENIOS_DEFAULT_DB = {
         <table class="admin-table" data-admin-table="users">
           <thead><tr><th>Tên đăng nhập</th><th>Vai trò</th><th>Số dư</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
           <tbody>
-            ${users.map(u => `
+            ${users.map((u) => `
               <tr data-admin-row>
                 <td>${esc(u.username)}</td>
                 <td>
@@ -5620,10 +5620,10 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
   function readAiKnowledgeFromEditor() {
-    return $$('#aiKnowledgeEditor [data-kb-row]').map(row => ({
+    return $$('#aiKnowledgeEditor [data-kb-row]').map((row) => ({
       k: row.querySelector('[data-kb-k]').value.trim(),
       a: row.querySelector('[data-kb-a]').value.trim()
-    })).filter(x => x.k && x.a);
+    })).filter((x) => x.k && x.a);
   }
 
   // Đọc lại toàn bộ kênh liên hệ / nhóm từ trình soạn thảo động khi lưu cấu hình.
@@ -5665,14 +5665,14 @@ window.KENIOS_DEFAULT_DB = {
           <label class="dc-cond">Chỉ danh mục
             <select data-dc-category>
               <option value="">— Mọi sản phẩm —</option>
-              ${cats.map(cat => `<option value="${esc(cat.id)}" ${dc.categoryId === cat.id ? 'selected' : ''}>${esc(cat.name)}</option>`).join('')}
+              ${cats.map((cat) => `<option value="${esc(cat.id)}" ${dc.categoryId === cat.id ? 'selected' : ''}>${esc(cat.name)}</option>`).join('')}
             </select>
           </label>
         </div>
       </div>`;
   }
   function readDiscountCodesFromEditor() {
-    return $$('#discountCodesEditor [data-dc-row]').map(row => ({
+    return $$('#discountCodesEditor [data-dc-row]').map((row) => ({
       code: row.querySelector('[data-dc-code]').value.trim().toUpperCase(),
       type: row.querySelector('[data-dc-type]').value === 'amount' ? 'amount' : 'percent',
       value: Math.max(0, parseFloat(row.querySelector('[data-dc-value]').value) || 0),
@@ -5682,7 +5682,7 @@ window.KENIOS_DEFAULT_DB = {
       expiresAt: row.querySelector('[data-dc-expires]').value || '',
       minOrder: Math.max(0, parseInt(row.querySelector('[data-dc-minorder]').value, 10) || 0),
       categoryId: row.querySelector('[data-dc-category]').value || ''
-    })).filter(x => x.code && x.value > 0);
+    })).filter((x) => x.code && x.value > 0);
   }
 
   // 1 dòng hạng VIP trong admin (tên hạng + mốc chi tiêu + % giảm).
@@ -5696,12 +5696,12 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
   function readVipTiersFromEditor() {
-    return $$('#vipTiersEditor [data-vip-row]').map(row => ({
+    return $$('#vipTiersEditor [data-vip-row]').map((row) => ({
       name: row.querySelector('[data-vip-name]').value.trim(),
       minSpent: Math.max(0, parseInt(row.querySelector('[data-vip-min]').value, 10) || 0),
       discountPercent: Math.max(0, Math.min(100, parseFloat(row.querySelector('[data-vip-pct]').value) || 0))
-    })).filter(x => x.name && x.discountPercent > 0)
-      .sort((a, b) => a.minSpent - b.minSpent);
+    })).filter((x) => x.name && x.discountPercent > 0).
+    sort((a, b) => a.minSpent - b.minSpent);
   }
 
   function adminPromoHtml() {
@@ -5741,9 +5741,9 @@ window.KENIOS_DEFAULT_DB = {
           <input type="number" name="depositBonusMin" min="0" step="1000" value="${min}" placeholder="VD: 100000">
         </label>
         <p class="muted" style="grid-column:1/-1;font-size:.82rem;margin:2px 0 0;">
-          ${enabled && percent > 0
-            ? `Ví dụ: khách nạp <b>${sample.toLocaleString('vi-VN')}đ</b> sẽ được cộng thêm <b>${sampleBonus.toLocaleString('vi-VN')}đ</b> (${percent}%), tổng nhận <b>${(sample + sampleBonus).toLocaleString('vi-VN')}đ</b>.`
-            : 'Đang tắt khuyến mãi — khách nạp bao nhiêu nhận đúng bấy nhiêu.'}
+          ${enabled && percent > 0 ?
+    `Ví dụ: khách nạp <b>${sample.toLocaleString('vi-VN')}đ</b> sẽ được cộng thêm <b>${sampleBonus.toLocaleString('vi-VN')}đ</b> (${percent}%), tổng nhận <b>${(sample + sampleBonus).toLocaleString('vi-VN')}đ</b>.` :
+    'Đang tắt khuyến mãi — khách nạp bao nhiêu nhận đúng bấy nhiêu.'}
         </p>
 
         <div class="admin-form-section">2. Flash Sale (giảm giá toàn shop có đếm ngược)</div>
@@ -5780,7 +5780,7 @@ window.KENIOS_DEFAULT_DB = {
           Khách nhập mã ở ô "Mã giảm giá" trong từng sản phẩm — hệ thống tự đối chiếu &amp; kiểm tra các điều kiện trên.
         </div>
         <div class="span-2 discount-editor" id="discountCodesEditor">
-          ${(c.discountCodes || []).map(dc => discountCodeRowHtml(dc)).join('')}
+          ${(c.discountCodes || []).map((dc) => discountCodeRowHtml(dc)).join('')}
         </div>
         <div class="span-2">
           <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodeBtn"><span class="btn-ico">${ICONS.tag || ''}</span> + Thêm mã giảm giá</button>
@@ -5793,7 +5793,7 @@ window.KENIOS_DEFAULT_DB = {
           Khách sẽ thấy hạng của mình trong menu tài khoản.
         </div>
         <div class="span-2 vip-editor" id="vipTiersEditor">
-          ${(c.vipTiers || []).map(t => vipTierRowHtml(t)).join('')}
+          ${(c.vipTiers || []).map((t) => vipTierRowHtml(t)).join('')}
         </div>
         <div class="span-2">
           <button type="button" class="btn btn-glass btn-sm" id="addVipTierBtn"><span class="btn-ico">${ICONS.crown || ''}</span> + Thêm hạng VIP</button>
@@ -5871,7 +5871,7 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section">Kênh liên hệ &amp; Nhóm mạng xã hội (thêm bao nhiêu tuỳ ý)</div>
         <div class="span-2 contact-ch-editor" id="contactChannelsEditor">
-          ${(c.contactChannels || []).map(ch => contactChannelRowHtml(ch)).join('')}
+          ${(c.contactChannels || []).map((ch) => contactChannelRowHtml(ch)).join('')}
         </div>
         <div class="span-2">
           <button type="button" class="btn btn-glass btn-sm" id="addContactChannelBtn"><span class="btn-ico">${ICONS.gift || ''}</span> + Thêm kênh / nhóm</button>
@@ -5894,7 +5894,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="admin-form-section">Ngân hàng (VietQR) &amp; Giao dịch tự động</div>
         <label>Ngân hàng
           <select name="bankId">
-            ${BANK_OPTIONS.concat(BANK_OPTIONS.includes(c.bankId) ? [] : [c.bankId]).filter(Boolean).map(b => `<option value="${esc(b)}" ${c.bankId === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+            ${BANK_OPTIONS.concat(BANK_OPTIONS.includes(c.bankId) ? [] : [c.bankId]).filter(Boolean).map((b) => `<option value="${esc(b)}" ${c.bankId === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
           </select>
         </label>
         <label>Số tài khoản <input name="bankAccountNo" value="${esc(c.bankAccountNo)}"></label>
@@ -5953,12 +5953,12 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí của card2k.net.</div>
         <div class="card-discount-grid span-2">
-          ${['VIETTEL','VINAPHONE','MOBIFONE','GARENA','ZING','GATE','VCOIN','SCOIN'].map(t => {
-            const telcoName = { VIETTEL:'Viettel', VINAPHONE:'Vinaphone', MOBIFONE:'Mobifone', GARENA:'Garena', ZING:'Zing', GATE:'Gate', VCOIN:'Vcoin', SCOIN:'Scoin' }[t];
-            const saved = (c.cardDiscounts || {})[t];
-            const val = (saved != null && saved !== '' && typeof saved !== 'object') ? saved : '';
-            return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="0.5" value="${esc(String(val))}" placeholder="mặc định ${cardDiscountHint(t)}%"></label>`;
-          }).join('')}
+          ${['VIETTEL', 'VINAPHONE', 'MOBIFONE', 'GARENA', 'ZING', 'GATE', 'VCOIN', 'SCOIN'].map((t) => {
+      const telcoName = { VIETTEL: 'Viettel', VINAPHONE: 'Vinaphone', MOBIFONE: 'Mobifone', GARENA: 'Garena', ZING: 'Zing', GATE: 'Gate', VCOIN: 'Vcoin', SCOIN: 'Scoin' }[t];
+      const saved = (c.cardDiscounts || {})[t];
+      const val = saved != null && saved !== '' && typeof saved !== 'object' ? saved : '';
+      return `<label>${telcoName} (%) <input type="number" name="cardDiscount_${t}" min="0" max="90" step="0.5" value="${esc(String(val))}" placeholder="mặc định ${cardDiscountHint(t)}%"></label>`;
+    }).join('')}
         </div>
         <p class="muted span-2" style="font-size:.75rem;margin:0;">Mặc định đang theo bảng phí phổ biến (Viettel/Vina/Mobifone thay đổi theo mệnh giá). <b>Nên nhập lại đúng % theo bảng phí card2k.net</b> để khớp số tiền thực nhận. Để trống = dùng mặc định. Nhập số = ép một mức % cho <b>mọi mệnh giá</b> của nhà mạng đó. Hệ thống luôn <b>không cộng quá</b> số tiền cổng thực trả nên bạn không lỗ.</p>
 
@@ -6017,7 +6017,7 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section">Bộ câu trả lời sẵn của AI (thêm bao nhiêu câu tuỳ ý)</div>
         <div class="span-2 ai-kb-editor" id="aiKnowledgeEditor">
-          ${(c.aiKnowledge || []).map(item => aiKnowledgeRowHtml(item)).join('')}
+          ${(c.aiKnowledge || []).map((item) => aiKnowledgeRowHtml(item)).join('')}
         </div>
         <div class="span-2">
           <button type="button" class="btn btn-glass btn-sm" id="addAiKnowledgeBtn">+ Thêm câu trả lời</button>
@@ -6059,20 +6059,20 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
 
-  function wireAdminCards() {
+  function wireAdminCards() {var _$38, _$39;
     const c = getAdminCreds();
     const rows = $('#adminCardRows');
     const statsEl = $('#adminCardStats');
-    if (!c) { if (rows) rows.innerHTML = '<tr><td colspan="7" class="empty-note">Đăng nhập lại admin 1 lần để xem.</td></tr>'; return; }
+    if (!c) {if (rows) rows.innerHTML = '<tr><td colspan="7" class="empty-note">Đăng nhập lại admin 1 lần để xem.</td></tr>';return;}
 
-    $('#cardReloadBtn')?.addEventListener('click', () => renderAdminTab('cards'));
-    $('#cardLogBtn')?.addEventListener('click', () => {
+    (_$38 = $('#cardReloadBtn')) === null || _$38 === void 0 || _$38.addEventListener('click', () => renderAdminTab('cards'));
+    (_$39 = $('#cardLogBtn')) === null || _$39 === void 0 || _$39.addEventListener('click', () => {
       const box = $('#cardLogBox');
       if (!box) return;
-      if (!box.hidden) { box.hidden = true; return; }
-      box.hidden = false; box.textContent = 'Đang tải log…';
-      Store.cardLog(c.username, c.password).then(res => {
-        box.textContent = (res && res.status === 'success') ? (res.log || '(trống)') : ((res && res.message) || 'Không tải được log.');
+      if (!box.hidden) {box.hidden = true;return;}
+      box.hidden = false;box.textContent = 'Đang tải log…';
+      Store.cardLog(c.username, c.password).then((res) => {
+        box.textContent = res && res.status === 'success' ? res.log || '(trống)' : res && res.message || 'Không tải được log.';
       });
     });
 
@@ -6085,39 +6085,39 @@ window.KENIOS_DEFAULT_DB = {
       const input = window.prompt('Số tiền cộng cho khách (đã tính sẵn theo % chiết khấu = số khách được hứa nhận). Sửa lại nếu cần rồi bấm OK:', suggest);
       if (input == null) return;
       const amount = parseInt(String(input).replace(/[^\d]/g, ''), 10);
-      if (!amount || amount <= 0) { toast('Số tiền không hợp lệ.', 'error'); return; }
+      if (!amount || amount <= 0) {toast('Số tiền không hợp lệ.', 'error');return;}
       withLoading(btn, async () => {
         const res = await Store.cardApprove(c.username, c.password, reqId, amount);
-        if (res && res.status === 'success') { toast('Đã cộng ' + fmt(amount) + ' cho khách.', 'success'); renderAdminTab('cards'); }
-        else { toast((res && res.message) || 'Duyệt thất bại.', 'error'); }
+        if (res && res.status === 'success') {toast('Đã cộng ' + fmt(amount) + ' cho khách.', 'success');renderAdminTab('cards');} else
+        {toast(res && res.message || 'Duyệt thất bại.', 'error');}
       });
     });
 
-    Store.cardRequestsAdmin(c.username, c.password).then(res => {
-      if (!res || res.status !== 'success') { rows.innerHTML = `<tr><td colspan="7" class="empty-note">${esc((res && res.message) || 'Không tải được.')}</td></tr>`; return; }
+    Store.cardRequestsAdmin(c.username, c.password).then((res) => {
+      if (!res || res.status !== 'success') {rows.innerHTML = `<tr><td colspan="7" class="empty-note">${esc(res && res.message || 'Không tải được.')}</td></tr>`;return;}
       const s = res.stats || {};
       if (statsEl) statsEl.innerHTML =
-        `<span class="acs-chip ok"><span class="cs-ico ok">${ICONS.check}</span> Thành công: <b>${s.success || 0}</b> · ${fmt(s.sumSuccess || 0)}</span>`
-        + `<span class="acs-chip pend"><span class="cs-ico pending">${ICONS.clock}</span> Đang xử lý: <b>${s.pending || 0}</b></span>`
-        + `<span class="acs-chip fail"><span class="cs-ico fail">${ICONS.close}</span> Lỗi: <b>${s.failed || 0}</b></span>`;
+      `<span class="acs-chip ok"><span class="cs-ico ok">${ICONS.check}</span> Thành công: <b>${s.success || 0}</b> · ${fmt(s.sumSuccess || 0)}</span>` +
+      `<span class="acs-chip pend"><span class="cs-ico pending">${ICONS.clock}</span> Đang xử lý: <b>${s.pending || 0}</b></span>` +
+      `<span class="acs-chip fail"><span class="cs-ico fail">${ICONS.close}</span> Lỗi: <b>${s.failed || 0}</b></span>`;
       const list = res.requests || [];
       const label = { pending: cardStatusLabel('pending'), success: cardStatusLabel('success'), failed: cardStatusLabel('failed', 'Lỗi/sai') };
-      rows.innerHTML = list.length
-        ? list.map(r => {
-            const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
-            // Số tiền KHÁCH CẦN NHẬN = mệnh giá × (100 − % chiết khấu) — đúng như lúc khách
-            // thấy "bạn sẽ nhận X đ". Dùng để hiện sẵn + điền sẵn khi duyệt tay.
-            const disc = cardDiscountPct(String(r.telco || '').toUpperCase(), Number(r.declaredAmount) || 0);
-            const suggest = Math.floor((Number(r.declaredAmount) || 0) * (100 - disc) / 100);
-            const real = r.status === 'success' && r.realAmount ? fmt(r.realAmount)
-                       : (r.status === 'pending' ? `<span style="color:var(--gold-soft);">cần cộng ${fmt(suggest)}</span>` : '—');
-            const act = (r.status === 'pending' && r.requestId)
-              ? `<button type="button" class="btn btn-primary btn-sm" data-card-approve="${esc(r.requestId)}" data-suggest="${suggest}">Duyệt tay ${fmt(suggest)}</button>`
-              : '';
-            return `<tr><td>${esc(r.username)}</td><td>${esc(r.telco)}</td><td>${fmt(r.declaredAmount)}</td><td>${real}</td><td><span class="card-status-badge ${esc(r.status)}">${label[r.status] || r.status}</span></td><td style="white-space:nowrap;font-size:.78rem;">${esc(when)}</td><td>${act}</td></tr>`;
-          }).join('')
-        : '<tr><td colspan="7" class="empty-note">Chưa có khách nào nạp thẻ.</td></tr>';
-    }).catch(() => { rows.innerHTML = '<tr><td colspan="7" class="empty-note">Không tải được.</td></tr>'; });
+      rows.innerHTML = list.length ?
+      list.map((r) => {
+        const when = r.date ? new Date(r.date).toLocaleString('vi-VN') : '';
+        // Số tiền KHÁCH CẦN NHẬN = mệnh giá × (100 − % chiết khấu) — đúng như lúc khách
+        // thấy "bạn sẽ nhận X đ". Dùng để hiện sẵn + điền sẵn khi duyệt tay.
+        const disc = cardDiscountPct(String(r.telco || '').toUpperCase(), Number(r.declaredAmount) || 0);
+        const suggest = Math.floor((Number(r.declaredAmount) || 0) * (100 - disc) / 100);
+        const real = r.status === 'success' && r.realAmount ? fmt(r.realAmount) :
+        r.status === 'pending' ? `<span style="color:var(--gold-soft);">cần cộng ${fmt(suggest)}</span>` : '—';
+        const act = r.status === 'pending' && r.requestId ?
+        `<button type="button" class="btn btn-primary btn-sm" data-card-approve="${esc(r.requestId)}" data-suggest="${suggest}">Duyệt tay ${fmt(suggest)}</button>` :
+        '';
+        return `<tr><td>${esc(r.username)}</td><td>${esc(r.telco)}</td><td>${fmt(r.declaredAmount)}</td><td>${real}</td><td><span class="card-status-badge ${esc(r.status)}">${label[r.status] || r.status}</span></td><td style="white-space:nowrap;font-size:.78rem;">${esc(when)}</td><td>${act}</td></tr>`;
+      }).join('') :
+      '<tr><td colspan="7" class="empty-note">Chưa có khách nào nạp thẻ.</td></tr>';
+    }).catch(() => {rows.innerHTML = '<tr><td colspan="7" class="empty-note">Không tải được.</td></tr>';});
   }
 
   function adminBackupHtml() {
@@ -6145,7 +6145,7 @@ window.KENIOS_DEFAULT_DB = {
             </div>
             <div class="backup-card">
               <div class="backup-card-title"><span class="backup-card-ico">${ICONS.web}</span> Trên thiết bị</div>
-              <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Giữ thêm 1 bản trên máy để phòng khi cần. Bản này lưu <b>đầy đủ cấu hình</b> — kể cả <b>khóa API ngân hàng tự động &amp; nạp thẻ cào</b>, khôi phục là chạy được ngay. ${ICONS.warn ? '<span class="inline-ico" style="color:var(--gold)">'+ICONS.warn+'</span>' : ''} File chứa khóa bí mật, hãy giữ kín.</p>
+              <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Giữ thêm 1 bản trên máy để phòng khi cần. Bản này lưu <b>đầy đủ cấu hình</b> — kể cả <b>khóa API ngân hàng tự động &amp; nạp thẻ cào</b>, khôi phục là chạy được ngay. ${ICONS.warn ? '<span class="inline-ico" style="color:var(--gold)">' + ICONS.warn + '</span>' : ''} File chứa khóa bí mật, hãy giữ kín.</p>
               <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico">${ICONS.download}</span> Tải bản sao lưu về máy (kèm khóa API)</button>
               <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn" style="width:100%;"><span class="btn-ico">${ICONS.upload}</span> Phục hồi từ file trên máy</button>
               <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
@@ -6176,17 +6176,17 @@ window.KENIOS_DEFAULT_DB = {
 
   // ---- Admin: Combo sản phẩm ----
   function comboPackageOptions(serviceId, selectedPkgId) {
-    const svc = Store.db.services.find(s => s.id === serviceId);
-    const pkgs = (svc && svc.packages) || [];
-    return ['<option value="">— Chọn gói —</option>']
-      .concat(pkgs.map(p => `<option value="${esc(p.id)}" ${p.id === selectedPkgId ? 'selected' : ''}>${esc(p.name)} · ${fmt(p.price)}</option>`))
-      .join('');
+    const svc = Store.db.services.find((s) => s.id === serviceId);
+    const pkgs = svc && svc.packages || [];
+    return ['<option value="">— Chọn gói —</option>'].
+    concat(pkgs.map((p) => `<option value="${esc(p.id)}" ${p.id === selectedPkgId ? 'selected' : ''}>${esc(p.name)} · ${fmt(p.price)}</option>`)).
+    join('');
   }
   function comboItemRowHtml(item) {
     item = item || {};
-    const svcOptions = ['<option value="">— Chọn sản phẩm —</option>']
-      .concat(Store.db.services.map(s => `<option value="${esc(s.id)}" ${s.id === item.serviceId ? 'selected' : ''}>${esc(s.name)}</option>`))
-      .join('');
+    const svcOptions = ['<option value="">— Chọn sản phẩm —</option>'].
+    concat(Store.db.services.map((s) => `<option value="${esc(s.id)}" ${s.id === item.serviceId ? 'selected' : ''}>${esc(s.name)}</option>`)).
+    join('');
     return `
       <div class="combo-item-row" data-combo-item>
         <select data-combo-service class="combo-item-service">${svcOptions}</select>
@@ -6197,11 +6197,11 @@ window.KENIOS_DEFAULT_DB = {
   function adminCombosHtml() {
     const combos = Store.combos();
     const editing = adminComboEditing;
-    const editTarget = editing && editing !== 'new' ? combos.find(c => c.id === editing) : null;
+    const editTarget = editing && editing !== 'new' ? combos.find((c) => c.id === editing) : null;
     let form = '';
     if (editing) {
       const c = editTarget || { id: '', name: '', price: 0, description: '', image: '', items: [{}] };
-      const items = (c.items && c.items.length) ? c.items : [{}];
+      const items = c.items && c.items.length ? c.items : [{}];
       form = `
         <form class="admin-form" data-admin-form="combo">
           <label class="span-2">Tên combo <input name="name" value="${esc(c.name || '')}" required></label>
@@ -6225,10 +6225,10 @@ window.KENIOS_DEFAULT_DB = {
       </div>
       ${form}
       <div class="combo-admin-list">
-        ${combos.length ? combos.map(c => {
-          const orig = Store.comboOriginalPrice(c);
-          const save = orig - (Number(c.price) || 0);
-          return `
+        ${combos.length ? combos.map((c) => {
+      const orig = Store.comboOriginalPrice(c);
+      const save = orig - (Number(c.price) || 0);
+      return `
           <div class="combo-admin-card">
             <div class="combo-admin-info">
               <strong>${esc(c.name)}</strong>
@@ -6239,7 +6239,7 @@ window.KENIOS_DEFAULT_DB = {
               <button type="button" class="danger" data-admin-delete-combo="${esc(c.id)}">Xoá</button>
             </div>
           </div>`;
-        }).join('') : '<p class="empty-note">Chưa có combo nào. Bấm "Tạo combo mới" để gộp nhiều sản phẩm với giá ưu đãi.</p>'}
+    }).join('') : '<p class="empty-note">Chưa có combo nào. Bấm "Tạo combo mới" để gộp nhiều sản phẩm với giá ưu đãi.</p>'}
       </div>
     `;
   }
@@ -6248,14 +6248,14 @@ window.KENIOS_DEFAULT_DB = {
   function fallbackCopy(text, onDone) {
     try {
       const ta = document.createElement('textarea');
-      ta.value = text; ta.setAttribute('readonly', '');
-      ta.style.position = 'fixed'; ta.style.top = '-9999px';
+      ta.value = text;ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';ta.style.top = '-9999px';
       document.body.appendChild(ta);
-      ta.select(); ta.setSelectionRange(0, (text || '').length);
+      ta.select();ta.setSelectionRange(0, (text || '').length);
       document.execCommand('copy');
       document.body.removeChild(ta);
       if (onDone) onDone();
-    } catch (e) { toast('Không sao chép được — hãy chọn ô link rồi copy thủ công.', 'error'); }
+    } catch (e) {toast('Không sao chép được — hãy chọn ô link rồi copy thủ công.', 'error');}
   }
 
   // Chuyển đường dẫn tương đối (uploads/xxx.mp4) thành LINK ĐẦY ĐỦ dựa trên địa
@@ -6263,7 +6263,7 @@ window.KENIOS_DEFAULT_DB = {
   function absUrl(url) {
     if (!url) return '';
     if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) return url;
-    try { return new URL(url, document.baseURI).href; } catch { return url; }
+    try {return new URL(url, document.baseURI).href;} catch {return url;}
   }
 
   // Tab "Tạo Link": tải lên ảnh/video (hoặc dán link) → tạo LINK ĐẦY ĐỦ, lưu lại
@@ -6288,13 +6288,13 @@ window.KENIOS_DEFAULT_DB = {
       </div>
       <div class="admin-section-title" style="margin-top:20px;">Lịch sử link đã lưu (${media.length})</div>
       <div class="linkgen-history">
-        ${media.length ? media.map(m => {
-          const full = absUrl(m.url);
-          return `
+        ${media.length ? media.map((m) => {
+      const full = absUrl(m.url);
+      return `
           <div class="linkgen-item">
-            <div class="linkgen-thumb">${m.type === 'video'
-              ? `<video src="${esc(m.url)}" muted playsinline></video>`
-              : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>
+            <div class="linkgen-thumb">${m.type === 'video' ?
+      `<video src="${esc(m.url)}" muted playsinline></video>` :
+      `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>
             <div class="linkgen-body">
               <strong>${esc(m.name || 'media')}${m.type === 'video' ? ' · video' : ''}</strong>
               ${m.date ? `<span class="linkgen-date">${esc(new Date(m.date).toLocaleString('vi-VN'))}</span>` : ''}
@@ -6305,7 +6305,7 @@ window.KENIOS_DEFAULT_DB = {
               <button type="button" class="btn btn-glass btn-sm danger" data-admin-delete-media="${esc(m.id)}" data-from="linkgen">Xóa</button>
             </div>
           </div>`;
-        }).join('') : '<p class="empty-note">Chưa có link nào. Tải lên hoặc dán link để tạo — link sẽ được lưu lại ở đây.</p>'}
+    }).join('') : '<p class="empty-note">Chưa có link nào. Tải lên hoặc dán link để tạo — link sẽ được lưu lại ở đây.</p>'}
       </div>
     `;
   }
@@ -6329,12 +6329,12 @@ window.KENIOS_DEFAULT_DB = {
       </div>
       <p class="muted" style="font-size:.75rem;margin:0 0 12px;">Thư viện dùng cho ảnh sản phẩm/danh mục, nền Hero, và mục "Hình ảnh &amp; Video" trên trang chủ. Chọn đuôi (video/ảnh) khi link không rõ đuôi.</p>
       <div class="media-grid">
-        ${media.length ? media.map(m => `
+        ${media.length ? media.map((m) => `
           <div class="media-card">
             <div class="media-preview">
-              ${m.type === 'video'
-                ? `<video src="${esc(m.url)}" muted></video>`
-                : `<img src="${esc(m.url)}" alt="">`}
+              ${m.type === 'video' ?
+    `<video src="${esc(m.url)}" muted></video>` :
+    `<img src="${esc(m.url)}" alt="">`}
             </div>
             <div class="media-info">
               <strong style="font-size:.78rem;">${esc(m.name || '')}</strong>
@@ -6352,35 +6352,35 @@ window.KENIOS_DEFAULT_DB = {
 
   function onAdminPanelClick(e) {
     // ----- Combo -----
-    if (e.target.closest('[data-admin-new-combo]')) { adminComboEditing = 'new'; renderAdminTab('combos'); return; }
+    if (e.target.closest('[data-admin-new-combo]')) {adminComboEditing = 'new';renderAdminTab('combos');return;}
     const editCombo = e.target.closest('[data-admin-edit-combo]');
-    if (editCombo) { adminComboEditing = editCombo.dataset.adminEditCombo; renderAdminTab('combos'); return; }
-    if (e.target.closest('[data-admin-cancel-combo]')) { adminComboEditing = null; renderAdminTab('combos'); return; }
+    if (editCombo) {adminComboEditing = editCombo.dataset.adminEditCombo;renderAdminTab('combos');return;}
+    if (e.target.closest('[data-admin-cancel-combo]')) {adminComboEditing = null;renderAdminTab('combos');return;}
     const delCombo = e.target.closest('[data-admin-delete-combo]');
     if (delCombo) {
-      if (confirm('Xoá combo này?')) { Store.adminDeleteCombo(delCombo.dataset.adminDeleteCombo); adminComboEditing = null; renderAdminTab('combos'); autoSyncToServer('Đã xóa combo và đồng bộ lên máy chủ.', 'Đã xóa combo (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".'); }
+      if (confirm('Xoá combo này?')) {Store.adminDeleteCombo(delCombo.dataset.adminDeleteCombo);adminComboEditing = null;renderAdminTab('combos');autoSyncToServer('Đã xóa combo và đồng bộ lên máy chủ.', 'Đã xóa combo (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');}
       return;
     }
-    if (e.target.closest('#addComboItemBtn')) {
-      $('#comboItemsEditor')?.insertAdjacentHTML('beforeend', comboItemRowHtml({}));
+    if (e.target.closest('#addComboItemBtn')) {var _$40;
+      (_$40 = $('#comboItemsEditor')) === null || _$40 === void 0 || _$40.insertAdjacentHTML('beforeend', comboItemRowHtml({}));
       return;
     }
     const rmComboItem = e.target.closest('[data-combo-item-remove]');
     if (rmComboItem) {
       const editor = $('#comboItemsEditor');
-      if (editor && editor.querySelectorAll('[data-combo-item]').length > 1) rmComboItem.closest('[data-combo-item]').remove();
-      else toast('Combo cần ít nhất 1 sản phẩm.', 'error');
+      if (editor && editor.querySelectorAll('[data-combo-item]').length > 1) rmComboItem.closest('[data-combo-item]').remove();else
+      toast('Combo cần ít nhất 1 sản phẩm.', 'error');
       return;
     }
 
     const newService = e.target.closest('[data-admin-new-service]');
-    if (newService) { adminServiceEditing = 'new'; renderAdminTab('services'); return; }
+    if (newService) {adminServiceEditing = 'new';renderAdminTab('services');return;}
 
     const editService = e.target.closest('[data-admin-edit-service]');
-    if (editService) { adminServiceEditing = editService.dataset.adminEditService; renderAdminTab('services'); return; }
+    if (editService) {adminServiceEditing = editService.dataset.adminEditService;renderAdminTab('services');return;}
 
     const cancelService = e.target.closest('[data-admin-cancel-service]');
-    if (cancelService) { adminServiceEditing = null; renderAdminTab('services'); return; }
+    if (cancelService) {adminServiceEditing = null;renderAdminTab('services');return;}
 
     const deleteService = e.target.closest('[data-admin-delete-service]');
     if (deleteService) {
@@ -6398,7 +6398,7 @@ window.KENIOS_DEFAULT_DB = {
       return;
     }
     const removePkgRow = e.target.closest('[data-remove-pkg-row]');
-    if (removePkgRow) { removePkgRow.closest('.admin-pkg-row').remove(); return; }
+    if (removePkgRow) {removePkgRow.closest('.admin-pkg-row').remove();return;}
 
     const pkgKeysToggle = e.target.closest('[data-pkg-keys-toggle]');
     if (pkgKeysToggle) {
@@ -6410,7 +6410,7 @@ window.KENIOS_DEFAULT_DB = {
     if (removePkgKey) {
       const row = removePkgKey.closest('.admin-pkg-row');
       const dataEl = row.querySelector('[data-pkg-keys-data]');
-      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean);
+      const keys = dataEl.value.split('\n').map((k) => k.trim()).filter(Boolean);
       keys.splice(parseInt(removePkgKey.dataset.removePkgKey, 10), 1);
       dataEl.value = keys.join('\n');
       refreshPkgKeyList(row, keys);
@@ -6420,12 +6420,12 @@ window.KENIOS_DEFAULT_DB = {
     if (addPkgKeys) {
       const row = addPkgKeys.closest('.admin-pkg-row');
       const input = row.querySelector('[data-pkg-keys-input]');
-      const newKeys = input.value.split('\n').map(k => k.trim()).filter(Boolean);
+      const newKeys = input.value.split('\n').map((k) => k.trim()).filter(Boolean);
       if (!newKeys.length) return;
       const dataEl = row.querySelector('[data-pkg-keys-data]');
-      const keys = dataEl.value.split('\n').map(k => k.trim()).filter(Boolean);
-      let added = 0, dup = 0;
-      newKeys.forEach(k => { if (keys.includes(k)) { dup++; } else { keys.push(k); added++; } });
+      const keys = dataEl.value.split('\n').map((k) => k.trim()).filter(Boolean);
+      let added = 0,dup = 0;
+      newKeys.forEach((k) => {if (keys.includes(k)) {dup++;} else {keys.push(k);added++;}});
       dataEl.value = keys.join('\n');
       input.value = '';
       refreshPkgKeyList(row, keys);
@@ -6441,13 +6441,13 @@ window.KENIOS_DEFAULT_DB = {
       return;
     }
     const newCategory = e.target.closest('[data-admin-new-category]');
-    if (newCategory) { adminCategoryEditing = 'new'; renderAdminTab('categories'); return; }
+    if (newCategory) {adminCategoryEditing = 'new';renderAdminTab('categories');return;}
 
     const editCategory = e.target.closest('[data-admin-edit-category]');
-    if (editCategory) { adminCategoryEditing = editCategory.dataset.adminEditCategory; renderAdminTab('categories'); return; }
+    if (editCategory) {adminCategoryEditing = editCategory.dataset.adminEditCategory;renderAdminTab('categories');return;}
 
     const cancelCategory = e.target.closest('[data-admin-cancel-category]');
-    if (cancelCategory) { adminCategoryEditing = null; renderAdminTab('categories'); return; }
+    if (cancelCategory) {adminCategoryEditing = null;renderAdminTab('categories');return;}
 
     const deleteCategory = e.target.closest('[data-admin-delete-category]');
     if (deleteCategory) {
@@ -6455,19 +6455,19 @@ window.KENIOS_DEFAULT_DB = {
         Store.adminDeleteCategory(deleteCategory.dataset.adminDeleteCategory);
         renderAdminTab('categories');
         autoSyncToServer('Đã xóa danh mục và đồng bộ lên máy chủ.', 'Đã xóa danh mục (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
-      } catch (err) { toast(err.message, 'error'); }
+      } catch (err) {toast(err.message, 'error');}
       return;
     }
 
     // ----- Thư mục con -----
     const newSubcat = e.target.closest('[data-admin-new-subcategory]');
-    if (newSubcat) { adminSubcategoryEditing = 'new'; renderAdminTab('categories'); return; }
+    if (newSubcat) {adminSubcategoryEditing = 'new';renderAdminTab('categories');return;}
 
     const editSubcat = e.target.closest('[data-admin-edit-subcategory]');
-    if (editSubcat) { adminSubcategoryEditing = editSubcat.dataset.adminEditSubcategory; renderAdminTab('categories'); return; }
+    if (editSubcat) {adminSubcategoryEditing = editSubcat.dataset.adminEditSubcategory;renderAdminTab('categories');return;}
 
     const cancelSubcat = e.target.closest('[data-admin-cancel-subcategory]');
-    if (cancelSubcat) { adminSubcategoryEditing = null; renderAdminTab('categories'); return; }
+    if (cancelSubcat) {adminSubcategoryEditing = null;renderAdminTab('categories');return;}
 
     const deleteSubcat = e.target.closest('[data-admin-delete-subcategory]');
     if (deleteSubcat) {
@@ -6475,7 +6475,7 @@ window.KENIOS_DEFAULT_DB = {
         Store.adminDeleteSubcategory(deleteSubcat.dataset.adminDeleteSubcategory);
         renderAdminTab('categories');
         autoSyncToServer('Đã xóa thư mục con và đồng bộ lên máy chủ.', 'Đã xóa thư mục con (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
-      } catch (err) { toast(err.message, 'error'); }
+      } catch (err) {toast(err.message, 'error');}
       return;
     }
 
@@ -6484,7 +6484,7 @@ window.KENIOS_DEFAULT_DB = {
     if (iconPick) {
       const picker = iconPick.closest('[data-icon-picker]');
       picker.querySelector('input[type=hidden]').value = iconPick.dataset.iconPick;
-      $$('.icon-pick', picker).forEach(b => b.classList.toggle('selected', b === iconPick));
+      $$('.icon-pick', picker).forEach((b) => b.classList.toggle('selected', b === iconPick));
       return;
     }
 
@@ -6493,7 +6493,7 @@ window.KENIOS_DEFAULT_DB = {
     if (fxPick) {
       const picker = fxPick.closest('[data-fx-picker]');
       picker.querySelector('input[type=hidden]').value = fxPick.dataset.fxPick;
-      $$('.fx-pick', picker).forEach(b => b.classList.toggle('selected', b === fxPick));
+      $$('.fx-pick', picker).forEach((b) => b.classList.toggle('selected', b === fxPick));
       // Áp ngay lên logo thật (font / màu chạy / chuyển động) để xem trước trực tiếp.
       if (fxPick.closest('[data-admin-form="config"]')) liveBrandingPreview();
       return;
@@ -6502,38 +6502,38 @@ window.KENIOS_DEFAULT_DB = {
     // ----- Thêm / xoá kênh liên hệ (nhóm mạng xã hội) -----
     if (e.target.closest('#addContactChannelBtn')) {
       const editor = $('#contactChannelsEditor');
-      if (editor) { editor.insertAdjacentHTML('beforeend', contactChannelRowHtml({ enabled: true })); }
+      if (editor) {editor.insertAdjacentHTML('beforeend', contactChannelRowHtml({ enabled: true }));}
       return;
     }
     const delCh = e.target.closest('[data-ch-remove]');
-    if (delCh) { delCh.closest('[data-ch-row]')?.remove(); return; }
+    if (delCh) {var _delCh$closest;(_delCh$closest = delCh.closest('[data-ch-row]')) === null || _delCh$closest === void 0 || _delCh$closest.remove();return;}
 
     // ----- Thêm / xoá câu trả lời sẵn của AI -----
     if (e.target.closest('#addAiKnowledgeBtn')) {
       const editor = $('#aiKnowledgeEditor');
-      if (editor) { editor.insertAdjacentHTML('beforeend', aiKnowledgeRowHtml({})); editor.querySelector('.ai-kb-row:last-child [data-kb-k]')?.focus(); }
+      if (editor) {var _editor$querySelector;editor.insertAdjacentHTML('beforeend', aiKnowledgeRowHtml({}));(_editor$querySelector = editor.querySelector('.ai-kb-row:last-child [data-kb-k]')) === null || _editor$querySelector === void 0 || _editor$querySelector.focus();}
       return;
     }
     const delKb = e.target.closest('[data-kb-remove]');
-    if (delKb) { delKb.closest('[data-kb-row]')?.remove(); return; }
+    if (delKb) {var _delKb$closest;(_delKb$closest = delKb.closest('[data-kb-row]')) === null || _delKb$closest === void 0 || _delKb$closest.remove();return;}
 
     // ----- Thêm / xoá mã giảm giá sản phẩm -----
     if (e.target.closest('#addDiscountCodeBtn')) {
       const editor = $('#discountCodesEditor');
-      if (editor) { editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' })); editor.querySelector('[data-dc-row]:last-child [data-dc-code]')?.focus(); }
+      if (editor) {var _editor$querySelector2;editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' }));(_editor$querySelector2 = editor.querySelector('[data-dc-row]:last-child [data-dc-code]')) === null || _editor$querySelector2 === void 0 || _editor$querySelector2.focus();}
       return;
     }
     const delDc = e.target.closest('[data-dc-remove]');
-    if (delDc) { delDc.closest('[data-dc-row]')?.remove(); return; }
+    if (delDc) {var _delDc$closest;(_delDc$closest = delDc.closest('[data-dc-row]')) === null || _delDc$closest === void 0 || _delDc$closest.remove();return;}
 
     // ----- Thêm / xoá hạng VIP -----
     if (e.target.closest('#addVipTierBtn')) {
       const editor = $('#vipTiersEditor');
-      if (editor) { editor.insertAdjacentHTML('beforeend', vipTierRowHtml({})); editor.querySelector('[data-vip-row]:last-child [data-vip-name]')?.focus(); }
+      if (editor) {var _editor$querySelector3;editor.insertAdjacentHTML('beforeend', vipTierRowHtml({}));(_editor$querySelector3 = editor.querySelector('[data-vip-row]:last-child [data-vip-name]')) === null || _editor$querySelector3 === void 0 || _editor$querySelector3.focus();}
       return;
     }
     const delVip = e.target.closest('[data-vip-remove]');
-    if (delVip) { delVip.closest('[data-vip-row]')?.remove(); return; }
+    if (delVip) {var _delVip$closest;(_delVip$closest = delVip.closest('[data-vip-row]')) === null || _delVip$closest === void 0 || _delVip$closest.remove();return;}
 
     const addBal = e.target.closest('[data-admin-add-balance]');
     const subBal = e.target.closest('[data-admin-sub-balance]');
@@ -6542,8 +6542,8 @@ window.KENIOS_DEFAULT_DB = {
       const userId = btn.dataset.adminAddBalance || btn.dataset.adminSubBalance;
       const row = btn.closest('tr');
       const input = row && row.querySelector('[data-adjust-amount]');
-      const amount = parseInt((input && input.value) || '', 10);
-      if (!amount || amount <= 0) { toast('Nhập số tiền cần cộng/trừ (lớn hơn 0).', 'error'); return; }
+      const amount = parseInt(input && input.value || '', 10);
+      if (!amount || amount <= 0) {toast('Nhập số tiền cần cộng/trừ (lớn hơn 0).', 'error');return;}
       const delta = addBal ? amount : -amount;
       const creds = getAdminCreds();
       (async () => {
@@ -6554,7 +6554,7 @@ window.KENIOS_DEFAULT_DB = {
             toast(addBal ? `Đã cộng ${fmt(amount)} vào tài khoản.` : `Đã trừ ${fmt(amount)} khỏi tài khoản.`, 'success');
             return;
           }
-          if (res.message && /unauthor/i.test(res.message)) { toast('Cần đăng nhập lại admin 1 lần để lưu lên máy chủ.', 'error'); return; }
+          if (res.message && /unauthor/i.test(res.message)) {toast('Cần đăng nhập lại admin 1 lần để lưu lên máy chủ.', 'error');return;}
           // Máy chủ lỗi khác → cập nhật cục bộ để không kẹt (nhớ Đồng bộ sau).
           Store.adminAdjustBalance(userId, delta);
           renderAdminTab('users');
@@ -6571,15 +6571,15 @@ window.KENIOS_DEFAULT_DB = {
     const refundOrder = e.target.closest('[data-refund-order]');
     if (refundOrder) {
       const orderId = refundOrder.dataset.refundOrder;
-      const o = Store.db.orders.find(x => x.id === orderId);
+      const o = Store.db.orders.find((x) => x.id === orderId);
       if (!o) return;
       const creds = getAdminCreds();
-      if (!creds) { toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+      if (!creds) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
       if (!confirm(`Hoàn ${fmt(o.price)} của đơn "${orderId}" vào số dư khách?`)) return;
       (async () => {
         const res = await Store.adminRefundOrder(orderId, creds.username, creds.password);
-        if (res.status === 'success') { renderAdminTab('orders'); toast(`Đã hoàn ${fmt(o.price)} cho khách.`, 'success'); }
-        else { toast(res.message || 'Hoàn tiền thất bại.', 'error'); }
+        if (res.status === 'success') {renderAdminTab('orders');toast(`Đã hoàn ${fmt(o.price)} cho khách.`, 'success');} else
+        {toast(res.message || 'Hoàn tiền thất bại.', 'error');}
       })();
       return;
     }
@@ -6587,21 +6587,21 @@ window.KENIOS_DEFAULT_DB = {
     const delUser = e.target.closest('[data-admin-delete-user]');
     if (delUser) {
       const userId = delUser.dataset.adminDeleteUser;
-      const u = Store.db.users.find(x => x.userId === userId);
+      const u = Store.db.users.find((x) => x.userId === userId);
       if (!confirm(`Xóa tài khoản "${u ? u.username : ''}"? Hành động không thể hoàn tác.`)) return;
       const creds = getAdminCreds();
       (async () => {
         try {
           if (creds) {
             const res = await Store.adminDeleteUserServer(userId, creds.username, creds.password);
-            if (res.status === 'success') { renderAdminTab('users'); toast('Đã xóa người dùng.', 'success'); return; }
-            if (res.message && /unauthor/i.test(res.message)) { toast('Cần đăng nhập lại admin 1 lần để xóa trên máy chủ.', 'error'); return; }
-            if (res.message) { toast(res.message, 'error'); return; }
+            if (res.status === 'success') {renderAdminTab('users');toast('Đã xóa người dùng.', 'success');return;}
+            if (res.message && /unauthor/i.test(res.message)) {toast('Cần đăng nhập lại admin 1 lần để xóa trên máy chủ.', 'error');return;}
+            if (res.message) {toast(res.message, 'error');return;}
           }
           Store.adminDeleteUser(userId);
           renderAdminTab('users');
           toast('Đã xóa (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".', 'success');
-        } catch (err) { toast(err.message, 'error'); }
+        } catch (err) {toast(err.message, 'error');}
       })();
       return;
     }
@@ -6618,7 +6618,7 @@ window.KENIOS_DEFAULT_DB = {
     if (uploadBtn) {
       const fileInput = $('#adminMediaFile');
       const file = fileInput.files[0];
-      if (!file) { toast('Vui lòng chọn một file trước.', 'error'); return; }
+      if (!file) {toast('Vui lòng chọn một file trước.', 'error');return;}
       withLoading(uploadBtn, async () => {
         try {
           const url = await Store.uploadFile(file);
@@ -6626,7 +6626,7 @@ window.KENIOS_DEFAULT_DB = {
           Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: file.name, date: new Date().toISOString() });
           renderAdminTab('media');
           toast('Tải lên thành công!', 'success');
-        } catch (err) { toast(err.message, 'error'); }
+        } catch (err) {toast(err.message, 'error');}
       });
       return;
     }
@@ -6634,13 +6634,13 @@ window.KENIOS_DEFAULT_DB = {
     const svcUploadBtn = e.target.closest('#adminServiceUploadBtn');
     if (svcUploadBtn) {
       const file = $('#adminServiceFile').files[0];
-      if (!file) { toast('Vui lòng chọn file bản game trước.', 'error'); return; }
+      if (!file) {toast('Vui lòng chọn file bản game trước.', 'error');return;}
       withLoading(svcUploadBtn, async () => {
         try {
           const url = await Store.uploadFile(file);
           $('#adminServiceDownload').value = url;
           toast('Đã tải file lên & điền link tải!', 'success');
-        } catch (err) { toast(err.message, 'error'); }
+        } catch (err) {toast(err.message, 'error');}
       });
       return;
     }
@@ -6648,7 +6648,7 @@ window.KENIOS_DEFAULT_DB = {
     const addLinkBtn = e.target.closest('#adminAddLinkBtn');
     if (addLinkBtn) {
       const url = $('#adminMediaUrl').value.trim();
-      if (!url) { toast('Vui lòng dán link trước.', 'error'); return; }
+      if (!url) {toast('Vui lòng dán link trước.', 'error');return;}
       let type = $('#adminMediaType').value;
       if (type === 'auto') type = /\.(mp4|webm|ogg)(\?|#|$)/i.test(url) ? 'video' : 'image';
       Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: 'Link ' + type, date: new Date().toISOString() });
@@ -6659,9 +6659,9 @@ window.KENIOS_DEFAULT_DB = {
 
     // ----- Tab "Tạo Link": tải lên / dán link → lưu lịch sử -----
     const linkGenUploadBtn = e.target.closest('#linkGenUploadBtn');
-    if (linkGenUploadBtn) {
-      const file = $('#linkGenFile')?.files[0];
-      if (!file) { toast('Vui lòng chọn một file trước.', 'error'); return; }
+    if (linkGenUploadBtn) {var _$41;
+      const file = (_$41 = $('#linkGenFile')) === null || _$41 === void 0 ? void 0 : _$41.files[0];
+      if (!file) {toast('Vui lòng chọn một file trước.', 'error');return;}
       withLoading(linkGenUploadBtn, async () => {
         try {
           const url = await Store.uploadFile(file);
@@ -6669,7 +6669,7 @@ window.KENIOS_DEFAULT_DB = {
           Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: file.name, date: new Date().toISOString() });
           renderAdminTab('linkgen');
           toast('Đã tạo link & lưu vào lịch sử!', 'success');
-        } catch (err) { toast(err.message, 'error'); }
+        } catch (err) {toast(err.message, 'error');}
       });
       return;
     }
@@ -6677,7 +6677,7 @@ window.KENIOS_DEFAULT_DB = {
     const linkGenAddBtn = e.target.closest('#linkGenAddBtn');
     if (linkGenAddBtn) {
       const url = $('#linkGenUrl').value.trim();
-      if (!url) { toast('Vui lòng dán link trước.', 'error'); return; }
+      if (!url) {toast('Vui lòng dán link trước.', 'error');return;}
       let type = $('#linkGenType').value;
       if (type === 'auto') type = isVideoUrl(url) ? 'video' : 'image';
       Store.adminAddMedia({ id: 'media-' + Date.now(), url, type, name: 'Link ' + type, date: new Date().toISOString() });
@@ -6687,21 +6687,21 @@ window.KENIOS_DEFAULT_DB = {
     }
 
     const linkGenCopy = e.target.closest('[data-linkgen-copy]');
-    if (linkGenCopy) {
+    if (linkGenCopy) {var _navigator$clipboard7;
       const link = linkGenCopy.dataset.linkgenCopy;
       const done = () => toast('Đã sao chép link!', 'success');
-      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));
-      else fallbackCopy(link, done);
+      if ((_navigator$clipboard7 = navigator.clipboard) !== null && _navigator$clipboard7 !== void 0 && _navigator$clipboard7.writeText) navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));else
+      fallbackCopy(link, done);
       return;
     }
 
     const copyMedia = e.target.closest('[data-admin-copy-media]');
-    if (copyMedia) {
+    if (copyMedia) {var _navigator$clipboard8;
       // Sao chép LINK ĐẦY ĐỦ (không phải đường dẫn tương đối) để dùng được ngay.
       const link = absUrl(copyMedia.dataset.adminCopyMedia);
       const done = () => toast('Đã sao chép link!', 'success');
-      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));
-      else fallbackCopy(link, done);
+      if ((_navigator$clipboard8 = navigator.clipboard) !== null && _navigator$clipboard8 !== void 0 && _navigator$clipboard8.writeText) navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));else
+      fallbackCopy(link, done);
       return;
     }
 
@@ -6725,7 +6725,7 @@ window.KENIOS_DEFAULT_DB = {
         Store.adminSetRole(roleSel.dataset.adminSetRole, roleSel.value);
         renderAdminTab('users');
         toast('Đã cập nhật vai trò.', 'success');
-      } catch (err) { toast(err.message, 'error'); renderAdminTab('users'); }
+      } catch (err) {toast(err.message, 'error');renderAdminTab('users');}
       return;
     }
 
@@ -6736,7 +6736,7 @@ window.KENIOS_DEFAULT_DB = {
     const comboSvc = e.target.closest('[data-combo-service]');
     if (comboSvc) {
       const row = comboSvc.closest('[data-combo-item]');
-      const pkgSel = row?.querySelector('[data-combo-package]');
+      const pkgSel = row === null || row === void 0 ? void 0 : row.querySelector('[data-combo-package]');
       if (pkgSel) pkgSel.innerHTML = comboPackageOptions(comboSvc.value, '');
       return;
     }
@@ -6745,9 +6745,9 @@ window.KENIOS_DEFAULT_DB = {
     if (!catSel) return;
     const sub = $('#adminServiceSubcat');
     if (!sub) return;
-    const subs = (Store.db.subcategories || []).filter(s => s.categoryId === catSel.value);
-    sub.innerHTML = `<option value="">— Không thuộc thư mục con —</option>`
-      + subs.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    const subs = (Store.db.subcategories || []).filter((s) => s.categoryId === catSel.value);
+    sub.innerHTML = `<option value="">— Không thuộc thư mục con —</option>` +
+    subs.map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
   }
 
   function onAdminPanelSubmit(e) {
@@ -6757,10 +6757,10 @@ window.KENIOS_DEFAULT_DB = {
     const fd = new FormData(e.target);
 
     if (formType === 'combo') {
-      const items = $$('[data-combo-item]', e.target).map(row => ({
-        serviceId: row.querySelector('[data-combo-service]')?.value || '',
-        packageId: row.querySelector('[data-combo-package]')?.value || ''
-      }));
+      const items = $$('[data-combo-item]', e.target).map((row) => {var _row$querySelector, _row$querySelector2;return {
+          serviceId: ((_row$querySelector = row.querySelector('[data-combo-service]')) === null || _row$querySelector === void 0 ? void 0 : _row$querySelector.value) || '',
+          packageId: ((_row$querySelector2 = row.querySelector('[data-combo-package]')) === null || _row$querySelector2 === void 0 ? void 0 : _row$querySelector2.value) || ''
+        };});
       try {
         Store.adminSaveCombo({
           id: adminComboEditing && adminComboEditing !== 'new' ? adminComboEditing : '',
@@ -6770,7 +6770,7 @@ window.KENIOS_DEFAULT_DB = {
         adminComboEditing = null;
         renderAdminTab('combos');
         autoSyncToServer('Đã lưu combo và đồng bộ lên máy chủ.', 'Đã lưu combo (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
-      } catch (err) { toast(err.message, 'error'); }
+      } catch (err) {toast(err.message, 'error');}
       return;
     }
 
@@ -6781,29 +6781,29 @@ window.KENIOS_DEFAULT_DB = {
       // khi thực sự biết rõ nội dung kho key hiện tại (đã gõ thêm, hoặc phiên này đã
       // tải đủ kho key từ máy chủ) — tránh trường hợp sửa giá/tên mà vô tình gửi kho
       // key rỗng đè lên kho key thật trên máy chủ khi chưa bấm "Tải kho key đầy đủ".
-      const originalService = Store.db.services.find(s => s.id === id);
-      const packages = $$('.admin-pkg-row', e.target).map((row, i) => {
+      const originalService = Store.db.services.find((s) => s.id === id);
+      const packages = $$('.admin-pkg-row', e.target).map((row, i) => {var _row$querySelector3;
         const name = row.querySelector('[data-pkg-name]').value.trim();
         const price = parseInt(row.querySelector('[data-pkg-price]').value, 10) || 0;
         // Kho key đã xác nhận + CHÍNH những key còn đang gõ dở trong ô (chưa bấm "+ Thêm
         // key") — gộp lại để gõ xong bấm Lưu là tự vào kho, không sợ mất. Đồng thời khử
         // trùng, giữ nguyên thứ tự (không thêm/bớt ký tự nào của key).
-        const confirmedKeys = row.querySelector('[data-pkg-keys-data]').value.split('\n').map(k => k.trim()).filter(Boolean);
-        const pendingKeys = (row.querySelector('[data-pkg-keys-input]')?.value || '').split('\n').map(k => k.trim()).filter(Boolean);
+        const confirmedKeys = row.querySelector('[data-pkg-keys-data]').value.split('\n').map((k) => k.trim()).filter(Boolean);
+        const pendingKeys = (((_row$querySelector3 = row.querySelector('[data-pkg-keys-input]')) === null || _row$querySelector3 === void 0 ? void 0 : _row$querySelector3.value) || '').split('\n').map((k) => k.trim()).filter(Boolean);
         const keys = [];
-        confirmedKeys.concat(pendingKeys).forEach(k => { if (!keys.includes(k)) keys.push(k); });
+        confirmedKeys.concat(pendingKeys).forEach((k) => {if (!keys.includes(k)) keys.push(k);});
         const pkgId = row.dataset.pkgId;
         const pkg = { id: pkgId || `pkg-${id}-${i}-${Date.now().toString(36)}`, name, price };
-        const original = pkgId && originalService ? (originalService.packages || []).find(p => p.id === pkgId) : null;
+        const original = pkgId && originalService ? (originalService.packages || []).find((p) => p.id === pkgId) : null;
         const knewKeysAlready = original && Array.isArray(original.keys);
         if (keys.length || knewKeysAlready) pkg.keys = keys;
         return pkg;
-      }).filter(p => p.name);
-      if (!packages.length) { toast('Cần ít nhất một gói giá.', 'error'); return; }
+      }).filter((p) => p.name);
+      if (!packages.length) {toast('Cần ít nhất một gói giá.', 'error');return;}
       const categoryId = fd.get('categoryId');
       // Chỉ giữ subcategoryId nếu thư mục con đó thực sự thuộc danh mục đã chọn.
       let subcategoryId = fd.get('subcategoryId') || '';
-      if (subcategoryId && !(Store.db.subcategories || []).some(sc => sc.id === subcategoryId && sc.categoryId === categoryId)) {
+      if (subcategoryId && !(Store.db.subcategories || []).some((sc) => sc.id === subcategoryId && sc.categoryId === categoryId)) {
         subcategoryId = '';
       }
       Store.adminSaveService({
@@ -6811,7 +6811,7 @@ window.KENIOS_DEFAULT_DB = {
         description: fd.get('description').trim(), image: fd.get('image').trim(),
         downloadUrl: (fd.get('downloadUrl') || '').trim(),
         status: fd.get('status'), platform: fd.get('platform') || '',
-        features: fd.get('features').split('\n').map(s => s.trim()).filter(Boolean),
+        features: fd.get('features').split('\n').map((s) => s.trim()).filter(Boolean),
         packages
       });
       adminServiceEditing = null;
@@ -6837,7 +6837,7 @@ window.KENIOS_DEFAULT_DB = {
       autoSyncToServer('Đã lưu thư mục con và đồng bộ lên máy chủ.', 'Đã lưu thư mục con (cục bộ). Hãy bấm "Đồng bộ lên máy chủ".');
     } else if (formType === 'config') {
       const cardDiscounts = {};
-      ['VIETTEL','VINAPHONE','MOBIFONE','GARENA','ZING','GATE','VCOIN','SCOIN'].forEach(t => {
+      ['VIETTEL', 'VINAPHONE', 'MOBIFONE', 'GARENA', 'ZING', 'GATE', 'VCOIN', 'SCOIN'].forEach((t) => {
         const raw = fd.get('cardDiscount_' + t);
         const v = parseFloat(raw);
         if (raw !== null && raw !== '' && !isNaN(v) && v > 0) cardDiscounts[t] = Math.max(0, Math.min(90, v));
@@ -6909,8 +6909,8 @@ window.KENIOS_DEFAULT_DB = {
     setTimeout(() => el.remove(), 5000);
   }
 
-  function setText(sel, text) { const el = $(sel); if (el) el.textContent = text ?? ''; }
-  function setAttr(sel, attr, val) { const el = $(sel); if (el && val) el.setAttribute(attr, val); }
+  function setText(sel, text) {const el = $(sel);if (el) el.textContent = text !== null && text !== void 0 ? text : '';}
+  function setAttr(sel, attr, val) {const el = $(sel);if (el && val) el.setAttribute(attr, val);}
 })();
 
 /* PRESTIGE v6 — đèn nền theo con trỏ trên thẻ (cao cấp). Tách riêng, không đụng
@@ -6931,5 +6931,5 @@ window.KENIOS_DEFAULT_DB = {
       card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
       card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
     }, { passive: true });
-  } catch (_) { /* im lặng, không ảnh hưởng trang */ }
+  } catch (_) {/* im lặng, không ảnh hưởng trang */}
 })();
