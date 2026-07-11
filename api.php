@@ -1775,11 +1775,19 @@ switch ($action) {
         $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
         $db = read_db($db_file);
         if (!admin_authenticated($db, $admin_user, $admin_pass)) { echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit; }
-        $logFile = __DIR__ . '/card_callback_log.txt';
-        if (!file_exists($logFile)) { echo json_encode(["status" => "success", "log" => "(Chưa có callback nào được ghi. Nghĩa là card2k chưa gọi về card.php — kiểm tra lại Callback URL bên card2k và thử nạp 1 thẻ nhỏ.)"]); exit; }
-        $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $tail = array_slice($lines, -60);
-        echo json_encode(["status" => "success", "log" => implode("\n", $tail)]);
+        $tailFile = function ($path, $n) {
+            if (!file_exists($path)) return null;
+            $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            return implode("\n", array_slice($lines, -$n));
+        };
+        $cb = $tailFile(__DIR__ . '/card_callback_log.txt', 40);
+        $qr = $tailFile(__DIR__ . '/card_query_log.txt', 25);
+        $parts = [];
+        $parts[] = "===== CALLBACK (card2k gọi về card.php) =====\n" .
+            ($cb !== null ? $cb : "(Chưa có callback nào. Nghĩa là card2k CHƯA gọi về card.php —\nkiểm tra Callback URL bên card2k đúng https://<tên-miền>/card.php và thử nạp 1 thẻ.)");
+        $parts[] = "\n===== KIỂM TRA CHỦ ĐỘNG (web hỏi lại cổng) =====\n" .
+            ($qr !== null ? $qr : "(Chưa có lần hỏi lại nào được ghi.)");
+        echo json_encode(["status" => "success", "log" => implode("\n", $parts)]);
         break;
 
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
