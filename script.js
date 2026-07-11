@@ -3016,8 +3016,20 @@ window.KENIOS_DEFAULT_DB = {
     wrap.hidden = false;
     if (isVideoUrl(url)) {
       imgEl.hidden = true; imgEl.style.backgroundImage = 'none';
-      videoEl.src = url; videoEl.hidden = false;
+      // iOS/Android CHỈ tự chạy video khi: muted + playsinline + gọi .play() (thuộc tính
+      // autoplay không đủ khi src được gán bằng JS). Đặt đủ rồi ép chạy, thử lại khi tải xong.
+      videoEl.muted = true; videoEl.defaultMuted = true; videoEl.setAttribute('muted', '');
+      videoEl.playsInline = true; videoEl.setAttribute('playsinline', '');
+      videoEl.setAttribute('webkit-playsinline', '');
+      videoEl.loop = true; videoEl.autoplay = true;
+      if (videoEl.src !== url) videoEl.src = url;
+      videoEl.hidden = false;
+      const tryPlay = () => { try { const p = videoEl.play(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ } };
+      videoEl.onloadeddata = tryPlay;
+      videoEl.oncanplay = tryPlay;
       videoEl.onerror = () => { videoEl.hidden = true; };
+      videoEl.load();
+      tryPlay();
     } else {
       videoEl.hidden = true; videoEl.removeAttribute('src');
       imgEl.hidden = false; imgEl.style.backgroundImage = `url(${url})`;
