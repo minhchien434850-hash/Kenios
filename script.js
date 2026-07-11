@@ -22,7 +22,7 @@ window.KENIOS_DEFAULT_DB = {
     logoAnimSpeed: 6,
     logoMotionMode: "none",
     logoMotionSpeed: 2,
-    accentColor: "#ffb703",
+    accentColor: "#22d3ee",
     referralEnabled: true,
     referralBonus: 20000,
     showcaseEnabled: false,
@@ -1625,7 +1625,7 @@ window.KENIOS_DEFAULT_DB = {
     s.textContent = `
       @keyframes fxRipple { 0% { transform: scale(0); opacity: .55; } 100% { transform: scale(1); opacity: 0; } }
       .fx-ripple { position: fixed; pointer-events: none; z-index: 999999; border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,183,3,.55) 0%, rgba(134,59,255,.25) 60%, transparent 75%);
+        background: radial-gradient(circle, rgba(34,211,238,.55) 0%, rgba(134,59,255,.25) 60%, transparent 75%);
         animation: fxRipple .5s ease-out forwards; }
     `;
     document.head.appendChild(s);
@@ -2521,7 +2521,10 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--logo-font', `'${font}', 'Be Vietnam Pro', sans-serif`);
     document.documentElement.style.setProperty('--logo-color', cfg.logoColor || 'inherit');
 
-    const accent = cfg.accentColor || '#ffb703';
+    // Tông chủ đạo mới là cyan. Tự di trú màu VÀNG mặc định cũ (#ffb703) sang cyan
+    // để web đang chạy hết vàng ngay mà admin không cần chỉnh; màu tự chọn khác vẫn giữ.
+    let accent = cfg.accentColor || "#22d3ee";
+    if (typeof accent === 'string' && accent.trim().toLowerCase() === '#ffb703') accent = '#22d3ee';
     document.documentElement.style.setProperty('--gold', accent);
     document.documentElement.style.setProperty('--gold-soft', `color-mix(in srgb, ${accent} 70%, white)`);
 
@@ -3379,8 +3382,8 @@ window.KENIOS_DEFAULT_DB = {
     body.innerHTML = `
       <div class="profile-head" style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.02);padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:20px;">
         <label id="profAvatarEdit" title="Bấm để đổi ảnh đại diện" style="position:relative;flex-shrink:0;cursor:pointer;width:64px;height:64px;">
-          <img id="profAvatarImg" src="${avatar}" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 15px rgba(255,183,3,0.2);object-fit:cover;">
-          <span style="position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#1a1200;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-alt);">
+          <img id="profAvatarImg" src="${avatar}" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 15px rgba(34,211,238,0.2);object-fit:cover;">
+          <span style="position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#06121a;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-alt);">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.2"/></svg>
           </span>
           <input type="file" id="profAvatarInput" accept="image/*" hidden>
@@ -5752,7 +5755,7 @@ window.KENIOS_DEFAULT_DB = {
         <label>Tiền thưởng mỗi bên (đồng) <input type="number" name="referralBonus" min="0" step="1000" value="${Number(c.referralBonus) || 0}"></label>
 
         <div class="admin-form-section">Màu chủ đạo toàn trang</div>
-        <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || '#ffb703')}"></label>
+        <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || "#22d3ee")}"></label>
 
         <div class="admin-form-section">Banner / Hero</div>
         <label class="span-2">Nhãn nhỏ trên tiêu đề (bannerTagText) <input name="bannerTagText" value="${esc(c.bannerTagText || '')}"></label>
