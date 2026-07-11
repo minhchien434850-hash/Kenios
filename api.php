@@ -1934,17 +1934,34 @@ switch ($action) {
             'telegramChatId'   => (string)($sec['telegramChatId'] ?? ''),
             'ttsApiKey'        => (string)($sec['ttsApiKey'] ?? ''),
         ];
-        // GÓI KÈM FILE MEDIA ĐÃ TẢI LÊN (uploads/) vào bản sao lưu — ảnh/video/hoạt ảnh nền,
-        // ảnh danh mục/sản phẩm... Trước đây bản sao lưu chỉ có ĐƯỜNG DẪN (uploads/xxx.mp4)
-        // chứ không có FILE, nên sau khi up bản web mới (thư mục uploads/ trống) rồi khôi phục
-        // thì các link này 404 -> video/hoạt ảnh không dùng được. Nay nhúng luôn nội dung file
-        // (base64) để khôi phục là ĐỦ, tự ghi lại file vào uploads/.
-        $db['_uploads'] = [];
+        // GÓI KÈM FILE MEDIA ĐÃ TẢI LÊN (uploads/) — ảnh/video/hoạt ảnh nền, ảnh danh mục/
+        // sản phẩm... Trước đây bản sao lưu chỉ có ĐƯỜNG DẪN (uploads/xxx.mp4) chứ không có
+        // FILE, nên sau khi up bản web mới (uploads/ trống) rồi khôi phục thì link 404.
+        //
+        // QUAN TRỌNG — TRUYỀN DÒNG (streaming): nhúng cả video vào 1 file JSON có thể rất
+        // nặng. Nếu json_encode CẢ CỤC một lần thì máy chủ dễ hết bộ nhớ và điện thoại
+        // không giữ nổi -> "không kết nối được máy chủ". Vì vậy ta GHI THẲNG ra trình duyệt
+        // theo từng phần, mỗi file media mã hoá base64 rồi tuôn ra ngay, KHÔNG giữ tất cả
+        // trong RAM. Trình duyệt tải trực tiếp về máy như một file (Content-Disposition),
+        // JS không phải ôm cả file khổng lồ.
+        $per_file_cap = 120 * 1024 * 1024;  // bỏ qua từng file > 120MB
         $up_dir = __DIR__ . '/uploads/';
-        $embedded = 0; $skipped = [];
-        $per_file_cap = 80 * 1024 * 1024;   // bỏ qua từng file > 80MB (quá lớn cho backup 1 file)
-        $total_cap    = 480 * 1024 * 1024;  // tổng dữ liệu nhúng tối đa (an toàn với memory_limit 640M)
-        $total = 0;
+
+        // Tắt nén/đệm đầu ra để tuôn dữ liệu dần, tránh phình bộ nhớ.
+        @ini_set('zlib.output_compression', '0');
+        while (ob_get_level() > 0) { @ob_end_clean(); }
+
+        $stamp = date('Y-m-d-H-i-s');
+        header_remove('Content-Type');
+        header('Content-Type: application/json; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="kenios-backup-' . $stamp . '.json"');
+
+        // Phần "khung" (users/config/orders/_secrets...) nhỏ -> mã hoá bình thường, rồi bỏ
+        // dấu } cuối để nối thêm _uploads bằng cách tuôn dòng.
+        $head = json_encode($db, JSON_UNESCAPED_UNICODE);
+        echo substr($head, 0, -1);   // bỏ ĐÚNG 1 dấu } cuối (không dùng rtrim để tránh cắt nhầm }})
+        echo ',"_uploads":[';
+        $first = true; $embedded = 0; $skipped = [];
         if (is_dir($up_dir)) {
             $names = @scandir($up_dir) ?: [];
             foreach ($names as $name) {
@@ -1954,17 +1971,19 @@ switch ($action) {
                 if (!is_file($path)) continue;
                 $size = filesize($path);
                 if ($size === false || $size === 0) continue;
-                if ($size > $per_file_cap || ($total + $size) > $total_cap) { $skipped[] = $name; continue; }
+                if ($size > $per_file_cap) { $skipped[] = $name; continue; }
                 $data = @file_get_contents($path);
                 if ($data === false) { $skipped[] = $name; continue; }
-                $db['_uploads'][] = ['n' => $name, 'd' => base64_encode($data)];
-                $total += $size; $embedded++;
+                echo ($first ? '' : ',') . '{"n":' . json_encode($name) . ',"d":"' . base64_encode($data) . '"}';
                 unset($data);
+                $first = false; $embedded++;
+                if (function_exists('flush')) { @flush(); }
             }
         }
-        $db['_uploadsMeta'] = ['embedded' => $embedded, 'skipped' => $skipped];
-        echo json_encode(["status" => "success", "db" => $db], JSON_UNESCAPED_UNICODE);
-        break;
+        echo ']';
+        echo ',"_uploadsMeta":' . json_encode(['embedded' => $embedded, 'skipped' => $skipped]);
+        echo '}';
+        exit;
 
     // Khôi phục file media (uploads/) từ bản sao lưu — nhận mảng {n, d(base64)} và ghi lại
     // vào thư mục uploads/ để các đường dẫn ảnh/video/hoạt ảnh hoạt động sau khi phục hồi.

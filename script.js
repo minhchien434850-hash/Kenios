@@ -1403,8 +1403,20 @@ window.KENIOS_DEFAULT_DB = {
       this._clearLocalOverrides();
       this._emit();
       // Ghi lại file media TRƯỚC khi lưu DB để khi trang tải lại là link đã có file.
+      // Gửi THEO TỪNG ĐỢT (~20MB/đợt) để không tạo 1 request khổng lồ làm treo điện thoại/
+      // vượt giới hạn máy chủ. File lớn hơn 1 đợt sẽ đi riêng 1 request.
       if (uploads && uploads.length) {
-        try { await this.restoreUploads(u, p, uploads); } catch (e) {/* bỏ qua nếu lỗi */}
+        const chunks = [];
+        let cur = [], curSize = 0;
+        for (const it of uploads) {
+          const s = it && it.d ? it.d.length : 0;
+          if (cur.length && curSize + s > 20 * 1024 * 1024) { chunks.push(cur); cur = []; curSize = 0; }
+          cur.push(it); curSize += s;
+        }
+        if (cur.length) chunks.push(cur);
+        for (const ch of chunks) {
+          try { await this.restoreUploads(u, p, ch); } catch (e) {/* bỏ qua đợt lỗi, tiếp tục */}
+        }
       }
       const res = await this.trySaveToServer(u, p);
       // Khôi phục khóa API: token ngân hàng tự động, Partner ID/Key nạp thẻ, Telegram, TTS.
@@ -4923,26 +4935,22 @@ window.KENIOS_DEFAULT_DB = {
     (_$31 = $('#backupDownloadBtn')) === null || _$31 === void 0 || _$31.addEventListener('click', () => {
       const c = getAdminCreds();
       if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
-      withLoading($('#backupDownloadBtn'), async () => {
-        setMsg('Đang tải bản sao lưu…');
-        const res = await Store.exportDb(c.username, c.password);
-        if (res.status === 'success' && res.db) {
-          try {
-            const blob = new Blob([JSON.stringify(res.db, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-            a.href = url;a.download = 'kenios-backup-' + stamp + '.json';
-            document.body.appendChild(a);a.click();a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 2000);
-            const meta = res.db._uploadsMeta || {};
-            let extra = '';
-            if (meta.embedded) extra = ' (kèm ' + meta.embedded + ' file ảnh/video)';
-            if (meta.skipped && meta.skipped.length) extra += ' — bỏ qua ' + meta.skipped.length + ' file quá lớn (>80MB), cần lưu tay riêng';
-            setMsg('Đã tải bản sao lưu về máy' + extra + '.', true);
-          } catch (e) {setMsg('Không tạo được file tải về.', false);}
-        } else {setMsg(res.message || 'Không lấy được dữ liệu để tải.', false);toast(res.message || 'Tải thất bại.', 'error');}
-      });
+      // Tải TRỰC TIẾP qua đường dẫn (không dùng fetch giữ cả file trong RAM). Máy chủ TUÔN
+      // DÒNG file sao lưu (kèm ảnh/video) và đặt Content-Disposition, trình duyệt tự tải về
+      // đĩa. Nhờ vậy dù bản sao lưu nặng (có video) vẫn tải được trên điện thoại, không còn
+      // lỗi "không kết nối được máy chủ" do phải nạp cả file khổng lồ vào bộ nhớ.
+      try {
+        const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+        const url = API_URL + '?action=export_db&download=1'
+          + '&admin_user=' + encodeURIComponent(c.username)
+          + '&admin_pass=' + encodeURIComponent(c.password)
+          + '&t=' + Date.now();
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'kenios-backup-' + stamp + '.json';
+        document.body.appendChild(a);a.click();a.remove();
+        setMsg('Đang tải bản sao lưu về máy… (file có kèm ảnh/video nên có thể hơi lâu, xem mục Tải về của trình duyệt).', true);
+      } catch (e) {setMsg('Không mở được liên kết tải về.', false);toast('Tải thất bại.', 'error');}
     });
 
     (_$32 = $('#backupImportBtn')) === null || _$32 === void 0 || _$32.addEventListener('click', () => {var _$33;return (_$33 = $('#backupImportInput')) === null || _$33 === void 0 ? void 0 : _$33.click();});
