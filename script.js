@@ -4932,29 +4932,31 @@ window.KENIOS_DEFAULT_DB = {
       });
     });
 
-    (_$31 = $('#backupDownloadBtn')) === null || _$31 === void 0 || _$31.addEventListener('click', () => {
-      const c = getAdminCreds();
-      if (!c) {toast('Vui lòng đăng nhập lại admin 1 lần.', 'error');return;}
-      // Tải TRỰC TIẾP qua đường dẫn (không dùng fetch giữ cả file trong RAM). Máy chủ TUÔN
-      // DÒNG file sao lưu (kèm ảnh/video) và đặt Content-Disposition, trình duyệt tự tải về
-      // đĩa. Nhờ vậy dù bản sao lưu nặng (có video) vẫn tải được trên điện thoại, không còn
-      // lỗi "không kết nối được máy chủ" do phải nạp cả file khổng lồ vào bộ nhớ.
-      // iOS Safari KHÔNG hỗ trợ tốt thuộc tính download trên thẻ <a> (bấm bằng JS bị chặn/
-      // báo lỗi), nên MỞ THẲNG URL: máy chủ đã đặt Content-Disposition: attachment nên trình
-      // duyệt tự tải về thay vì mở xem. Thử tab mới trước (lỡ lỗi cũng không rời trang), bị
-      // chặn thì điều hướng thẳng.
-      const dlUrl = API_URL + '?action=export_db&download=1'
-        + '&admin_user=' + encodeURIComponent(c.username)
-        + '&admin_pass=' + encodeURIComponent(c.password)
-        + '&t=' + Date.now();
-      try {
-        const w = window.open(dlUrl, '_blank');
-        if (!w || w.closed || typeof w.closed === 'undefined') { window.location.href = dlUrl; }
-        setMsg('Đang tải bản sao lưu… Trên iPhone bấm biểu tượng Tải về (mũi tên ⌄) cạnh thanh địa chỉ; trên máy tính xem mục Tải về (Downloads).', true);
-      } catch (e) {
-        try { window.location.href = dlUrl; } catch (_) { setMsg('Không mở được liên kết tải về.', false); toast('Tải thất bại.', 'error'); }
-      }
-    });
+    // Nút tải backup giờ là 1 LIÊN KẾT THẬT (<a>). Bấm vào liên kết thật là thao tác
+    // điều hướng do NGƯỜI DÙNG chủ động -> iOS Safari/điện thoại tự tải file về theo
+    // Content-Disposition máy chủ đặt (đáng tin cậy hơn nhiều so với bấm tải bằng JS,
+    // vốn hay bị chặn). Ở đây chỉ GẮN sẵn đường dẫn tải (kèm khóa admin) vào href.
+    const _dlBtn = $('#backupDownloadBtn');
+    if (_dlBtn) {
+      const buildDlUrl = () => {
+        const c = getAdminCreds();
+        if (!c) return null;
+        return API_URL + '?action=export_db&download=1'
+          + '&admin_user=' + encodeURIComponent(c.username)
+          + '&admin_pass=' + encodeURIComponent(c.password)
+          + '&t=' + Date.now();
+      };
+      const u0 = buildDlUrl();
+      if (u0) _dlBtn.setAttribute('href', u0);
+      _dlBtn.addEventListener('click', (ev) => {
+        const c = getAdminCreds();
+        if (!c) { ev.preventDefault(); toast('Vui lòng đăng nhập lại admin 1 lần.', 'error'); return; }
+        // Làm mới đường dẫn (mốc thời gian) rồi ĐỂ trình duyệt tự đi tới link — KHÔNG chặn
+        // hành vi mặc định, nhờ vậy tải về hoạt động tự nhiên trên mọi máy.
+        _dlBtn.setAttribute('href', buildDlUrl());
+        setMsg('Đang tải bản sao lưu… Trên iPhone: xem ở biểu tượng Tải về (mũi tên ⌄) cạnh thanh địa chỉ, hoặc app Tệp → Tải về. Trên máy tính: xem mục Downloads.', true);
+      });
+    }
 
     (_$32 = $('#backupImportBtn')) === null || _$32 === void 0 || _$32.addEventListener('click', () => {var _$33;return (_$33 = $('#backupImportInput')) === null || _$33 === void 0 ? void 0 : _$33.click();});
     (_$34 = $('#backupImportInput')) === null || _$34 === void 0 || _$34.addEventListener('change', (e) => {
@@ -6185,7 +6187,7 @@ window.KENIOS_DEFAULT_DB = {
             <div class="backup-card">
               <div class="backup-card-title"><span class="backup-card-ico">${ICONS.web}</span> Trên thiết bị</div>
               <p class="muted" style="font-size:.78rem;margin:0 0 10px;">Giữ thêm 1 bản trên máy để phòng khi cần. Bản này lưu <b>đầy đủ cấu hình</b> — kể cả <b>khóa API ngân hàng tự động &amp; nạp thẻ cào</b>, khôi phục là chạy được ngay. ${ICONS.warn ? '<span class="inline-ico" style="color:var(--gold)">' + ICONS.warn + '</span>' : ''} File chứa khóa bí mật, hãy giữ kín.</p>
-              <button type="button" class="btn btn-glass btn-sm" id="backupDownloadBtn" style="width:100%;margin-bottom:8px;"><span class="btn-ico">${ICONS.download}</span> Tải bản sao lưu về máy (kèm khóa API)</button>
+              <a class="btn btn-glass btn-sm" id="backupDownloadBtn" href="#" target="_blank" rel="noopener" style="width:100%;margin-bottom:8px;text-decoration:none;display:flex;align-items:center;justify-content:center;"><span class="btn-ico">${ICONS.download}</span> Tải bản sao lưu về máy (kèm khóa API)</a>
               <button type="button" class="btn btn-glass btn-sm" id="backupImportBtn" style="width:100%;"><span class="btn-ico">${ICONS.upload}</span> Phục hồi từ file trên máy</button>
               <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none">
             </div>
