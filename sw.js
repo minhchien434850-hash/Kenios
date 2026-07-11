@@ -4,8 +4,8 @@
 //    KHÔNG bao giờ cache) để tránh hiện số dư/tồn kho cũ.
 //  - Còn lại (giao diện, ảnh, icon) -> ưu tiên mạng, hỏng mạng thì lấy bản cache (offline).
 // Đổi CACHE_VERSION mỗi lần cập nhật lớn để trình duyệt tải lại vỏ ứng dụng.
-const CACHE_VERSION = 'kenios-v1';
-const SHELL = ['./', './index.html', './style.css', './script.js', './manifest.json',
+const CACHE_VERSION = 'kenios-v3';
+const SHELL = ['./', './index.html', './style.css?v=3', './script.js?v=3', './manifest.json',
   './favicon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -32,14 +32,16 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return;     // bỏ qua tài nguyên ngoài (font, CDN...)
   if (isDynamic(req.url)) return;                       // dữ liệu động -> mạng thẳng, không cache
 
-  // Ưu tiên MẠNG (luôn mới khi online), hỏng thì lấy CACHE (offline).
+  // Ưu tiên MẠNG và BỎ QUA cache HTTP của trình duyệt (cache:'no-store') để LUÔN lấy code
+  // mới khi online — tránh trình duyệt trong-app (Telegram/Zalo) giữ mãi bản cũ. Hỏng mạng
+  // thì mới lấy bản CACHE của service worker (offline).
   e.respondWith(
-    fetch(req).then((res) => {
+    fetch(req, { cache: 'no-store' }).then((res) => {
       if (res && res.ok) {
         const copy = res.clone();
         caches.open(CACHE_VERSION).then((c) => c.put(req, copy)).catch(() => {});
       }
       return res;
-    }).catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
+    }).catch(() => fetch(req).then((r) => r).catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html'))))
   );
 });
