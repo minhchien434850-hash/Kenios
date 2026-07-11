@@ -2471,3 +2471,22 @@ table tbody tr:hover { background: rgba(124,162,255,.06); }
 .fx-pick.selected { border-color: rgba(34,211,238,.6); background: rgba(34,211,238,.1); box-shadow: 0 0 0 1px rgba(34,211,238,.55) inset; }
 .fx-pick.selected .fx-pick-label { color: var(--cyan-soft); }
 /* (Sao đánh giá giữ màu vàng — quy ước phổ biến, không đổi) */
+
+/* ---- Tách sản phẩm theo nền tảng (iOS/Android/PC...) NGOÀI danh sách ---- */
+.service-plat-wrap { display: block; }
+/* Tiêu đề khu nền tảng: nhẹ hơn tiêu đề danh mục, có icon + số lượng */
+.plat-group-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: .82rem; font-weight: 700; letter-spacing: .04em;
+  color: var(--cyan-soft); margin: 18px 0 12px;
+}
+.plat-group-head:first-child { margin-top: 4px; }
+.plat-group-ico { display: inline-flex; }
+.plat-group-ico svg { width: 18px; height: 18px; }
+.plat-group-count {
+  font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  background: linear-gradient(120deg, rgba(154,107,255,.2), rgba(34,211,238,.16));
+  border: 1px solid rgba(124,162,255,.3); color: var(--cyan-soft);
+}
+/* Cách nhau giữa khu nền tảng và lưới liền sau */
+.plat-group-head + .service-grid { margin-bottom: 6px; }

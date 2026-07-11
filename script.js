@@ -1782,6 +1782,9 @@ window.KENIOS_DEFAULT_DB = {
     gift: _svg('<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12"/><path d="M12 8S10.5 4.5 8.2 4.5A1.8 1.8 0 0 0 8 8h4Zm0 0s1.5-3.5 3.8-3.5A1.8 1.8 0 0 1 16 8h-4Z"/>'),
     key: _svg('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8M17.5 4.5 20 7M15.5 6.5 18 9"/>'),
     folder: _svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>'),
+    apple: _svg('<path d="M15.5 3c.2 1.2-.3 2.3-1 3-.7.8-1.9 1.3-2.9 1.2-.2-1.1.4-2.3 1-3C13.4 3.4 14.6 3 15.5 3Z"/><path d="M18.5 16.4c-.6 1.9-1.9 3.9-3.5 3.9-1 0-1.5-.6-2.7-.6s-1.7.6-2.6.6c-1.7 0-3.2-2.8-3.8-5.1-.6-2.6.4-5 2.5-5.3 1.1-.2 2.1.5 2.9.5.7 0 2-.9 3.3-.7 1.1.1 2.1.6 2.7 1.5-1.9 1.3-1.8 3.9.1 4.7Z"/>'),
+    android: _svg('<path d="M5 11a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 17v-6Z"/><path d="M8 10 6.3 7M16 10l1.7-3"/><path d="M9.5 8.3v.01M14.5 8.3v.01"/><path d="M3 12v3M21 12v3M9 18.5v2M15 18.5v2"/>'),
+    monitor: _svg('<rect x="3" y="4" width="18" height="12" rx="1.6"/><path d="M8 20h8M12 16v4"/>'),
     headset: _svg('<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M20 19a4 4 0 0 1-4 3h-2"/>'),
     bulb: _svg('<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.8 10.6c.6.6.8 1.4.8 2.4h6c0-1 .2-1.8.8-2.4A6 6 0 0 0 12 3Z"/>'),
     heart: _svg('<path d="M12 20s-7-4.3-9.2-8.5A4.6 4.6 0 0 1 12 6a4.6 4.6 0 0 1 9.2 5.5C19 15.7 12 20 12 20Z"/>'),
@@ -1827,6 +1830,15 @@ window.KENIOS_DEFAULT_DB = {
   const chType = (ch) => ch.type || ch.id || 'other';
   // Bộ icon để admin chọn cho Danh mục / Thư mục con (đều là SVG, không phải emoji "icon máy").
   const PICKER_ICON_KEYS = ['gamepad','target','fire','bolt','shield','crown','rocket','star','trophy','sword','diamond','phone','web','cart','tag','gift','key','folder','headset','bulb','heart','robot'];
+
+  // Nền tảng của SẢN PHẨM — để tách iOS / Android / PC... thành khu riêng NGOÀI danh sách.
+  const PLATFORMS = [
+    { key: 'ios', label: 'iOS', icon: 'apple' },
+    { key: 'android', label: 'Android', icon: 'android' },
+    { key: 'pc', label: 'PC / Windows', icon: 'monitor' },
+    { key: 'other', label: 'Khác', icon: 'folder' },
+  ];
+  const platformOf = (s) => PLATFORMS.find(x => x.key === (s && s.platform)) || null;
 
   function applyIcons(root = document) {
     $$('[data-icon]', root).forEach(el => {
@@ -3214,6 +3226,24 @@ window.KENIOS_DEFAULT_DB = {
     return list;
   }
 
+  // Trả về HTML danh sách sản phẩm, TÁCH RIÊNG theo nền tảng nếu có sản phẩm được gán
+  // (iOS 1 khu, Android 1 khu...). Sản phẩm chưa gán nền tảng hiện phẳng như cũ ở đầu.
+  function renderGroupedByPlatform(list) {
+    if (!list.some(s => platformOf(s))) {
+      return `<div class="service-grid">${list.map(serviceCardHtml).join('')}</div>`;
+    }
+    let html = '';
+    const ungrouped = list.filter(s => !platformOf(s));
+    if (ungrouped.length) html += `<div class="service-grid">${ungrouped.map(serviceCardHtml).join('')}</div>`;
+    PLATFORMS.forEach(pl => {
+      const grp = list.filter(s => (s.platform || '') === pl.key);
+      if (!grp.length) return;
+      html += `<div class="plat-group-head"><span class="plat-group-ico">${ICONS[pl.icon] || ''}</span><span>${pl.label}</span><span class="plat-group-count">${grp.length}</span></div>`;
+      html += `<div class="service-grid">${grp.map(serviceCardHtml).join('')}</div>`;
+    });
+    return html;
+  }
+
   function renderServiceGrid() {
     const grid = $('#serviceGrid');
     const statusOk = s => !(serviceStatusFilter === 'instock' && s.status !== 'instock');
@@ -3225,9 +3255,9 @@ window.KENIOS_DEFAULT_DB = {
         && (selectedCategory === 'all' || s.categoryId === selectedCategory)
         && (selectedSub === 'all' || s.subcategoryId === selectedSub)
       ));
-      grid.className = 'service-grid';
+      grid.className = 'service-plat-wrap';
       grid.innerHTML = list.length
-        ? list.map(serviceCardHtml).join('')
+        ? renderGroupedByPlatform(list)
         : `<p class="empty-note">Chưa có dịch vụ nào phù hợp bộ lọc.</p>`;
       applyImageFallbacks(grid);
       return;
@@ -3248,7 +3278,7 @@ window.KENIOS_DEFAULT_DB = {
             <h3>${esc(c.name)}</h3>
             <span class="cat-group-count">${list.length}</span>
           </div>
-          <div class="service-grid">${list.map(serviceCardHtml).join('')}</div>
+          ${renderGroupedByPlatform(list)}
         </section>`;
     });
     // Sản phẩm không thuộc danh mục nào còn tồn tại -> gom vào nhóm "Khác".
@@ -3257,7 +3287,7 @@ window.KENIOS_DEFAULT_DB = {
       html += `
         <section class="cat-group">
           <div class="cat-group-head"><h3>Khác</h3><span class="cat-group-count">${orphan.length}</span></div>
-          <div class="service-grid">${orphan.map(serviceCardHtml).join('')}</div>
+          ${renderGroupedByPlatform(orphan)}
         </section>`;
     }
     grid.innerHTML = html || `<p class="empty-note">Chưa có dịch vụ nào.</p>`;
@@ -3978,20 +4008,22 @@ window.KENIOS_DEFAULT_DB = {
 
     const pkgWrap = $('#serviceModalPackages');
     const flash = Store.flashSaleInfo();
-    pkgWrap.innerHTML = service.packages.map((p, i) => {
+    const selId = currentPackage && currentPackage.id;
+    const optHtml = (p) => {
       const sale = Store.flashSalePrice(p.price);
       const priceCell = flash.active && sale < p.price
         ? `<del class="price-old">${fmt(p.price)}</del> <strong>${fmt(sale)}</strong>`
         : `<strong>${fmt(p.price)}</strong>`;
       return `
-      <div class="package-option ${i === 0 ? 'selected' : ''}" data-pkg="${esc(p.id)}">
+      <div class="package-option ${p.id === selId ? 'selected' : ''}" data-pkg="${esc(p.id)}">
         <span>${esc(p.name)}</span>
         <span class="package-option-price">
           ${priceCell}
           ${Store.usesRealKeyStock(p) ? `<small class="pkg-stock ${p.keyCount > 0 ? '' : 'out'}">${p.keyCount > 0 ? `Còn ${p.keyCount} key` : 'Hết key'}</small>` : ''}
         </span>
       </div>`;
-    }).join('');
+    };
+    pkgWrap.innerHTML = (service.packages || []).map(optHtml).join('');
     // Khoá/mở nút Mua theo gói ĐANG chọn (gói hết key thì không mua được dù sản phẩm còn gói khác).
     const updateBuyBtnStock = () => {
       const ok = Store.serviceInStock(service) && Store.pkgBuyable(currentPackage);
@@ -5021,6 +5053,12 @@ window.KENIOS_DEFAULT_DB = {
             <select name="status">
               <option value="instock" ${s.status === 'instock' ? 'selected' : ''}>Còn hàng</option>
               <option value="outofstock" ${s.status === 'outofstock' ? 'selected' : ''}>Hết hàng</option>
+            </select>
+          </label>
+          <label>Nền tảng (tách riêng ngoài danh sách)
+            <select name="platform">
+              <option value="" ${!s.platform ? 'selected' : ''}>— Không tách —</option>
+              ${PLATFORMS.map(pl => `<option value="${pl.key}" ${s.platform === pl.key ? 'selected' : ''}>${pl.label}</option>`).join('')}
             </select>
           </label>
           <label class="span-2">Tính năng (mỗi dòng một mục) <textarea name="features">${esc((s.features || []).join('\n'))}</textarea></label>
@@ -6727,7 +6765,8 @@ window.KENIOS_DEFAULT_DB = {
         id, name: fd.get('name').trim(), categoryId, subcategoryId,
         description: fd.get('description').trim(), image: fd.get('image').trim(),
         downloadUrl: (fd.get('downloadUrl') || '').trim(),
-        status: fd.get('status'), features: fd.get('features').split('\n').map(s => s.trim()).filter(Boolean),
+        status: fd.get('status'), platform: fd.get('platform') || '',
+        features: fd.get('features').split('\n').map(s => s.trim()).filter(Boolean),
         packages
       });
       adminServiceEditing = null;
