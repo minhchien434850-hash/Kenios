@@ -18,9 +18,9 @@ if (empty($in)) {
 
 $request_id = (string)($in['request_id'] ?? '');
 $statusCode = (string)($in['status'] ?? '');
-$code       = (string)($in['code'] ?? '');
-$serial     = (string)($in['serial'] ?? '');
-$callbackSign = (string)($in['callback_sign'] ?? ($in['sign'] ?? ''));
+$cbCode     = (string)($in['code'] ?? '');   // code/serial trong callback (nhiều cổng KHÔNG gửi lại)
+$cbSerial   = (string)($in['serial'] ?? '');
+$callbackSign = (string)($in['callback_sign'] ?? ($in['sign'] ?? ($in['signature'] ?? '')));
 // Số tiền cổng thực trả về ví (đã trừ phí) và mệnh giá thực của thẻ. $credit tính sau
 // (dựa trên tỷ lệ % theo nhà mạng admin cấu hình), khi đã đọc DB.
 $amount = intval($in['amount'] ?? 0);
@@ -39,20 +39,6 @@ $secrets = read_secrets();
 $partnerKey = trim((string)($secrets['cardPartnerKey'] ?? ''));
 if ($partnerKey === '') { $logLine('LỖI: chưa cấu hình Partner Key'); echo json_encode(["status" => "error", "message" => "Chưa cấu hình Partner Key."]); exit; }
 
-// Xác minh chữ ký callback. Các cổng cùng họ chargingws/v2 (card2k/thesieure/doithe1s) dùng
-// md5(partner_key + code + serial); một số cổng đảo thứ tự serial/code — chấp nhận cả 2 để
-// không bị kẹt vì thứ tự (vẫn an toàn vì đều cần partner_key bí mật).
-$expectedCS = md5($partnerKey . $code . $serial);
-$expectedSC = md5($partnerKey . $serial . $code);
-$sigOk = ($callbackSign !== '' && (
-    strtolower($callbackSign) === strtolower($expectedCS) ||
-    strtolower($callbackSign) === strtolower($expectedSC)
-));
-if (!$sigOk) {
-    $logLine("LỖI CHỮ KÝ: nhận=$callbackSign | mong đợi(code+serial)=$expectedCS | mong đợi(serial+code)=$expectedSC");
-    echo json_encode(["status" => "error", "message" => "Chữ ký callback không hợp lệ."]); exit;
-}
-
 // status 1 = thành công đúng mệnh giá; 2 = thành công nhưng sai mệnh giá (vẫn cộng tiền thực).
 $success = ($statusCode === '1' || $statusCode === '2');
 
@@ -61,15 +47,44 @@ if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "mess
 $raw = stream_get_contents($fp);
 $db = $raw ? (json_decode($raw, true) ?: []) : [];
 
-// Tìm yêu cầu nạp thẻ tương ứng để biết cộng cho ai.
+// Tìm yêu cầu nạp thẻ tương ứng để biết cộng cho ai + lấy CODE/SERIAL ĐÃ LƯU (khi gửi thẻ).
 $reqIdx = -1;
 foreach (($db['cardRequests'] ?? []) as $i => $r) {
     if (($r['request_id'] ?? '') === $request_id) { $reqIdx = $i; break; }
 }
+$stCode   = ($reqIdx !== -1) ? (string)($db['cardRequests'][$reqIdx]['code'] ?? '')   : '';
+$stSerial = ($reqIdx !== -1) ? (string)($db['cardRequests'][$reqIdx]['serial'] ?? '') : '';
 if ($reqIdx === -1) {
     $logLine("CẢNH BÁO: không tìm thấy yêu cầu với request_id=$request_id (không cộng được cho ai)");
 } else {
     $logLine("OK: tìm thấy yêu cầu (userId=" . ($db['cardRequests'][$reqIdx]['userId'] ?? '?') . "), statusCode cổng=$statusCode");
+}
+
+// ---- Xác minh callback ----
+// QUAN TRỌNG: card2k thường KHÔNG gửi lại code/serial trong callback, nên phải dùng
+// CODE/SERIAL ĐÃ LƯU lúc gửi thẻ để tính chữ ký kỳ vọng (nếu chỉ dựa vào code/serial của
+// callback thì luôn rỗng -> chữ ký luôn sai -> không bao giờ cộng tiền). Chấp nhận nhiều
+// kiểu ghép (mọi cổng họ chargingws/v2) để không bị kẹt vì thứ tự.
+$sigCands = [];
+foreach ([[$stCode, $stSerial], [$cbCode, $cbSerial]] as $pair) {
+    list($c, $s) = $pair;
+    if ($c !== '' && $s !== '') {
+        $sigCands[] = md5($partnerKey . $c . $s);
+        $sigCands[] = md5($partnerKey . $s . $c);
+        $sigCands[] = md5($c . $s . $partnerKey);
+        $sigCands[] = md5($s . $c . $partnerKey);
+    }
+}
+$sigCands = array_map('strtolower', $sigCands);
+$sigOk = ($callbackSign !== '' && in_array(strtolower($callbackSign), $sigCands, true));
+// Xác thực thay thế: callback có gửi code/serial VÀ khớp với đã lưu -> đúng là card2k
+// (chỉ cổng + máy chủ mới biết cặp code/serial này). Cho qua kể cả khi chữ ký lạ kiểu.
+$codeMatch = ($cbCode !== '' && $cbSerial !== '' && $stCode !== '' && $stSerial !== ''
+    && strcasecmp($cbCode, $stCode) === 0 && strcasecmp($cbSerial, $stSerial) === 0);
+if (!$sigOk && !$codeMatch) {
+    $logLine("LỖI CHỮ KÝ: nhận=$callbackSign | reqIdx=$reqIdx | thử " . count($sigCands) . " kiểu ghép");
+    flock($fp, LOCK_UN); fclose($fp);
+    echo json_encode(["status" => "error", "message" => "Chữ ký callback không hợp lệ."]); exit;
 }
 
 // Chống cộng trùng: nếu đã có giao dịch với cardRef = request_id thì thôi.
