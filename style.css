@@ -2410,3 +2410,64 @@ table tbody tr:hover { background: rgba(124,162,255,.06); }
 /* ---- Chip số liệu: viền tơ + nền kính chuyển sắc ---- */
 .stat-chip { background: linear-gradient(160deg, rgba(154,107,255,.08), rgba(34,211,238,.04) 60%, rgba(130,150,255,.02)); }
 .stat-chip::before { background: linear-gradient(90deg, transparent, rgba(34,211,238,.6), rgba(154,107,255,.5), transparent); }
+
+/* =========================================================
+   THEME SYNC v7 — đồng bộ MÀU của tất cả CHỨC NĂNG (admin, popup, form, nạp
+   tiền...) về đúng tông "cyber gaming" tím→cyan của trang chủ. Vàng CHỈ còn
+   giữ cho GIÁ TIỀN / doanh thu / số dư (đúng ngữ nghĩa tiền). Không đổi bố cục.
+========================================================= */
+
+/* ---- Tab quản trị đang chọn: gradient neon như tab lọc trang chủ ---- */
+.admin-tab.active {
+  background: var(--grad-neon); color: #06121a;
+  box-shadow: 0 8px 22px -10px rgba(34,211,238,.7), 0 0 0 1px rgba(124,162,255,.35);
+}
+
+/* ---- Nhãn/mục/biểu tượng trong admin: vàng cũ -> cyan tông mới ---- */
+.admin-form-section { color: var(--cyan-soft); }
+.admin-cell-ico { color: var(--cyan-soft); }
+.admin-lowstock-head { color: var(--cyan-soft); }
+.admin-section-title { color: var(--muted); }
+.admin-stat-card strong { color: var(--cyan-soft); }
+.mobile-nav-link.admin-link, .mobile-nav-link.admin-link .mnl-icon,
+.user-dropdown button.dd-admin { color: var(--cyan-soft); }
+.mnl-badge.admin { background: rgba(34,211,238,.15); color: var(--cyan-soft); }
+
+/* Ô mã tự sinh (auto-id): đổi tông vàng -> cyan/tím cho khớp */
+.admin-form input.auto-id {
+  color: var(--cyan-soft); background: rgba(34,211,238,.06); border-color: rgba(34,211,238,.24);
+}
+
+/* ---- Ô nhập của chức năng: focus viền cyan (đồng bộ toàn site) ---- */
+.auth-form input:focus, .deposit-form input:focus,
+.admin-tbl-search:focus, .report-toolbar input[type=date]:focus,
+.discount-apply-input input:focus {
+  border-color: rgba(34,211,238,.55);
+  box-shadow: 0 0 0 3px rgba(34,211,238,.14);
+}
+
+/* ---- Tab nạp tiền đang chọn: tông cyber thay vì vàng ---- */
+.deposit-tab.active {
+  background: rgba(34,211,238,.12); border-color: rgba(34,211,238,.45); color: var(--cyan-soft);
+}
+
+/* ---- Tab con (sub filter) đồng bộ tím -> cyan như tab chính ---- */
+.filter-tab.sub.active { background: linear-gradient(120deg, var(--violet), var(--cyan)); color: #06121a; }
+
+/* ---- Link phụ (quên mật khẩu, đăng nhập admin...) sang cyan ---- */
+.auth-link { color: var(--cyan-soft); }
+
+/* ---- Thanh tiến trình VIP & thanh doanh thu: phối lại cho hợp tông ----
+   (giữ vàng cho GIÁ TRỊ TIỀN, nhưng chuyển gradient sang vàng->cyan để blend) */
+.vip-progress span { background: linear-gradient(90deg, var(--violet), var(--cyan)); }
+
+/* ---- GIỮ VÀNG cho tiền: giá, doanh thu, số dư, combo (đúng ngữ nghĩa) ----
+   .price, .report-tile strong, .revenue-bar, .feed-amt, .combo-prices strong
+   -> không đổi, vẫn vàng ánh kim cho khớp giá ở trang chủ. */
+
+/* ---- Trạng thái "đang chọn" trong các bộ chọn: vàng cũ -> tông cyber ---- */
+.package-option.selected { border-color: rgba(34,211,238,.55); background: rgba(34,211,238,.08); box-shadow: 0 0 0 1px rgba(34,211,238,.4) inset; }
+.icon-pick.selected { color: #06121a; background: var(--grad-neon); border-color: transparent; }
+.fx-pick.selected { border-color: rgba(34,211,238,.6); background: rgba(34,211,238,.1); box-shadow: 0 0 0 1px rgba(34,211,238,.55) inset; }
+.fx-pick.selected .fx-pick-label { color: var(--cyan-soft); }
+/* (Sao đánh giá giữ màu vàng — quy ước phổ biến, không đổi) */
