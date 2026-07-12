@@ -5711,10 +5711,13 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // 1 dòng mã giảm giá sản phẩm trong admin: mã + loại giảm + giá trị + điều kiện nâng cao.
-  function discountCodeRowHtml(dc = {}) {
+  // scope='private' (mã RIÊNG) mặc định "Số tài khoản được dùng" = 1 để mã chỉ 1 người dùng
+  // rồi tự xoá; scope='public' (mã cho mọi người) mặc định không giới hạn.
+  function discountCodeRowHtml(dc = {}, scope = 'public') {
     const type = dc.type === 'amount' ? 'amount' : 'percent';
     const used = parseInt(dc.usedCount, 10) || 0;
     const maxUses = parseInt(dc.maxUses, 10) || 0;
+    const maxUsersVal = scope === 'private' ? (parseInt(dc.maxUsers, 10) || 1) : (parseInt(dc.maxUsers, 10) || '');
     // input date cần định dạng yyyy-MM-dd
     const expDate = dc.expiresAt ? String(dc.expiresAt).slice(0, 10) : '';
     const cats = Store.db.categories || [];
@@ -5733,7 +5736,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="discount-line discount-cond">
           <label class="dc-cond">Lượt tối đa (tổng) <input data-dc-maxuses type="number" min="0" step="1" value="${maxUses || ''}" placeholder="0 = không giới hạn"></label>
           <label class="dc-cond">Số lần / mỗi người <input data-dc-maxperuser type="number" min="0" step="1" value="${parseInt(dc.maxUsesPerUser, 10) || '' }" placeholder="0 = không giới hạn"></label>
-          <label class="dc-cond">Số tài khoản được dùng <input data-dc-maxusers type="number" min="0" step="1" value="${parseInt(dc.maxUsers, 10) || '' }" placeholder="0 = không giới hạn (VD: 1 = 1 tài khoản)"></label>
+          <label class="dc-cond">Số tài khoản được dùng <input data-dc-maxusers type="number" min="0" step="1" value="${maxUsersVal}" placeholder="0 = không giới hạn (VD: 1 = 1 tài khoản)"></label>
           <label class="dc-cond">Đã dùng <input value="${used}${maxUses ? '/' + maxUses : ''}" readonly tabindex="-1" class="dc-used-view"></label>
           <label class="dc-cond">Hạn dùng <input data-dc-expires type="date" value="${esc(expDate)}"></label>
           <label class="dc-cond">Đơn tối thiểu (đ) <input data-dc-minorder type="number" min="0" step="1000" value="${dc.minOrder ? parseInt(dc.minOrder, 10) : ''}" placeholder="0 = mọi đơn"></label>
@@ -5746,20 +5749,31 @@ window.KENIOS_DEFAULT_DB = {
         </div>
       </div>`;
   }
+  // Đọc các dòng mã từ 1 khu vực soạn thảo (public/private) và gắn nhãn scope. Mã RIÊNG bắt
+  // buộc "Số tài khoản được dùng" >= 1 (để luôn tự xoá sau khi dùng hết).
+  function readDiscountEditor(sel, scope) {
+    return $$(`${sel} [data-dc-row]`).map((row) => {
+      const maxUsers = Math.max(0, parseInt(row.querySelector('[data-dc-maxusers]').value, 10) || 0);
+      return {
+        code: row.querySelector('[data-dc-code]').value.trim().toUpperCase(),
+        type: row.querySelector('[data-dc-type]').value === 'amount' ? 'amount' : 'percent',
+        value: Math.max(0, parseFloat(row.querySelector('[data-dc-value]').value) || 0),
+        enabled: row.querySelector('[data-dc-enabled]').checked,
+        scope: scope,
+        autoDelete: true,
+        maxUses: Math.max(0, parseInt(row.querySelector('[data-dc-maxuses]').value, 10) || 0),
+        maxUsesPerUser: Math.max(0, parseInt(row.querySelector('[data-dc-maxperuser]').value, 10) || 0),
+        maxUsers: scope === 'private' ? Math.max(1, maxUsers) : maxUsers,
+        usedCount: parseInt(row.dataset.dcUsed, 10) || 0,
+        expiresAt: row.querySelector('[data-dc-expires]').value || '',
+        minOrder: Math.max(0, parseInt(row.querySelector('[data-dc-minorder]').value, 10) || 0),
+        categoryId: row.querySelector('[data-dc-category]').value || ''
+      };
+    }).filter((x) => x.code && x.value > 0);
+  }
   function readDiscountCodesFromEditor() {
-    return $$('#discountCodesEditor [data-dc-row]').map((row) => ({
-      code: row.querySelector('[data-dc-code]').value.trim().toUpperCase(),
-      type: row.querySelector('[data-dc-type]').value === 'amount' ? 'amount' : 'percent',
-      value: Math.max(0, parseFloat(row.querySelector('[data-dc-value]').value) || 0),
-      enabled: row.querySelector('[data-dc-enabled]').checked,
-      maxUses: Math.max(0, parseInt(row.querySelector('[data-dc-maxuses]').value, 10) || 0),
-      maxUsesPerUser: Math.max(0, parseInt(row.querySelector('[data-dc-maxperuser]').value, 10) || 0),
-      maxUsers: Math.max(0, parseInt(row.querySelector('[data-dc-maxusers]').value, 10) || 0),
-      usedCount: parseInt(row.dataset.dcUsed, 10) || 0,
-      expiresAt: row.querySelector('[data-dc-expires]').value || '',
-      minOrder: Math.max(0, parseInt(row.querySelector('[data-dc-minorder]').value, 10) || 0),
-      categoryId: row.querySelector('[data-dc-category]').value || ''
-    })).filter((x) => x.code && x.value > 0);
+    return readDiscountEditor('#discountCodesEditorPublic', 'public')
+      .concat(readDiscountEditor('#discountCodesEditorPrivate', 'private'));
   }
 
   // 1 dòng hạng VIP trong admin (tên hạng + mốc chi tiêu + % giảm).
@@ -5843,26 +5857,28 @@ window.KENIOS_DEFAULT_DB = {
           <input name="flashSaleTitle" value="${esc(fs.title || 'FLASH SALE')}" placeholder="VD: FLASH SALE CUỐI TUẦN">
         </label>
 
-        <div class="admin-form-section">3. Mã giảm giá sản phẩm (tạo bao nhiêu mã tuỳ ý)</div>
+        <div class="admin-form-section">3. Mã giảm giá sản phẩm</div>
         <div class="admin-guide">
-          <b>${ico('bulb')} Hướng dẫn dùng mã giảm giá:</b>
-          <ul style="margin:6px 0 0;padding-left:18px;">
-            <li><b>Ô tick trái:</b> bật/tắt từng mã.</li>
-            <li><b>MÃ:</b> tên mã khách gõ (VD: <code>SALE10</code>). <b>Giảm %</b> hoặc <b>Giảm tiền (đ)</b> + giá trị.</li>
-            <li><b>Lượt tối đa (tổng):</b> tổng số lần mã được dùng, chung cho mọi khách (0 = không giới hạn). "Đã dùng" hiển thị số lần đã dùng.</li>
-            <li><b>Số lần / mỗi người:</b> mỗi khách được dùng mã bao nhiêu lần (VD: 1 = mỗi người 1 lần; 0 = không giới hạn theo người).</li>
-            <li><b>Số tài khoản được dùng:</b> bao nhiêu <b>tài khoản khác nhau</b> được dùng mã (VD: <b>1 = chỉ 1 tài khoản duy nhất</b>, ai dùng trước thì chiếm; 0 = không giới hạn).</li>
-            <li><b>Hạn dùng:</b> ngày hết hạn (để trống = không hết hạn).</li>
-            <li><b>Đơn tối thiểu:</b> giá đơn phải từ mức này mới áp được mã (0 = mọi đơn).</li>
-            <li><b>Chỉ danh mục:</b> giới hạn mã cho 1 danh mục sản phẩm (mặc định mọi sản phẩm).</li>
-          </ul>
-          Khách nhập mã ở ô "Mã giảm giá" trong từng sản phẩm — hệ thống tự đối chiếu &amp; kiểm tra các điều kiện trên.
+          <b>${ico('bulb')} Cách dùng chung:</b> Mỗi ô: <b>tick trái</b> bật/tắt mã · <b>MÃ</b> khách gõ (VD <code>SALE10</code>) · chọn <b>Giảm %</b> hay <b>Giảm tiền</b> + giá trị · <b>Lượt tối đa (tổng)</b> chung mọi khách · <b>Số lần / mỗi người</b> · <b>Số tài khoản được dùng</b> · <b>Hạn dùng</b> · <b>Đơn tối thiểu</b> · <b>Chỉ danh mục</b>. Ô để trống/0 = không giới hạn.
+          <br><b style="color:var(--gold-soft)">Mã sẽ TỰ ĐỘNG XOÁ khỏi danh sách khi dùng hết</b> (đạt "Lượt tối đa" hoặc đủ "Số tài khoản được dùng"). Khách nhập mã ở ô "Mã giảm giá" khi mua.
         </div>
-        <div class="span-2 discount-editor" id="discountCodesEditor">
-          ${(c.discountCodes || []).map((dc) => discountCodeRowHtml(dc)).join('')}
+
+        <div class="admin-subsection" style="margin-top:6px;font-weight:700;color:var(--brand-2);">3a. ${ico('megaphone')} Mã khuyến mãi CHO MỌI NGƯỜI</div>
+        <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Ai cũng nhập được (tuỳ giới hạn bạn đặt). Danh sách mã đã tạo bên dưới — sửa trực tiếp hoặc bấm ✕ để xoá.</p>
+        <div class="span-2 discount-editor" id="discountCodesEditorPublic">
+          ${(c.discountCodes || []).filter((dc) => (dc && (dc.scope || 'public') !== 'private')).map((dc) => discountCodeRowHtml(dc, 'public')).join('') || '<p class="muted" style="font-size:.82rem;margin:0;">Chưa có mã nào. Bấm "+ Thêm mã cho mọi người".</p>'}
         </div>
         <div class="span-2">
-          <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodeBtn"><span class="btn-ico">${ICONS.tag || ''}</span> + Thêm mã giảm giá</button>
+          <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodePublicBtn"><span class="btn-ico">${ICONS.tag || ''}</span> + Thêm mã cho mọi người</button>
+        </div>
+
+        <div class="admin-subsection" style="margin-top:14px;font-weight:700;color:var(--gold);">3b. ${ico('key')} Mã khuyến mãi RIÊNG (cho tài khoản chỉ định)</div>
+        <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Mặc định "Số tài khoản được dùng" = 1 → chỉ <b>1 tài khoản đầu tiên</b> dùng được rồi mã <b>tự xoá</b>. Bạn gửi mã cho đúng khách cần tặng. Danh sách bên dưới — sửa hoặc bấm ✕ để xoá.</p>
+        <div class="span-2 discount-editor" id="discountCodesEditorPrivate">
+          ${(c.discountCodes || []).filter((dc) => (dc && (dc.scope || 'public') === 'private')).map((dc) => discountCodeRowHtml(dc, 'private')).join('') || '<p class="muted" style="font-size:.82rem;margin:0;">Chưa có mã riêng nào. Bấm "+ Thêm mã riêng".</p>'}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodePrivateBtn"><span class="btn-ico">${ICONS.key || ''}</span> + Thêm mã riêng</button>
         </div>
 
         <div class="admin-form-section">4. Hạng thành viên VIP (tự giảm giá theo tổng chi tiêu)</div>
@@ -6607,10 +6623,23 @@ window.KENIOS_DEFAULT_DB = {
     const delKb = e.target.closest('[data-kb-remove]');
     if (delKb) {var _delKb$closest;(_delKb$closest = delKb.closest('[data-kb-row]')) === null || _delKb$closest === void 0 || _delKb$closest.remove();return;}
 
-    // ----- Thêm / xoá mã giảm giá sản phẩm -----
-    if (e.target.closest('#addDiscountCodeBtn')) {
-      const editor = $('#discountCodesEditor');
-      if (editor) {var _editor$querySelector2;editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' }));(_editor$querySelector2 = editor.querySelector('[data-dc-row]:last-child [data-dc-code]')) === null || _editor$querySelector2 === void 0 || _editor$querySelector2.focus();}
+    // ----- Thêm / xoá mã giảm giá sản phẩm (2 khu vực: mọi người / riêng) -----
+    if (e.target.closest('#addDiscountCodePublicBtn')) {
+      const editor = $('#discountCodesEditorPublic');
+      if (editor) {
+        const ph = editor.querySelector('p.muted'); if (ph) ph.remove(); // bỏ dòng "chưa có mã"
+        editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' }, 'public'));
+        const inp = editor.querySelector('[data-dc-row]:last-child [data-dc-code]'); if (inp) inp.focus();
+      }
+      return;
+    }
+    if (e.target.closest('#addDiscountCodePrivateBtn')) {
+      const editor = $('#discountCodesEditorPrivate');
+      if (editor) {
+        const ph = editor.querySelector('p.muted'); if (ph) ph.remove();
+        editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' }, 'private'));
+        const inp = editor.querySelector('[data-dc-row]:last-child [data-dc-code]'); if (inp) inp.focus();
+      }
       return;
     }
     const delDc = e.target.closest('[data-dc-remove]');

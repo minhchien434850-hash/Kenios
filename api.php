@@ -242,6 +242,30 @@ function token_ok($u, $token) {
     return is_string($token) && $token !== '' && hash_equals($serverToken, $token);
 }
 
+// Tự động XOÁ 1 mã giảm giá khỏi cấu hình khi đã DÙNG HẾT (đạt "Lượt tối đa" tổng, hoặc đủ
+// "Số tài khoản được dùng"). Gọi SAU khi đã cộng usedCount và thêm đơn mới vào $db['orders'].
+// autoDelete=false thì giữ lại. Trả về true nếu vừa xoá.
+function discount_maybe_autodelete(&$db, $codeIdx, $codeUpper) {
+    if ($codeIdx < 0 || !isset($db['config']['discountCodes'][$codeIdx]) || !is_array($db['config']['discountCodes'][$codeIdx])) return false;
+    $dc = $db['config']['discountCodes'][$codeIdx];
+    if (($dc['autoDelete'] ?? true) === false) return false;
+    $exhausted = false;
+    $mu = intval($dc['maxUses'] ?? 0);
+    if ($mu > 0 && intval($dc['usedCount'] ?? 0) >= $mu) $exhausted = true;
+    if (!$exhausted) {
+        $muser = intval($dc['maxUsers'] ?? 0);
+        if ($muser > 0) {
+            $set = [];
+            foreach (($db['orders'] ?? []) as $o) {
+                if (strtoupper(trim((string)($o['discountCode'] ?? ''))) === $codeUpper) $set[(string)($o['userId'] ?? '')] = true;
+            }
+            if (count($set) >= $muser) $exhausted = true;
+        }
+    }
+    if ($exhausted) { array_splice($db['config']['discountCodes'], $codeIdx, 1); return true; }
+    return false;
+}
+
 switch ($action) {
     case 'register':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -845,6 +869,9 @@ switch ($action) {
             "type" => "purchase", "description" => $txDesc, "date" => date("c")
         ]);
 
+        // Tự xoá mã giảm giá nếu đã dùng hết (sau khi đã cộng lượt & thêm đơn ở trên).
+        if ($matchedCodeIdx >= 0 && $appliedCode !== '') discount_maybe_autodelete($db, $matchedCodeIdx, $appliedCode);
+
         ftruncate($fp, 0);
         rewind($fp);
         fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -1074,6 +1101,9 @@ switch ($action) {
             "id" => "TX" . time() . rand(100, 999), "userId" => $db['users'][$userIdx]['userId'], "amount" => -$price,
             "type" => "purchase", "description" => $txDesc, "date" => date("c")
         ]);
+
+        // Tự xoá mã giảm giá nếu đã dùng hết (sau khi đã cộng lượt & thêm đơn ở trên).
+        if ($matchedCodeIdx >= 0 && $appliedCode !== '') discount_maybe_autodelete($db, $matchedCodeIdx, $appliedCode);
 
         ftruncate($fp, 0);
         rewind($fp);
