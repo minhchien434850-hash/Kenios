@@ -5849,7 +5849,9 @@ window.KENIOS_DEFAULT_DB = {
           <ul style="margin:6px 0 0;padding-left:18px;">
             <li><b>Ô tick trái:</b> bật/tắt từng mã.</li>
             <li><b>MÃ:</b> tên mã khách gõ (VD: <code>SALE10</code>). <b>Giảm %</b> hoặc <b>Giảm tiền (đ)</b> + giá trị.</li>
-            <li><b>Lượt tối đa:</b> số lần mã được dùng (0 = không giới hạn). "Đã dùng" hiển thị số lần đã sử dụng.</li>
+            <li><b>Lượt tối đa (tổng):</b> tổng số lần mã được dùng, chung cho mọi khách (0 = không giới hạn). "Đã dùng" hiển thị số lần đã dùng.</li>
+            <li><b>Số lần / mỗi người:</b> mỗi khách được dùng mã bao nhiêu lần (VD: 1 = mỗi người 1 lần; 0 = không giới hạn theo người).</li>
+            <li><b>Số tài khoản được dùng:</b> bao nhiêu <b>tài khoản khác nhau</b> được dùng mã (VD: <b>1 = chỉ 1 tài khoản duy nhất</b>, ai dùng trước thì chiếm; 0 = không giới hạn).</li>
             <li><b>Hạn dùng:</b> ngày hết hạn (để trống = không hết hạn).</li>
             <li><b>Đơn tối thiểu:</b> giá đơn phải từ mức này mới áp được mã (0 = mọi đơn).</li>
             <li><b>Chỉ danh mục:</b> giới hạn mã cho 1 danh mục sản phẩm (mặc định mọi sản phẩm).</li>
