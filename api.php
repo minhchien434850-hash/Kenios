@@ -751,6 +751,16 @@ switch ($action) {
             elseif ((intval($matched['maxUses'] ?? 0) > 0) && (intval($matched['usedCount'] ?? 0) >= intval($matched['maxUses'] ?? 0))) $err = "Mã giảm giá đã hết lượt sử dụng.";
             elseif ((intval($matched['minOrder'] ?? 0) > 0) && $price < intval($matched['minOrder'] ?? 0)) $err = "Đơn chưa đạt mức tối thiểu để dùng mã.";
             elseif (!empty($matched['categoryId']) && ($matched['categoryId'] !== ($service['categoryId'] ?? ''))) $err = "Mã giảm giá không áp dụng cho sản phẩm này.";
+            // Giới hạn SỐ LẦN MỖI NGƯỜI (maxUsesPerUser): đếm số đơn của CHÍNH khách này đã
+            // từng dùng đúng mã đó. Đạt giới hạn -> không cho dùng nữa. Để trống/0 = không hạn.
+            if ($err === '' && intval($matched['maxUsesPerUser'] ?? 0) > 0) {
+                $uidCur = (string)($db['users'][$userIdx]['userId'] ?? '');
+                $usedByUser = 0;
+                foreach (($db['orders'] ?? []) as $o) {
+                    if (($o['userId'] ?? '') === $uidCur && strtoupper(trim((string)($o['discountCode'] ?? ''))) === $discountCode) $usedByUser++;
+                }
+                if ($usedByUser >= intval($matched['maxUsesPerUser'])) $err = "Bạn đã dùng mã này đủ số lần cho phép (" . intval($matched['maxUsesPerUser']) . " lần/người).";
+            }
             if ($err !== '') {
                 flock($fp, LOCK_UN); fclose($fp);
                 echo json_encode(["status" => "error", "message" => $err]);
@@ -955,6 +965,16 @@ switch ($action) {
             elseif ((intval($matched['maxUses'] ?? 0) > 0) && (intval($matched['usedCount'] ?? 0) >= intval($matched['maxUses'] ?? 0))) $err = "Mã giảm giá đã hết lượt sử dụng.";
             elseif ((intval($matched['minOrder'] ?? 0) > 0) && $price < intval($matched['minOrder'] ?? 0)) $err = "Đơn chưa đạt mức tối thiểu để dùng mã.";
             elseif (!empty($matched['categoryId']) && ($matched['categoryId'] !== ($service['categoryId'] ?? ''))) $err = "Mã giảm giá không áp dụng cho sản phẩm này.";
+            // Giới hạn SỐ LẦN MỖI NGƯỜI (maxUsesPerUser): đếm số đơn của CHÍNH khách này đã
+            // từng dùng đúng mã đó. Đạt giới hạn -> không cho dùng nữa. Để trống/0 = không hạn.
+            if ($err === '' && intval($matched['maxUsesPerUser'] ?? 0) > 0) {
+                $uidCur = (string)($db['users'][$userIdx]['userId'] ?? '');
+                $usedByUser = 0;
+                foreach (($db['orders'] ?? []) as $o) {
+                    if (($o['userId'] ?? '') === $uidCur && strtoupper(trim((string)($o['discountCode'] ?? ''))) === $discountCode) $usedByUser++;
+                }
+                if ($usedByUser >= intval($matched['maxUsesPerUser'])) $err = "Bạn đã dùng mã này đủ số lần cho phép (" . intval($matched['maxUsesPerUser']) . " lần/người).";
+            }
             if ($err !== '') {
                 flock($fp, LOCK_UN); fclose($fp);
                 echo json_encode(["status" => "error", "message" => $err]);
