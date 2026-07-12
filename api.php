@@ -242,6 +242,18 @@ function token_ok($u, $token) {
     return is_string($token) && $token !== '' && hash_equals($serverToken, $token);
 }
 
+// Sinh mã giới thiệu ngắn, DUY NHẤT (không trùng refCode nào đang có). Bỏ ký tự dễ nhầm.
+function gen_ref_code($db) {
+    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $existing = [];
+    foreach (($db['users'] ?? []) as $u) { $c = strtoupper(trim((string)($u['refCode'] ?? ''))); if ($c !== '') $existing[$c] = true; }
+    do {
+        $code = '';
+        for ($i = 0; $i < 6; $i++) $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+    } while (isset($existing[$code]));
+    return $code;
+}
+
 // Tự động XOÁ 1 mã giảm giá khỏi cấu hình khi đã DÙNG HẾT (đạt "Lượt tối đa" tổng, hoặc đủ
 // "Số tài khoản được dùng"). Gọi SAU khi đã cộng usedCount và thêm đơn mới vào $db['orders'].
 // autoDelete=false thì giữ lại. Trả về true nếu vừa xoá.
@@ -313,6 +325,15 @@ switch ($action) {
             "createdAt" => date("Y-m-d"),
             "token" => gen_session_token()
         ];
+        // Mã giới thiệu riêng của tài khoản + gắn NGƯỜI GIỚI THIỆU (nếu nhập mã hợp lệ khi
+        // đăng ký). referredBy lưu ngay trên máy chủ để sau này thưởng cho người giới thiệu.
+        $user['refCode'] = gen_ref_code($db);
+        $inRef = strtoupper(trim((string)($input['refCode'] ?? '')));
+        if ($inRef !== '' && $inRef !== $user['refCode']) {
+            foreach ($db['users'] as $ru) {
+                if (strtoupper(trim((string)($ru['refCode'] ?? ''))) === $inRef) { $user['referredBy'] = $inRef; break; }
+            }
+        }
         $db['users'][] = $user;
         ftruncate($fp, 0); rewind($fp);
         fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -417,8 +438,56 @@ switch ($action) {
         // Cấp MÃ PHIÊN mới mỗi lần đăng nhập (để xác thực mua hàng thay mật khẩu).
         $token = gen_session_token();
         $db['users'][$matchedIdx]['token'] = $token;
+        // Tài khoản cũ chưa có mã giới thiệu -> sinh ngay trên máy chủ (để chương trình
+        // giới thiệu hoạt động: người khác nhập mã này khi đăng ký sẽ liên kết được).
+        if (empty($db['users'][$matchedIdx]['refCode'])) $db['users'][$matchedIdx]['refCode'] = gen_ref_code($db);
         write_db($db_file, $db);
         echo json_encode(["status" => "success", "user" => safe_user($db['users'][$matchedIdx]), "token" => $token]);
+        break;
+
+    // Thưởng GIỚI THIỆU: khi người được mời (referee) đã NẠP TIỀN, cộng thưởng cho NGƯỜI
+    // GIỚI THIỆU (referrer) — CHỈ người giới thiệu nhận tiền, người nhập mã KHÔNG nhận.
+    // Idempotent: mỗi referee chỉ thưởng 1 lần (cờ referralRewarded).
+    case 'claim_referral':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $token  = (string)($input['token'] ?? '');
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (($db['config']['referralEnabled'] ?? true) === false) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "success", "rewarded" => false]); exit; }
+        $bonus = intval($db['config']['referralBonus'] ?? 0);
+        $ri = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $userId) { $ri = $i; break; } }
+        if ($ri === -1 || !token_ok($db['users'][$ri], $token)) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Phiên đăng nhập không hợp lệ."]); exit; }
+        $referee = $db['users'][$ri];
+        // Đã thưởng rồi hoặc không có người giới thiệu -> bỏ qua (không lỗi).
+        if (!empty($referee['referralRewarded']) || empty($referee['referredBy'])) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "success", "rewarded" => false]); exit; }
+        // Bắt buộc referee ĐÃ TỪNG NẠP TIỀN (chống nhận thưởng khi chưa nạp).
+        $hasDeposit = false;
+        foreach (($db['transactions'] ?? []) as $t) { if (($t['userId'] ?? '') === $userId && ($t['type'] ?? '') === 'deposit') { $hasDeposit = true; break; } }
+        if (!$hasDeposit) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "success", "rewarded" => false]); exit; }
+        // Tìm người giới thiệu theo refCode đã lưu.
+        $refCode = strtoupper(trim((string)$referee['referredBy']));
+        $rri = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (strtoupper(trim((string)($u['refCode'] ?? ''))) === $refCode) { $rri = $i; break; } }
+        $db['users'][$ri]['referralRewarded'] = true; // đánh dấu để không thưởng lại
+        $rewarded = false;
+        if ($rri !== -1 && $rri !== $ri && $bonus > 0) {
+            $db['users'][$rri]['balance'] = floatval($db['users'][$rri]['balance'] ?? 0) + $bonus;
+            if (!isset($db['transactions'])) $db['transactions'] = [];
+            array_unshift($db['transactions'], [
+                'id' => 'TXR' . time() . rand(100, 999), 'userId' => $db['users'][$rri]['userId'],
+                'amount' => $bonus, 'type' => 'referral',
+                'description' => 'Thưởng giới thiệu bạn ' . ($referee['username'] ?? ''), 'date' => date('c')
+            ]);
+            $rewarded = true;
+        }
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "rewarded" => $rewarded]);
         break;
 
     case 'google_login':
@@ -494,6 +563,13 @@ switch ($action) {
                 "createdAt" => date("Y-m-d"),
                 "token" => $token
             ];
+            $user['refCode'] = gen_ref_code($db);
+            $inRef = strtoupper(trim((string)($input['refCode'] ?? '')));
+            if ($inRef !== '' && $inRef !== $user['refCode']) {
+                foreach ($db['users'] as $ru) {
+                    if (strtoupper(trim((string)($ru['refCode'] ?? ''))) === $inRef) { $user['referredBy'] = $inRef; break; }
+                }
+            }
             $db['users'][] = $user;
             ftruncate($fp, 0); rewind($fp);
             fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -506,6 +582,7 @@ switch ($action) {
                 exit;
             }
             $db['users'][$matchedIdx]['token'] = $token;
+            if (empty($db['users'][$matchedIdx]['refCode'])) $db['users'][$matchedIdx]['refCode'] = gen_ref_code($db);
             ftruncate($fp, 0); rewind($fp);
             fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             fflush($fp); flock($fp, LOCK_UN); fclose($fp);

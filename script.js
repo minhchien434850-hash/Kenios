@@ -368,14 +368,16 @@ window.KENIOS_DEFAULT_DB = {
       return !!u && u.role === 'admin';
     },
 
-    async register(username, password, contact) {
+    async register(username, password, contact, refCode) {
       username = (username || '').trim();
       contact = (contact || '').trim();
+      refCode = (refCode || '').trim().toUpperCase();
       if (!username || (password || '').length < 6) {
         throw new Error('Tên đăng nhập không hợp lệ hoặc mật khẩu quá ngắn (tối thiểu 6 ký tự).');
       }
       try {
-        const result = await this._callApi('register', { username, password, contact });
+        // Gửi luôn mã giới thiệu (refCode) lên máy chủ để LƯU người giới thiệu ngay lúc đăng ký.
+        const result = await this._callApi('register', { username, password, contact, refCode });
         this.serverAvailable = true;
         if (result.status !== 'success') throw new Error(result.message || 'Đăng ký thất bại.');
         this._upsertUser(result.user);
@@ -384,7 +386,9 @@ window.KENIOS_DEFAULT_DB = {
       } catch (err) {
         if (err instanceof BackendUnavailableError) {
           this.serverAvailable = false;
-          return this._localRegister(username, password, contact);
+          const u = this._localRegister(username, password, contact);
+          if (u && refCode) this.applyReferralCode(u.userId, refCode); // demo/offline
+          return u;
         }
         throw err;
       }
@@ -1057,23 +1061,31 @@ window.KENIOS_DEFAULT_DB = {
       referee.referredBy = referrer.refCode;
       this._persistOverrides();this._emit();
     },
-    // Thưởng khi người được giới thiệu NẠP TIỀN lần đầu — cả 2 bên +referralBonus.
-    processReferralReward(refereeUserId) {
+    // Thưởng khi người được giới thiệu NẠP TIỀN lần đầu — CHỈ NGƯỜI GIỚI THIỆU nhận tiền,
+    // người nhập mã KHÔNG nhận. Việc cộng tiền do MÁY CHỦ làm (an toàn, không gian lận được);
+    // ở đây chỉ gọi máy chủ. Bản demo (không có máy chủ) thì cộng cục bộ chỉ cho người giới thiệu.
+    async processReferralReward(refereeUserId) {
       const cfg = this.db.config;
       if (cfg.referralEnabled === false) return;
-      const bonus = Number(cfg.referralBonus) || 0;
       const referee = this.db.users.find((u) => u.userId === refereeUserId);
       if (!referee || referee.referralRewarded || !referee.referredBy) return;
-      const referrer = this.findByRefCode(referee.referredBy);
-      referee.referralRewarded = true; // đánh dấu để chỉ thưởng 1 lần dù có tìm thấy người mời hay không
-      if (bonus > 0 && referrer && referrer.userId !== referee.userId) {
-        referee.balance = (referee.balance || 0) + bonus;
-        referrer.balance = (referrer.balance || 0) + bonus;
-        const now = new Date().toISOString();
-        this.db.transactions.unshift({ id: 'TXR' + Date.now(), userId: referee.userId, amount: bonus, type: 'referral', description: 'Thưởng giới thiệu (bạn được mời)', date: now });
-        this.db.transactions.unshift({ id: 'TXR' + (Date.now() + 1), userId: referrer.userId, amount: bonus, type: 'referral', description: 'Thưởng giới thiệu bạn ' + (referee.username || ''), date: now });
+      try {
+        const res = await this._callApi('claim_referral', { userId: refereeUserId, token: this.currentToken() });
+        if (res && res.status === 'success') {
+          referee.referralRewarded = true;
+          this._persistOverrides();
+        }
+      } catch (e) {
+        // Demo/offline: chỉ cộng cho NGƯỜI GIỚI THIỆU (không cộng người nhập mã).
+        const bonus = Number(cfg.referralBonus) || 0;
+        const referrer = this.findByRefCode(referee.referredBy);
+        referee.referralRewarded = true;
+        if (bonus > 0 && referrer && referrer.userId !== referee.userId) {
+          referrer.balance = (referrer.balance || 0) + bonus;
+          this.db.transactions.unshift({ id: 'TXR' + (Date.now() + 1), userId: referrer.userId, amount: bonus, type: 'referral', description: 'Thưởng giới thiệu bạn ' + (referee.username || ''), date: new Date().toISOString() });
+        }
+        this._persistOverrides();this._emit();
       }
-      this._persistOverrides();this._emit();
     },
     // Thống kê giới thiệu của user hiện tại.
     myReferralStats() {
@@ -3536,7 +3548,7 @@ window.KENIOS_DEFAULT_DB = {
       const bonus = Number(Store.db.config.referralBonus) || 0;
       return `
       <div class="profile-referral">
-        <div class="pr-head">${ico('gift')} Giới thiệu bạn bè${bonus > 0 ? ` — cả hai +<b>${fmt(bonus)}</b> khi bạn của bạn nạp tiền lần đầu` : ''}</div>
+        <div class="pr-head">${ico('gift')} Giới thiệu bạn bè${bonus > 0 ? ` — bạn nhận +<b>${fmt(bonus)}</b> khi người bạn mời nạp tiền lần đầu` : ''}</div>
         <div class="pr-code-row">
           <input id="profRefCode" type="text" readonly value="${esc(st.code)}" onclick="this.select()">
           <button type="button" class="btn btn-primary btn-sm" id="profRefCopy"><span class="btn-ico">${ICONS.copy}</span> Sao chép mã</button>
@@ -3778,9 +3790,7 @@ window.KENIOS_DEFAULT_DB = {
       const submitBtn = e.target.querySelector('button[type=submit]');
       withLoading(submitBtn, async () => {
         try {
-          const newUser = await Store.register(fd.get('username'), fd.get('password'), fd.get('contact'));
-          const refCode = (fd.get('refCode') || '').trim();
-          if (newUser && refCode) Store.applyReferralCode(newUser.userId, refCode);
+          await Store.register(fd.get('username'), fd.get('password'), fd.get('contact'), fd.get('refCode'));
           closeModal('#authModal');
           e.target.reset();
           $('#registerError').textContent = '';
@@ -5938,7 +5948,7 @@ window.KENIOS_DEFAULT_DB = {
         <label class="admin-check-label"><input type="checkbox" name="showcaseEnabled" ${c.showcaseEnabled === true ? 'checked' : ''}> Hiện mục "Hình ảnh &amp; Video" ở trang chủ (tắt để web nhẹ hơn)</label>
 
         <div class="admin-form-section">Giới thiệu bạn bè</div>
-        <label class="admin-check-label"><input type="checkbox" name="referralEnabled" ${c.referralEnabled !== false ? 'checked' : ''}> Bật chương trình giới thiệu (mỗi người có 1 mã, cả hai nhận thưởng khi người mới nạp lần đầu)</label>
+        <label class="admin-check-label"><input type="checkbox" name="referralEnabled" ${c.referralEnabled !== false ? 'checked' : ''}> Bật chương trình giới thiệu (mỗi người có 1 mã — CHỈ người giới thiệu nhận thưởng khi người được mời nạp tiền lần đầu; người nhập mã không nhận)</label>
         <label>Tiền thưởng mỗi bên (đồng) <input type="number" name="referralBonus" min="0" step="1000" value="${Number(c.referralBonus) || 0}"></label>
 
         <div class="admin-form-section">Màu chủ đạo toàn trang</div>
