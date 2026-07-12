@@ -1144,6 +1144,13 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 .dc-create-line { display: grid; grid-template-columns: 1.4fr 150px 1fr; gap: 8px; align-items: center; }
 .dc-create-line input, .dc-create-line select { padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .84rem; width: 100%; min-width: 0; }
 .dc-create .discount-cond { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+/* Ô ngày "Hạn dùng" + ô chọn "Chỉ danh mục": theo nền tối, chữ & icon cho khớp, đỡ xấu */
+.dc-create input, .dc-create select, .dc-create-line input, .dc-create-line select { color-scheme: dark; font-family: inherit; }
+.dc-create input[type="date"] { color: var(--ink); text-transform: uppercase; letter-spacing: .3px; }
+.dc-create input[type="date"]::-webkit-datetime-edit { color: var(--muted); }
+.dc-create input[type="date"]:valid::-webkit-datetime-edit { color: var(--ink); }
+.dc-create input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.75); opacity: .7; cursor: pointer; }
+.dc-create select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
 .dc-create-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .dc-list { display: flex; flex-direction: column; gap: 8px; }
 .dc-empty { font-size: .82rem; margin: 0; padding: 10px; text-align: center; border: 1px dashed var(--border); border-radius: 10px; }
