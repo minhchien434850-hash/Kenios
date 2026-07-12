@@ -1835,6 +1835,7 @@ window.KENIOS_DEFAULT_DB = {
     history: _svg('<path d="M3 3v5h5"/><path d="M3.05 13a9 9 0 1 0 2.4-6.36L3 8"/><path d="M12 7v5l3.5 2"/>'),
     upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
     trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
+    edit: _svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
     arrowUp: _svg('<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>'),
     arrowDown: _svg('<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>'),
     sun: _svg('<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/>'),
@@ -5720,70 +5721,120 @@ window.KENIOS_DEFAULT_DB = {
     });
   }
 
-  // 1 dòng mã giảm giá sản phẩm trong admin: mã + loại giảm + giá trị + điều kiện nâng cao.
-  // scope='private' (mã RIÊNG) mặc định "Số tài khoản được dùng" = 1 để mã chỉ 1 người dùng
-  // rồi tự xoá; scope='public' (mã cho mọi người) mặc định không giới hạn.
-  function discountCodeRowHtml(dc = {}, scope = 'public') {
-    const type = dc.type === 'amount' ? 'amount' : 'percent';
-    const used = parseInt(dc.usedCount, 10) || 0;
-    const maxUses = parseInt(dc.maxUses, 10) || 0;
-    const maxUsersVal = scope === 'private' ? (parseInt(dc.maxUsers, 10) || 1) : (parseInt(dc.maxUsers, 10) || '');
-    // input date cần định dạng yyyy-MM-dd
-    const expDate = dc.expiresAt ? String(dc.expiresAt).slice(0, 10) : '';
+  // Mã đã hết hạn dùng (theo ngày). Dùng để KHÔNG hiện trong danh sách + không lưu lại nữa.
+  function discountIsExpired(dc) {
+    if (!dc || !dc.expiresAt) return false;
+    const t = Date.parse(dc.expiresAt);
+    return !isNaN(t) && Date.now() > (t + 24 * 3600 * 1000 - 1); // hết ngày ghi trên hạn
+  }
+  // Dòng tóm tắt 1 mã (hiện trong danh sách): giảm bao nhiêu + các điều kiện gọn.
+  function discountSummaryText(dc) {
+    const parts = [];
+    parts.push(dc.type === 'amount' ? 'Giảm ' + fmt(parseInt(dc.value, 10) || 0) : 'Giảm ' + (parseFloat(dc.value) || 0) + '%');
+    const mpu = parseInt(dc.maxUsesPerUser, 10) || 0; if (mpu > 0) parts.push('mỗi người ' + mpu + ' lần');
+    const mus = parseInt(dc.maxUsers, 10) || 0; if (mus > 0) parts.push(mus + ' tài khoản');
+    const mx = parseInt(dc.maxUses, 10) || 0; const used = parseInt(dc.usedCount, 10) || 0;
+    if (mx > 0) parts.push('đã dùng ' + used + '/' + mx); else if (used > 0) parts.push('đã dùng ' + used);
+    const mo = parseInt(dc.minOrder, 10) || 0; if (mo > 0) parts.push('đơn từ ' + fmt(mo));
+    if (dc.expiresAt) { const d = new Date(dc.expiresAt); if (!isNaN(d)) parts.push('HSD ' + d.toLocaleDateString('vi-VN')); }
+    if (dc.categoryId) { const cat = (Store.db.categories || []).find((c) => c.id === dc.categoryId); if (cat) parts.push('chỉ ' + cat.name); }
+    return parts.join(' · ');
+  }
+  // KHU VỰC TẠO mã (ở trên): điền thông tin rồi bấm "Thêm vào danh sách". scope='private'
+  // mặc định "Số tài khoản được dùng" = 1.
+  function discountCreateFormHtml(scope) {
     const cats = Store.db.categories || [];
+    const isPriv = scope === 'private';
     return `
-      <div class="discount-row2" data-dc-row data-dc-used="${used}">
+      <div class="dc-create" data-dc-create="${scope}">
         <div class="discount-line">
-          <label class="discount-on" title="Bật mã này"><input type="checkbox" data-dc-enabled ${dc.enabled !== false ? 'checked' : ''}></label>
-          <input data-dc-code class="discount-code" value="${esc(dc.code || '')}" placeholder="MÃ (VD: SALE10)" style="text-transform:uppercase">
-          <select data-dc-type class="discount-type">
-            <option value="percent" ${type === 'percent' ? 'selected' : ''}>Giảm %</option>
-            <option value="amount" ${type === 'amount' ? 'selected' : ''}>Giảm tiền (đ)</option>
+          <input data-dcc-code class="discount-code" placeholder="MÃ (VD: SALE10)" style="text-transform:uppercase">
+          <select data-dcc-type class="discount-type">
+            <option value="percent">Giảm %</option>
+            <option value="amount">Giảm tiền (đ)</option>
           </select>
-          <input data-dc-value class="discount-value" type="number" min="0" step="any" value="${dc.value != null ? dc.value : ''}" placeholder="VD: 10 hoặc 50000">
-          <button type="button" class="discount-del" data-dc-remove title="Xoá mã này">${ico('close')}</button>
+          <input data-dcc-value class="discount-value" type="number" min="0" step="any" placeholder="VD: 10 hoặc 50000">
         </div>
         <div class="discount-line discount-cond">
-          <label class="dc-cond">Lượt tối đa (tổng) <input data-dc-maxuses type="number" min="0" step="1" value="${maxUses || ''}" placeholder="0 = không giới hạn"></label>
-          <label class="dc-cond">Số lần / mỗi người <input data-dc-maxperuser type="number" min="0" step="1" value="${parseInt(dc.maxUsesPerUser, 10) || '' }" placeholder="0 = không giới hạn"></label>
-          <label class="dc-cond">Số tài khoản được dùng <input data-dc-maxusers type="number" min="0" step="1" value="${maxUsersVal}" placeholder="0 = không giới hạn (VD: 1 = 1 tài khoản)"></label>
-          <label class="dc-cond">Đã dùng <input value="${used}${maxUses ? '/' + maxUses : ''}" readonly tabindex="-1" class="dc-used-view"></label>
-          <label class="dc-cond">Hạn dùng <input data-dc-expires type="date" value="${esc(expDate)}"></label>
-          <label class="dc-cond">Đơn tối thiểu (đ) <input data-dc-minorder type="number" min="0" step="1000" value="${dc.minOrder ? parseInt(dc.minOrder, 10) : ''}" placeholder="0 = mọi đơn"></label>
+          <label class="dc-cond">Lượt tối đa (tổng) <input data-dcc-maxuses type="number" min="0" step="1" placeholder="0 = không giới hạn"></label>
+          <label class="dc-cond">Số lần / mỗi người <input data-dcc-maxperuser type="number" min="0" step="1" placeholder="0 = không giới hạn"></label>
+          <label class="dc-cond">Số tài khoản được dùng <input data-dcc-maxusers type="number" min="0" step="1" value="${isPriv ? 1 : ''}" placeholder="0 = không giới hạn"></label>
+          <label class="dc-cond">Hạn dùng <input data-dcc-expires type="date"></label>
+          <label class="dc-cond">Đơn tối thiểu (đ) <input data-dcc-minorder type="number" min="0" step="1000" placeholder="0 = mọi đơn"></label>
           <label class="dc-cond">Chỉ danh mục
-            <select data-dc-category>
+            <select data-dcc-category>
               <option value="">— Mọi sản phẩm —</option>
-              ${cats.map((cat) => `<option value="${esc(cat.id)}" ${dc.categoryId === cat.id ? 'selected' : ''}>${esc(cat.name)}</option>`).join('')}
+              ${cats.map((cat) => `<option value="${esc(cat.id)}">${esc(cat.name)}</option>`).join('')}
             </select>
           </label>
         </div>
+        <div class="dc-create-actions">
+          <button type="button" class="btn btn-primary btn-sm" data-dc-add="${scope}"><span class="btn-ico">${ICONS.check || ''}</span> <span data-dc-add-label>Lưu mã</span></button>
+          <button type="button" class="btn btn-glass btn-sm" data-dc-cancel="${scope}" hidden>Huỷ sửa</button>
+        </div>
       </div>`;
   }
-  // Đọc các dòng mã từ 1 khu vực soạn thảo (public/private) và gắn nhãn scope. Mã RIÊNG bắt
-  // buộc "Số tài khoản được dùng" >= 1 (để luôn tự xoá sau khi dùng hết).
+  // Xoá trắng form tạo mã + thoát chế độ sửa (đưa nút về "Lưu mã").
+  function resetDiscountCreateForm(form, scope) {
+    if (!form) return;
+    form.querySelectorAll('input').forEach((i) => { i.value = ''; });
+    const type = form.querySelector('[data-dcc-type]'); if (type) type.value = 'percent';
+    const cat = form.querySelector('[data-dcc-category]'); if (cat) cat.value = '';
+    const mu = form.querySelector('[data-dcc-maxusers]'); if (mu && scope === 'private') mu.value = '1';
+    delete form.dataset.editing;
+    const lbl = form.querySelector('[data-dc-add-label]'); if (lbl) lbl.textContent = 'Lưu mã';
+    const cancel = form.querySelector('[data-dc-cancel]'); if (cancel) cancel.hidden = true;
+  }
+  // 1 dòng trong DANH SÁCH mã đã tạo: mã + tóm tắt + nút Sửa + nút X. Dữ liệu lưu ở data-*.
+  function discountItemHtml(dc, scope) {
+    const enabled = dc.enabled !== false;
+    const a = (k, v) => `data-${k}="${esc(String(v))}"`;
+    return `
+      <div class="dc-item${enabled ? '' : ' dc-item-off'}" data-dc-item ${a('scope', scope)}
+        ${a('code', dc.code || '')} ${a('type', dc.type === 'amount' ? 'amount' : 'percent')} ${a('value', dc.value != null ? dc.value : '')}
+        ${a('enabled', enabled ? 1 : 0)} ${a('maxuses', parseInt(dc.maxUses, 10) || 0)} ${a('maxperuser', parseInt(dc.maxUsesPerUser, 10) || 0)}
+        ${a('maxusers', parseInt(dc.maxUsers, 10) || 0)} ${a('usedcount', parseInt(dc.usedCount, 10) || 0)}
+        ${a('expires', dc.expiresAt ? String(dc.expiresAt).slice(0, 10) : '')} ${a('minorder', parseInt(dc.minOrder, 10) || 0)} ${a('category', dc.categoryId || '')}>
+        <div class="dc-item-info">
+          <b class="dc-item-code">${esc(dc.code || '')}</b>
+          <span class="dc-item-sum">${esc(discountSummaryText(dc))}${enabled ? '' : ' · (đang tắt)'}</span>
+        </div>
+        <div class="dc-item-actions">
+          <button type="button" class="btn btn-glass btn-sm dc-edit-btn" data-dc-edit><span class="btn-ico">${ICONS.edit || ''}</span> Sửa</button>
+          <button type="button" class="dc-item-del" data-dc-remove title="Xoá mã này">${ico('close')}</button>
+        </div>
+      </div>`;
+  }
+  function discountItemsHtml(codes, scope) {
+    const list = (codes || []).filter((dc) => dc && ((dc.scope || 'public') === scope) && !discountIsExpired(dc));
+    if (!list.length) return `<p class="dc-empty muted">Chưa có mã nào. Điền phần "Tạo mã" ở trên rồi bấm Thêm.</p>`;
+    return list.map((dc) => discountItemHtml(dc, scope)).join('');
+  }
+  // Đọc DANH SÁCH mã (từ các dòng data-dc-item) của 1 khu vực + gắn nhãn scope.
   function readDiscountEditor(sel, scope) {
-    return $$(`${sel} [data-dc-row]`).map((row) => {
-      const maxUsers = Math.max(0, parseInt(row.querySelector('[data-dc-maxusers]').value, 10) || 0);
+    return $$(`${sel} [data-dc-item]`).map((row) => {
+      const g = (k) => row.getAttribute('data-' + k) || '';
+      const maxUsers = Math.max(0, parseInt(g('maxusers'), 10) || 0);
       return {
-        code: row.querySelector('[data-dc-code]').value.trim().toUpperCase(),
-        type: row.querySelector('[data-dc-type]').value === 'amount' ? 'amount' : 'percent',
-        value: Math.max(0, parseFloat(row.querySelector('[data-dc-value]').value) || 0),
-        enabled: row.querySelector('[data-dc-enabled]').checked,
+        code: g('code').trim().toUpperCase(),
+        type: g('type') === 'amount' ? 'amount' : 'percent',
+        value: Math.max(0, parseFloat(g('value')) || 0),
+        enabled: g('enabled') !== '0',
         scope: scope,
         autoDelete: true,
-        maxUses: Math.max(0, parseInt(row.querySelector('[data-dc-maxuses]').value, 10) || 0),
-        maxUsesPerUser: Math.max(0, parseInt(row.querySelector('[data-dc-maxperuser]').value, 10) || 0),
+        maxUses: Math.max(0, parseInt(g('maxuses'), 10) || 0),
+        maxUsesPerUser: Math.max(0, parseInt(g('maxperuser'), 10) || 0),
         maxUsers: scope === 'private' ? Math.max(1, maxUsers) : maxUsers,
-        usedCount: parseInt(row.dataset.dcUsed, 10) || 0,
-        expiresAt: row.querySelector('[data-dc-expires]').value || '',
-        minOrder: Math.max(0, parseInt(row.querySelector('[data-dc-minorder]').value, 10) || 0),
-        categoryId: row.querySelector('[data-dc-category]').value || ''
+        usedCount: parseInt(g('usedcount'), 10) || 0,
+        expiresAt: g('expires') || '',
+        minOrder: Math.max(0, parseInt(g('minorder'), 10) || 0),
+        categoryId: g('category') || ''
       };
     }).filter((x) => x.code && x.value > 0);
   }
   function readDiscountCodesFromEditor() {
-    return readDiscountEditor('#discountCodesEditorPublic', 'public')
-      .concat(readDiscountEditor('#discountCodesEditorPrivate', 'private'));
+    return readDiscountEditor('#dcListPublic', 'public')
+      .concat(readDiscountEditor('#dcListPrivate', 'private'));
   }
 
   // 1 dòng hạng VIP trong admin (tên hạng + mốc chi tiêu + % giảm).
@@ -5869,26 +5920,26 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section">3. Mã giảm giá sản phẩm</div>
         <div class="admin-guide">
-          <b>${ico('bulb')} Cách dùng chung:</b> Mỗi ô: <b>tick trái</b> bật/tắt mã · <b>MÃ</b> khách gõ (VD <code>SALE10</code>) · chọn <b>Giảm %</b> hay <b>Giảm tiền</b> + giá trị · <b>Lượt tối đa (tổng)</b> chung mọi khách · <b>Số lần / mỗi người</b> · <b>Số tài khoản được dùng</b> · <b>Hạn dùng</b> · <b>Đơn tối thiểu</b> · <b>Chỉ danh mục</b>. Ô để trống/0 = không giới hạn.
-          <br><b style="color:var(--gold-soft)">Mã sẽ TỰ ĐỘNG XOÁ khỏi danh sách khi dùng hết</b> (đạt "Lượt tối đa" hoặc đủ "Số tài khoản được dùng"). Khách nhập mã ở ô "Mã giảm giá" khi mua.
+          <b>${ico('bulb')} Cách làm:</b> Điền phần <b>"Tạo mã"</b> (MÃ · Giảm % hay Giảm tiền + giá trị · các điều kiện: Lượt tối đa, Số lần/người, Số tài khoản, Hạn dùng, Đơn tối thiểu, Chỉ danh mục — để trống/0 = không giới hạn) → bấm <b>"Lưu mã"</b> thì mã hiện xuống <b>DANH SÁCH</b> bên dưới (mỗi mã 1 dòng, có nút <b>Sửa</b> và <b>✕</b>). Xong tất cả, bấm <b>"Lưu khuyến mãi"</b> ở cuối trang để áp dụng cho khách.
+          <br><b style="color:var(--gold-soft)">Mã TỰ ĐỘNG XOÁ khỏi danh sách khi dùng hết</b> (đạt "Lượt tối đa" hoặc đủ "Số tài khoản được dùng") <b>hoặc khi hết hạn dùng</b>. Khách nhập mã ở ô "Mã giảm giá" khi mua.
         </div>
 
         <div class="admin-subsection" style="margin-top:6px;font-weight:700;color:var(--brand-2);">3a. ${ico('megaphone')} Mã khuyến mãi CHO MỌI NGƯỜI</div>
-        <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Ai cũng nhập được (tuỳ giới hạn bạn đặt). Danh sách mã đã tạo bên dưới — sửa trực tiếp hoặc bấm ✕ để xoá.</p>
-        <div class="span-2 discount-editor" id="discountCodesEditorPublic">
-          ${(c.discountCodes || []).filter((dc) => (dc && (dc.scope || 'public') !== 'private')).map((dc) => discountCodeRowHtml(dc, 'public')).join('') || '<p class="muted" style="font-size:.82rem;margin:0;">Chưa có mã nào. Bấm "+ Thêm mã cho mọi người".</p>'}
-        </div>
-        <div class="span-2">
-          <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodePublicBtn"><span class="btn-ico">${ICONS.tag || ''}</span> + Thêm mã cho mọi người</button>
+        <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Ai cũng nhập được (tuỳ giới hạn bạn đặt). <b>Điền phần "Tạo mã" bên dưới → bấm "Lưu mã"</b>; mã sẽ hiện trong <b>DANH SÁCH</b> ngay dưới, mỗi mã 1 dòng có nút Sửa và ✕.</p>
+        <div class="span-2 dc-create-label muted">✍️ Tạo mã cho mọi người</div>
+        <div class="span-2">${discountCreateFormHtml('public')}</div>
+        <div class="span-2 dc-create-label muted">📋 Danh sách mã cho mọi người</div>
+        <div class="span-2 dc-list" id="dcListPublic" data-dc-scope="public">
+          ${discountItemsHtml(c.discountCodes, 'public')}
         </div>
 
-        <div class="admin-subsection" style="margin-top:14px;font-weight:700;color:var(--gold);">3b. ${ico('key')} Mã khuyến mãi RIÊNG (cho tài khoản chỉ định)</div>
-        <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Mặc định "Số tài khoản được dùng" = 1 → chỉ <b>1 tài khoản đầu tiên</b> dùng được rồi mã <b>tự xoá</b>. Bạn gửi mã cho đúng khách cần tặng. Danh sách bên dưới — sửa hoặc bấm ✕ để xoá.</p>
-        <div class="span-2 discount-editor" id="discountCodesEditorPrivate">
-          ${(c.discountCodes || []).filter((dc) => (dc && (dc.scope || 'public') === 'private')).map((dc) => discountCodeRowHtml(dc, 'private')).join('') || '<p class="muted" style="font-size:.82rem;margin:0;">Chưa có mã riêng nào. Bấm "+ Thêm mã riêng".</p>'}
-        </div>
-        <div class="span-2">
-          <button type="button" class="btn btn-glass btn-sm" id="addDiscountCodePrivateBtn"><span class="btn-ico">${ICONS.key || ''}</span> + Thêm mã riêng</button>
+        <div class="admin-subsection" style="margin-top:16px;font-weight:700;color:var(--gold);">3b. ${ico('key')} Mã khuyến mãi RIÊNG (cho tài khoản chỉ định)</div>
+        <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Mặc định "Số tài khoản được dùng" = 1 → chỉ <b>1 tài khoản đầu tiên</b> dùng rồi mã <b>tự xoá</b>. Gửi mã cho đúng khách cần tặng.</p>
+        <div class="span-2 dc-create-label muted">✍️ Tạo mã riêng</div>
+        <div class="span-2">${discountCreateFormHtml('private')}</div>
+        <div class="span-2 dc-create-label muted">📋 Danh sách mã riêng</div>
+        <div class="span-2 dc-list" id="dcListPrivate" data-dc-scope="private">
+          ${discountItemsHtml(c.discountCodes, 'private')}
         </div>
 
         <div class="admin-form-section">4. Hạng thành viên VIP (tự giảm giá theo tổng chi tiêu)</div>
@@ -6633,27 +6684,85 @@ window.KENIOS_DEFAULT_DB = {
     const delKb = e.target.closest('[data-kb-remove]');
     if (delKb) {var _delKb$closest;(_delKb$closest = delKb.closest('[data-kb-row]')) === null || _delKb$closest === void 0 || _delKb$closest.remove();return;}
 
-    // ----- Thêm / xoá mã giảm giá sản phẩm (2 khu vực: mọi người / riêng) -----
-    if (e.target.closest('#addDiscountCodePublicBtn')) {
-      const editor = $('#discountCodesEditorPublic');
-      if (editor) {
-        const ph = editor.querySelector('p.muted'); if (ph) ph.remove(); // bỏ dòng "chưa có mã"
-        editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' }, 'public'));
-        const inp = editor.querySelector('[data-dc-row]:last-child [data-dc-code]'); if (inp) inp.focus();
+    // ----- Mã giảm giá: nút LƯU MÃ (tạo/cập nhật) -> đưa vào DANH SÁCH -----
+    const dcAddBtn = e.target.closest('[data-dc-add]');
+    if (dcAddBtn) {
+      const scope = dcAddBtn.getAttribute('data-dc-add');
+      const form = $(`[data-dc-create="${scope}"]`);
+      const listEl = $(scope === 'private' ? '#dcListPrivate' : '#dcListPublic');
+      if (!form || !listEl) return;
+      const val = (sel) => { const el = form.querySelector(sel); return el ? el.value : ''; };
+      const code = (val('[data-dcc-code]') || '').trim().toUpperCase();
+      const value = parseFloat(val('[data-dcc-value]')) || 0;
+      if (!code) { toast('Nhập MÃ giảm giá.', 'error'); return; }
+      if (!(value > 0)) { toast('Nhập giá trị giảm (lớn hơn 0).', 'error'); return; }
+      const maxUsersRaw = Math.max(0, parseInt(val('[data-dcc-maxusers]'), 10) || 0);
+      const dc = {
+        code, type: val('[data-dcc-type]') === 'amount' ? 'amount' : 'percent', value,
+        enabled: true, scope, autoDelete: true,
+        maxUses: Math.max(0, parseInt(val('[data-dcc-maxuses]'), 10) || 0),
+        maxUsesPerUser: Math.max(0, parseInt(val('[data-dcc-maxperuser]'), 10) || 0),
+        maxUsers: scope === 'private' ? Math.max(1, maxUsersRaw) : maxUsersRaw,
+        usedCount: 0,
+        expiresAt: val('[data-dcc-expires]') || '',
+        minOrder: Math.max(0, parseInt(val('[data-dcc-minorder]'), 10) || 0),
+        categoryId: val('[data-dcc-category]') || ''
+      };
+      const editingCode = (form.dataset.editing || '').toUpperCase();
+      const items = [...listEl.querySelectorAll('[data-dc-item]')];
+      let target = null;
+      if (editingCode) {
+        target = items.find((it) => (it.getAttribute('data-code') || '').toUpperCase() === editingCode);
+        if (target) dc.usedCount = parseInt(target.getAttribute('data-usedcount'), 10) || 0;
+      } else {
+        const dup = items.find((it) => (it.getAttribute('data-code') || '').toUpperCase() === code);
+        if (dup) {
+          if (!confirm('Mã "' + code + '" đã có trong danh sách. Ghi đè?')) return;
+          dc.usedCount = parseInt(dup.getAttribute('data-usedcount'), 10) || 0;
+          dup.remove();
+        }
       }
+      const emptyP = listEl.querySelector('.dc-empty'); if (emptyP) emptyP.remove();
+      const html = discountItemHtml(dc, scope);
+      if (editingCode && target) { target.outerHTML = html; } else { listEl.insertAdjacentHTML('beforeend', html); }
+      resetDiscountCreateForm(form, scope);
+      toast('Đã lưu mã vào danh sách. Nhớ bấm "Lưu khuyến mãi" ở dưới để áp dụng cho khách.', 'success');
       return;
     }
-    if (e.target.closest('#addDiscountCodePrivateBtn')) {
-      const editor = $('#discountCodesEditorPrivate');
-      if (editor) {
-        const ph = editor.querySelector('p.muted'); if (ph) ph.remove();
-        editor.insertAdjacentHTML('beforeend', discountCodeRowHtml({ enabled: true, type: 'percent' }, 'private'));
-        const inp = editor.querySelector('[data-dc-row]:last-child [data-dc-code]'); if (inp) inp.focus();
-      }
+    // ----- Nút SỬA 1 mã -> đưa dữ liệu lên form tạo ở trên -----
+    const dcEditBtn = e.target.closest('[data-dc-edit]');
+    if (dcEditBtn) {
+      const item = dcEditBtn.closest('[data-dc-item]');
+      if (!item) return;
+      const scope = item.getAttribute('data-scope') || 'public';
+      const form = $(`[data-dc-create="${scope}"]`);
+      if (!form) return;
+      const g = (k) => item.getAttribute('data-' + k) || '';
+      const set = (sel, v) => { const el = form.querySelector(sel); if (el) el.value = v; };
+      set('[data-dcc-code]', g('code'));
+      set('[data-dcc-type]', g('type') === 'amount' ? 'amount' : 'percent');
+      set('[data-dcc-value]', g('value'));
+      set('[data-dcc-maxuses]', parseInt(g('maxuses'), 10) || '');
+      set('[data-dcc-maxperuser]', parseInt(g('maxperuser'), 10) || '');
+      set('[data-dcc-maxusers]', parseInt(g('maxusers'), 10) || '');
+      set('[data-dcc-expires]', g('expires'));
+      set('[data-dcc-minorder]', parseInt(g('minorder'), 10) || '');
+      set('[data-dcc-category]', g('category'));
+      form.dataset.editing = (g('code') || '').toUpperCase();
+      const lbl = form.querySelector('[data-dc-add-label]'); if (lbl) lbl.textContent = 'Cập nhật mã';
+      const cancel = form.querySelector('[data-dc-cancel]'); if (cancel) cancel.hidden = false;
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const ci = form.querySelector('[data-dcc-code]'); if (ci) ci.focus();
+      return;
+    }
+    const dcCancelBtn = e.target.closest('[data-dc-cancel]');
+    if (dcCancelBtn) {
+      const scope = dcCancelBtn.getAttribute('data-dc-cancel');
+      resetDiscountCreateForm($(`[data-dc-create="${scope}"]`), scope);
       return;
     }
     const delDc = e.target.closest('[data-dc-remove]');
-    if (delDc) {var _delDc$closest;(_delDc$closest = delDc.closest('[data-dc-row]')) === null || _delDc$closest === void 0 || _delDc$closest.remove();return;}
+    if (delDc) { const it = delDc.closest('[data-dc-item]'); if (it) it.remove(); return; }
 
     // ----- Thêm / xoá hạng VIP -----
     if (e.target.closest('#addVipTierBtn')) {

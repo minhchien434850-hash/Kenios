@@ -278,6 +278,22 @@ function discount_maybe_autodelete(&$db, $codeIdx, $codeUpper) {
     return false;
 }
 
+// Xoá các mã giảm giá ĐÃ HẾT HẠN dùng (qua hết ngày trên "Hạn dùng"). Mã có autoDelete=false
+// thì giữ lại. Gọi khi có phát sinh mua để dọn dần danh sách.
+function discount_sweep_expired(&$db) {
+    if (empty($db['config']['discountCodes']) || !is_array($db['config']['discountCodes'])) return;
+    $now = time();
+    $db['config']['discountCodes'] = array_values(array_filter($db['config']['discountCodes'], function ($dc) use ($now) {
+        if (!is_array($dc)) return false;
+        if (($dc['autoDelete'] ?? true) === false) return true;
+        if (!empty($dc['expiresAt'])) {
+            $t = strtotime((string)$dc['expiresAt']);
+            if ($t !== false && $now > $t + 86399) return false; // qua hết ngày ghi trên hạn
+        }
+        return true;
+    }));
+}
+
 switch ($action) {
     case 'register':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -946,8 +962,10 @@ switch ($action) {
             "type" => "purchase", "description" => $txDesc, "date" => date("c")
         ]);
 
-        // Tự xoá mã giảm giá nếu đã dùng hết (sau khi đã cộng lượt & thêm đơn ở trên).
+        // Tự xoá mã giảm giá nếu đã dùng hết (sau khi đã cộng lượt & thêm đơn ở trên) + dọn
+        // các mã đã HẾT HẠN.
         if ($matchedCodeIdx >= 0 && $appliedCode !== '') discount_maybe_autodelete($db, $matchedCodeIdx, $appliedCode);
+        discount_sweep_expired($db);
 
         ftruncate($fp, 0);
         rewind($fp);
@@ -1179,8 +1197,10 @@ switch ($action) {
             "type" => "purchase", "description" => $txDesc, "date" => date("c")
         ]);
 
-        // Tự xoá mã giảm giá nếu đã dùng hết (sau khi đã cộng lượt & thêm đơn ở trên).
+        // Tự xoá mã giảm giá nếu đã dùng hết (sau khi đã cộng lượt & thêm đơn ở trên) + dọn
+        // các mã đã HẾT HẠN.
         if ($matchedCodeIdx >= 0 && $appliedCode !== '') discount_maybe_autodelete($db, $matchedCodeIdx, $appliedCode);
+        discount_sweep_expired($db);
 
         ftruncate($fp, 0);
         rewind($fp);

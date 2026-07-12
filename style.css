@@ -1138,6 +1138,29 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
   .discount-cond { grid-template-columns: 1fr 1fr; grid-template-areas: none; }
 }
 
+/* Mã giảm giá kiểu MỚI: khu vực TẠO (trên) + DANH SÁCH (dưới) */
+.dc-create-label { font-size: .82rem; font-weight: 700; margin: 8px 0 4px; }
+.dc-create { padding: 12px; border: 1px dashed var(--border); border-radius: 12px; background: rgba(139,92,246,.05); display: flex; flex-direction: column; gap: 10px; }
+.dc-create .discount-line:first-child { grid-template-columns: 1.4fr 140px 1fr; }
+.dc-create .discount-cond { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.dc-create-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.dc-list { display: flex; flex-direction: column; gap: 8px; }
+.dc-empty { font-size: .82rem; margin: 0; padding: 10px; text-align: center; border: 1px dashed var(--border); border-radius: 10px; }
+.dc-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 11px; background: rgba(255,255,255,.03); }
+.dc-item-off { opacity: .55; }
+.dc-item-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dc-item-code { font-size: .98rem; color: var(--gold); letter-spacing: .5px; }
+.dc-item-sum { font-size: .76rem; color: var(--muted); line-height: 1.35; }
+.dc-item-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.dc-item-del { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: rgba(239,68,68,.12); color: #fca5a5; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.dc-item-del:hover { background: rgba(239,68,68,.25); }
+.dc-item-del svg { width: 16px; height: 16px; }
+@media (max-width: 720px) {
+  .dc-create .discount-line:first-child { grid-template-columns: 1fr; grid-template-areas: none; }
+  .dc-create .discount-cond { grid-template-columns: 1fr 1fr; }
+  .dc-item { flex-wrap: wrap; }
+}
+
 /* Editor hạng VIP (admin) */
 .vip-editor { display: flex; flex-direction: column; gap: 8px; }
 .vip-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 8px; align-items: end; }
