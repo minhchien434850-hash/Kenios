@@ -761,6 +761,21 @@ switch ($action) {
                 }
                 if ($usedByUser >= intval($matched['maxUsesPerUser'])) $err = "Bạn đã dùng mã này đủ số lần cho phép (" . intval($matched['maxUsesPerUser']) . " lần/người).";
             }
+            // Giới hạn SỐ TÀI KHOẢN được dùng (maxUsers): đếm số tài khoản KHÁC NHAU đã từng
+            // dùng mã. Nếu khách hiện tại chưa nằm trong nhóm đó VÀ đã đủ số tài khoản -> chặn.
+            // (Khách đã từng dùng vẫn dùng tiếp được, tuỳ 'số lần/người'.) Để trống/0 = không hạn.
+            if ($err === '' && intval($matched['maxUsers'] ?? 0) > 0) {
+                $uidCur = (string)($db['users'][$userIdx]['userId'] ?? '');
+                $usersUsed = []; $mePresent = false;
+                foreach (($db['orders'] ?? []) as $o) {
+                    if (strtoupper(trim((string)($o['discountCode'] ?? ''))) === $discountCode) {
+                        $ouid = (string)($o['userId'] ?? '');
+                        $usersUsed[$ouid] = true;
+                        if ($ouid === $uidCur) $mePresent = true;
+                    }
+                }
+                if (!$mePresent && count($usersUsed) >= intval($matched['maxUsers'])) $err = "Mã giảm giá chỉ dành cho " . intval($matched['maxUsers']) . " tài khoản (đã đủ số người dùng).";
+            }
             if ($err !== '') {
                 flock($fp, LOCK_UN); fclose($fp);
                 echo json_encode(["status" => "error", "message" => $err]);
@@ -974,6 +989,21 @@ switch ($action) {
                     if (($o['userId'] ?? '') === $uidCur && strtoupper(trim((string)($o['discountCode'] ?? ''))) === $discountCode) $usedByUser++;
                 }
                 if ($usedByUser >= intval($matched['maxUsesPerUser'])) $err = "Bạn đã dùng mã này đủ số lần cho phép (" . intval($matched['maxUsesPerUser']) . " lần/người).";
+            }
+            // Giới hạn SỐ TÀI KHOẢN được dùng (maxUsers): đếm số tài khoản KHÁC NHAU đã từng
+            // dùng mã. Nếu khách hiện tại chưa nằm trong nhóm đó VÀ đã đủ số tài khoản -> chặn.
+            // (Khách đã từng dùng vẫn dùng tiếp được, tuỳ 'số lần/người'.) Để trống/0 = không hạn.
+            if ($err === '' && intval($matched['maxUsers'] ?? 0) > 0) {
+                $uidCur = (string)($db['users'][$userIdx]['userId'] ?? '');
+                $usersUsed = []; $mePresent = false;
+                foreach (($db['orders'] ?? []) as $o) {
+                    if (strtoupper(trim((string)($o['discountCode'] ?? ''))) === $discountCode) {
+                        $ouid = (string)($o['userId'] ?? '');
+                        $usersUsed[$ouid] = true;
+                        if ($ouid === $uidCur) $mePresent = true;
+                    }
+                }
+                if (!$mePresent && count($usersUsed) >= intval($matched['maxUsers'])) $err = "Mã giảm giá chỉ dành cho " . intval($matched['maxUsers']) . " tài khoản (đã đủ số người dùng).";
             }
             if ($err !== '') {
                 flock($fp, LOCK_UN); fclose($fp);

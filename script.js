@@ -98,7 +98,7 @@ window.KENIOS_DEFAULT_DB = {
     depositBonusPercent: 0,
     depositBonusMin: 0,
     // Mã giảm giá sản phẩm: admin tạo tuỳ ý. Mỗi mã giảm theo % hoặc theo số tiền cố định.
-    // { code, type:'percent'|'amount', value, enabled, maxUses, maxUsesPerUser, usedCount, expiresAt, minOrder, categoryId }
+    // { code, type:'percent'|'amount', value, enabled, maxUses, maxUsesPerUser, maxUsers, usedCount, expiresAt, minOrder, categoryId }
     discountCodes: [],
     // Flash Sale toàn shop có đếm ngược: giảm % mọi sản phẩm tới thời điểm endsAt.
     flashSale: { enabled: false, percent: 0, endsAt: '', title: 'FLASH SALE' },
@@ -543,6 +543,23 @@ window.KENIOS_DEFAULT_DB = {
           if (usedByMe >= maxPerUser) {
             return { valid: false, price, discount: 0, reason: `Bạn đã dùng mã này đủ ${maxPerUser} lần cho phép.` };
           }
+        }
+      }
+      // Giới hạn SỐ TÀI KHOẢN được dùng (maxUsers): số tài khoản khác nhau đã dùng mã.
+      const maxUsers = parseInt(d.maxUsers, 10) || 0;
+      if (maxUsers > 0) {
+        const me = this.currentUser();
+        const codeUp = (d.code || raw).trim().toUpperCase();
+        const set = new Set();
+        let mePresent = false;
+        (this.db.orders || []).forEach((o) => {
+          if (o && String(o.discountCode || '').trim().toUpperCase() === codeUp) {
+            set.add(o.userId);
+            if (me && o.userId === me.userId) mePresent = true;
+          }
+        });
+        if (!mePresent && set.size >= maxUsers) {
+          return { valid: false, price, discount: 0, reason: `Mã chỉ dành cho ${maxUsers} tài khoản (đã đủ số người dùng).` };
         }
       }
       // Đơn tối thiểu
@@ -5716,6 +5733,7 @@ window.KENIOS_DEFAULT_DB = {
         <div class="discount-line discount-cond">
           <label class="dc-cond">Lượt tối đa (tổng) <input data-dc-maxuses type="number" min="0" step="1" value="${maxUses || ''}" placeholder="0 = không giới hạn"></label>
           <label class="dc-cond">Số lần / mỗi người <input data-dc-maxperuser type="number" min="0" step="1" value="${parseInt(dc.maxUsesPerUser, 10) || '' }" placeholder="0 = không giới hạn"></label>
+          <label class="dc-cond">Số tài khoản được dùng <input data-dc-maxusers type="number" min="0" step="1" value="${parseInt(dc.maxUsers, 10) || '' }" placeholder="0 = không giới hạn (VD: 1 = 1 tài khoản)"></label>
           <label class="dc-cond">Đã dùng <input value="${used}${maxUses ? '/' + maxUses : ''}" readonly tabindex="-1" class="dc-used-view"></label>
           <label class="dc-cond">Hạn dùng <input data-dc-expires type="date" value="${esc(expDate)}"></label>
           <label class="dc-cond">Đơn tối thiểu (đ) <input data-dc-minorder type="number" min="0" step="1000" value="${dc.minOrder ? parseInt(dc.minOrder, 10) : ''}" placeholder="0 = mọi đơn"></label>
@@ -5736,6 +5754,7 @@ window.KENIOS_DEFAULT_DB = {
       enabled: row.querySelector('[data-dc-enabled]').checked,
       maxUses: Math.max(0, parseInt(row.querySelector('[data-dc-maxuses]').value, 10) || 0),
       maxUsesPerUser: Math.max(0, parseInt(row.querySelector('[data-dc-maxperuser]').value, 10) || 0),
+      maxUsers: Math.max(0, parseInt(row.querySelector('[data-dc-maxusers]').value, 10) || 0),
       usedCount: parseInt(row.dataset.dcUsed, 10) || 0,
       expiresAt: row.querySelector('[data-dc-expires]').value || '',
       minOrder: Math.max(0, parseInt(row.querySelector('[data-dc-minorder]').value, 10) || 0),
