@@ -4,8 +4,8 @@
 //    KHÔNG bao giờ cache) để tránh hiện số dư/tồn kho cũ.
 //  - Còn lại (giao diện, ảnh, icon) -> ưu tiên mạng, hỏng mạng thì lấy bản cache (offline).
 // Đổi CACHE_VERSION mỗi lần cập nhật lớn để trình duyệt tải lại vỏ ứng dụng.
-const CACHE_VERSION = 'kenios-v8';
-const SHELL = ['./', './index.html', './style.css?v=8', './script.js?v=8', './manifest.json',
+const CACHE_VERSION = 'kenios-v9';
+const SHELL = ['./', './index.html', './style.css?v=9', './script.js?v=9', './manifest.json',
   './favicon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

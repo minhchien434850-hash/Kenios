@@ -3023,12 +3023,25 @@ window.KENIOS_DEFAULT_DB = {
     const videoEl = $('#heroBgVideo');
     if (!url) {imgEl.style.backgroundImage = 'none';videoEl.hidden = true;return;}
     if (isVideoUrl(url)) {
-      videoEl.src = url;
-      videoEl.hidden = false;
-      videoEl.onerror = () => {videoEl.hidden = true;};
       imgEl.style.backgroundImage = 'none';
+      // Trình duyệt trong app (Zalo/Messenger/Facebook) + iOS/Android CHỈ tự chạy video khi:
+      // muted + playsinline + GỌI .play() bằng JS. Thuộc tính autoplay trên thẻ KHÔNG đủ khi
+      // src được gán bằng JS -> video hero không hiện trên Zalo. Ép đủ điều kiện + gọi play,
+      // thử lại khi video tải xong (giống nền toàn trang).
+      videoEl.muted = true;videoEl.defaultMuted = true;videoEl.setAttribute('muted', '');
+      videoEl.playsInline = true;videoEl.setAttribute('playsinline', '');
+      videoEl.setAttribute('webkit-playsinline', '');
+      videoEl.loop = true;videoEl.autoplay = true;
+      if (videoEl.src !== url) videoEl.src = url;
+      videoEl.hidden = false;
+      const tryPlay = () => {try {const p = videoEl.play();if (p && p.catch) p.catch(() => {});} catch (e) {/* ignore */}};
+      videoEl.onloadeddata = tryPlay;
+      videoEl.oncanplay = tryPlay;
+      videoEl.onerror = () => {videoEl.hidden = true;};
+      videoEl.load();
+      tryPlay();
     } else {
-      videoEl.hidden = true;
+      videoEl.hidden = true;videoEl.removeAttribute('src');
       imgEl.style.backgroundImage = `url(${url})`;
     }
   }
