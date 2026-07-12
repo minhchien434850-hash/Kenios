@@ -1141,7 +1141,8 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 /* Mã giảm giá kiểu MỚI: khu vực TẠO (trên) + DANH SÁCH (dưới) */
 .dc-create-label { font-size: .82rem; font-weight: 700; margin: 8px 0 4px; }
 .dc-create { padding: 12px; border: 1px dashed var(--border); border-radius: 12px; background: rgba(139,92,246,.05); display: flex; flex-direction: column; gap: 10px; }
-.dc-create .discount-line:first-child { grid-template-columns: 1.4fr 140px 1fr; }
+.dc-create-line { display: grid; grid-template-columns: 1.4fr 150px 1fr; gap: 8px; align-items: center; }
+.dc-create-line input, .dc-create-line select { padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .84rem; width: 100%; min-width: 0; }
 .dc-create .discount-cond { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 .dc-create-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .dc-list { display: flex; flex-direction: column; gap: 8px; }
@@ -1156,7 +1157,7 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 .dc-item-del:hover { background: rgba(239,68,68,.25); }
 .dc-item-del svg { width: 16px; height: 16px; }
 @media (max-width: 720px) {
-  .dc-create .discount-line:first-child { grid-template-columns: 1fr; grid-template-areas: none; }
+  .dc-create-line { grid-template-columns: 1fr; }
   .dc-create .discount-cond { grid-template-columns: 1fr 1fr; }
   .dc-item { flex-wrap: wrap; }
 }

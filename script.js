@@ -5747,13 +5747,13 @@ window.KENIOS_DEFAULT_DB = {
     const isPriv = scope === 'private';
     return `
       <div class="dc-create" data-dc-create="${scope}">
-        <div class="discount-line">
-          <input data-dcc-code class="discount-code" placeholder="MÃ (VD: SALE10)" style="text-transform:uppercase">
-          <select data-dcc-type class="discount-type">
+        <div class="dc-create-line">
+          <input data-dcc-code placeholder="MÃ (VD: SALE10)" style="text-transform:uppercase">
+          <select data-dcc-type>
             <option value="percent">Giảm %</option>
             <option value="amount">Giảm tiền (đ)</option>
           </select>
-          <input data-dcc-value class="discount-value" type="number" min="0" step="any" placeholder="VD: 10 hoặc 50000">
+          <input data-dcc-value type="number" min="0" step="any" placeholder="VD: 10 hoặc 50000">
         </div>
         <div class="discount-line discount-cond">
           <label class="dc-cond">Lượt tối đa (tổng) <input data-dcc-maxuses type="number" min="0" step="1" placeholder="0 = không giới hạn"></label>
