@@ -5955,6 +5955,13 @@ window.KENIOS_DEFAULT_DB = {
           <button type="button" class="btn btn-glass btn-sm" id="addVipTierBtn"><span class="btn-ico">${ICONS.crown || ''}</span> + Thêm hạng VIP</button>
         </div>
 
+        <div class="admin-form-section">5. ${ico('gift')} Mã giới thiệu bạn bè</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Cách hoạt động:</b> Mỗi tài khoản có 1 mã giới thiệu riêng. Người mới đăng ký nhập mã của ai đó, khi họ <b>nạp tiền lần đầu</b> thì <b>CHỈ người giới thiệu</b> được cộng tiền thưởng (người nhập mã không nhận). 1 mã chia sẻ được cho nhiều người.
+        </div>
+        <label class="admin-check-label"><input type="checkbox" name="referralEnabled" ${c.referralEnabled !== false ? 'checked' : ''}> Bật chương trình giới thiệu</label>
+        <label>Tiền thưởng cho người giới thiệu (đồng) <input type="number" name="referralBonus" min="0" step="1000" value="${Number(c.referralBonus) || 0}" placeholder="VD: 20000"></label>
+
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">Lưu khuyến mãi</button>
           <button type="button" class="btn btn-glass btn-sm" id="adminSyncServerBtn" style="gap:7px;">
@@ -5997,10 +6004,6 @@ window.KENIOS_DEFAULT_DB = {
         </label>
 
         <label class="admin-check-label"><input type="checkbox" name="showcaseEnabled" ${c.showcaseEnabled === true ? 'checked' : ''}> Hiện mục "Hình ảnh &amp; Video" ở trang chủ (tắt để web nhẹ hơn)</label>
-
-        <div class="admin-form-section">Giới thiệu bạn bè</div>
-        <label class="admin-check-label"><input type="checkbox" name="referralEnabled" ${c.referralEnabled !== false ? 'checked' : ''}> Bật chương trình giới thiệu (mỗi người có 1 mã — CHỈ người giới thiệu nhận thưởng khi người được mời nạp tiền lần đầu; người nhập mã không nhận)</label>
-        <label>Tiền thưởng mỗi bên (đồng) <input type="number" name="referralBonus" min="0" step="1000" value="${Number(c.referralBonus) || 0}"></label>
 
         <div class="admin-form-section">Màu chủ đạo toàn trang</div>
         <label>Màu chủ đạo (nút, giá, điểm nhấn) <input type="color" name="accentColor" value="${esc(c.accentColor || "#22d3ee")}"></label>
@@ -7087,8 +7090,6 @@ window.KENIOS_DEFAULT_DB = {
         logoColorMode: fd.get('logoColorMode'), logoAnimSpeed: parseFloat(fd.get('logoAnimSpeed')) || 6,
         logoMotionMode: fd.get('logoMotionMode') || 'none', logoMotionSpeed: parseFloat(fd.get('logoMotionSpeed')) || 2,
         accentColor: fd.get('accentColor'),
-        referralEnabled: fd.get('referralEnabled') === 'on',
-        referralBonus: parseInt(fd.get('referralBonus'), 10) || 0,
         showcaseEnabled: fd.get('showcaseEnabled') === 'on',
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
@@ -7125,11 +7126,13 @@ window.KENIOS_DEFAULT_DB = {
           endsAt: fsEnds ? new Date(fsEnds).toISOString() : '',
           title: (fd.get('flashSaleTitle') || 'FLASH SALE').trim() || 'FLASH SALE'
         },
-        vipTiers: readVipTiersFromEditor()
+        vipTiers: readVipTiersFromEditor(),
+        referralEnabled: fd.get('referralEnabled') === 'on',
+        referralBonus: parseInt(fd.get('referralBonus'), 10) || 0
       });
       renderStatic();
       renderAdminTab('promo');
-      toast('Đã lưu Khuyến mãi / Flash Sale / Mã giảm giá / VIP. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách.', 'success');
+      toast('Đã lưu Khuyến mãi / Flash Sale / Mã giảm giá / VIP / Giới thiệu. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách.', 'success');
     }
   }
 
