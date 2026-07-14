@@ -2402,6 +2402,7 @@ window.KENIOS_DEFAULT_DB = {
 
     setText('#heroTag', cfg.bannerTagText);
     setText('#heroBrandName', cfg.logoText);
+    setText('#authBrand', cfg.logoText); // logo chữ ở màn đăng nhập đồng bộ theo tên logo
     setText('#heroTitle', cfg.siteTitle.replace(/^.*?-\s*/, ''));
     setText('#heroSub', cfg.siteSubtitle);
     setText('#heroBtn1', cfg.bannerBtn1Text);
@@ -2621,9 +2622,10 @@ window.KENIOS_DEFAULT_DB = {
     document.documentElement.style.setProperty('--logo-motion-speed', `${motionSpeed}s`);
     const colorMode = cfg.logoColorMode || 'solid';
     const motionMode = cfg.logoMotionMode || 'none';
-    // Áp hiệu ứng cho logo header, logo menu 3 gạch VÀ logo banner hero — để hero
-    // luôn ĐỒNG BỘ (màu chạy + chuyển động) với logo chính khi admin đổi cấu hình.
-    $$('#brandName, #mobileNavBrandName, #heroBrandName').forEach((el) => {
+    // Áp hiệu ứng cho logo header, logo menu 3 gạch, logo banner hero VÀ logo màn
+    // ĐĂNG NHẬP (#authBrand) — tất cả luôn ĐỒNG BỘ (màu chạy + chuyển động) với logo
+    // chính khi admin đổi cấu hình.
+    $$('#brandName, #mobileNavBrandName, #heroBrandName, #authBrand').forEach((el) => {
       el.classList.remove(
         ...LOGO_COLOR_MODES.map((m) => 'logo-color-' + m),
         ...LOGO_MOTION_MODES.map((m) => 'logo-motion-' + m)

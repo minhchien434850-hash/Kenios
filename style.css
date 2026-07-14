@@ -192,10 +192,12 @@ button { font: inherit; }
 }
 .logo-color-rainbow { animation: logoRainbowCycle var(--logo-anim-speed, 6s) linear infinite; }
 
+/* Vòng lặp LIỀN MẠCH: background-size 200% + chạy 0%→200% = đúng 1 chu kỳ ảnh nền,
+   điểm cuối trùng khít điểm đầu nên không bị "nhảy" khi lặp lại. */
 @keyframes logoShineSweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 .logo-color-shine {
   background-image: linear-gradient(100deg, var(--logo-color, #fff) 20%, #fff 50%, var(--logo-color, #fff) 80%);
-  background-size: 250% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
   animation: logoShineSweep var(--logo-anim-speed, 4s) linear infinite;
 }
@@ -221,13 +223,13 @@ button { font: inherit; }
 .logo-color-neon { animation: logoNeon var(--logo-anim-speed, 1.8s) ease-in-out infinite; }
 
 @keyframes logoSparkle {
-  0%   { background-position: -30% 50%; text-shadow: 0 0 3px rgba(255,216,115,.35); }
+  0%   { background-position: 0% 50%; text-shadow: 0 0 3px rgba(255,216,115,.35); }
   50%  { text-shadow: 0 0 12px rgba(255,216,115,.95), 0 0 24px rgba(255,255,255,.55), 0 0 34px rgba(34,211,238,.4); }
-  100% { background-position: 130% 50%; text-shadow: 0 0 3px rgba(255,216,115,.35); }
+  100% { background-position: 200% 50%; text-shadow: 0 0 3px rgba(255,216,115,.35); }
 }
 .logo-color-sparkle {
   background-image: linear-gradient(105deg, #ffcf5a 0%, #fff7d6 38%, #ffffff 50%, #fff7d6 62%, #ffcf5a 100%);
-  background-size: 220% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   animation: logoSparkle var(--logo-anim-speed, 3s) ease-in-out infinite;
 }
@@ -1766,7 +1768,7 @@ body.drawer-open .scroll-bottom-btn { display: none !important; }
 /* Logo ảnh riêng của shop -> phủ KÍN khung như app-icon (bỏ nền/viền/đệm) */
 .auth-logo.has-photo { padding: 0; border: none; background: none; }
 .auth-logo.has-photo img, .auth-logo.has-photo video { object-fit: cover; padding: 0; border-radius: inherit; }
-.auth-head strong { display: block; font-size: 1.15rem; font-family: var(--logo-font); }
+.auth-head strong { display: block; font-size: 1.15rem; font-family: var(--logo-font); color: var(--logo-color); }
 .auth-head .auth-sub { display: block; color: var(--muted); font-size: .8rem; margin-top: 2px; }
 .auth-link { background: none; border: none; color: var(--gold-soft); cursor: pointer; font: inherit; font-size: .82rem; text-align: center; width: 100%; padding: 6px; text-decoration: underline; }
 .google-fallback-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
@@ -2285,32 +2287,43 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 
 ========================================================= */
 
 /* ---- Chữ tiêu đề: gradient neon CHUYỂN ĐỘNG (thế hệ mới) ---- */
+/* Vòng lặp LIỀN MẠCH: size 200% + chạy 0→200% = đúng 1 chu kỳ, cuối vòng trùng khít đầu
+   vòng nên màu chạy liên tục KHÔNG bị nhảy/giật khi lặp lại. (Trước đây size 220% lệch
+   với mốc 200% nên mỗi vòng bị khựng.) */
 @keyframes ngGrad { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 .hero-heading {
   background: linear-gradient(90deg, #7cc4ff, #a78bfa 38%, #ff8fd0 60%, #22d3ee 82%, #7cc4ff);
-  background-size: 220% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
   animation: ngGrad 8s linear infinite;
 }
-.hero-brand-name, .section-head h2, .cat-group-head h3, .brand-text strong {
+/* Gradient trang trí MẶC ĐỊNH cho logo/tiêu đề — CHỈ áp khi admin KHÔNG chọn hiệu ứng màu
+   (không có class logo-color-*). Nhờ vậy hiệu ứng admin chọn (cầu vồng, neon, lửa...)
+   không bị lớp này đè mất. #authBrand (logo màn đăng nhập) cũng dùng để đồng bộ. */
+.hero-brand-name:not([class*="logo-color-"]), .section-head h2, .cat-group-head h3,
+.brand-text strong:not([class*="logo-color-"]),
+.mobile-nav-brand-text strong:not([class*="logo-color-"]),
+.auth-head strong:not([class*="logo-color-"]) {
   background: linear-gradient(90deg, #d7e6ff, #a78bfa 40%, #22d3ee 70%, #d7e6ff);
-  background-size: 220% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
   text-shadow: none;
   animation: ngGrad 10s linear infinite;
 }
-:root[data-theme="light"] .hero-brand-name,
+:root[data-theme="light"] .hero-brand-name:not([class*="logo-color-"]),
 :root[data-theme="light"] .section-head h2,
 :root[data-theme="light"] .cat-group-head h3,
-:root[data-theme="light"] .brand-text strong {
+:root[data-theme="light"] .brand-text strong:not([class*="logo-color-"]),
+:root[data-theme="light"] .mobile-nav-brand-text strong:not([class*="logo-color-"]),
+:root[data-theme="light"] .auth-head strong:not([class*="logo-color-"]) {
   background: linear-gradient(90deg, #3b2f8f, #6d28d9 40%, #0e7490 70%, #3b2f8f);
-  background-size: 220% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-heading, .hero-brand-name, .section-head h2, .cat-group-head h3, .brand-text strong { animation: none; }
+  .hero-heading, .hero-brand-name, .section-head h2, .cat-group-head h3, .brand-text strong, .auth-head strong { animation: none; }
 }
 
 /* ---- Kính mờ cao cấp (glassmorphism thế hệ mới) ---- */
