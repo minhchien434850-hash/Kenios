@@ -1,0 +1,15 @@
+# uploads/.htaccess — thư mục này CHỈ chứa file tĩnh khách/admin tải lên (ảnh, video,
+# tệp tải về). Chặn mọi khả năng THỰC THI MÃ phía máy chủ ở đây — dù một file .php có
+# lọt vào bằng cách nào cũng không bao giờ chạy được (lớp phòng thủ thứ 2, ngoài việc
+# api.php đã chặn đuôi file nguy hiểm khi upload/khôi phục).
+<FilesMatch "\.(php|php3|php4|php5|php7|php8|phtml|phar|pl|py|cgi|sh)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .phtml .phar
+RemoveType .php .php3 .php4 .php5 .php7 .php8 .phtml .phar

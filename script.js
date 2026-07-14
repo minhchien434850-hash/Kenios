@@ -441,8 +441,10 @@ window.KENIOS_DEFAULT_DB = {
       }
     },
 
-    async loginWithGoogle(credential) {
-      const result = await this._callApi('google_login', { credential });
+    async loginWithGoogle(credential, refCode) {
+      // Gửi kèm mã giới thiệu (nếu khách có nhập ở form đăng ký) — tài khoản Google
+      // TẠO MỚI cũng gắn được người giới thiệu như đăng ký thường.
+      const result = await this._callApi('google_login', { credential, refCode: (refCode || '').trim().toUpperCase() });
       if (result.status !== 'success') throw new Error(result.message || 'Đăng nhập Google thất bại.');
       this._upsertUser(result.user);
       this._setSession(result.user.userId, result.token);
@@ -527,10 +529,11 @@ window.KENIOS_DEFAULT_DB = {
       if (!raw) return { valid: false, price, discount: 0, reason: '' };
       const d = this.findDiscountCode(raw);
       if (!d) return { valid: false, price, discount: 0, reason: 'Mã giảm giá không đúng hoặc đã hết hiệu lực.' };
-      // Hạn sử dụng
+      // Hạn sử dụng: hết hạn = QUA HẾT NGÀY ghi trên mã (23:59) — khớp với máy chủ và
+      // danh sách admin, tránh cảnh "danh sách còn hạn mà nhập mã lại báo hết hạn".
       if (d.expiresAt) {
         const exp = Date.parse(d.expiresAt);
-        if (!isNaN(exp) && Date.now() > exp) return { valid: false, price, discount: 0, reason: 'Mã giảm giá đã hết hạn sử dụng.' };
+        if (!isNaN(exp) && Date.now() > exp + 24 * 3600 * 1000 - 1) return { valid: false, price, discount: 0, reason: 'Mã giảm giá đã hết hạn sử dụng.' };
       }
       // Giới hạn lượt dùng (tổng chung)
       const maxUses = parseInt(d.maxUses, 10) || 0;
@@ -1404,10 +1407,8 @@ window.KENIOS_DEFAULT_DB = {
       try {const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
       catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
-    async exportDb(u, p) {
-      try {const r = await fetch(`${API_URL}?action=export_db`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
-      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
-    },
+    // (Nút "Tải bản sao lưu về máy" dùng LIÊN KẾT trực tiếp tới action=export_db — máy chủ
+    // tuôn dòng file về trình duyệt; không còn hàm fetch exportDb ở đây.)
     // Kho đơn hàng bền vững: thông tin (số đơn) + phục hồi đơn khách về database.json.
     async ordersArchiveInfo(u, p) {
       try {const r = await fetch(`${API_URL}?action=orders_archive_info`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
@@ -2466,7 +2467,11 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function handleGoogleCredential(response) {
-    Store.loginWithGoogle(response.credential).then(() => {
+    // Lấy mã giới thiệu khách đã nhập ở tab Đăng ký (nếu có) để tài khoản Google mới
+    // cũng được gắn người giới thiệu.
+    const refInput = document.querySelector('#registerForm [name="refCode"]');
+    const refCode = refInput ? refInput.value : '';
+    Store.loginWithGoogle(response.credential, refCode).then(() => {
       closeModal('#authModal');
       toast('Đăng nhập bằng Google thành công!', 'success');
     }).catch((err) => toast(err.message, 'error'));
@@ -3898,7 +3903,12 @@ window.KENIOS_DEFAULT_DB = {
         const u1 = Store.currentUser();
         const after = u1 && u1.balance || 0;
         const pend = res && Array.isArray(res.requests) ? res.requests.filter((r) => r.status === 'pending').length : 1;
-        if (after > before) {toast('Thẻ đã được duyệt! Số dư +' + fmt(after - before) + 'đ.', 'success');}
+        if (after > before) {
+          toast('Thẻ đã được duyệt! Số dư +' + fmt(after - before) + 'đ.', 'success');
+          // Nạp thẻ cào cũng là NẠP TIỀN -> xét thưởng giới thiệu (nếu đây là lần nạp
+          // đầu của người được mời, máy chủ sẽ cộng thưởng cho NGƯỜI GIỚI THIỆU).
+          if (u1) {try {Store.processReferralReward(u1.userId);} catch (e) {/* bỏ qua */}}
+        }
         if (after > before || pend === 0 || n >= 12) {clearInterval(cardPollTimer);cardPollTimer = null;}
       }, 10000);
     }

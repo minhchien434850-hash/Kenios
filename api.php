@@ -50,10 +50,17 @@ function next_numeric_user_id($db) {
 function admin_authenticated($db, $admin_user, $admin_pass) {
     $users = $db['users'] ?? [];
     if (empty($users)) return true; // Cho phép ghi lần đầu khi chưa có tài khoản nào (khởi tạo)
+    // CHỐNG DÒ MẬT KHẨU ADMIN qua các lệnh quản trị (export_db, save_db, secrets...):
+    // giống cơ chế của login — mỗi lần gọi tính 1 lượt theo IP, đúng mật khẩu thì xoá
+    // bộ đếm; sai quá 15 lượt trong 10 phút thì khoá IP đó 15 phút.
+    $rlKey = 'admin:' . client_ip();
+    $rl = rate_limit_hit($rlKey, 15, 600, 900);
+    if (!$rl['ok']) return false;
     foreach ($users as $u) {
         if (($u['role'] ?? '') === 'admin'
             && strtolower($u['username'] ?? '') === strtolower($admin_user)
             && verify_password($admin_pass, $u['password'] ?? '')) {
+            rate_limit_reset($rlKey); // đúng mật khẩu -> xoá bộ đếm (dùng admin bình thường không bị khoá)
             return true;
         }
     }
@@ -864,7 +871,9 @@ switch ($action) {
             }
             $err = '';
             if ($matched === null) $err = "Mã giảm giá không đúng hoặc đã hết hiệu lực.";
-            elseif (!empty($matched['expiresAt']) && strtotime((string)$matched['expiresAt']) < time()) $err = "Mã giảm giá đã hết hạn sử dụng.";
+            // Hết hạn = QUA HẾT NGÀY ghi trên mã (23:59:59) — thống nhất với danh sách admin
+            // và bộ dọn tự động (trước đây chỗ này tính từ 0h sáng nên lệch nhau cả ngày).
+            elseif (!empty($matched['expiresAt']) && strtotime((string)$matched['expiresAt']) + 86399 < time()) $err = "Mã giảm giá đã hết hạn sử dụng.";
             elseif ((intval($matched['maxUses'] ?? 0) > 0) && (intval($matched['usedCount'] ?? 0) >= intval($matched['maxUses'] ?? 0))) $err = "Mã giảm giá đã hết lượt sử dụng.";
             elseif ((intval($matched['minOrder'] ?? 0) > 0) && $price < intval($matched['minOrder'] ?? 0)) $err = "Đơn chưa đạt mức tối thiểu để dùng mã.";
             elseif (!empty($matched['categoryId']) && ($matched['categoryId'] !== ($service['categoryId'] ?? ''))) $err = "Mã giảm giá không áp dụng cho sản phẩm này.";
@@ -929,8 +938,6 @@ switch ($action) {
             foreach (($db['subcategories'] ?? []) as $sc) { if (($sc['id'] ?? '') === $subId && $subId !== '') { $os = $sc['name']; break; } }
             if ($os === '') foreach (($db['categories'] ?? []) as $c) { if (($c['id'] ?? '') === ($service['categoryId'] ?? '')) { $os = $c['name']; break; } }
         }
-        $purchaseTs = time();
-        $days = duration_days_from_name($pkg['name']);
         // Tăng lượt dùng của mã giảm giá đã áp dụng thành công.
         if ($matchedCodeIdx >= 0) {
             $db['config']['discountCodes'][$matchedCodeIdx]['usedCount'] = (intval($db['config']['discountCodes'][$matchedCodeIdx]['usedCount'] ?? 0)) + 1;
@@ -1098,7 +1105,9 @@ switch ($action) {
             }
             $err = '';
             if ($matched === null) $err = "Mã giảm giá không đúng hoặc đã hết hiệu lực.";
-            elseif (!empty($matched['expiresAt']) && strtotime((string)$matched['expiresAt']) < time()) $err = "Mã giảm giá đã hết hạn sử dụng.";
+            // Hết hạn = QUA HẾT NGÀY ghi trên mã (23:59:59) — thống nhất với danh sách admin
+            // và bộ dọn tự động (trước đây chỗ này tính từ 0h sáng nên lệch nhau cả ngày).
+            elseif (!empty($matched['expiresAt']) && strtotime((string)$matched['expiresAt']) + 86399 < time()) $err = "Mã giảm giá đã hết hạn sử dụng.";
             elseif ((intval($matched['maxUses'] ?? 0) > 0) && (intval($matched['usedCount'] ?? 0) >= intval($matched['maxUses'] ?? 0))) $err = "Mã giảm giá đã hết lượt sử dụng.";
             elseif ((intval($matched['minOrder'] ?? 0) > 0) && $price < intval($matched['minOrder'] ?? 0)) $err = "Đơn chưa đạt mức tối thiểu để dùng mã.";
             elseif (!empty($matched['categoryId']) && ($matched['categoryId'] !== ($service['categoryId'] ?? ''))) $err = "Mã giảm giá không áp dụng cho sản phẩm này.";
