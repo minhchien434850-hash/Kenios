@@ -22,6 +22,25 @@ require_once __DIR__ . '/lib_card.php';
 $db_file = __DIR__ . '/database.json';
 $action = $_GET['action'] ?? '';
 
+// TỰ TẠO uploads/.htaccess nếu chưa có — chặn thực thi PHP/CGI trong thư mục uploads
+// (lớp phòng thủ thứ 2 ngoài whitelist đuôi file). Tự tạo vì file bắt đầu bằng dấu chấm
+// là file ẨN, tải về máy/up thủ công hay bị trình duyệt & app Tệp từ chối.
+(function () {
+    $dir = __DIR__ . '/uploads';
+    $ht = $dir . '/.htaccess';
+    if (is_dir($dir) && !file_exists($ht)) {
+        @file_put_contents($ht,
+            "# uploads/.htaccess — thư mục này CHỈ chứa file tĩnh (ảnh/video/tệp tải về).\n"
+            . "# Chặn mọi khả năng thực thi mã phía máy chủ (file này do api.php tự tạo).\n"
+            . "<FilesMatch \"\\.(php|php3|php4|php5|php7|php8|phtml|phar|pl|py|cgi|sh)$\">\n"
+            . "  <IfModule mod_authz_core.c>\n    Require all denied\n  </IfModule>\n"
+            . "  <IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n  </IfModule>\n"
+            . "</FilesMatch>\n"
+            . "RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .phtml .phar\n"
+            . "RemoveType .php .php3 .php4 .php5 .php7 .php8 .phtml .phar\n");
+    }
+})();
+
 // Suy ra số ngày sử dụng từ tên gói ("7 Ngày", "1 Tháng"...). null = vĩnh viễn.
 function duration_days_from_name($name) {
     $t = mb_strtolower((string)$name);
