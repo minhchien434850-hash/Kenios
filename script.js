@@ -2577,6 +2577,14 @@ window.KENIOS_DEFAULT_DB = {
     return 'https://' + u.replace(/^\/+/, '');
   }
 
+  // Link cần mở CÙNG TAB (không target=_blank): tel:/mailto: và link mở APP (zalo.me...).
+  // Lý do: mở tab mới làm mất "cú chạm người dùng" -> iOS/webview CHẶN việc bật app Zalo
+  // lên (nhất là link nhóm zalo.me/g/...) rồi văng ngược về web. Mở cùng tab giữ nguyên
+  // cú chạm -> hệ điều hành cho phép nhảy thẳng vào app.
+  function contactOpensSameTab(url) {
+    return /^(tel:|mailto:|sms:)/i.test(url) || /^https?:\/\/(www\.)?(zalo\.me|zaloapp\.com)\//i.test(url);
+  }
+
   // ---- Widget liên hệ đa kênh: 1 kênh bật -> nút thẳng; nhiều kênh bật -> gộp
   // thành 1 nút mở ra danh sách. Dùng chung cho header / footer / popup chào mừng. ----
   function renderContactWidgets(cfg) {
@@ -2603,8 +2611,7 @@ window.KENIOS_DEFAULT_DB = {
     grid.innerHTML = enabled.map((c) => {
       const t = chType(c);
       const url = normalizeContactUrl(c.url);
-      const isTel = url.startsWith('tel:') || url.startsWith('mailto:');
-      const attrs = isTel ? '' : 'target="_blank" rel="noopener"';
+      const attrs = contactOpensSameTab(url) ? '' : 'target="_blank" rel="noopener"';
       const cta = /nhóm|group|zalo\.me\/g\/|t\.me\/|chat\.whatsapp|discord\.gg/i.test(url) ? 'Tham gia nhóm' : 'Liên hệ ngay';
       const label = c.label || CONTACT_PLATFORM_LABEL[t] || 'Liên hệ';
       return `
@@ -2631,7 +2638,7 @@ window.KENIOS_DEFAULT_DB = {
       const a = document.createElement('a');
       const url1 = normalizeContactUrl(c.url);
       a.href = url1;
-      if (!url1.startsWith('tel:') && !url1.startsWith('mailto:')) {a.target = '_blank';a.rel = 'noopener';}
+      if (!contactOpensSameTab(url1)) {a.target = '_blank';a.rel = 'noopener';}
       a.className = opts.btnClass;
       a.innerHTML = `<span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}`;
       container.appendChild(a);
@@ -2648,7 +2655,7 @@ window.KENIOS_DEFAULT_DB = {
     dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
     dropdown.innerHTML = enabled.map((c) => {
       const url = normalizeContactUrl(c.url);
-      const targetAttrs = !url.startsWith('tel:') && !url.startsWith('mailto:') ? 'target="_blank" rel="noopener"' : '';
+      const targetAttrs = contactOpensSameTab(url) ? '' : 'target="_blank" rel="noopener"';
       return `<a href="${esc(url)}" ${targetAttrs}><span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}</a>`;
     }).join('');
     btn.addEventListener('click', (e) => {e.stopPropagation();dropdown.classList.toggle('open');});
@@ -4604,7 +4611,7 @@ window.KENIOS_DEFAULT_DB = {
           <button class="btn-copy-key" data-copy-key="${esc(o.key)}" title="Sao chép key">${ICONS.copy}</button>
         </div>
         ${download ? `<a class="btn btn-primary btn-sm btn-block order-download" href="${esc(download)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.upload || ICONS.box}</span> Tải bản game</a>` : ''}
-        ${contact ? `<a class="btn btn-glass btn-sm btn-block order-contact" href="${esc(contact)}" target="_blank" rel="noopener"><span class="order-ico">${ICONS.headset}</span> Liên hệ hỗ trợ</a>` : ''}
+        ${contact ? `<a class="btn btn-glass btn-sm btn-block order-contact" href="${esc(contact)}" ${contactOpensSameTab(contact) ? '' : 'target="_blank" rel="noopener"'}><span class="order-ico">${ICONS.headset}</span> Liên hệ hỗ trợ</a>` : ''}
       </div>`;
   }
 
