@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Exo+2:wght@500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="./style.css?v=20" />
+  <link rel="stylesheet" href="./style.css?v=21" />
 </head>
 <body>
 
@@ -367,13 +367,16 @@
         <label>Email hoặc Số điện thoại <small class="muted">(tuỳ chọn — dùng để lấy lại mật khẩu)</small>
           <input type="text" name="contact" autocomplete="email" placeholder="email@gmail.com hoặc 09xxxxxxxx">
         </label>
-        <label>Mã giới thiệu <small class="muted">(nếu có — nhập mã của người mời để cả hai nhận thưởng)</small>
-          <input type="text" name="refCode" autocomplete="off" placeholder="VD: KENIOS-TENBAN">
+        <label>Mã giới thiệu <small class="muted">(nếu có — nhập mã 6 ký tự của người mời; khi bạn nạp tiền lần đầu, người mời sẽ nhận thưởng)</small>
+          <input type="text" name="refCode" autocomplete="off" placeholder="VD: A7K2P9" maxlength="12" style="text-transform:uppercase">
         </label>
         <p class="form-error" id="registerError"></p>
         <button type="submit" class="btn btn-primary btn-block">Tạo tài khoản</button>
       </form>
       <div class="auth-divider"><span>hoặc</span></div>
+      <label class="auth-google-ref">Mã giới thiệu khi dùng Google <small class="muted">(nếu có — chỉ áp dụng cho tài khoản Google TẠO MỚI; người mời nhận thưởng khi bạn nạp lần đầu)</small>
+        <input type="text" id="googleRefCode" autocomplete="off" placeholder="VD: A7K2P9" maxlength="12" style="text-transform:uppercase">
+      </label>
       <div id="googleSignInBox" class="google-signin-box"></div>
       <button type="button" class="btn btn-glass btn-block google-fallback-btn" id="googleFallbackBtn">
         <span class="btn-ico" data-icon="google"></span> Đăng nhập với Google
@@ -678,6 +681,6 @@
     </div>
   </div>
 
-  <script src="./script.js?v=20"></script>
+  <script src="./script.js?v=21"></script>
 </body>
 </html>

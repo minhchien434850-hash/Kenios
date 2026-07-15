@@ -652,6 +652,13 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .google-signin-box { display: flex; justify-content: center; }
 .auth-form label { font-size: .85rem; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+/* Ô mã giới thiệu dùng chung cạnh nút Google (hiện ở cả 2 tab, cho tài khoản Google mới) */
+.auth-google-ref { font-size: .85rem; color: var(--muted); display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.auth-google-ref input {
+  padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.03);
+  color: var(--ink); font-size: .95rem;
+}
+.auth-google-ref input:focus { outline: none; border-color: var(--gold); }
 .auth-form input, .deposit-form input {
   padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.03);
   color: var(--ink); font-size: .95rem;

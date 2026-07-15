@@ -2467,10 +2467,12 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function handleGoogleCredential(response) {
-    // Lấy mã giới thiệu khách đã nhập ở tab Đăng ký (nếu có) để tài khoản Google mới
-    // cũng được gắn người giới thiệu.
-    const refInput = document.querySelector('#registerForm [name="refCode"]');
-    const refCode = refInput ? refInput.value : '';
+    // Mã giới thiệu cho tài khoản Google MỚI: ưu tiên ô riêng cạnh nút Google
+    // (#googleRefCode — luôn nhìn thấy dù đang ở tab Đăng nhập), nếu trống thì lấy
+    // ô trong tab Đăng ký (lỡ khách gõ ở đó rồi mới bấm Google).
+    const gInput = document.querySelector('#googleRefCode');
+    const rInput = document.querySelector('#registerForm [name="refCode"]');
+    const refCode = (gInput && gInput.value.trim()) || (rInput && rInput.value.trim()) || '';
     Store.loginWithGoogle(response.credential, refCode).then(() => {
       closeModal('#authModal');
       toast('Đăng nhập bằng Google thành công!', 'success');
