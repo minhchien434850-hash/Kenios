@@ -34,21 +34,6 @@
   font-size: 16px;
 }
 
-/* ---- Chế độ SÁNG (light theme) — đảo nền/chữ, giữ nguyên tông nhấn vàng/tím ---- */
-:root[data-theme="light"] {
-  --bg: #eef1f8;
-  --bg-alt: #ffffff;
-  --ink: #161a26;
-  --muted: #59617a;
-  --border: rgba(60,80,160,.14);
-  --glass: rgba(40,60,140,.035);
-  --glass-strong: rgba(40,60,140,.06);
-  --shadow: 0 22px 60px -24px rgba(30,40,90,.28);
-  --neon-glow: 0 0 16px rgba(124,58,237,.28), 0 0 30px rgba(34,211,238,.16);
-}
-/* Light mode: nền gốc do <html> lo; GIỮ body trong suốt để lớp video/ảnh nền vẫn hiện. */
-:root[data-theme="light"] html { background: var(--bg); }
-:root[data-theme="light"] body { background: transparent; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -2223,9 +2208,6 @@ a, button, .category-card, .service-card, .filter-tab { transition-timing-functi
   animation: gridDrift 24s linear infinite;
 }
 @keyframes gridDrift { to { background-position: 46px 46px, 46px 46px; } }
-:root[data-theme="light"] .bg-mesh::after { background-image:
-    linear-gradient(rgba(60,80,160,.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(60,80,160,.06) 1px, transparent 1px); }
 @media (prefers-reduced-motion: reduce) { .bg-mesh::after { animation: none; } }
 
 /* ---- Marquee & header: viền neon phát sáng ---- */
@@ -2240,7 +2222,6 @@ a, button, .category-card, .service-card, .filter-tab { transition-timing-functi
   border-image: linear-gradient(90deg, transparent, rgba(154,107,255,.5), rgba(34,211,238,.5), transparent) 1;
   box-shadow: 0 1px 0 rgba(124,162,255,.06), 0 10px 30px -24px rgba(0,0,0,.9);
 }
-:root[data-theme="light"] .site-header { background: rgba(255,255,255,.82); }
 .brand-text strong { text-shadow: 0 0 18px rgba(154,107,255,.35); }
 
 /* ---- Nút: gradient neon + quầng sáng ---- */
@@ -2352,16 +2333,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 
   text-shadow: none;
   animation: ngGrad 10s linear infinite;
 }
-:root[data-theme="light"] .hero-brand-name:not([class*="logo-color-"]),
-:root[data-theme="light"] .section-head h2,
-:root[data-theme="light"] .cat-group-head h3,
-:root[data-theme="light"] .brand-text strong:not([class*="logo-color-"]),
-:root[data-theme="light"] .mobile-nav-brand-text strong:not([class*="logo-color-"]),
-:root[data-theme="light"] .auth-head strong:not([class*="logo-color-"]) {
-  background: linear-gradient(90deg, #3b2f8f, #6d28d9 40%, #0e7490 70%, #3b2f8f);
-  background-size: 200% 100%;
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
-}
 @media (prefers-reduced-motion: reduce) {
   .hero-heading, .hero-brand-name, .section-head h2, .cat-group-head h3, .brand-text strong, .auth-head strong { animation: none; }
 }
@@ -2433,10 +2404,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 
     0 22px 48px -30px rgba(0,0,0,.85),
     0 4px 14px -10px rgba(0,0,0,.6);
 }
-:root[data-theme="light"] .service-card, :root[data-theme="light"] .category-card,
-:root[data-theme="light"] .modal, :root[data-theme="light"] .stat-chip {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 0 0 1px rgba(60,80,160,.10), 0 22px 48px -30px rgba(30,40,90,.35);
-}
 
 /* ---- Kính mờ tinh hơn cho popup & lớp nổi ---- */
 .modal { backdrop-filter: blur(26px) saturate(1.6); }
@@ -2483,10 +2450,6 @@ table tbody tr:hover { background: rgba(124,162,255,.06); }
   -webkit-text-fill-color: transparent; color: transparent;
   text-shadow: none;
   animation: ngGrad 6.5s linear infinite;
-}
-:root[data-theme="light"] .price {
-  background: linear-gradient(90deg, #0e7490, #0891b2 45%, #155e75 55%, #0e7490);
-  background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
 }
 @media (prefers-reduced-motion: reduce) { .price { animation: none; } }
 

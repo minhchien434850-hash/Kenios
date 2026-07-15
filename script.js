@@ -2287,40 +2287,13 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   // ============================================================
-  // THEME — chế độ Sáng / Tối (lưu lựa chọn của khách)
+  // THEME — ĐÃ BỎ chế độ Sáng/Tối theo yêu cầu: web luôn dùng giao diện TỐI.
+  // Vẫn dọn dẹp: ép dark, xoá lựa chọn cũ khách đã lưu và gỡ nút chuyển (nếu còn trong cache).
   // ============================================================
-  const THEME_KEY = 'kenios_theme';
-  function applyTheme(theme) {
-    const t = theme === 'light' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', t);
-    // Cập nhật MỌI nút chuyển sáng/tối. Nút giờ là MỤC trong menu 3 gạch (có icon +
-    // nhãn chữ riêng qua [data-theme-icon]/[data-theme-label]); icon SVG riêng, không emoji.
-    const icon = t === 'light' ? ICONS.moon : ICONS.sun;
-    const label = t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng';
-    $$('[data-theme-toggle]').forEach((btn) => {
-      const iconEl = btn.querySelector('[data-theme-icon]');
-      const labelEl = btn.querySelector('[data-theme-label]');
-      if (iconEl || labelEl) {
-        if (iconEl) iconEl.innerHTML = icon;
-        if (labelEl) labelEl.textContent = label;
-      } else {
-        btn.innerHTML = icon; // nút icon trần (nếu còn ở đâu đó)
-      }
-      btn.setAttribute('aria-label', label);
-      btn.title = label;
-    });
-  }
   function wireThemeToggle() {
-    let saved = 'dark';
-    try {saved = localStorage.getItem(THEME_KEY) || 'dark';} catch {}
-    applyTheme(saved);
-    $$('[data-theme-toggle]').forEach((btn) => btn.addEventListener('click', (e) => {
-      e.preventDefault();e.stopPropagation();
-      const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-      const next = cur === 'light' ? 'dark' : 'light';
-      applyTheme(next);
-      try {localStorage.setItem(THEME_KEY, next);} catch {}
-    }));
+    document.documentElement.setAttribute('data-theme', 'dark');
+    try {localStorage.removeItem('kenios_theme');} catch (e) { /* ignore */ }
+    $$('[data-theme-toggle]').forEach((btn) => btn.remove());
   }
 
   // ---- PWA: đăng ký service worker + nút "Cài đặt ứng dụng" (thêm vào màn hình chính) ----
