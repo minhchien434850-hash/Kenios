@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Exo+2:wght@500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="./style.css?v=26" />
+  <link rel="stylesheet" href="./style.css?v=27" />
 </head>
 <body>
 
@@ -122,6 +122,7 @@
       <button type="button" class="mobile-nav-link" id="mobileNavDownloads"><span class="mnl-icon" data-icon="download"></span><span>Tải xuống</span></button>
       <button type="button" class="mobile-nav-link" id="mobileNavKeyCheck"><span class="mnl-icon" data-icon="key"></span><span>Tra cứu key</span></button>
       <button type="button" class="mobile-nav-link" id="mobileNavAnnounce" hidden><span class="mnl-icon" data-icon="bell"></span><span>Thông báo</span><span class="mnl-badge warn" id="announceNavDot" hidden>Mới</span></button>
+      <button type="button" class="mobile-nav-link" id="mobileNavWheel" hidden><span class="mnl-icon" data-icon="gift"></span><span>Vòng quay may mắn</span><span class="mnl-badge auto">Free</span></button>
 
       <div class="mobile-nav-group-label">Danh Mục Sản Phẩm</div>
       <div id="drawerCategoriesList" class="drawer-categories-list"></div>
@@ -493,7 +494,10 @@
         </div>
         <div class="service-modal-info">
           <h3 id="serviceModalTitle"></h3>
-          <div class="service-modal-meta"><span class="views-badge" id="serviceModalViews"></span></div>
+          <div class="service-modal-meta">
+            <span class="views-badge" id="serviceModalViews"></span>
+            <button type="button" class="btn btn-glass btn-sm service-share-btn" id="serviceShareBtn" title="Chia sẻ link sản phẩm này"></button>
+          </div>
           <p id="serviceModalDesc"></p>
           <a class="btn btn-glass btn-sm service-modal-download" id="serviceModalDownload" target="_blank" rel="noopener" hidden></a>
           <ul class="feature-list" id="serviceModalFeatures"></ul>
@@ -546,6 +550,24 @@
       <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
       <h3>Thông Báo</h3>
       <div class="announce-list" id="announceList"></div>
+      <button type="button" class="btn btn-glass btn-sm btn-block" id="enablePushBtn" style="margin-top:12px;" hidden></button>
+      <p class="muted" id="pushHint" style="font-size:.72rem;margin:6px 0 0;" hidden>Bật xong, khi shop có thông báo mới bạn sẽ nhận được ngay trên thiết bị (iPhone cần cài web như app trước — menu Chia sẻ → Thêm vào MH chính).</p>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Vòng quay may mắn ===== -->
+  <div class="modal-overlay" id="wheelModal" hidden>
+    <div class="modal modal-sm wheel-modal" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close-modal aria-label="Đóng" data-icon="back"></button>
+      <h3>Vòng Quay May Mắn</h3>
+      <p class="muted wheel-sub" id="wheelSub">Mỗi ngày bạn có lượt quay miễn phí — thử vận may nhé!</p>
+      <div class="wheel-wrap">
+        <span class="wheel-pointer"></span>
+        <div class="wheel-disc" id="wheelDisc"></div>
+        <span class="wheel-hub"></span>
+      </div>
+      <p class="wheel-result" id="wheelResult" hidden></p>
+      <button type="button" class="btn btn-primary btn-block" id="wheelSpinBtn">Quay ngay</button>
     </div>
   </div>
 
@@ -719,6 +741,6 @@
     </div>
   </div>
 
-  <script src="./script.js?v=26"></script>
+  <script src="./script.js?v=27"></script>
 </body>
 </html>

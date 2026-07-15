@@ -1210,6 +1210,57 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 /* Bảng doanh thu theo ngày trong báo cáo — cuộn riêng khi dài */
 .report-byday { max-height: 300px; overflow-y: auto; }
 
+/* Nút chia sẻ link sản phẩm (trong popup chi tiết) */
+.service-modal-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.service-share-btn svg { width: 15px; height: 15px; }
+
+/* Phản hồi của Shop dưới đánh giá khách */
+.review-admin-reply { margin-top: 8px; padding: 9px 12px; border-left: 3px solid var(--gold); border-radius: 8px; background: rgba(34,211,238,.06); }
+.review-admin-reply .rar-head { display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; font-weight: 700; color: var(--gold-soft); }
+.review-admin-reply .rar-head svg { width: 13px; height: 13px; }
+.review-admin-reply p { margin: 4px 0 0; font-size: .84rem; color: var(--ink); }
+.review-reply-box { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.review-reply-form { display: flex; gap: 8px; }
+.review-reply-form input { flex: 1; min-width: 0; padding: 8px 11px; border-radius: 9px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .85rem; }
+
+/* Nhãn hành động trong lịch sử kho key */
+.keylog-act { font-size: .76rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.06); }
+.keylog-act.ok { color: #4ade80; background: rgba(74,222,128,.12); }
+.keylog-act.bad { color: #fca5a5; background: rgba(239,68,68,.12); }
+
+/* Vòng quay may mắn */
+.wheel-modal { text-align: center; }
+.wheel-sub { font-size: .84rem; margin: 0 0 14px; }
+.wheel-wrap { position: relative; width: min(78vw, 300px); height: min(78vw, 300px); margin: 0 auto 14px; }
+.wheel-disc {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 6px solid rgba(255,255,255,.14);
+  box-shadow: 0 0 0 3px rgba(139,92,246,.35), 0 18px 50px -18px rgba(0,0,0,.8), inset 0 0 30px rgba(0,0,0,.35);
+  overflow: hidden; will-change: transform;
+}
+.wheel-label { position: absolute; inset: 0; display: flex; justify-content: center; pointer-events: none; }
+.wheel-label i {
+  margin-top: 14px; font-style: normal; font-size: .68rem; font-weight: 800; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.65); max-width: 76px; text-align: center; line-height: 1.15; word-break: break-word;
+}
+.wheel-hub {
+  position: absolute; top: 50%; left: 50%; width: 52px; height: 52px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff22, #0b0e1e 70%);
+  border: 3px solid rgba(255,255,255,.25); box-shadow: 0 4px 14px rgba(0,0,0,.5); z-index: 2;
+}
+.wheel-pointer {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 3;
+  width: 0; height: 0; border-left: 13px solid transparent; border-right: 13px solid transparent;
+  border-top: 22px solid var(--gold); filter: drop-shadow(0 3px 5px rgba(0,0,0,.55));
+}
+.wheel-result { margin: 0 0 12px; font-size: .92rem; line-height: 1.5; padding: 10px 12px; border-radius: 11px; border: 1px solid var(--border); background: rgba(255,255,255,.04); }
+.wheel-result svg { width: 16px; height: 16px; vertical-align: -3px; }
+/* Editor ô giải (admin) */
+.wheel-editor { display: flex; flex-direction: column; gap: 8px; }
+.wheel-prize-row { display: grid; grid-template-columns: 1.5fr 130px 1fr 90px auto; gap: 8px; align-items: end; padding: 10px; border: 1px solid var(--border); border-radius: 11px; background: rgba(255,255,255,.02); }
+.wheel-prize-row input, .wheel-prize-row select { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .84rem; width: 100%; min-width: 0; color-scheme: dark; font-family: inherit; }
+@media (max-width: 720px) { .wheel-prize-row { grid-template-columns: 1fr 1fr; } .wheel-prize-row [data-wp-label] { grid-column: span 2; } }
+
 /* Editor hạng VIP (admin) */
 .vip-editor { display: flex; flex-direction: column; gap: 8px; }
 .vip-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 8px; align-items: end; }

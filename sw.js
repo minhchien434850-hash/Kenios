@@ -4,8 +4,8 @@
 //    KHÔNG bao giờ cache) để tránh hiện số dư/tồn kho cũ.
 //  - Còn lại (giao diện, ảnh, icon) -> ưu tiên mạng, hỏng mạng thì lấy bản cache (offline).
 // Đổi CACHE_VERSION mỗi lần cập nhật lớn để trình duyệt tải lại vỏ ứng dụng.
-const CACHE_VERSION = 'kenios-v26';
-const SHELL = ['./', './index.html', './style.css?v=26', './script.js?v=26', './manifest.json',
+const CACHE_VERSION = 'kenios-v27';
+const SHELL = ['./', './index.html', './style.css?v=27', './script.js?v=27', './manifest.json',
   './favicon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -24,6 +24,30 @@ self.addEventListener('activate', (e) => {
 function isDynamic(url) {
   return /\.php(\?|$)/i.test(url) || /database\.json/i.test(url) || /\/api\b/i.test(url);
 }
+
+// THÔNG BÁO ĐẨY: máy chủ gửi "cú hích" rỗng -> tự tải thông báo mới nhất về hiển thị
+// (kiểu payload-less, không cần mã hóa nội dung). Bấm vào thông báo -> mở web.
+self.addEventListener('push', (e) => {
+  e.waitUntil((async () => {
+    let title = 'KENIOS.STORE';
+    let body = 'Có thông báo mới — mở web để xem ngay!';
+    try {
+      const r = await fetch('./api.php?action=latest_announcement', { cache: 'no-store' });
+      const j = await r.json();
+      if (j && j.title) {title = j.title;body = j.text || body;}
+    } catch (err) {/* mất mạng -> dùng chữ mặc định */}
+    await self.registration.showNotification(title, {
+      body, icon: './icon-192.png', badge: './icon-192.png', data: { url: './' }
+    });
+  })());
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) {if ('focus' in c) return c.focus();}
+    return clients.openWindow('./');
+  }));
+});
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;

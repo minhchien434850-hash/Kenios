@@ -2419,6 +2419,8 @@ window.KENIOS_DEFAULT_DB = {
     hideBootLoader();
 
     step(() => maybeShowWelcome(Store.db.config), 'maybeShowWelcome');
+    // Khách vào bằng link riêng sản phẩm (#sp/<id>) -> mở đúng popup sản phẩm đó ngay.
+    step(openServiceFromHash, 'openServiceFromHash');
   }
 
   // ---- Thông báo popup khi vào web (đã bỏ tính năng lời chào bằng giọng nói). ----
@@ -2741,6 +2743,7 @@ window.KENIOS_DEFAULT_DB = {
     if (typeof updateFlashSaleBar === 'function') updateFlashSaleBar();
     updateOrdersWarnBadge();   // chấm đỏ "Đơn hàng của tôi" khi có key sắp/đã hết hạn
     updateAnnounceBadge();     // chấm đỏ chuông thông báo khi có tin chưa đọc
+    updateWheelNavItem();      // mục "Vòng quay may mắn" chỉ hiện khi admin bật
     injectSeoJsonLd();
     applyMaintenanceMode();
     // Sau MỖI lần render lại nội dung (video chèn qua innerHTML): ép video chạy trong webview.
@@ -3830,7 +3833,29 @@ window.KENIOS_DEFAULT_DB = {
   // MODAL helpers
   // ============================================================
   function openModal(sel) {$(sel).hidden = false;document.body.style.overflow = 'hidden';document.body.classList.add('modal-open');if (sel === '#depositModal') updateDepositBonusNote();setTimeout(() => _updateScrollBtns && _updateScrollBtns(), 60);}
-  function closeModal(sel) {$(sel).hidden = true;document.body.style.overflow = '';if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open');if (_updateScrollBtns) _updateScrollBtns();}
+  function closeModal(sel) {
+    $(sel).hidden = true;document.body.style.overflow = '';
+    if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open');
+    if (_updateScrollBtns) _updateScrollBtns();
+    // Đóng popup sản phẩm -> gỡ link riêng (#sp/...) khỏi thanh địa chỉ.
+    if (sel === '#serviceModal' && /^#sp\//.test(location.hash)) {
+      try {history.replaceState(null, '', location.pathname + location.search);} catch (e) {/* ignore */}
+    }
+  }
+
+  // ---- LINK RIÊNG TỪNG SẢN PHẨM (#sp/<id>) ----
+  // Mở web bằng link có #sp/<id> (từ quảng cáo/chia sẻ) -> tự bật đúng popup sản phẩm.
+  function openServiceFromHash() {
+    const m = location.hash.match(/^#sp\/([A-Za-z0-9_-]+)/);
+    if (!m) return false;
+    const svc = (Store.db.services || []).find((s) => s.id === m[1]);
+    if (!svc) return false;
+    openServiceModal(svc.id);
+    return true;
+  }
+  function serviceShareUrl(serviceId) {
+    return location.origin + location.pathname + '#sp/' + encodeURIComponent(serviceId);
+  }
 
   async function withLoading(btn, fn) {
     btn.classList.add('is-loading');
@@ -3908,6 +3933,12 @@ window.KENIOS_DEFAULT_DB = {
     if (_navKeyCheck) _navKeyCheck.addEventListener('click', () => {closeMobileNav();openKeyCheckModal();});
     var _annBtn = $('#mobileNavAnnounce');
     if (_annBtn) _annBtn.addEventListener('click', () => {closeMobileNav();openAnnounceModal();});
+    var _wheelNav = $('#mobileNavWheel');
+    if (_wheelNav) _wheelNav.addEventListener('click', () => {closeMobileNav();openWheelModal();});
+    var _wheelBtn = $('#wheelSpinBtn');
+    if (_wheelBtn) _wheelBtn.addEventListener('click', spinWheel);
+    var _pushBtn = $('#enablePushBtn');
+    if (_pushBtn) _pushBtn.addEventListener('click', enableWebPush);
     var _kcBtn = $('#keyCheckBtn');
     if (_kcBtn) _kcBtn.addEventListener('click', runKeyCheck);
     var _kcInp = $('#keyCheckInput');
@@ -4249,7 +4280,22 @@ window.KENIOS_DEFAULT_DB = {
     updateServiceModalTotal();
   }
 
-  function wireServiceModal() {var _$16;
+  function wireServiceModal() {var _$16, _share;
+    // Nút CHIA SẺ link riêng của sản phẩm: điện thoại mở khay chia sẻ, máy tính sao chép link.
+    (_share = $('#serviceShareBtn')) === null || _share === void 0 || _share.addEventListener('click', async () => {
+      const svc = Store.db.services.find((s) => s.id === currentServiceId);
+      if (!svc) return;
+      const url = serviceShareUrl(svc.id);
+      if (navigator.share) {
+        try {await navigator.share({ title: svc.name, text: 'Xem "' + svc.name + '" tại ' + (Store.db.config.siteName || 'shop'), url });return;} catch (e) {/* khách huỷ -> rơi xuống copy */}
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        toast('Đã sao chép link sản phẩm — gửi cho khách là mở đúng sản phẩm này!', 'success');
+      } catch (e) {toast('Link: ' + url, 'info');}
+    });
+    // Khách dán link #sp/... khi TRANG ĐANG MỞ (đổi hash) -> cũng mở đúng popup.
+    window.addEventListener('hashchange', () => {openServiceFromHash();});
     $('#serviceModalApplyDiscountBtn').addEventListener('click', applyServiceDiscount);
     $('#serviceModalDiscountCode').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {e.preventDefault();applyServiceDiscount();}
@@ -4320,6 +4366,10 @@ window.KENIOS_DEFAULT_DB = {
       if (modalMedia) modalMedia.style.backgroundImage = service.image ? `url('${String(service.image).replace(/'/g, "%27")}')` : '';
       modalImg.onload = () => setMediaAR(modalImg.naturalWidth, modalImg.naturalHeight);
     }
+    // Link riêng: gắn #sp/<id> lên thanh địa chỉ để khách sao chép/chia sẻ được.
+    try {history.replaceState(null, '', location.pathname + location.search + '#sp/' + encodeURIComponent(serviceId));} catch (e) {/* ignore */}
+    const shareBtn = $('#serviceShareBtn');
+    if (shareBtn) shareBtn.innerHTML = `${ICONS.link} Chia sẻ`;
     const inStock = Store.serviceInStock(service);
     $('#serviceModalBadge').textContent = inStock ? 'Còn hàng' : 'Hết hàng';
     $('#serviceModalBadge').className = 'badge' + (inStock ? '' : ' out');
@@ -4403,13 +4453,27 @@ window.KENIOS_DEFAULT_DB = {
     const head = reviews.length ?
     `<div class="review-summary">${starsHtml(avg)} <b>${avg.toFixed(1)}</b>/5 · ${reviews.length} đánh giá</div>` :
     `<p class="muted" style="font-size:.85rem;margin:0;">Chưa có đánh giá nào. ${canReview ? 'Hãy là người đầu tiên đánh giá!' : 'Mua sản phẩm để đánh giá.'}</p>`;
+    const isAdmin = Store.isAdmin();
     const list = reviews.map((r) => `
-      <div class="review-item">
+      <div class="review-item" data-review-id="${esc(r.id || '')}">
         <div class="review-item-head">
           <span class="review-item-user">${esc(r.username || 'Khách')}</span>
           <span>${starsHtml(r.rating)}</span>
         </div>
         ${r.text ? `<p class="review-item-text">${esc(r.text)}</p>` : ''}
+        ${r.adminReply ? `
+        <div class="review-admin-reply">
+          <span class="rar-head">${ico('shield')} Phản hồi từ Shop</span>
+          <p>${esc(r.adminReply)}</p>
+        </div>` : ''}
+        ${isAdmin && r.id ? `
+        <div class="review-reply-box">
+          <button type="button" class="btn btn-glass btn-sm" data-reply-toggle>${ico('edit')} ${r.adminReply ? 'Sửa phản hồi' : 'Trả lời'}</button>
+          <span class="review-reply-form" hidden>
+            <input type="text" data-reply-input value="${esc(r.adminReply || '')}" placeholder="Phản hồi của shop...">
+            <button type="button" class="btn btn-primary btn-sm" data-reply-send>Gửi</button>
+          </span>
+        </div>` : ''}
       </div>`).join('');
     let form = '';
     if (canReview) {
@@ -4447,6 +4511,38 @@ window.KENIOS_DEFAULT_DB = {
         renderServiceReviews(serviceId);
         renderServiceGrid();
       } catch (err) {toast(err.message, 'error');}
+    });
+    // ADMIN trả lời đánh giá: bấm "Trả lời" mở ô nhập, "Gửi" lưu lên máy chủ.
+    wrap.querySelectorAll('[data-reply-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const f = btn.parentElement.querySelector('.review-reply-form');
+        if (f) {f.hidden = !f.hidden;if (!f.hidden) f.querySelector('[data-reply-input]').focus();}
+      });
+    });
+    wrap.querySelectorAll('[data-reply-send]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const item = btn.closest('[data-review-id]');
+        const input = item.querySelector('[data-reply-input]');
+        const c = getAdminCreds();
+        if (!c) {toast('Đăng nhập lại admin 1 lần.', 'error');return;}
+        withLoading(btn, async () => {
+          try {
+            const r = await fetch('./api.php?action=reply_review', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Admin-User': c.username, 'X-Admin-Pass': c.password },
+              body: JSON.stringify({ reviewId: item.dataset.reviewId, reply: input.value })
+            });
+            const j = await r.json();
+            if (j.status === 'success') {
+              // Cập nhật bản trong bộ nhớ rồi vẽ lại danh sách.
+              const rv = (Store.db.reviews || []).find((x) => x.id === item.dataset.reviewId);
+              if (rv) {rv.adminReply = input.value.trim();rv.adminReplyDate = new Date().toISOString();}
+              toast('Đã gửi phản hồi.', 'success');
+              renderServiceReviews(serviceId);
+            } else {toast(j.message || 'Không gửi được phản hồi.', 'error');}
+          } catch (e) {toast('Không kết nối được máy chủ.', 'error');}
+        });
+      });
     });
   }
 
@@ -4579,7 +4675,147 @@ window.KENIOS_DEFAULT_DB = {
     // Đánh dấu ĐÃ XEM tin mới nhất -> tắt chấm đỏ.
     if (list.length) {try {localStorage.setItem(ANNOUNCE_SEEN_KEY, String(list[0].date || '') + '|' + String(list[0].id || ''));} catch (e) {/* ignore */}}
     updateAnnounceBadge();
+    updatePushBtn(); // nút "Bật thông báo đẩy" ngay trong hộp thông báo
     openModal('#announceModal');
+  }
+
+  // ---- THÔNG BÁO ĐẨY (Web Push) ----
+  function pushSupported() {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  }
+  function urlB64ToU8(s) {
+    const pad = '='.repeat((4 - s.length % 4) % 4);
+    const b = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(Array.from(b).map((c) => c.charCodeAt(0)));
+  }
+  function updatePushBtn() {
+    const btn = $('#enablePushBtn');
+    const hint = $('#pushHint');
+    if (!btn) return;
+    if (!pushSupported()) {btn.hidden = true;if (hint) hint.hidden = true;return;}
+    const granted = Notification.permission === 'granted';
+    btn.hidden = false;
+    btn.innerHTML = granted ? `${ICONS.check} Thông báo đẩy: ĐANG BẬT trên thiết bị này` : `${ICONS.bell} Bật thông báo đẩy về thiết bị`;
+    btn.disabled = granted;
+    if (hint) hint.hidden = granted;
+  }
+  async function enableWebPush() {
+    if (!pushSupported()) {toast('Trình duyệt này không hỗ trợ thông báo đẩy.', 'error');return;}
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {toast('Bạn chưa cho phép nhận thông báo.', 'error');return;}
+      const reg = await navigator.serviceWorker.ready;
+      const kr = await fetch('./api.php?action=push_public_key');
+      const kj = await kr.json();
+      if (kj.status !== 'success') {toast(kj.message || 'Máy chủ chưa hỗ trợ thông báo đẩy.', 'error');return;}
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToU8(kj.publicKey) });
+      const r = await fetch('./api.php?action=push_subscribe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub.toJSON() })
+      });
+      const j = await r.json();
+      if (j.status === 'success') {toast('Đã bật thông báo đẩy trên thiết bị này!', 'success');updatePushBtn();} else
+      {toast(j.message || 'Không đăng ký được.', 'error');}
+    } catch (e) {toast('Không bật được thông báo đẩy: ' + (e.message || 'trình duyệt chặn'), 'error');}
+  }
+
+  // ---- VÒNG QUAY MAY MẮN ----
+  // Giải + tỉ lệ do admin đặt (config.luckyWheel); máy chủ chọn giải, client chỉ QUAY
+  // bánh xe tới đúng ô trúng rồi hiện kết quả.
+  let wheelSpinning = false;
+  function wheelPrizes() {
+    const lw = Store.db.config.luckyWheel || {};
+    return (lw.prizes || []).filter((p) => p && String(p.label || '').trim() && (parseFloat(p.weight) || 0) > 0);
+  }
+  function wheelEnabled() {
+    const lw = Store.db.config.luckyWheel || {};
+    return !!lw.enabled && wheelPrizes().length >= 2;
+  }
+  function updateWheelNavItem() {
+    const b = $('#mobileNavWheel');
+    if (b) b.hidden = !wheelEnabled();
+  }
+  const WHEEL_COLORS = ['#8b5cf6', '#22d3ee', '#f472b6', '#4ade80', '#fbbf24', '#60a5fa', '#fb7185', '#34d399'];
+  function renderWheelDisc() {
+    const disc = $('#wheelDisc');
+    if (!disc) return;
+    const prizes = wheelPrizes();
+    const n = prizes.length;
+    if (!n) return;
+    const seg = 360 / n;
+    disc.style.background = `conic-gradient(${prizes.map((p, i) => `${WHEEL_COLORS[i % WHEEL_COLORS.length]} ${i * seg}deg ${(i + 1) * seg}deg`).join(', ')})`;
+    disc.innerHTML = prizes.map((p, i) => `<span class="wheel-label" style="transform: rotate(${(i + 0.5) * seg}deg)"><i>${esc(String(p.label))}</i></span>`).join('');
+    disc.style.transition = 'none';
+    disc.style.transform = 'rotate(0deg)';
+    disc.dataset.rot = '0';
+  }
+  function updateWheelSub(left) {
+    const el = $('#wheelSub');
+    if (el && typeof left === 'number') el.textContent = left > 0 ? `Bạn còn ${left} lượt quay hôm nay.` : 'Hết lượt hôm nay — quay lại vào ngày mai nhé!';
+  }
+  function openWheelModal() {
+    renderWheelDisc();
+    const r = $('#wheelResult');
+    if (r) {r.hidden = true;r.innerHTML = '';}
+    const sub = $('#wheelSub');
+    if (sub) sub.textContent = 'Mỗi ngày bạn có lượt quay miễn phí — thử vận may nhé!';
+    const btn = $('#wheelSpinBtn');
+    if (btn) btn.disabled = false;
+    openModal('#wheelModal');
+  }
+  async function spinWheel() {
+    const btn = $('#wheelSpinBtn');
+    const resEl = $('#wheelResult');
+    if (wheelSpinning) return;
+    const user = Store.currentUser();
+    if (!user) {toast('Đăng nhập để quay nhé!', 'error');closeModal('#wheelModal');openModal('#authModal');return;}
+    wheelSpinning = true;
+    if (btn) btn.disabled = true;
+    if (resEl) resEl.hidden = true;
+    let j = null;
+    try {
+      const r = await fetch('./api.php?action=spin_wheel', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.userId, token: Store.currentToken() })
+      });
+      j = await r.json();
+    } catch (e) {j = null;}
+    if (!j || j.status !== 'success') {
+      wheelSpinning = false;
+      if (btn) btn.disabled = false;
+      toast(j && j.message || 'Không quay được, thử lại sau.', 'error');
+      return;
+    }
+    // Quay bánh xe tới ĐÚNG Ô máy chủ đã chọn: 5 vòng + góc đưa tâm ô trúng về mũi kim (đỉnh).
+    const prizes = wheelPrizes();
+    const seg = 360 / prizes.length;
+    const center = (j.prizeIndex + 0.5) * seg;
+    const disc = $('#wheelDisc');
+    const cur = parseFloat(disc.dataset.rot || '0');
+    const base = Math.ceil(cur / 360) * 360;
+    const jitter = (Math.random() - 0.5) * seg * 0.5; // lệch nhẹ trong Ô cho tự nhiên
+    const next = base + 360 * 5 + (360 - center) + jitter;
+    disc.dataset.rot = String(next);
+    disc.style.transition = 'transform 4.2s cubic-bezier(.15,.85,.25,1)';
+    disc.style.transform = `rotate(${next}deg)`;
+    setTimeout(() => {
+      wheelSpinning = false;
+      if (btn) btn.disabled = false;
+      const p = j.prize;
+      if (resEl) {
+        resEl.hidden = false;
+        resEl.innerHTML = p.type === 'balance' && p.value > 0 ?
+        `${ICONS.party || ICONS.gift} Chúc mừng! Bạn trúng <b>${esc(p.label)}</b> — đã cộng <b>${fmt(p.value)}</b> vào ví.` :
+        `${ICONS.info} Kết quả: <b>${esc(p.label)}</b>. Chúc bạn may mắn lần sau!`;
+      }
+      if (p.type === 'balance' && p.value > 0) {
+        const u = Store.currentUser();
+        if (u && typeof j.balance === 'number') u.balance = j.balance;
+        try {Store._persistOverrides();Store._emit();} catch (e) {/* ignore */}
+        toast('+' + fmt(p.value) + ' đã vào ví của bạn!', 'success');
+      }
+      updateWheelSub(j.spinsLeft);
+    }, 4400);
   }
 
   // ---- Tra cứu key công khai (khách dán key -> biết còn hạn hay không) ----
@@ -5870,7 +6106,9 @@ window.KENIOS_DEFAULT_DB = {
           <button type="button" class="btn btn-glass btn-sm" id="reportExportBtn">${ico('download')} Xuất CSV</button>
         </div>
       </div>
-      <div id="reportBody"></div>`;
+      <div id="reportBody"></div>
+      <div class="admin-form-section" style="margin-top:18px;">${ico('key')} Lịch sử kho key (ai thêm/bớt, bán lúc nào)</div>
+      <div id="keyLogBox"><p class="muted" style="font-size:.82rem;">Đang tải lịch sử kho…</p></div>`;
   }
   // Tính báo cáo từ đơn hàng trong khoảng [from, to] (bỏ đơn đã hoàn tiền).
   function computeReport(from, to) {
@@ -6011,6 +6249,30 @@ window.KENIOS_DEFAULT_DB = {
   }
   function wireAdminReport() {var _$36, _$37;
     const apply = () => renderReportBody($('#reportFrom').value, $('#reportTo').value);
+    // Lịch sử kho key: tải từ máy chủ (key_log.json) — ai thêm/bớt key, key bán ra lúc nào.
+    (async () => {
+      const box = $('#keyLogBox');
+      const c = getAdminCreds();
+      if (!box) return;
+      if (!c) {box.innerHTML = '<p class="muted" style="font-size:.82rem;">Đăng nhập lại admin để xem.</p>';return;}
+      try {
+        const r = await fetch('./api.php?action=key_log', { headers: { 'X-Admin-User': c.username, 'X-Admin-Pass': c.password } });
+        const j = await r.json();
+        if (j.status !== 'success') {box.innerHTML = '<p class="muted" style="font-size:.82rem;">' + esc(j.message || 'Không tải được.') + '</p>';return;}
+        if (!j.log.length) {box.innerHTML = '<p class="muted" style="font-size:.82rem;">Chưa có biến động kho nào (thêm/bớt key hoặc bán key sẽ hiện ở đây).</p>';return;}
+        const actLabel = { add: 'Thêm key', remove: 'Bớt key', sold: 'Bán key' };
+        const actCls = { add: 'ok', remove: 'bad', sold: '' };
+        box.innerHTML = '<div class="report-byday"><table class="admin-table"><thead><tr><th>Lúc</th><th>Ai</th><th>Việc</th><th>Sản phẩm</th><th style="text-align:right">SL</th><th style="text-align:right">Còn lại</th></tr></thead><tbody>' +
+        j.log.map((e) => `<tr>
+            <td style="white-space:nowrap;font-size:.78rem;">${esc(new Date(e.t).toLocaleString('vi-VN'))}</td>
+            <td>${esc(e.by || '—')}</td>
+            <td><span class="keylog-act ${actCls[e.act] || ''}">${actLabel[e.act] || esc(e.act)}</span></td>
+            <td>${esc(e.sv)}${e.pkg ? ' · ' + esc(e.pkg) : ''}</td>
+            <td style="text-align:right"><b>${e.act === 'remove' || e.act === 'sold' ? '−' : '+'}${e.n}</b></td>
+            <td style="text-align:right">${e.total}</td>
+          </tr>`).join('') + '</tbody></table></div>';
+      } catch (e) {box.innerHTML = '<p class="muted" style="font-size:.82rem;">Không kết nối được máy chủ.</p>';}
+    })();
     (_$36 = $('#reportApplyBtn')) === null || _$36 === void 0 || _$36.addEventListener('click', apply);
     $$('[data-report-quick]').forEach((b) => b.addEventListener('click', () => {
       const q = b.dataset.reportQuick;
@@ -6255,6 +6517,30 @@ window.KENIOS_DEFAULT_DB = {
     })).filter((x) => x.title || x.text);
   }
 
+  // 1 dòng Ô GIẢI vòng quay trong admin: tên + loại + số tiền + tỉ lệ.
+  function wheelPrizeRowHtml(p = {}) {
+    const type = p.type === 'balance' ? 'balance' : 'none';
+    return `
+      <div class="wheel-prize-row" data-wp-row>
+        <input data-wp-label value="${esc(p.label || '')}" placeholder="Tên ô (VD: +5.000đ / Chúc may mắn)">
+        <select data-wp-type>
+          <option value="balance" ${type === 'balance' ? 'selected' : ''}>Cộng số dư</option>
+          <option value="none" ${type === 'none' ? 'selected' : ''}>Chúc may mắn</option>
+        </select>
+        <label class="is-cond">Số tiền (đ) <input data-wp-value type="number" min="0" step="500" value="${type === 'balance' ? (parseInt(p.value, 10) || '') : ''}" placeholder="VD: 5000"></label>
+        <label class="is-cond">Tỉ lệ <input data-wp-weight type="number" min="0.1" step="0.1" value="${parseFloat(p.weight) || ''}" placeholder="VD: 10"></label>
+        <button type="button" class="discount-del" data-wp-remove title="Xoá ô này">${ico('close')}</button>
+      </div>`;
+  }
+  function readWheelPrizesFromEditor() {
+    return $$('#wheelPrizesEditor [data-wp-row]').map((row) => ({
+      label: row.querySelector('[data-wp-label]').value.trim(),
+      type: row.querySelector('[data-wp-type]').value === 'balance' ? 'balance' : 'none',
+      value: Math.max(0, parseInt(row.querySelector('[data-wp-value]').value, 10) || 0),
+      weight: Math.max(0, parseFloat(row.querySelector('[data-wp-weight]').value) || 0)
+    })).filter((x) => x.label && x.weight > 0);
+  }
+
   // 1 dòng SALE theo sản phẩm/danh mục trong admin: chọn mục tiêu + % + hạn + bật/tắt.
   function itemSaleRowHtml(s = {}) {
     const cats = Store.db.categories || [];
@@ -6444,6 +6730,21 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <label class="admin-check-label"><input type="checkbox" name="referralEnabled" ${c.referralEnabled !== false ? 'checked' : ''}> Bật chương trình giới thiệu</label>
         <label>Tiền thưởng cho người giới thiệu (đồng) <input type="number" name="referralBonus" min="0" step="1000" value="${Number(c.referralBonus) || 0}" placeholder="VD: 20000"></label>
+
+        <div class="admin-form-section">6. ${ico('gift')} Vòng quay may mắn</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Hướng dẫn:</b> Khách được quay miễn phí mỗi ngày (số lượt bạn đặt). Mỗi ô giải gồm: <b>Tên ô</b> hiện trên vòng quay · <b>Loại</b> (Cộng số dư / Chúc may mắn) · <b>Số tiền</b> (nếu cộng số dư) · <b>Tỉ lệ</b> (số càng lớn càng dễ trúng — tính theo tương quan giữa các ô). Máy chủ chọn giải nên khách không gian lận được. Cần ít nhất 2 ô để vòng quay hiện ra (mục "Vòng quay may mắn" trong menu 3 gạch).
+        </div>
+        <label class="admin-check-label"><input type="checkbox" name="wheelEnabled" ${(c.luckyWheel || {}).enabled ? 'checked' : ''}> Bật vòng quay may mắn</label>
+        <label>Số lượt quay mỗi ngày / khách
+          <input type="number" name="wheelSpinsPerDay" min="1" max="20" step="1" value="${Math.max(1, parseInt((c.luckyWheel || {}).spinsPerDay, 10) || 1)}">
+        </label>
+        <div class="span-2 wheel-editor" id="wheelPrizesEditor">
+          ${((c.luckyWheel || {}).prizes || []).map((p) => wheelPrizeRowHtml(p)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addWheelPrizeBtn"><span class="btn-ico">${ICONS.gift || ''}</span> + Thêm ô giải</button>
+        </div>
 
         <div class="admin-form-actions">
           <button type="submit" class="btn btn-primary btn-sm">Lưu khuyến mãi</button>
@@ -6651,9 +6952,11 @@ window.KENIOS_DEFAULT_DB = {
         <div class="span-2 announce-editor" id="announceEditor">
           ${(c.announcements || []).map((a) => announceRowHtml(a)).join('')}
         </div>
-        <div class="span-2">
+        <div class="span-2" style="display:flex;gap:8px;flex-wrap:wrap;">
           <button type="button" class="btn btn-glass btn-sm" id="addAnnounceBtn"><span class="btn-ico">${ICONS.bell}</span> + Thêm thông báo</button>
+          <button type="button" class="btn btn-glass btn-sm" id="sendPushBtn"><span class="btn-ico">${ICONS.megaphone}</span> Gửi thông báo ĐẨY tới thiết bị khách</button>
         </div>
+        <p class="muted span-2" style="font-size:.75rem;margin:0;">Nút "Gửi thông báo ĐẨY": mọi khách đã bấm <b>Bật thông báo đẩy</b> (trong hộp Thông báo) sẽ nhận được <b>thông báo mới nhất ở danh sách trên</b> ngay trên điện thoại/máy tính, kể cả khi không mở web. Nhớ LƯU + ĐỒNG BỘ thông báo trước rồi mới bấm gửi.</p>
 
         <div class="admin-form-section">Chữ chạy</div>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
@@ -7267,6 +7570,23 @@ window.KENIOS_DEFAULT_DB = {
     const delDc = e.target.closest('[data-dc-remove]');
     if (delDc) { const it = delDc.closest('[data-dc-item]'); if (it) it.remove(); return; }
 
+    // ----- GỬI THÔNG BÁO ĐẨY tới thiết bị khách -----
+    if (e.target.closest('#sendPushBtn')) {
+      const btn = e.target.closest('#sendPushBtn');
+      const c = getAdminCreds();
+      if (!c) {toast('Đăng nhập lại admin 1 lần.', 'error');return;}
+      withLoading(btn, async () => {
+        try {
+          const r = await fetch('./api.php?action=push_send', { method: 'POST', headers: { 'X-Admin-User': c.username, 'X-Admin-Pass': c.password } });
+          const j = await r.json();
+          if (j.status === 'success') {
+            toast(j.sent > 0 ? `Đã gửi thông báo đẩy tới ${j.sent} thiết bị!` : j.message || 'Chưa có khách nào bật thông báo đẩy.', j.sent > 0 ? 'success' : 'info');
+          } else {toast(j.message || 'Gửi thất bại.', 'error');}
+        } catch (err) {toast('Không kết nối được máy chủ.', 'error');}
+      });
+      return;
+    }
+
     // ----- Thêm / xoá THÔNG BÁO (chuông) -----
     if (e.target.closest('#addAnnounceBtn')) {
       const editor = $('#announceEditor');
@@ -7278,6 +7598,18 @@ window.KENIOS_DEFAULT_DB = {
     }
     const delAn = e.target.closest('[data-an-remove]');
     if (delAn) { const r = delAn.closest('[data-an-row]'); if (r) r.remove(); return; }
+
+    // ----- Thêm / xoá Ô GIẢI vòng quay -----
+    if (e.target.closest('#addWheelPrizeBtn')) {
+      const editor = $('#wheelPrizesEditor');
+      if (editor) {
+        editor.insertAdjacentHTML('beforeend', wheelPrizeRowHtml({}));
+        const inp = editor.querySelector('[data-wp-row]:last-child [data-wp-label]'); if (inp) inp.focus();
+      }
+      return;
+    }
+    const delWp = e.target.closest('[data-wp-remove]');
+    if (delWp) { const r = delWp.closest('[data-wp-row]'); if (r) r.remove(); return; }
 
     // ----- Thêm / xoá SALE theo sản phẩm/danh mục -----
     if (e.target.closest('#addItemSaleBtn')) {
@@ -7657,11 +7989,16 @@ window.KENIOS_DEFAULT_DB = {
         ctvDiscountPercent: Math.max(0, Math.min(90, parseFloat(fd.get('ctvDiscountPercent')) || 0)),
         renewDiscountPercent: Math.max(0, Math.min(90, parseFloat(fd.get('renewDiscountPercent')) || 0)),
         referralEnabled: fd.get('referralEnabled') === 'on',
-        referralBonus: parseInt(fd.get('referralBonus'), 10) || 0
+        referralBonus: parseInt(fd.get('referralBonus'), 10) || 0,
+        luckyWheel: {
+          enabled: fd.get('wheelEnabled') === 'on',
+          spinsPerDay: Math.max(1, Math.min(20, parseInt(fd.get('wheelSpinsPerDay'), 10) || 1)),
+          prizes: readWheelPrizesFromEditor()
+        }
       });
       renderStatic();
       renderAdminTab('promo');
-      toast('Đã lưu Khuyến mãi / Flash Sale / Mã giảm giá / VIP / Giới thiệu. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách.', 'success');
+      toast('Đã lưu Khuyến mãi / Flash Sale / Mã giảm giá / VIP / Giới thiệu / Vòng quay. Nhấn "Đồng bộ lên máy chủ" để áp dụng cho mọi khách.', 'success');
     }
   }
 

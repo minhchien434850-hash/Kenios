@@ -28,11 +28,12 @@ $action = $_GET['action'] ?? '';
 (function () {
     $ht = __DIR__ . '/.htaccess';
     $cur = @file_get_contents($ht);
-    if ($cur !== false && strpos($cur, 'otp_admin') !== false && strpos($cur, 'auto_backup') !== false) return;
+    if ($cur !== false && strpos($cur, 'otp_admin') !== false && strpos($cur, 'auto_backup') !== false
+        && strpos($cur, 'key_log') !== false && strpos($cur, 'push_subs') !== false) return;
     @file_put_contents($ht,
         "# Chặn truy cập trực tiếp vào các file dữ liệu / bí mật (chỉ cho PHP đọc nội bộ).\n"
         . "# File này do api.php tự tạo/cập nhật — không cần up thủ công.\n"
-        . "<FilesMatch \"^(database\\.json|database_backup\\.json|orders_backup\\.json|rate_limits\\.json|secrets\\.php|lib_secrets\\.php|lib_bank\\.php|lib_card\\.php|card_callback_log\\.txt|card_query_log\\.txt|expiry_notify_marker\\.txt|auto_backup_marker\\.txt|auto_backup_[0-9-]+\\.json|otp_admin\\.json|\\.user\\.ini)$\">\n"
+        . "<FilesMatch \"^(database\\.json|database_backup\\.json|orders_backup\\.json|rate_limits\\.json|secrets\\.php|lib_secrets\\.php|lib_bank\\.php|lib_card\\.php|card_callback_log\\.txt|card_query_log\\.txt|expiry_notify_marker\\.txt|auto_backup_marker\\.txt|auto_backup_[0-9-]+\\.json|otp_admin\\.json|key_log\\.json|push_subs\\.json|push_vapid\\.json|\\.user\\.ini)$\">\n"
         . "  <IfModule mod_authz_core.c>\n    Require all denied\n  </IfModule>\n"
         . "  <IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n  </IfModule>\n"
         . "</FilesMatch>\n");
@@ -368,6 +369,80 @@ function maybe_auto_backup($db_file) {
             "💾 <b>SAO LƯU TỰ ĐỘNG</b> {$today}\n👥 {$users} người dùng · 📦 {$orders} đơn hàng\n"
             . "Tải file này về cất giữ; khôi phục bằng tab Sao lưu trong Quản trị.");
     }
+}
+
+// ---- THÔNG BÁO ĐẨY (Web Push, kiểu "không kèm nội dung") ----
+// Máy chủ chỉ gửi "cú hích" đánh thức service worker; sw.js tự tải thông báo mới nhất về
+// hiển thị. Nhờ vậy KHÔNG cần mã hóa payload phức tạp — chỉ cần chữ ký VAPID (ES256).
+function push_b64url($d) { return rtrim(strtr(base64_encode($d), '+/', '-_'), '='); }
+// Cặp khóa VAPID (EC P-256) tự sinh 1 lần, lưu vào push_vapid.json (bị .htaccess chặn).
+function push_vapid_keys() {
+    $file = __DIR__ . '/push_vapid.json';
+    $k = @json_decode(@file_get_contents($file), true);
+    if (is_array($k) && !empty($k['publicKey']) && !empty($k['privatePem'])) return $k;
+    if (!function_exists('openssl_pkey_new')) return null;
+    $res = @openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
+    if (!$res) return null;
+    if (!@openssl_pkey_export($res, $pem)) return null;
+    $det = openssl_pkey_get_details($res);
+    if (empty($det['ec']['x']) || empty($det['ec']['y'])) return null;
+    $pub = push_b64url("\x04" . str_pad($det['ec']['x'], 32, "\0", STR_PAD_LEFT) . str_pad($det['ec']['y'], 32, "\0", STR_PAD_LEFT));
+    $k = ['publicKey' => $pub, 'privatePem' => $pem];
+    @file_put_contents($file, json_encode($k));
+    return $k;
+}
+// JWT VAPID ký ES256; đổi chữ ký DER của openssl sang dạng thô r||s (64 byte) mà Web Push cần.
+function push_vapid_jwt($aud) {
+    $k = push_vapid_keys();
+    if (!$k) return null;
+    $data = push_b64url(json_encode(['typ' => 'JWT', 'alg' => 'ES256']))
+        . '.' . push_b64url(json_encode(['aud' => $aud, 'exp' => time() + 43200, 'sub' => 'mailto:admin@kenios.store']));
+    if (!@openssl_sign($data, $der, $k['privatePem'], OPENSSL_ALGO_SHA256)) return null;
+    // DER: SEQ { INT r, INT s } -> r||s mỗi cái 32 byte (chữ ký ECDSA ngắn nên độ dài luôn 1 byte).
+    $parse = function ($der, &$off) {
+        if (ord($der[$off]) !== 0x02) return null;
+        $len = ord($der[$off + 1]);
+        $val = substr($der, $off + 2, $len);
+        $off += 2 + $len;
+        $val = ltrim($val, "\0");
+        return str_pad($val, 32, "\0", STR_PAD_LEFT);
+    };
+    $off = 2;
+    $r = $parse($der, $off);
+    $s = $parse($der, $off);
+    if ($r === null || $s === null) return null;
+    return $data . '.' . push_b64url($r . $s);
+}
+// Kho subscription của khách (push_subs.json, khóa flock, tối đa 2000 thiết bị).
+function push_subs_update($fn) {
+    $file = __DIR__ . '/push_subs.json';
+    $fp = @fopen($file, 'c+');
+    if (!$fp || !flock($fp, LOCK_EX)) { if ($fp) fclose($fp); return null; }
+    $raw = stream_get_contents($fp);
+    $subs = $raw ? (json_decode($raw, true) ?: []) : [];
+    if (!is_array($subs)) $subs = [];
+    $out = $fn($subs);
+    if (count($subs) > 2000) $subs = array_slice($subs, -2000, null, true);
+    ftruncate($fp, 0); rewind($fp);
+    fwrite($fp, json_encode($subs));
+    fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+    return $out === null ? true : $out;
+}
+
+// LỊCH SỬ KHO KEY: ghi thêm các dòng {t, by, act(add/remove/sold), sv, pkg, n, total} vào
+// key_log.json (bị .htaccess chặn đọc trực tiếp). Giữ tối đa 500 dòng gần nhất.
+function key_log_add($entries) {
+    $file = __DIR__ . '/key_log.json';
+    $fp = @fopen($file, 'c+');
+    if (!$fp || !flock($fp, LOCK_EX)) { if ($fp) fclose($fp); return; }
+    $raw = stream_get_contents($fp);
+    $log = $raw ? (json_decode($raw, true) ?: []) : [];
+    if (!is_array($log)) $log = [];
+    foreach ($entries as $e) array_unshift($log, $e);
+    if (count($log) > 500) $log = array_slice($log, 0, 500);
+    ftruncate($fp, 0); rewind($fp);
+    fwrite($fp, json_encode($log, JSON_UNESCAPED_UNICODE));
+    fflush($fp); flock($fp, LOCK_UN); fclose($fp);
 }
 
 // % SALE RIÊNG theo sản phẩm/danh mục (config.itemSales) — trả % CAO NHẤT đang hiệu lực
@@ -1162,6 +1237,9 @@ switch ($action) {
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
         // Thông báo Telegram cho admin SAU KHI đã trả kết quả cho khách (không bắt khách chờ).
         flush_response();
+        // Lịch sử kho: ghi 1 dòng "đã bán 1 key" (sau khi trả kết quả, không làm chậm khách).
+        key_log_add([['t' => date('c'), 'by' => (string)($db['users'][$userIdx]['username'] ?? ''), 'act' => 'sold',
+            'sv' => (string)$service['name'], 'pkg' => (string)$pkg['name'], 'n' => 1, 'total' => count($keys)]]);
         tg_notify_order($db['users'][$userIdx]['username'] ?? $order['userId'], $service['name'], $pkg['name'], $price, count($keys));
         break;
 
@@ -1615,6 +1693,191 @@ switch ($action) {
         echo json_encode(["status" => "success"]);
         break;
 
+    // ---- WEB PUSH ----
+    // Khóa công khai VAPID cho trình duyệt đăng ký nhận thông báo đẩy.
+    case 'push_public_key':
+        $k = push_vapid_keys();
+        if (!$k) { echo json_encode(["status" => "error", "message" => "Máy chủ thiếu OpenSSL — không dùng được thông báo đẩy."]); exit; }
+        echo json_encode(["status" => "success", "publicKey" => $k['publicKey']]);
+        break;
+
+    // Trình duyệt khách gửi subscription lên để nhận thông báo đẩy.
+    case 'push_subscribe':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $sub = $input['subscription'] ?? null;
+        $endpoint = is_array($sub) ? (string)($sub['endpoint'] ?? '') : '';
+        if ($endpoint === '' || !preg_match('#^https://#', $endpoint)) { echo json_encode(["status" => "error", "message" => "Subscription không hợp lệ."]); exit; }
+        $rlP = rate_limit_hit('push:' . client_ip(), 10, 600, 600);
+        if (!$rlP['ok']) { echo json_encode(["status" => "error", "message" => "Thao tác quá nhanh."]); exit; }
+        push_subs_update(function (&$subs) use ($sub, $endpoint) {
+            $subs[md5($endpoint)] = ['endpoint' => $endpoint, 't' => time()];
+        });
+        echo json_encode(["status" => "success"]);
+        break;
+
+    case 'push_unsubscribe':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $endpoint = (string)($input['endpoint'] ?? '');
+        if ($endpoint !== '') push_subs_update(function (&$subs) use ($endpoint) { unset($subs[md5($endpoint)]); });
+        echo json_encode(["status" => "success"]);
+        break;
+
+    // sw.js gọi khi nhận cú hích: trả thông báo MỚI NHẤT (công khai, không có gì nhạy cảm).
+    case 'latest_announcement':
+        $db = read_db($db_file);
+        $list = (array)($db['config']['announcements'] ?? []);
+        usort($list, function ($a, $b) { return strcmp((string)($b['date'] ?? ''), (string)($a['date'] ?? '')); });
+        $latest = $list[0] ?? null;
+        echo json_encode([
+            "status" => "success",
+            "title" => $latest ? (string)($latest['title'] ?? '') : '',
+            "text" => $latest ? (string)($latest['text'] ?? '') : ''
+        ], JSON_UNESCAPED_UNICODE);
+        break;
+
+    // ADMIN bấm gửi: đánh thức service worker của MỌI thiết bị đã đăng ký (cú hích rỗng,
+    // sw tự tải thông báo mới nhất về hiện). Tự dọn thiết bị đã hủy (404/410).
+    case 'push_send':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) { echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit; }
+        $k = push_vapid_keys();
+        if (!$k) { echo json_encode(["status" => "error", "message" => "Máy chủ thiếu OpenSSL."]); exit; }
+        $subsAll = @json_decode(@file_get_contents(__DIR__ . '/push_subs.json'), true);
+        if (!is_array($subsAll) || !$subsAll) { echo json_encode(["status" => "success", "sent" => 0, "removed" => 0, "message" => "Chưa có khách nào bật thông báo đẩy."]); exit; }
+        $sent = 0; $removed = []; $jwtByAud = [];
+        $batch = array_slice($subsAll, 0, 300, true); // mỗi lần gửi tối đa 300 thiết bị
+        foreach ($batch as $id => $s) {
+            $endpoint = (string)($s['endpoint'] ?? '');
+            if ($endpoint === '') { $removed[] = $id; continue; }
+            $u = parse_url($endpoint);
+            $aud = ($u['scheme'] ?? 'https') . '://' . ($u['host'] ?? '');
+            if (!isset($jwtByAud[$aud])) $jwtByAud[$aud] = push_vapid_jwt($aud);
+            $jwt = $jwtByAud[$aud];
+            if (!$jwt) continue;
+            $ch = curl_init($endpoint);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true, CURLOPT_POSTFIELDS => '', CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 6, CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_HTTPHEADER => ['TTL: 86400', 'Content-Length: 0', 'Urgency: normal',
+                    'Authorization: vapid t=' . $jwt . ', k=' . $k['publicKey']]
+            ]);
+            curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($code >= 200 && $code < 300) $sent++;
+            elseif ($code === 404 || $code === 410) $removed[] = $id;
+        }
+        if ($removed) push_subs_update(function (&$subs) use ($removed) { foreach ($removed as $id) unset($subs[$id]); });
+        echo json_encode(["status" => "success", "sent" => $sent, "removed" => count($removed), "total" => count($subsAll)]);
+        break;
+
+    // VÒNG QUAY MAY MẮN: máy chủ CHỌN GIẢI (theo tỉ lệ admin đặt) + cộng thưởng + đếm lượt
+    // theo ngày — khách không thể gian lận vì mọi thứ quyết định ở máy chủ.
+    case 'spin_wheel':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $token = (string)($input['token'] ?? '');
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        $lw = is_array($db['config']['luckyWheel'] ?? null) ? $db['config']['luckyWheel'] : [];
+        $prizes = array_values(array_filter((array)($lw['prizes'] ?? []), function ($p) {
+            return is_array($p) && trim((string)($p['label'] ?? '')) !== '' && floatval($p['weight'] ?? 0) > 0;
+        }));
+        if (empty($lw['enabled']) || count($prizes) < 2) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Vòng quay đang tắt."]); exit;
+        }
+        $ui = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $userId) { $ui = $i; break; } }
+        if ($ui === -1 || !token_ok($db['users'][$ui], $token)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Vui lòng đăng nhập lại."]); exit;
+        }
+        $perDay = max(1, intval($lw['spinsPerDay'] ?? 1));
+        $today = date('Y-m-d');
+        $wDate = (string)($db['users'][$ui]['wheelDate'] ?? '');
+        $wCount = intval($db['users'][$ui]['wheelCount'] ?? 0);
+        if ($wDate !== $today) { $wCount = 0; }
+        if ($wCount >= $perDay) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Bạn đã hết lượt quay hôm nay — quay lại vào ngày mai nhé!"]); exit;
+        }
+        // Chọn giải theo TỈ LỆ (weight) — random ở máy chủ.
+        $totalW = 0.0;
+        foreach ($prizes as $p) $totalW += floatval($p['weight']);
+        $r = random_int(0, 1000000) / 1000000 * $totalW;
+        $idx = 0; $acc = 0.0;
+        foreach ($prizes as $i => $p) { $acc += floatval($p['weight']); if ($r <= $acc) { $idx = $i; break; } }
+        $prize = $prizes[$idx];
+        $amount = ($prize['type'] ?? 'none') === 'balance' ? max(0, floor(floatval($prize['value'] ?? 0))) : 0;
+        if ($amount > 0) {
+            $db['users'][$ui]['balance'] = floatval($db['users'][$ui]['balance'] ?? 0) + $amount;
+            if (!isset($db['transactions'])) $db['transactions'] = [];
+            array_unshift($db['transactions'], [
+                'id' => 'TXW' . time() . rand(100, 999), 'userId' => $userId, 'amount' => $amount,
+                'type' => 'wheel', 'description' => 'Vòng quay may mắn: ' . (string)$prize['label'], 'date' => date('c')
+            ]);
+        }
+        $db['users'][$ui]['wheelDate'] = $today;
+        $db['users'][$ui]['wheelCount'] = $wCount + 1;
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode([
+            "status" => "success", "prizeIndex" => $idx,
+            "prize" => ["label" => (string)$prize['label'], "type" => (string)($prize['type'] ?? 'none'), "value" => $amount],
+            "balance" => $db['users'][$ui]['balance'], "spinsLeft" => $perDay - ($wCount + 1)
+        ], JSON_UNESCAPED_UNICODE);
+        break;
+
+    // LỊCH SỬ KHO KEY (admin xem): trả tối đa 200 dòng gần nhất từ key_log.json.
+    case 'key_log':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) { echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit; }
+        $log = @json_decode(@file_get_contents(__DIR__ . '/key_log.json'), true);
+        if (!is_array($log)) $log = [];
+        echo json_encode(["status" => "success", "log" => array_slice($log, 0, 200)], JSON_UNESCAPED_UNICODE);
+        break;
+
+    // ADMIN TRẢ LỜI đánh giá của khách: ghi adminReply vào đúng review theo id.
+    case 'reply_review':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $reviewId = (string)($input['reviewId'] ?? '');
+        $reply = trim((string)($input['reply'] ?? ''));
+        if ($reviewId === '') { echo json_encode(["status" => "error", "message" => "Thiếu mã đánh giá."]); exit; }
+        if (mb_strlen($reply) > 1000) $reply = mb_substr($reply, 0, 1000);
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $done = false;
+        foreach (($db['reviews'] ?? []) as $i => $rv) {
+            if (($rv['id'] ?? '') === $reviewId) {
+                // reply rỗng = XOÁ phản hồi.
+                if ($reply === '') { unset($db['reviews'][$i]['adminReply'], $db['reviews'][$i]['adminReplyDate']); }
+                else { $db['reviews'][$i]['adminReply'] = $reply; $db['reviews'][$i]['adminReplyDate'] = date('c'); }
+                $done = true; break;
+            }
+        }
+        if (!$done) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Không tìm thấy đánh giá."]); exit; }
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success"]);
+        break;
+
     case 'save_db':
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {
@@ -1690,6 +1953,24 @@ switch ($action) {
                     }
                 }
             }
+            // LỊCH SỬ KHO KEY: ghi lại mỗi lần admin THÊM/BỚT key (so kho mới với kho cũ).
+            $keyLogEntries = [];
+            foreach ($input['services'] as $s) {
+                if (empty($s['id'])) continue;
+                foreach (($s['packages'] ?? []) as $p) {
+                    if (empty($p['id']) || !array_key_exists('keys', $p) || !is_array($p['keys'])) continue;
+                    $old = $oldKeysByService[$s['id']][$p['id']] ?? [];
+                    $delta = count($p['keys']) - count(is_array($old) ? $old : []);
+                    if ($delta !== 0) {
+                        $keyLogEntries[] = [
+                            't' => date('c'), 'by' => (string)$admin_user, 'act' => $delta > 0 ? 'add' : 'remove',
+                            'sv' => (string)($s['name'] ?? $s['id']), 'pkg' => (string)($p['name'] ?? $p['id']),
+                            'n' => abs($delta), 'total' => count($p['keys'])
+                        ];
+                    }
+                }
+            }
+            if ($keyLogEntries) key_log_add($keyLogEntries);
         }
 
         if (write_db($db_file, $input)) {
