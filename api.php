@@ -22,6 +22,22 @@ require_once __DIR__ . '/lib_card.php';
 $db_file = __DIR__ . '/database.json';
 $action = $_GET['action'] ?? '';
 
+// TỰ CẬP NHẬT .htaccess GỐC: file bắt đầu bằng dấu chấm là file ẨN, tải về/up thủ công hay
+// bị iPhone/trình duyệt từ chối. Nếu bản trên hosting còn thiếu các mục chặn mới
+// (otp_admin.json, auto_backup...), tự ghi lại bản đầy đủ — admin KHÔNG cần up .htaccess.
+(function () {
+    $ht = __DIR__ . '/.htaccess';
+    $cur = @file_get_contents($ht);
+    if ($cur !== false && strpos($cur, 'otp_admin') !== false && strpos($cur, 'auto_backup') !== false) return;
+    @file_put_contents($ht,
+        "# Chặn truy cập trực tiếp vào các file dữ liệu / bí mật (chỉ cho PHP đọc nội bộ).\n"
+        . "# File này do api.php tự tạo/cập nhật — không cần up thủ công.\n"
+        . "<FilesMatch \"^(database\\.json|database_backup\\.json|orders_backup\\.json|rate_limits\\.json|secrets\\.php|lib_secrets\\.php|lib_bank\\.php|lib_card\\.php|card_callback_log\\.txt|card_query_log\\.txt|expiry_notify_marker\\.txt|auto_backup_marker\\.txt|auto_backup_[0-9-]+\\.json|otp_admin\\.json|\\.user\\.ini)$\">\n"
+        . "  <IfModule mod_authz_core.c>\n    Require all denied\n  </IfModule>\n"
+        . "  <IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n  </IfModule>\n"
+        . "</FilesMatch>\n");
+})();
+
 // TỰ TẠO uploads/.htaccess nếu chưa có — chặn thực thi PHP/CGI trong thư mục uploads
 // (lớp phòng thủ thứ 2 ngoài whitelist đuôi file). Tự tạo vì file bắt đầu bằng dấu chấm
 // là file ẨN, tải về máy/up thủ công hay bị trình duyệt & app Tệp từ chối.

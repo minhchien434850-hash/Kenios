@@ -99,6 +99,20 @@ button { font: inherit; }
   background: linear-gradient(180deg, rgba(5,6,15,.42) 0%, rgba(5,6,15,.52) 55%, rgba(8,10,22,.62) 100%);
 }
 
+/* VIDEO TRANG TRÍ (nền trang, hero, thẻ sản phẩm/danh mục/combo): không phải trình phát.
+   Chặn bấm vào video (không mở được trình phát toàn màn hình) và GIẤU mọi thanh thời gian/
+   nút play mà trình duyệt trong app (Zalo/Messenger) tự vẽ lên. */
+#siteBgVideo, #heroBgVideo, .thumb-video, .category-media, .combo-media, video.brand-mark { pointer-events: none; }
+#siteBgVideo::-webkit-media-controls, #heroBgVideo::-webkit-media-controls,
+.thumb-video::-webkit-media-controls, .category-media::-webkit-media-controls,
+.combo-media::-webkit-media-controls, video.brand-mark::-webkit-media-controls,
+#siteBgVideo::-webkit-media-controls-panel, #heroBgVideo::-webkit-media-controls-panel,
+#siteBgVideo::-webkit-media-controls-start-playback-button,
+#heroBgVideo::-webkit-media-controls-start-playback-button,
+.thumb-video::-webkit-media-controls-start-playback-button {
+  display: none !important; opacity: 0 !important; -webkit-appearance: none; appearance: none;
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;

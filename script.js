@@ -2653,7 +2653,7 @@ window.KENIOS_DEFAULT_DB = {
       w.classList.toggle('has-photo', hasPhoto);
       const idAttr = w.classList.contains('mobile-nav-brand-mark') ? ' id="mobileNavLogo"' : '';
       w.innerHTML = isVid ?
-      `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline></video>` :
+      `<video class="brand-mark"${idAttr} src="${esc(src)}" muted loop autoplay playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" tabindex="-1"></video>` :
       `<img class="brand-mark"${idAttr} src="${esc(src)}" alt="">`;
     });
 
@@ -2822,7 +2822,7 @@ window.KENIOS_DEFAULT_DB = {
       const orig = Store.comboOriginalPrice(c);
       const save = orig - (Number(c.price) || 0);
       const mediaHtml = c.image ? isVideoUrl(c.image) ?
-      `<video class="combo-media" src="${esc(c.image)}" muted loop autoplay playsinline></video>` :
+      `<video class="combo-media" src="${esc(c.image)}" muted loop autoplay playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" tabindex="-1"></video>` :
       `<div class="combo-media" style="background-image:url('${esc(c.image)}')"></div>` : '';
       const itemsHtml = (c.items || []).map((it) => {
         const svc = Store.db.services.find((s) => s.id === it.serviceId);
@@ -2876,7 +2876,7 @@ window.KENIOS_DEFAULT_DB = {
     grid.innerHTML = media.map((m) => `
       <div class="showcase-item">
         ${m.type === 'video' ?
-    `<video src="${esc(m.url)}" muted loop autoplay playsinline></video>` :
+    `<video src="${esc(m.url)}" muted loop autoplay playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" tabindex="-1"></video>` :
     `<img src="${esc(m.url)}" alt="${esc(m.name || '')}" loading="lazy">`}
       </div>`).join('');
   }
@@ -2884,7 +2884,7 @@ window.KENIOS_DEFAULT_DB = {
   function categoryMediaHtml(c) {
     if (!c.image) return '';
     if (isVideoUrl(c.image)) {
-      return `<video class="category-media" src="${esc(c.image)}" muted loop autoplay playsinline></video>`;
+      return `<video class="category-media" src="${esc(c.image)}" muted loop autoplay playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" tabindex="-1"></video>`;
     }
     return `<div class="category-media" data-fallback-bg="${esc(c.image)}" style="background-image:url('${esc(c.image)}')"></div>`;
   }
@@ -3165,6 +3165,13 @@ window.KENIOS_DEFAULT_DB = {
       videoEl.playsInline = true;videoEl.setAttribute('playsinline', '');
       videoEl.setAttribute('webkit-playsinline', '');
       videoEl.loop = true;videoEl.autoplay = true;
+      // Video TRANG TRÍ, không phải trình phát: tắt hết thanh thời gian/nút play mà trình
+      // duyệt trong app (Zalo/Messenger) tự vẽ lên; chặn cả phóng to toàn màn hình/PiP.
+      videoEl.controls = false;videoEl.removeAttribute('controls');
+      videoEl.disablePictureInPicture = true;videoEl.setAttribute('disablepictureinpicture', '');
+      videoEl.setAttribute('disableremoteplayback', '');
+      videoEl.setAttribute('controlslist', 'nodownload noplaybackrate nofullscreen noremoteplayback');
+      videoEl.tabIndex = -1;
       if (videoEl.src !== url) videoEl.src = url;
       videoEl.hidden = false;
       const tryPlay = () => {try {const p = videoEl.play();if (p && p.catch) p.catch(() => {});} catch (e) {/* ignore */}};
@@ -3204,6 +3211,13 @@ window.KENIOS_DEFAULT_DB = {
       videoEl.playsInline = true;videoEl.setAttribute('playsinline', '');
       videoEl.setAttribute('webkit-playsinline', '');
       videoEl.loop = true;videoEl.autoplay = true;
+      // Video TRANG TRÍ, không phải trình phát: tắt hết thanh thời gian/nút play mà trình
+      // duyệt trong app (Zalo/Messenger) tự vẽ lên; chặn cả phóng to toàn màn hình/PiP.
+      videoEl.controls = false;videoEl.removeAttribute('controls');
+      videoEl.disablePictureInPicture = true;videoEl.setAttribute('disablepictureinpicture', '');
+      videoEl.setAttribute('disableremoteplayback', '');
+      videoEl.setAttribute('controlslist', 'nodownload noplaybackrate nofullscreen noremoteplayback');
+      videoEl.tabIndex = -1;
       if (videoEl.src !== url) videoEl.src = url;
       videoEl.hidden = false;
       const tryPlay = () => {try {const p = videoEl.play();if (p && p.catch) p.catch(() => {});} catch (e) {/* ignore */}};
@@ -3387,7 +3401,7 @@ window.KENIOS_DEFAULT_DB = {
     return `
       <article class="service-card ${inStock ? '' : 'out-of-stock'}" data-service="${esc(s.id)}">
         <div class="thumb" ${isVideo ? '' : `data-fallback-bg="${esc(s.image)}" style="background-image:url('${esc(s.image)}')"`}>
-          ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
+          ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" tabindex="-1"></video>` : ''}
           <div class="thumb-badges">
             <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
             ${sale.active ? `<span class="badge flash-badge">-${sale.percent}%</span>` : ''}
