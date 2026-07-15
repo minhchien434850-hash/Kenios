@@ -1,0 +1,13 @@
+# File TRẠNG THÁI RUNTIME do máy chủ tự tạo khi web chạy — không phải mã nguồn,
+# KHÔNG commit (commit sẽ đè trạng thái thật trên hosting khi triển khai).
+expiry_notify_marker.txt
+card_callback_log.txt
+card_query_log.txt
+rate_limits.json
+database_backup.json
+orders_backup.json
+otp_admin.json
+# Nội dung khách/admin tải lên (media) — giữ lại 2 file hạ tầng của thư mục.
+uploads/*
+!uploads/.gitkeep
+!uploads/.htaccess
