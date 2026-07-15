@@ -326,15 +326,26 @@ function maybe_notify_expiring_keys($db) {
     if ($soon) notify_telegram("⏰ <b>KEY SẮP HẾT HẠN (3 ngày tới)</b>\n" . implode("\n", $soon) . "\n👉 Nhắn khách gia hạn nhé!");
 }
 
-// SAO LƯU TỰ ĐỘNG hằng ngày: mỗi ngày 1 bản auto_backup_YYYY-MM-DD.json, giữ 7 bản gần
-// nhất. Chạy SAU khi đã trả dữ liệu cho khách (không làm chậm ai); chốt marker theo ngày
-// để nhiều request cùng lúc không sao lưu trùng. File backup bị .htaccess chặn tải public.
+// SAO LƯU TỰ ĐỘNG hằng ngày vào 12h TRƯA (giờ Việt Nam) và GỬI VỀ TELEGRAM. Bản sao lưu là
+// TOÀN BỘ CẤU HÌNH: cả database.json (config, danh mục, sản phẩm, kho key, người dùng, đơn
+// hàng, giao dịch, media metadata...) LẪN khóa API (_secrets: token ngân hàng, Partner
+// card2k, Telegram, TTS) — khôi phục là ĐỦ mọi thứ, không thiếu mục nào.
+//
+// Vì hosting chia sẻ thường KHÔNG có cron: ta kích hoạt khi có khách vào web TỪ 12h trưa
+// trở đi, và chốt marker theo ngày (dưới khóa file) nên mỗi ngày chỉ chạy + gửi ĐÚNG 1 lần.
+// File backup bị .htaccess chặn tải trực tiếp; giữ 7 bản gần nhất.
 function maybe_auto_backup($db_file) {
+    // Dùng GIỜ VIỆT NAM (UTC+7) để "12h trưa" đúng dù máy chủ đặt múi giờ nào.
+    try {
+        $vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+    } catch (Exception $e) { return; }
+    $hour = (int)$vn->format('G');   // giờ 0..23
+    $today = $vn->format('Y-m-d');
+    if ($hour < 12) return;          // CHỈ chạy từ 12h trưa (giờ VN) trở đi
+
+    // KIỂM TRA + GHI ĐÁNH DẤU dưới KHÓA FILE (atomic) — mỗi ngày chỉ chạy + gửi đúng 1 lần
+    // kể cả khi nhiều khách vào web cùng khoảnh khắc.
     $marker = __DIR__ . '/auto_backup_marker.txt';
-    $today = date('Y-m-d');
-    // KIỂM TRA + GHI ĐÁNH DẤU dưới KHÓA FILE (atomic) — đảm bảo TUYỆT ĐỐI mỗi ngày chỉ
-    // chạy đúng 1 lần (kể cả khi nhiều khách vào web cùng một khoảnh khắc đầu ngày),
-    // tức Telegram cũng chỉ nhận đúng 1 bản backup/ngày.
     $mf = @fopen($marker, 'c+');
     if (!$mf) return;
     if (!flock($mf, LOCK_EX)) { fclose($mf); return; }
@@ -343,31 +354,50 @@ function maybe_auto_backup($db_file) {
     flock($mf, LOCK_UN); fclose($mf);
     if ($done) return;
     if (!file_exists($db_file)) return;
-    // Đọc dưới khóa chia sẻ để không chép trúng lúc đơn hàng đang ghi dở.
+
+    // Đọc database dưới khóa chia sẻ để không chép trúng lúc đơn hàng đang ghi dở.
     $fp = @fopen($db_file, 'r');
     if (!$fp) return;
     if (!flock($fp, LOCK_SH)) { fclose($fp); return; }
     $content = stream_get_contents($fp);
     flock($fp, LOCK_UN); fclose($fp);
-    // Chỉ sao lưu khi dữ liệu là JSON hợp lệ (không lưu bản hỏng đè bản tốt).
     $chk = json_decode($content, true);
-    if (!is_array($chk) || !isset($chk['config'])) return;
+    if (!is_array($chk) || !isset($chk['config'])) return; // không lưu bản hỏng đè bản tốt
+
+    // GẮN KÈM KHÓA API (_secrets) để bản sao lưu là ĐẦY ĐỦ — khôi phục lại được cả token
+    // ngân hàng/card2k/Telegram, không phải nhập tay lại. Khôi phục qua "Khôi phục từ file"
+    // trong tab Sao lưu (đã tự tách _secrets ghi vào secrets.php, không nhét vào database).
+    $sec = read_secrets();
+    $chk['_secrets'] = [
+        'bankToken'        => (string)($sec['bankToken'] ?? ''),
+        'cardPartnerId'    => (string)($sec['cardPartnerId'] ?? ''),
+        'cardPartnerKey'   => (string)($sec['cardPartnerKey'] ?? ''),
+        'telegramBotToken' => (string)($sec['telegramBotToken'] ?? ''),
+        'telegramChatId'   => (string)($sec['telegramChatId'] ?? ''),
+        'ttsApiKey'        => (string)($sec['ttsApiKey'] ?? ''),
+    ];
+    $chk['_backupType'] = 'full-config';
+    $chk['_backupTime'] = $vn->format('c');
+    $bundle = json_encode($chk, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    if ($bundle === false) return;
+
     $backupPath = __DIR__ . '/auto_backup_' . $today . '.json';
-    @file_put_contents($backupPath, $content, LOCK_EX);
+    @file_put_contents($backupPath, $bundle, LOCK_EX);
     // Dọn: chỉ giữ 7 bản mới nhất.
     $files = glob(__DIR__ . '/auto_backup_????-??-??.json');
     if (is_array($files) && count($files) > 7) {
         sort($files); // tên chứa ngày nên sort chuỗi = sort thời gian
         foreach (array_slice($files, 0, count($files) - 7) as $old) { @unlink($old); }
     }
-    // GỬI FILE BACKUP VỀ TELEGRAM admin (nếu đã cấu hình bot) — bản dự phòng ngoài hosting:
-    // lỡ hosting hỏng/mất dữ liệu vẫn còn bản backup trong Telegram để khôi phục.
+    // GỬI FILE BACKUP ĐẦY ĐỦ VỀ TELEGRAM admin (bản dự phòng NGOÀI hosting).
     if (function_exists('notify_telegram_document')) {
         $users = is_array($chk['users'] ?? null) ? count($chk['users']) : 0;
         $orders = is_array($chk['orders'] ?? null) ? count($chk['orders']) : 0;
+        $svcs = is_array($chk['services'] ?? null) ? count($chk['services']) : 0;
         notify_telegram_document($backupPath,
-            "💾 <b>SAO LƯU TỰ ĐỘNG</b> {$today}\n👥 {$users} người dùng · 📦 {$orders} đơn hàng\n"
-            . "Tải file này về cất giữ; khôi phục bằng tab Sao lưu trong Quản trị.");
+            "💾 <b>SAO LƯU TỰ ĐỘNG (ĐẦY ĐỦ)</b> — " . $vn->format('d/m/Y H:i') . " (giờ VN)\n"
+            . "🧩 Gồm: cấu hình + khóa API + {$svcs} sản phẩm + kho key + {$users} người dùng + {$orders} đơn.\n"
+            . "👉 Cất file này. Khôi phục: Quản trị → Sao lưu → <b>Khôi phục từ file</b> (kéo file vào).");
     }
 }
 
@@ -2572,8 +2602,8 @@ switch ($action) {
         $latestAuto = $autoFiles ? basename(end($autoFiles)) : '';
         $add('backup_manual', 'Bản sao lưu thủ công', file_exists($manual),
             file_exists($manual) ? 'Lúc ' . date('d/m/Y H:i', filemtime($manual)) : 'Bấm "Sao lưu ngay" trong tab Sao lưu.');
-        $add('backup_auto', 'Sao lưu TỰ ĐỘNG hằng ngày (giữ ' . count($autoFiles) . '/7 bản)', !empty($autoFiles),
-            $latestAuto !== '' ? 'Mới nhất: ' . $latestAuto : 'Sẽ tự tạo khi có khách vào web mỗi ngày.');
+        $add('backup_auto', 'Sao lưu TỰ ĐỘNG + gửi Telegram 12h trưa (giữ ' . count($autoFiles) . '/7 bản)', !empty($autoFiles),
+            $latestAuto !== '' ? 'Mới nhất: ' . $latestAuto : 'Tự tạo & gửi Telegram khi có khách vào web từ 12h trưa (giờ VN).');
 
         // 5) Kho đơn hàng bền vững (chống mất đơn khi up đè database.json).
         $af = orders_archive_file();
