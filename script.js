@@ -25,6 +25,7 @@ window.KENIOS_DEFAULT_DB = {
     accentColor: "#22d3ee",
     referralEnabled: true,
     referralBonus: 20000,
+    renewDiscountPercent: 0,
     showcaseEnabled: false,
     googleClientId: "",
     welcomePopupEnabled: false,
@@ -663,6 +664,22 @@ window.KENIOS_DEFAULT_DB = {
       return eligible[0] || null;
     },
 
+    // % giảm GIA HẠN cho user với gói này: có key cùng sản phẩm + cùng tên gói sắp hết hạn
+    // (7 ngày tới) hoặc vừa hết hạn (30 ngày qua) -> được config.renewDiscountPercent.
+    renewPercentFor(user, service, pkg) {
+      const p = parseFloat(this.db.config && this.db.config.renewDiscountPercent) || 0;
+      if (p <= 0 || !user || !service || !pkg) return 0;
+      const now = Date.now();
+      const hit = (this.db.orders || []).some((o) => {
+        if (!o || o.userId !== user.userId || o.serviceId !== service.id || o.refunded) return false;
+        if (String(o.packageName || '') !== String(pkg.name || '')) return false;
+        if (!o.expiryDate) return false;
+        const t = Date.parse(o.expiryDate);
+        return !isNaN(t) && t >= now - 30 * 86400000 && t <= now + 7 * 86400000;
+      });
+      return hit ? p : 0;
+    },
+
     // Tính chi tiết giá phải trả khi mua 1 gói: Sale (flash/sản phẩm) -> VIP/CTV -> Mã giảm giá.
     // Trả về { base, afterFlash, afterVip, final, flashPercent, saleSource, vipPercent, vipName, ... }.
     computePurchasePrice(service, pkg, discountCode, user) {
@@ -678,6 +695,10 @@ window.KENIOS_DEFAULT_DB = {
       let vipName = tier ? tier.name : '';
       const ctvPercent = (user && user.role === 'ctv') ? (parseFloat(this.db.config.ctvDiscountPercent) || 0) : 0;
       if (ctvPercent > vipPercent) {vipPercent = ctvPercent;vipName = 'Cộng tác viên';}
+      // 2c) GIẢM GIA HẠN: mua lại đúng gói sắp/vừa hết hạn -> % gia hạn cạnh tranh bằng
+      // MAX với VIP/CTV (không cộng dồn) — khớp logic máy chủ (renew_discount_percent).
+      const renewPercent = this.renewPercentFor(user, service, pkg);
+      if (renewPercent > vipPercent) {vipPercent = renewPercent;vipName = 'Gia hạn';}
       const vipCut = Math.floor(afterFlash * vipPercent / 100);
       const afterVip = Math.max(0, afterFlash - vipCut);
       const dc = this.applyDiscountToPrice(afterVip, discountCode, { categoryId: service ? service.categoryId : '' });
@@ -1446,6 +1467,12 @@ window.KENIOS_DEFAULT_DB = {
       try {const r = await fetch(`${API_URL}?action=card_log`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
       catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
+
+    // Kiểm tra sức khỏe hệ thống (admin, chỉ đọc): quyền ghi, secrets, callback, sao lưu...
+    async healthCheck(u, p) {
+      try {const r = await fetch(`${API_URL}?action=health_check`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
+    },
     async restoreFromServer(u, p) {
       try {const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
       catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
@@ -1900,6 +1927,7 @@ window.KENIOS_DEFAULT_DB = {
     tag: _svg('<path d="M4 4h7.5l8.5 8.5-7.5 7.5L4 11.5V4Z"/><circle cx="8.5" cy="8.5" r="1.4"/>'),
     gift: _svg('<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12"/><path d="M12 8S10.5 4.5 8.2 4.5A1.8 1.8 0 0 0 8 8h4Zm0 0s1.5-3.5 3.8-3.5A1.8 1.8 0 0 1 16 8h-4Z"/>'),
     key: _svg('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8M17.5 4.5 20 7M15.5 6.5 18 9"/>'),
+    pulse: _svg('<path d="M3 12h4l2.5-6 4.5 12 2.5-6H21"/>'),
     folder: _svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>'),
     apple: _svg('<path d="M15.5 3c.2 1.2-.3 2.3-1 3-.7.8-1.9 1.3-2.9 1.2-.2-1.1.4-2.3 1-3C13.4 3.4 14.6 3 15.5 3Z"/><path d="M18.5 16.4c-.6 1.9-1.9 3.9-3.5 3.9-1 0-1.5-.6-2.7-.6s-1.7.6-2.6.6c-1.7 0-3.2-2.8-3.8-5.1-.6-2.6.4-5 2.5-5.3 1.1-.2 2.1.5 2.9.5.7 0 2-.9 3.3-.7 1.1.1 2.1.6 2.7 1.5-1.9 1.3-1.8 3.9.1 4.7Z"/>'),
     android: _svg('<path d="M5 11a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 17v-6Z"/><path d="M8 10 6.3 7M16 10l1.7-3"/><path d="M9.5 8.3v.01M14.5 8.3v.01"/><path d="M3 12v3M21 12v3M9 18.5v2M15 18.5v2"/>'),
@@ -5022,7 +5050,7 @@ window.KENIOS_DEFAULT_DB = {
       body.innerHTML = '<p class="empty-note">Bạn (Cộng tác viên) không có quyền xem mục này.</p>';
       return;
     }
-    if (tab === 'overview') body.innerHTML = adminOverviewHtml();else
+    if (tab === 'overview') {body.innerHTML = adminOverviewHtml();wireAdminOverview();} else
     if (tab === 'services') body.innerHTML = adminServicesHtml();else
     if (tab === 'categories') body.innerHTML = adminCategoriesHtml();else
     if (tab === 'orders') {body.innerHTML = adminOrdersHtml();wireAdminTableTools('orders');} else
@@ -5035,6 +5063,35 @@ window.KENIOS_DEFAULT_DB = {
     if (tab === 'cards') {body.innerHTML = adminCardsHtml();wireAdminCards();} else
     if (tab === 'config') {body.innerHTML = adminConfigHtml();wireAdminConfigSecretBoxes();} else
     if (tab === 'backup') {body.innerHTML = adminBackupHtml();wireBackupBox();}
+  }
+
+  // Nút "Kiểm tra sức khỏe hệ thống" trong tab Tổng quan: gọi health_check (chỉ đọc) và
+  // vẽ danh sách ✓/✗ kèm gợi ý sửa cho từng mục. Không đổi dữ liệu gì trên máy chủ.
+  function wireAdminOverview() {
+    const btn = $('#healthCheckBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const c = getAdminCreds();
+      if (!c) {toast('Đăng nhập lại admin 1 lần để kiểm tra.', 'error');return;}
+      const box = $('#healthResults');
+      const sum = $('#healthSummary');
+      box.hidden = false;
+      box.innerHTML = '<p class="muted" style="margin:8px 0;">Đang kiểm tra…</p>';
+      withLoading(btn, async () => {
+        const res = await Store.healthCheck(c.username, c.password);
+        if (!res || res.status !== 'success') {
+          box.innerHTML = `<p class="muted" style="margin:8px 0;">${esc(res && res.message || 'Không kiểm tra được.')}</p>`;
+          return;
+        }
+        if (sum) sum.textContent = `Đạt ${res.summary} mục · ${res.users} người dùng · ${res.orders} đơn`;
+        box.innerHTML = (res.checks || []).map((ck) => `
+          <div class="health-row ${ck.ok ? 'ok' : 'bad'}">
+            <span class="health-ico">${ck.ok ? ico('check') : ico('warn')}</span>
+            <span class="health-label">${esc(ck.label)}</span>
+            <span class="health-note">${esc(ck.note || (ck.ok ? 'OK' : ''))}</span>
+          </div>`).join('');
+      });
+    });
   }
 
   function wireAdminConfigSecretBoxes() {var _$22, _$23, _$24, _$25, _$26, _$27;
@@ -5337,6 +5394,14 @@ window.KENIOS_DEFAULT_DB = {
       </div>
       <div class="admin-stat-grid">
         ${stats.map((s) => `<div class="admin-stat-card"><strong>${s.value}</strong><span>${s.label}</span></div>`).join('')}
+      </div>
+
+      <div class="health-box">
+        <div class="health-head">
+          <button type="button" class="btn btn-primary btn-sm" id="healthCheckBtn">${ico('pulse')} Kiểm tra sức khỏe hệ thống</button>
+          <span class="muted" id="healthSummary"></span>
+        </div>
+        <div id="healthResults" class="health-results" hidden></div>
       </div>
 
       ${lowStockHtml}
@@ -5883,6 +5948,51 @@ window.KENIOS_DEFAULT_DB = {
             ${r.byDay.map(([d, o]) => `<tr><td>${esc(d.split('-').reverse().join('/'))}</td><td style="text-align:right">${fmt(o.revenue)} <small class="muted">(${o.count} đơn)</small></td></tr>`).join('')}
           </tbody></table></div>` : '<p class="muted">—</p>'}
         </div>
+      </div>
+      ${loyaltyBoardsHtml()}`;
+  }
+
+  // Bảng KHÁCH THÂN THIẾT (toàn thời gian, không phụ thuộc khoảng ngày ở trên):
+  // - Top chi tiêu: tổng tiền mọi đơn (bỏ đơn hoàn) theo từng khách.
+  // - Top giới thiệu: đếm số tài khoản có referredBy = mã giới thiệu của khách.
+  // Chỉ ĐỌC dữ liệu sẵn có — giúp admin biết ai nên được chăm sóc/tặng quà.
+  function loyaltyBoardsHtml() {
+    const users = Store.db.users || [];
+    const nameOf = {};
+    users.forEach((u) => {nameOf[u.userId] = u.username || u.userId;});
+    // Top chi tiêu toàn thời gian
+    const spend = {};
+    (Store.db.orders || []).forEach((o) => {
+      if (o.refunded) return;
+      const id = o.userId || '?';
+      spend[id] = (spend[id] || 0) + (parseFloat(o.price) || 0);
+    });
+    const topSpend = Object.entries(spend).filter(([, v]) => v > 0).
+    sort((a, b) => b[1] - a[1]).slice(0, 5);
+    // Top giới thiệu: đếm referredBy theo refCode chủ sở hữu
+    const refCount = {};
+    users.forEach((u) => {
+      const by = (u.referredBy || '').toUpperCase();
+      if (by) refCount[by] = (refCount[by] || 0) + 1;
+    });
+    const codeOwner = {};
+    users.forEach((u) => {const c = (u.refCode || '').toUpperCase();if (c) codeOwner[c] = u.username || u.userId;});
+    const topRef = Object.entries(refCount).map(([code, n]) => [codeOwner[code] || code, n]).
+    sort((a, b) => b[1] - a[1]).slice(0, 5);
+    return `
+      <div class="report-cols">
+        <div class="report-col">
+          <h4>${ico('crown')} Khách chi tiêu nhiều nhất (toàn thời gian)</h4>
+          ${topSpend.length ? `<table class="admin-table"><tbody>
+            ${topSpend.map(([id, v], i) => `<tr><td>${i + 1}. ${esc(nameOf[id] || id)}</td><td style="text-align:right">${fmt(v)}</td></tr>`).join('')}
+          </tbody></table>` : '<p class="muted">Chưa có đơn hàng nào.</p>'}
+        </div>
+        <div class="report-col">
+          <h4>${ico('heart')} Top giới thiệu bạn bè</h4>
+          ${topRef.length ? `<table class="admin-table"><tbody>
+            ${topRef.map(([n, c], i) => `<tr><td>${i + 1}. ${esc(n)}</td><td style="text-align:right">${c} người</td></tr>`).join('')}
+          </tbody></table>` : '<p class="muted">Chưa có ai giới thiệu bạn bè (khách nhập mã khi đăng ký).</p>'}
+        </div>
       </div>`;
   }
   function wireAdminReport() {var _$36, _$37;
@@ -6304,6 +6414,14 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <label>Giảm giá cho CTV (%)
           <input type="number" name="ctvDiscountPercent" min="0" max="90" step="1" value="${parseFloat(c.ctvDiscountPercent) || 0}" placeholder="VD: 10">
+        </label>
+
+        <div class="admin-form-section">4c. ${ico('history')} Giảm giá GIA HẠN key</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Cách hoạt động:</b> Khách mua lại <b>đúng sản phẩm + đúng gói</b> đang có key <b>sắp hết hạn</b> (trong 7 ngày tới) hoặc <b>vừa hết hạn</b> (30 ngày qua) sẽ tự động được giảm % này — khuyến khích gia hạn thay vì bỏ đi. Nếu khách cũng có VIP/CTV thì áp <b>mức cao hơn</b> (không cộng dồn). Để 0 = tắt.
+        </div>
+        <label>Giảm giá gia hạn (%)
+          <input type="number" name="renewDiscountPercent" min="0" max="90" step="1" value="${parseFloat(c.renewDiscountPercent) || 0}" placeholder="VD: 10">
         </label>
 
         <div class="admin-form-section">5. ${ico('gift')} Mã giới thiệu bạn bè</div>
@@ -7523,6 +7641,7 @@ window.KENIOS_DEFAULT_DB = {
         vipTiers: readVipTiersFromEditor(),
         itemSales: readItemSalesFromEditor(),
         ctvDiscountPercent: Math.max(0, Math.min(90, parseFloat(fd.get('ctvDiscountPercent')) || 0)),
+        renewDiscountPercent: Math.max(0, Math.min(90, parseFloat(fd.get('renewDiscountPercent')) || 0)),
         referralEnabled: fd.get('referralEnabled') === 'on',
         referralBonus: parseInt(fd.get('referralBonus'), 10) || 0
       });

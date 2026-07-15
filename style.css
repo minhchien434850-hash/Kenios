@@ -2565,3 +2565,19 @@ table tbody tr:hover { background: rgba(124,162,255,.06); }
   .showcase-item { height: 200px; }
   .icon-pick { height: 46px; }
 }
+
+/* ---- Kiểm tra sức khỏe hệ thống (tab Tổng quan admin) ---- */
+.health-box { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 20px; background: var(--glass); }
+.health-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.health-head .muted { font-size: .78rem; }
+.health-results { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.health-row { display: flex; align-items: flex-start; gap: 8px; font-size: .82rem; padding: 7px 10px; border-radius: 8px; background: rgba(130,150,255,.04); border: 1px solid transparent; }
+.health-row.ok { border-color: rgba(46,230,160,.22); }
+.health-row.ok .health-ico { color: var(--success); }
+.health-row.bad { border-color: rgba(255,107,125,.3); background: rgba(255,107,125,.06); }
+.health-row.bad .health-ico { color: var(--danger); }
+.health-ico { flex-shrink: 0; display: inline-flex; margin-top: 1px; }
+.health-ico svg { width: 15px; height: 15px; }
+.health-label { font-weight: 600; flex: 0 0 auto; max-width: 46%; min-width: 0; }
+.health-note { color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .health-row { flex-wrap: wrap; } .health-label { max-width: none; } }

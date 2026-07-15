@@ -52,3 +52,31 @@ function notify_telegram($text) {
     curl_close($ch);
     return $ok;
 }
+
+// Gửi 1 FILE (tài liệu) tới Telegram của admin — dùng cho bản sao lưu tự động hằng ngày.
+// Chạy SAU khi đã trả dữ liệu cho khách nên timeout rộng hơn chút (file vài trăm KB~vài MB).
+// Chưa cấu hình bot/chat hoặc lỗi mạng thì bỏ qua (trả false), không ảnh hưởng web.
+function notify_telegram_document($filePath, $caption = '') {
+    $secrets = read_secrets();
+    $botToken = trim((string)($secrets['telegramBotToken'] ?? ''));
+    $chatId   = trim((string)($secrets['telegramChatId'] ?? ''));
+    if ($botToken === '' || $chatId === '') return false;
+    if (!function_exists('curl_init') || !class_exists('CURLFile')) return false;
+    if (!is_file($filePath) || filesize($filePath) <= 0) return false;
+    if (filesize($filePath) > 45 * 1024 * 1024) return false; // giới hạn bot Telegram ~50MB
+    $ch = curl_init("https://api.telegram.org/bot{$botToken}/sendDocument");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, [
+        'chat_id' => $chatId,
+        'caption' => $caption,
+        'parse_mode' => 'HTML',
+        'document' => new CURLFile($filePath, 'application/json', basename($filePath)),
+    ]);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    $resp = curl_exec($ch);
+    $ok = ($resp !== false && curl_getinfo($ch, CURLINFO_HTTP_CODE) === 200);
+    curl_close($ch);
+    return $ok;
+}

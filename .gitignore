@@ -11,3 +11,5 @@ otp_admin.json
 uploads/*
 !uploads/.gitkeep
 !uploads/.htaccess
+auto_backup_marker.txt
+auto_backup_*.json

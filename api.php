@@ -309,6 +309,51 @@ function maybe_notify_expiring_keys($db) {
     if ($soon) notify_telegram("⏰ <b>KEY SẮP HẾT HẠN (3 ngày tới)</b>\n" . implode("\n", $soon) . "\n👉 Nhắn khách gia hạn nhé!");
 }
 
+// SAO LƯU TỰ ĐỘNG hằng ngày: mỗi ngày 1 bản auto_backup_YYYY-MM-DD.json, giữ 7 bản gần
+// nhất. Chạy SAU khi đã trả dữ liệu cho khách (không làm chậm ai); chốt marker theo ngày
+// để nhiều request cùng lúc không sao lưu trùng. File backup bị .htaccess chặn tải public.
+function maybe_auto_backup($db_file) {
+    $marker = __DIR__ . '/auto_backup_marker.txt';
+    $today = date('Y-m-d');
+    // KIỂM TRA + GHI ĐÁNH DẤU dưới KHÓA FILE (atomic) — đảm bảo TUYỆT ĐỐI mỗi ngày chỉ
+    // chạy đúng 1 lần (kể cả khi nhiều khách vào web cùng một khoảnh khắc đầu ngày),
+    // tức Telegram cũng chỉ nhận đúng 1 bản backup/ngày.
+    $mf = @fopen($marker, 'c+');
+    if (!$mf) return;
+    if (!flock($mf, LOCK_EX)) { fclose($mf); return; }
+    $done = trim((string)stream_get_contents($mf)) === $today;
+    if (!$done) { ftruncate($mf, 0); rewind($mf); fwrite($mf, $today); fflush($mf); }
+    flock($mf, LOCK_UN); fclose($mf);
+    if ($done) return;
+    if (!file_exists($db_file)) return;
+    // Đọc dưới khóa chia sẻ để không chép trúng lúc đơn hàng đang ghi dở.
+    $fp = @fopen($db_file, 'r');
+    if (!$fp) return;
+    if (!flock($fp, LOCK_SH)) { fclose($fp); return; }
+    $content = stream_get_contents($fp);
+    flock($fp, LOCK_UN); fclose($fp);
+    // Chỉ sao lưu khi dữ liệu là JSON hợp lệ (không lưu bản hỏng đè bản tốt).
+    $chk = json_decode($content, true);
+    if (!is_array($chk) || !isset($chk['config'])) return;
+    $backupPath = __DIR__ . '/auto_backup_' . $today . '.json';
+    @file_put_contents($backupPath, $content, LOCK_EX);
+    // Dọn: chỉ giữ 7 bản mới nhất.
+    $files = glob(__DIR__ . '/auto_backup_????-??-??.json');
+    if (is_array($files) && count($files) > 7) {
+        sort($files); // tên chứa ngày nên sort chuỗi = sort thời gian
+        foreach (array_slice($files, 0, count($files) - 7) as $old) { @unlink($old); }
+    }
+    // GỬI FILE BACKUP VỀ TELEGRAM admin (nếu đã cấu hình bot) — bản dự phòng ngoài hosting:
+    // lỡ hosting hỏng/mất dữ liệu vẫn còn bản backup trong Telegram để khôi phục.
+    if (function_exists('notify_telegram_document')) {
+        $users = is_array($chk['users'] ?? null) ? count($chk['users']) : 0;
+        $orders = is_array($chk['orders'] ?? null) ? count($chk['orders']) : 0;
+        notify_telegram_document($backupPath,
+            "💾 <b>SAO LƯU TỰ ĐỘNG</b> {$today}\n👥 {$users} người dùng · 📦 {$orders} đơn hàng\n"
+            . "Tải file này về cất giữ; khôi phục bằng tab Sao lưu trong Quản trị.");
+    }
+}
+
 // % SALE RIÊNG theo sản phẩm/danh mục (config.itemSales) — trả % CAO NHẤT đang hiệu lực
 // khớp với sản phẩm này (theo chính nó hoặc danh mục của nó). Hết hạn/tắt thì bỏ qua.
 function item_sale_percent($cfg, $serviceId, $categoryId) {
@@ -323,6 +368,27 @@ function item_sale_percent($cfg, $serviceId, $categoryId) {
         if ($match && $p > $best) $best = $p;
     }
     return $best;
+}
+
+// % GIẢM GIA HẠN (config.renewDiscountPercent): khách MUA LẠI đúng sản phẩm + gói mà họ
+// đang có key SẮP HẾT HẠN (trong 7 ngày tới) hoặc VỪA hết hạn (30 ngày qua) thì được giảm.
+// Trả 0 nếu tắt hoặc không phải trường hợp gia hạn. Cạnh tranh bằng MAX với VIP/CTV
+// (không cộng dồn) — cùng triết lý với các giảm giá khác.
+function renew_discount_percent($db, $cfg, $userId, $serviceId, $pkgName) {
+    $p = floatval($cfg['renewDiscountPercent'] ?? 0);
+    if ($p <= 0 || $userId === '') return 0;
+    $now = time();
+    foreach (($db['orders'] ?? []) as $o) {
+        if (($o['userId'] ?? '') !== $userId) continue;
+        if (($o['serviceId'] ?? '') !== $serviceId) continue;
+        if ((string)($o['packageName'] ?? '') !== (string)$pkgName) continue;
+        if (!empty($o['refunded'])) continue;
+        if (empty($o['expiryDate'])) continue; // key vĩnh viễn thì không có khái niệm gia hạn
+        $t = strtotime((string)$o['expiryDate']);
+        if ($t === false) continue;
+        if ($t >= $now - 30 * 86400 && $t <= $now + 7 * 86400) return $p;
+    }
+    return 0;
 }
 
 // Sinh mã giới thiệu ngắn, DUY NHẤT (không trùng refCode nào đang có). Bỏ ký tự dễ nhầm.
@@ -840,6 +906,7 @@ switch ($action) {
         // khi đã trả dữ liệu cho khách nên không làm chậm ai.
         flush_response();
         maybe_notify_expiring_keys(read_db($db_file));
+        maybe_auto_backup($db_file); // sao lưu tự động 1 lần/ngày (sau khi đã trả dữ liệu)
         break;
 
     case 'redeem_key':
@@ -946,6 +1013,10 @@ switch ($action) {
             $ctvP = floatval($cfg['ctvDiscountPercent'] ?? 0);
             if ($ctvP > $vipPercent) $vipPercent = $ctvP;
         }
+        // 2c) GIẢM GIA HẠN: mua lại đúng gói đang sắp/vừa hết hạn -> % gia hạn cạnh tranh
+        // bằng MAX với VIP/CTV (không cộng dồn, cùng triết lý các giảm giá khác).
+        $renewP = renew_discount_percent($db, $cfg, (string)($db['users'][$userIdx]['userId'] ?? ''), $serviceId, (string)($pkg['name'] ?? ''));
+        if ($renewP > $vipPercent) $vipPercent = $renewP;
         $price = max(0, $price - floor($price * $vipPercent / 100));
 
         // 3) Mã giảm giá (nếu khách nhập): đối chiếu + kiểm tra hạn/lượt/đơn tối thiểu/danh mục.
@@ -1190,6 +1261,10 @@ switch ($action) {
             $ctvP = floatval($cfg['ctvDiscountPercent'] ?? 0);
             if ($ctvP > $vipPercent) $vipPercent = $ctvP;
         }
+        // 2c) GIẢM GIA HẠN: mua lại đúng gói đang sắp/vừa hết hạn -> % gia hạn cạnh tranh
+        // bằng MAX với VIP/CTV (không cộng dồn, cùng triết lý các giảm giá khác).
+        $renewP = renew_discount_percent($db, $cfg, (string)($db['users'][$userIdx]['userId'] ?? ''), $serviceId, (string)($pkg['name'] ?? ''));
+        if ($renewP > $vipPercent) $vipPercent = $renewP;
         $price = max(0, $price - floor($price * $vipPercent / 100));
 
         // 3) Mã giảm giá (nếu khách nhập).
@@ -2152,6 +2227,80 @@ switch ($action) {
         } else {
             echo json_encode(["status" => "success", "exists" => false]);
         }
+        break;
+
+    // KIỂM TRA SỨC KHỎE HỆ THỐNG (admin, CHỈ ĐỌC — không đổi gì): tự chẩn đoán các cấu
+    // hình/quyền hay gây lỗi (quyền ghi, secrets, Telegram, callback thẻ, sao lưu...)
+    // để admin bấm 1 nút là thấy ngay chỗ hỏng thay vì mò log.
+    case 'health_check':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $secrets = read_secrets();
+        $checks = [];
+        $add = function ($key, $label, $ok, $note = '') use (&$checks) {
+            $checks[] = ['key' => $key, 'label' => $label, 'ok' => (bool)$ok, 'note' => $note];
+        };
+
+        // 1) Quyền ghi thư mục + database.json (mọi tính năng lưu đều cần).
+        $probe = __DIR__ . '/.__health_probe.tmp';
+        $dirWritable = (@file_put_contents($probe, 'x') !== false); @unlink($probe);
+        $add('dir_write', 'Quyền ghi thư mục web', $dirWritable, $dirWritable ? '' : 'PHP không ghi được file — chỉnh quyền (CHMOD 755/775) thư mục trên hosting.');
+        $dbWritable = file_exists($db_file) && is_writable($db_file);
+        $add('db_write', 'Ghi được database.json', $dbWritable, $dbWritable ? 'Kích thước ' . number_format(filesize($db_file)) . ' byte' : 'Không ghi được — mua hàng/nạp tiền sẽ lỗi.');
+
+        // 2) Secrets đã nhập chưa (chỉ báo CÓ/CHƯA, không lộ giá trị).
+        $add('card_secret', 'Nạp thẻ cào (Partner ID + Key card2k)',
+            trim((string)($secrets['cardPartnerId'] ?? '')) !== '' && trim((string)($secrets['cardPartnerKey'] ?? '')) !== '',
+            'Nhập trong tab Cấu hình → Nạp thẻ cào.');
+        $add('bank_secret', 'Nạp VietQR tự động (Bank token)',
+            trim((string)($secrets['bankToken'] ?? '')) !== '', 'Nhập trong tab Cấu hình → Ngân hàng.');
+        $add('telegram_secret', 'Thông báo Telegram (bot token + chat id)',
+            trim((string)($secrets['telegramBotToken'] ?? '')) !== '' && trim((string)($secrets['telegramChatId'] ?? '')) !== '',
+            'Nhập trong tab Cấu hình → Telegram (nút "Gửi thử" để kiểm chứng).');
+
+        // 3) Callback thẻ cào có nhận được không (bằng chứng card2k gọi về thành công).
+        $cbLog = __DIR__ . '/card_callback_log.txt';
+        $cbTime = file_exists($cbLog) ? filemtime($cbLog) : 0;
+        $add('card_callback', 'Callback thẻ cào từ card2k', $cbTime > 0,
+            $cbTime > 0 ? 'Lần cuối: ' . date('d/m/Y H:i', $cbTime) : 'Chưa từng nhận callback — kiểm tra Callback URL bên card2k = https://<tên-miền>/card.php');
+
+        // 4) Sao lưu: bản thủ công + bản tự động gần nhất.
+        $manual = __DIR__ . '/database_backup.json';
+        $autoFiles = glob(__DIR__ . '/auto_backup_????-??-??.json') ?: [];
+        sort($autoFiles);
+        $latestAuto = $autoFiles ? basename(end($autoFiles)) : '';
+        $add('backup_manual', 'Bản sao lưu thủ công', file_exists($manual),
+            file_exists($manual) ? 'Lúc ' . date('d/m/Y H:i', filemtime($manual)) : 'Bấm "Sao lưu ngay" trong tab Sao lưu.');
+        $add('backup_auto', 'Sao lưu TỰ ĐỘNG hằng ngày (giữ ' . count($autoFiles) . '/7 bản)', !empty($autoFiles),
+            $latestAuto !== '' ? 'Mới nhất: ' . $latestAuto : 'Sẽ tự tạo khi có khách vào web mỗi ngày.');
+
+        // 5) Kho đơn hàng bền vững (chống mất đơn khi up đè database.json).
+        $af = orders_archive_file();
+        $afOk = file_exists($af);
+        $afCount = 0;
+        if ($afOk) { $arr = json_decode(@file_get_contents($af), true); $afCount = is_array($arr) ? count($arr) : 0; }
+        $add('orders_archive', 'Kho đơn hàng bền vững', $afOk, $afOk ? "Đang giữ {$afCount} đơn" : 'Sẽ tự tạo khi có đơn hàng đầu tiên.');
+
+        // 6) Thư mục uploads (media) ghi được không.
+        $upDir = __DIR__ . '/uploads';
+        $add('uploads', 'Thư mục uploads (ảnh/video/file tải lên)', is_dir($upDir) ? is_writable($upDir) : $dirWritable,
+            is_dir($upDir) ? '' : 'Chưa có — sẽ tự tạo khi tải file đầu tiên.');
+
+        // 7) Số liệu nhanh + môi trường PHP.
+        $add('php', 'PHP ' . PHP_VERSION . ' + cURL', function_exists('curl_init'),
+            function_exists('curl_init') ? '' : 'Thiếu cURL — nạp thẻ/Telegram/ngân hàng sẽ lỗi. Bật extension curl trên hosting.');
+        $okCount = count(array_filter($checks, function ($c) {return $c['ok'];}));
+        echo json_encode([
+            "status" => "success", "time" => date('c'),
+            "summary" => $okCount . '/' . count($checks),
+            "users" => is_array($db['users'] ?? null) ? count($db['users']) : 0,
+            "orders" => is_array($db['orders'] ?? null) ? count($db['orders']) : 0,
+            "checks" => $checks
+        ], JSON_UNESCAPED_UNICODE);
         break;
 
     // Thông tin kho đơn hàng bền vững (số đơn đang lưu, thời gian cập nhật).
