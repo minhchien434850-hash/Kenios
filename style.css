@@ -108,7 +108,7 @@ button { font: inherit; }
 }
 .btn:active { transform: scale(.97); }
 .btn-primary {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 85%, white) 0%, var(--gold) 45%, color-mix(in srgb, var(--gold) 80%, #0e7490) 100%);
+  background: linear-gradient(135deg, #7ceeff 0%, var(--gold) 45%, #1ab6cf 100%);
   color: #06121a; box-shadow: 0 10px 28px -10px rgba(34,211,238,.6), inset 0 1px 0 rgba(255,255,255,.35);
 }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -10px rgba(34,211,238,.75), inset 0 1px 0 rgba(255,255,255,.4); }
@@ -2551,3 +2551,17 @@ table tbody tr:hover { background: rgba(124,162,255,.06); }
 }
 /* Cách nhau giữa khu nền tảng và lưới liền sau */
 .plat-group-head + .service-grid { margin-bottom: 6px; }
+
+/* ===== FALLBACK cho WEBVIEW CŨ (Zalo/Telegram/Messenger trên máy chưa cập nhật) =====
+   Các webview này KHÔNG hiểu aspect-ratio -> khung ảnh (chỉ có background-image, không có
+   nội dung) sập về cao 0 -> ảnh danh mục/sản phẩm/modal "biến mất". Dùng chiêu padding-top
+   (tỷ lệ theo bề rộng) / cao cố định để khung LUÔN có chỗ hiển thị ảnh. */
+@supports not (aspect-ratio: 1 / 1) {
+  div.category-media { height: 0; padding-top: 75%; }            /* 4:3 */
+  .category-media.img-fallback { height: 0; padding-top: 75%; }
+  video.category-media { height: 200px; }                        /* video: cao cố định */
+  .service-card .thumb { height: 0; padding-top: 75%; }          /* 4:3 */
+  .service-modal-media { height: 0; padding-top: 56.25%; max-height: none; } /* 16:9 */
+  .showcase-item { height: 200px; }
+  .icon-pick { height: 46px; }
+}

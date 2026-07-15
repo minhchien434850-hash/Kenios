@@ -2715,6 +2715,8 @@ window.KENIOS_DEFAULT_DB = {
     updateAnnounceBadge();     // chấm đỏ chuông thông báo khi có tin chưa đọc
     injectSeoJsonLd();
     applyMaintenanceMode();
+    // Sau MỖI lần render lại nội dung (video chèn qua innerHTML): ép video chạy trong webview.
+    ensureVideosPlay();
   }
 
   // Khung ảnh thẻ danh mục / thư mục con / sản phẩm dùng KHUNG CỐ ĐỊNH 4:3 (đặt trong CSS)
@@ -3098,6 +3100,28 @@ window.KENIOS_DEFAULT_DB = {
 
   // Nền Hero hỗ trợ cả ảnh và video (tự nhận diện qua đuôi file .mp4/.webm/.ogg).
   function isVideoUrl(url) {return /\.(mp4|webm|ogg|ogv|mov|m4v|mkv|avi|3gp|flv|wmv)(\?|#|$)/i.test(url || '');}
+
+  // ÉP MỌI VIDEO trên trang tự chạy trong webview (Zalo/Telegram/Messenger...).
+  // Lý do: video chèn bằng innerHTML dính bug WebKit — thuộc tính muted trong chuỗi HTML
+  // KHÔNG áp vào thuộc tính thật của phần tử -> chính sách autoplay chặn -> video đen/không
+  // chạy dù trình duyệt thường vẫn ổn. Đặt lại muted/playsinline bằng JS rồi gọi .play().
+  function ensureVideosPlay(root = document) {
+    $$('video', root).forEach((v) => {
+      if (v.dataset.noAutoplay) return; // video xem trong modal media (admin) thì thôi
+      v.muted = true;v.defaultMuted = true;v.setAttribute('muted', '');
+      v.playsInline = true;v.setAttribute('playsinline', '');
+      v.setAttribute('webkit-playsinline', '');
+      if (v.paused) {try {const p = v.play();if (p && p.catch) p.catch(() => {});} catch (e) {/* ignore */}}
+    });
+  }
+  // Webview thường chỉ cho phát video SAU tương tác đầu tiên -> chạm/cuộn lần đầu là ép
+  // chạy lại toàn bộ video đang đứng hình. Quay lại tab (visibilitychange) cũng vậy.
+  (function wireVideoWake() {
+    const wake = () => ensureVideosPlay();
+    window.addEventListener('touchstart', wake, { passive: true, once: true });
+    window.addEventListener('scroll', wake, { passive: true, once: true });
+    document.addEventListener('visibilitychange', () => {if (!document.hidden) ensureVideosPlay();});
+  })();
 
   function applyHeroBackground(url) {
     const imgEl = $('#heroBg');
