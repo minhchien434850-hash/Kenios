@@ -335,34 +335,40 @@ function maybe_notify_expiring_keys($db) {
 // trở đi, và chốt marker theo ngày (dưới khóa file) nên mỗi ngày chỉ chạy + gửi ĐÚNG 1 lần.
 // File backup bị .htaccess chặn tải trực tiếp; giữ 7 bản gần nhất.
 function maybe_auto_backup($db_file) {
-    // Dùng GIỜ VIỆT NAM (UTC+7) để "12h trưa" đúng dù máy chủ đặt múi giờ nào.
-    try {
-        $vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
-    } catch (Exception $e) { return; }
-    $hour = (int)$vn->format('G');   // giờ 0..23
-    $today = $vn->format('Y-m-d');
-    if ($hour < 12) return;          // CHỈ chạy từ 12h trưa (giờ VN) trở đi
+    // Đường "piggyback" (không có cron): chỉ chạy khi khách vào web TỪ 12h trưa (giờ VN) trở đi.
+    try { $vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')); }
+    catch (Exception $e) { return; }
+    if ((int)$vn->format('G') < 12) return;   // chưa tới 12h trưa -> chưa sao lưu
+    daily_backup_core($db_file);
+}
 
-    // KIỂM TRA + GHI ĐÁNH DẤU dưới KHÓA FILE (atomic) — mỗi ngày chỉ chạy + gửi đúng 1 lần
-    // kể cả khi nhiều khách vào web cùng khoảnh khắc.
+// LÕI sao lưu ĐẦY ĐỦ — chạy khi được gọi (KHÔNG kiểm tra giờ; dùng cho cả cron chạy đúng
+// 12h). Vẫn chốt marker theo ngày (dưới khóa file) -> mỗi ngày chỉ tạo + gửi Telegram đúng
+// 1 lần dù bị gọi nhiều lần. Trả về mảng ['ok'=>bool, 'msg'=>..., 'skipped'=>bool].
+function daily_backup_core($db_file) {
+    try { $vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')); }
+    catch (Exception $e) { return ['ok' => false, 'msg' => 'timezone']; }
+    $today = $vn->format('Y-m-d');
+
+    // KIỂM TRA + GHI ĐÁNH DẤU dưới KHÓA FILE (atomic) — mỗi ngày đúng 1 lần.
     $marker = __DIR__ . '/auto_backup_marker.txt';
     $mf = @fopen($marker, 'c+');
-    if (!$mf) return;
-    if (!flock($mf, LOCK_EX)) { fclose($mf); return; }
+    if (!$mf) return ['ok' => false, 'msg' => 'marker'];
+    if (!flock($mf, LOCK_EX)) { fclose($mf); return ['ok' => false, 'msg' => 'lock']; }
     $done = trim((string)stream_get_contents($mf)) === $today;
     if (!$done) { ftruncate($mf, 0); rewind($mf); fwrite($mf, $today); fflush($mf); }
     flock($mf, LOCK_UN); fclose($mf);
-    if ($done) return;
-    if (!file_exists($db_file)) return;
+    if ($done) return ['ok' => true, 'skipped' => true, 'msg' => 'Đã sao lưu hôm nay rồi.'];
+    if (!file_exists($db_file)) return ['ok' => false, 'msg' => 'no-db'];
 
     // Đọc database dưới khóa chia sẻ để không chép trúng lúc đơn hàng đang ghi dở.
     $fp = @fopen($db_file, 'r');
-    if (!$fp) return;
-    if (!flock($fp, LOCK_SH)) { fclose($fp); return; }
+    if (!$fp) return ['ok' => false, 'msg' => 'open'];
+    if (!flock($fp, LOCK_SH)) { fclose($fp); return ['ok' => false, 'msg' => 'lock2']; }
     $content = stream_get_contents($fp);
     flock($fp, LOCK_UN); fclose($fp);
     $chk = json_decode($content, true);
-    if (!is_array($chk) || !isset($chk['config'])) return; // không lưu bản hỏng đè bản tốt
+    if (!is_array($chk) || !isset($chk['config'])) return ['ok' => false, 'msg' => 'bad-json'];
 
     // GẮN KÈM KHÓA API (_secrets) để bản sao lưu là ĐẦY ĐỦ — khôi phục lại được cả token
     // ngân hàng/card2k/Telegram, không phải nhập tay lại. Khôi phục qua "Khôi phục từ file"
@@ -379,7 +385,7 @@ function maybe_auto_backup($db_file) {
     $chk['_backupType'] = 'full-config';
     $chk['_backupTime'] = $vn->format('c');
     $bundle = json_encode($chk, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    if ($bundle === false) return;
+    if ($bundle === false) return ['ok' => false, 'msg' => 'encode'];
 
     $backupPath = __DIR__ . '/auto_backup_' . $today . '.json';
     @file_put_contents($backupPath, $bundle, LOCK_EX);
@@ -399,6 +405,7 @@ function maybe_auto_backup($db_file) {
             . "🧩 Gồm: cấu hình + khóa API + {$svcs} sản phẩm + kho key + {$users} người dùng + {$orders} đơn.\n"
             . "👉 Cất file này. Khôi phục: Quản trị → Sao lưu → <b>Khôi phục từ file</b> (kéo file vào).");
     }
+    return ['ok' => true, 'skipped' => false, 'msg' => 'Đã sao lưu & gửi Telegram.', 'file' => basename($backupPath)];
 }
 
 // ---- THÔNG BÁO ĐẨY (Web Push, kiểu "không kèm nội dung") ----
@@ -964,6 +971,19 @@ switch ($action) {
             }
         }
         echo json_encode(["status" => "success", "processed" => $count, "credited" => $credited, "balance" => $balance]);
+        break;
+
+    // CRON SAO LƯU 12H: cron job của hosting gọi URL này lúc 12h -> tạo bản sao lưu ĐẦY ĐỦ
+    // + gửi Telegram NGAY (không phụ thuộc múi giờ máy chủ). Vẫn chốt marker/ngày nên gọi
+    // nhiều lần cũng chỉ 1 backup/ngày. Không trả dữ liệu nhạy cảm, marker giới hạn lạm dụng.
+    case 'cron_backup':
+        $r = daily_backup_core($db_file);
+        echo json_encode([
+            'status'  => !empty($r['ok']) ? 'success' : 'error',
+            'skipped' => !empty($r['skipped']),
+            'message' => $r['msg'] ?? '',
+            'file'    => $r['file'] ?? ''
+        ], JSON_UNESCAPED_UNICODE);
         break;
 
     case 'get_db':
