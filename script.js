@@ -2434,7 +2434,7 @@ window.KENIOS_DEFAULT_DB = {
       setTimeout(() => {
         setText('#welcomeTitle', cfg.welcomePopupTitle);
         setText('#welcomeMessage', cfg.welcomePopupMessage);
-        setAttr('#welcomeContactBtn', 'href', cfg.zaloLink);
+        setAttr('#welcomeContactBtn', 'href', normalizeContactUrl(cfg.zaloLink));
         openModal('#welcomeModal');
       }, 600);
     }
@@ -2566,6 +2566,17 @@ window.KENIOS_DEFAULT_DB = {
     _loadedFonts.add(fontName);
   }
 
+  // Chuẩn hóa link liên hệ: nếu dán thiếu "https://" (VD: zalo.me/g/abc) trình duyệt sẽ
+  // hiểu là đường dẫn TRONG website -> mở kenios.store/zalo.me/... -> văng về trang chủ.
+  // Hàm này tự thêm https:// cho link thiếu giao thức; giữ nguyên tel:/mailto:/sms:.
+  function normalizeContactUrl(u) {
+    u = String(u || '').trim();
+    if (!u) return '';
+    if (/^(https?:|tel:|mailto:|sms:)/i.test(u)) return u;
+    if (/^\/\//.test(u)) return 'https:' + u;
+    return 'https://' + u.replace(/^\/+/, '');
+  }
+
   // ---- Widget liên hệ đa kênh: 1 kênh bật -> nút thẳng; nhiều kênh bật -> gộp
   // thành 1 nút mở ra danh sách. Dùng chung cho header / footer / popup chào mừng. ----
   function renderContactWidgets(cfg) {
@@ -2591,12 +2602,13 @@ window.KENIOS_DEFAULT_DB = {
     if (empty) empty.hidden = true;
     grid.innerHTML = enabled.map((c) => {
       const t = chType(c);
-      const isTel = c.url.startsWith('tel:') || c.url.startsWith('mailto:');
+      const url = normalizeContactUrl(c.url);
+      const isTel = url.startsWith('tel:') || url.startsWith('mailto:');
       const attrs = isTel ? '' : 'target="_blank" rel="noopener"';
-      const cta = /nhóm|group|zalo\.me\/g\/|t\.me\/|chat\.whatsapp|discord\.gg/i.test(c.url) ? 'Tham gia nhóm' : 'Liên hệ ngay';
+      const cta = /nhóm|group|zalo\.me\/g\/|t\.me\/|chat\.whatsapp|discord\.gg/i.test(url) ? 'Tham gia nhóm' : 'Liên hệ ngay';
       const label = c.label || CONTACT_PLATFORM_LABEL[t] || 'Liên hệ';
       return `
-        <a class="contact-card contact-${esc(t)}" href="${esc(c.url)}" ${attrs}>
+        <a class="contact-card contact-${esc(t)}" href="${esc(url)}" ${attrs}>
           <span class="contact-card-ico">${contactChannelIcon(t)}</span>
           <span class="contact-card-body">
             <strong>${esc(label)}</strong>
@@ -2617,8 +2629,9 @@ window.KENIOS_DEFAULT_DB = {
     if (enabled.length === 1) {
       const c = enabled[0];
       const a = document.createElement('a');
-      a.href = c.url;
-      if (!c.url.startsWith('tel:') && !c.url.startsWith('mailto:')) {a.target = '_blank';a.rel = 'noopener';}
+      const url1 = normalizeContactUrl(c.url);
+      a.href = url1;
+      if (!url1.startsWith('tel:') && !url1.startsWith('mailto:')) {a.target = '_blank';a.rel = 'noopener';}
       a.className = opts.btnClass;
       a.innerHTML = `<span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}`;
       container.appendChild(a);
@@ -2634,8 +2647,9 @@ window.KENIOS_DEFAULT_DB = {
     const dropdown = document.createElement('div');
     dropdown.className = 'contact-dropdown' + (opts.dropUp ? ' drop-up' : '');
     dropdown.innerHTML = enabled.map((c) => {
-      const targetAttrs = !c.url.startsWith('tel:') && !c.url.startsWith('mailto:') ? 'target="_blank" rel="noopener"' : '';
-      return `<a href="${esc(c.url)}" ${targetAttrs}><span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}</a>`;
+      const url = normalizeContactUrl(c.url);
+      const targetAttrs = !url.startsWith('tel:') && !url.startsWith('mailto:') ? 'target="_blank" rel="noopener"' : '';
+      return `<a href="${esc(url)}" ${targetAttrs}><span class="ch-ico">${contactChannelIcon(chType(c))}</span> ${esc(c.label || CONTACT_PLATFORM_LABEL[chType(c)] || 'Liên hệ')}</a>`;
     }).join('');
     btn.addEventListener('click', (e) => {e.stopPropagation();dropdown.classList.toggle('open');});
     document.addEventListener('click', () => dropdown.classList.remove('open'));
@@ -4565,7 +4579,7 @@ window.KENIOS_DEFAULT_DB = {
   }
 
   function orderCardHtml(o) {var _find;
-    const contact = Store.db.config.zaloLink || ((_find = (Store.db.config.contactChannels || []).find((c) => c.enabled && c.url)) === null || _find === void 0 ? void 0 : _find.url) || '';
+    const contact = normalizeContactUrl(Store.db.config.zaloLink || ((_find = (Store.db.config.contactChannels || []).find((c) => c.enabled && c.url)) === null || _find === void 0 ? void 0 : _find.url) || '');
     const expiry = o.expiryDate ? fmtDateTime(o.expiryDate) : 'Vĩnh viễn (không hết hạn)';
     const purchased = fmtDateTime(o.purchaseDate || o.date);
     const svc = Store.db.services.find((s) => s.id === o.serviceId);
@@ -6376,7 +6390,7 @@ window.KENIOS_DEFAULT_DB = {
     return $$('#contactChannelsEditor [data-ch-row]').map((row, i) => {
       const type = row.querySelector('[data-ch-type]').value;
       const label = row.querySelector('[data-ch-label]').value.trim();
-      const url = row.querySelector('[data-ch-url]').value.trim();
+      const url = normalizeContactUrl(row.querySelector('[data-ch-url]').value);
       const enabled = row.querySelector('[data-ch-enabled]').checked;
       return { id: `${type}-${i}`, type, label: label || CONTACT_PLATFORM_LABEL[type] || 'Liên hệ', url, enabled };
     });
@@ -7950,7 +7964,7 @@ window.KENIOS_DEFAULT_DB = {
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
         contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
-        hotline: fd.get('hotline'), zaloLink: fd.get('zaloLink'),
+        hotline: fd.get('hotline'), zaloLink: normalizeContactUrl(fd.get('zaloLink')),
         googleClientId: fd.get('googleClientId'),
         welcomePopupEnabled: fd.get('welcomePopupEnabled') === '1',
         welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
