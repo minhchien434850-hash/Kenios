@@ -309,11 +309,6 @@ button { font: inherit; }
   display: flex; align-items: center; gap: 12px; padding: 10px 12px; text-decoration: none;
   flex: 1; min-width: 0;
 }
-.drawer-theme-btn { flex-shrink: 0; width: 40px; height: 40px; }
-/* Nút theme ở header CHỈ hiện trên desktop (≥992px); trên mobile/tablet dùng nút
-   trong menu 3 gạch để không làm chật header. */
-.header-theme-btn { display: none; }
-@media (min-width: 992px) { .header-theme-btn { display: inline-flex; } }
 .mobile-nav-brand-mark {
   width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
@@ -1177,6 +1172,44 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
   .dc-create .discount-cond { grid-template-columns: 1fr 1fr; }
   .dc-item { flex-wrap: wrap; }
 }
+
+/* Sale theo TỪNG sản phẩm/danh mục (admin) */
+.itemsale-editor { display: flex; flex-direction: column; gap: 8px; }
+.itemsale-row { display: grid; grid-template-columns: auto 1.6fr 110px 1fr auto; gap: 8px; align-items: end; padding: 10px; border: 1px solid var(--border); border-radius: 11px; background: rgba(255,255,255,.02); }
+.itemsale-row select, .itemsale-row input { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .84rem; width: 100%; min-width: 0; color-scheme: dark; font-family: inherit; }
+.itemsale-row .is-cond { display: flex; flex-direction: column; gap: 3px; font-size: .72rem; color: var(--muted); }
+@media (max-width: 720px) { .itemsale-row { grid-template-columns: auto 1fr auto; } .itemsale-row .is-cond { grid-column: span 3; } }
+
+/* Chuông thông báo (header) */
+.announce-btn { position: relative; }
+.announce-dot { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px rgba(7,9,20,.9); }
+.announce-list { display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; }
+.announce-item { padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.03); }
+.announce-item-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.announce-ico svg { width: 18px; height: 18px; color: var(--gold); }
+.announce-item p { margin: 4px 0 6px; font-size: .88rem; color: var(--ink); line-height: 1.55; white-space: pre-line; }
+.announce-item small { color: var(--muted); font-size: .72rem; }
+/* Editor thông báo (admin) */
+.announce-editor { display: flex; flex-direction: column; gap: 8px; }
+.announce-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 11px; background: rgba(255,255,255,.02); align-items: start; }
+.announce-row input, .announce-row textarea { grid-column: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .85rem; width: 100%; font-family: inherit; resize: vertical; }
+.announce-row .discount-del { grid-column: 2; grid-row: 1; }
+
+/* Tra cứu key + hộp OTP dùng chung hàng nhập */
+.keycheck-row { display: flex; gap: 8px; }
+.keycheck-row input { flex: 1; min-width: 0; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--ink); font-size: .92rem; }
+.keycheck-row input:focus { outline: none; border-color: var(--gold); }
+.keycheck-result { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.03); display: flex; flex-direction: column; gap: 8px; }
+.kc-line { display: flex; align-items: center; gap: 8px; font-size: .88rem; }
+.kc-line svg { width: 17px; height: 17px; flex-shrink: 0; }
+.kc-line.ok { color: var(--success, #4ade80); }
+.kc-line.bad { color: #fca5a5; }
+
+/* Chấm số cảnh báo trên menu (key sắp hết hạn) */
+.mnl-badge.warn { background: #ef4444; color: #fff; }
+
+/* Bảng doanh thu theo ngày trong báo cáo — cuộn riêng khi dài */
+.report-byday { max-height: 300px; overflow-y: auto; }
 
 /* Editor hạng VIP (admin) */
 .vip-editor { display: flex; flex-direction: column; gap: 8px; }

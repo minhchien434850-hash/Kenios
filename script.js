@@ -608,6 +608,42 @@ window.KENIOS_DEFAULT_DB = {
       return Math.max(0, base - Math.floor(base * f.percent / 100));
     },
 
+    // ---- Sale theo TỪNG sản phẩm/danh mục (config.itemSales) ----
+    // Mỗi mục: { targetType:'service'|'category', targetId, percent, endsAt, enabled }.
+    // Trả % giảm CAO NHẤT đang hiệu lực cho 1 sản phẩm (khớp chính nó hoặc danh mục của nó).
+    itemSalePercentFor(service) {
+      if (!service) return 0;
+      const list = this.db.config && this.db.config.itemSales || [];
+      let best = 0;
+      list.forEach((s) => {
+        if (!s || s.enabled === false) return;
+        const p = parseFloat(s.percent) || 0;
+        if (p <= 0) return;
+        if (s.endsAt) {
+          const end = Date.parse(s.endsAt);
+          if (!isNaN(end) && Date.now() > end) return;
+        }
+        const match = (s.targetType === 'service' && s.targetId === service.id) ||
+        (s.targetType === 'category' && s.targetId === service.categoryId);
+        if (match && p > best) best = p;
+      });
+      return best;
+    },
+    // Mức SALE hiệu lực cho 1 sản phẩm = mức CAO HƠN giữa Flash Sale toàn shop và sale
+    // riêng của sản phẩm/danh mục (KHÔNG cộng dồn — tránh giảm chồng giảm).
+    saleInfoFor(service) {
+      const flash = this.flashSaleInfo();
+      const flashP = flash.active ? flash.percent : 0;
+      const itemP = this.itemSalePercentFor(service);
+      const percent = Math.max(flashP, itemP);
+      return { active: percent > 0, percent, source: itemP > flashP ? 'item' : 'flash' };
+    },
+    salePriceFor(service, base) {
+      const s = this.saleInfoFor(service);
+      if (!s.active) return base;
+      return Math.max(0, base - Math.floor(base * s.percent / 100));
+    },
+
     // ---- Hạng thành viên VIP ----
     // Tổng chi tiêu (tiền đã mua hàng) của 1 user — dùng để xét hạng VIP.
     userTotalSpent(user) {
@@ -627,15 +663,21 @@ window.KENIOS_DEFAULT_DB = {
       return eligible[0] || null;
     },
 
-    // Tính chi tiết giá phải trả khi mua 1 gói: Flash Sale -> VIP -> Mã giảm giá.
-    // Trả về { base, afterFlash, afterVip, final, flashPercent, vipPercent, vipName, code, codeDiscount, totalDiscount }.
+    // Tính chi tiết giá phải trả khi mua 1 gói: Sale (flash/sản phẩm) -> VIP/CTV -> Mã giảm giá.
+    // Trả về { base, afterFlash, afterVip, final, flashPercent, saleSource, vipPercent, vipName, ... }.
     computePurchasePrice(service, pkg, discountCode, user) {
       user = user || this.currentUser();
       const base = pkg.price;
-      const flash = this.flashSaleInfo();
-      const afterFlash = this.flashSalePrice(base);
+      // 1) SALE: mức cao hơn giữa Flash toàn shop và sale riêng sản phẩm/danh mục.
+      const sale = this.saleInfoFor(service);
+      const afterFlash = this.salePriceFor(service, base);
+      // 2) VIP/CTV: cộng tác viên có % chiết khấu riêng (config.ctvDiscountPercent);
+      //    lấy mức CAO HƠN giữa hạng VIP và chiết khấu CTV (không cộng dồn).
       const tier = this.vipTierFor(user);
-      const vipPercent = tier ? parseFloat(tier.discountPercent) || 0 : 0;
+      let vipPercent = tier ? parseFloat(tier.discountPercent) || 0 : 0;
+      let vipName = tier ? tier.name : '';
+      const ctvPercent = (user && user.role === 'ctv') ? (parseFloat(this.db.config.ctvDiscountPercent) || 0) : 0;
+      if (ctvPercent > vipPercent) {vipPercent = ctvPercent;vipName = 'Cộng tác viên';}
       const vipCut = Math.floor(afterFlash * vipPercent / 100);
       const afterVip = Math.max(0, afterFlash - vipCut);
       const dc = this.applyDiscountToPrice(afterVip, discountCode, { categoryId: service ? service.categoryId : '' });
@@ -644,8 +686,9 @@ window.KENIOS_DEFAULT_DB = {
       const final = Math.max(0, afterVip - codeDiscount);
       return {
         base, afterFlash, afterVip, final,
-        flashPercent: flash.active ? flash.percent : 0,
-        vipPercent, vipName: tier ? tier.name : '',
+        flashPercent: sale.active ? sale.percent : 0,
+        saleSource: sale.source,
+        vipPercent, vipName,
         code: codeValid ? dc.code : '', codeValid, codeReason: dc.reason || '',
         codeDiscount, totalDiscount: base - final
       };
@@ -1837,6 +1880,7 @@ window.KENIOS_DEFAULT_DB = {
     upload: _svg('<path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M12 16V4M8 8l4-4 4 4"/>'),
     trash: _svg('<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'),
     edit: _svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+    list: _svg('<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>'),
     arrowUp: _svg('<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>'),
     arrowDown: _svg('<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>'),
     sun: _svg('<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/>'),
@@ -2249,11 +2293,21 @@ window.KENIOS_DEFAULT_DB = {
   function applyTheme(theme) {
     const t = theme === 'light' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', t);
-    // Cập nhật MỌI nút chuyển sáng/tối (hiện chỉ còn 1 nút trong menu 3 gạch).
+    // Cập nhật MỌI nút chuyển sáng/tối. Nút giờ là MỤC trong menu 3 gạch (có icon +
+    // nhãn chữ riêng qua [data-theme-icon]/[data-theme-label]); icon SVG riêng, không emoji.
+    const icon = t === 'light' ? ICONS.moon : ICONS.sun;
+    const label = t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng';
     $$('[data-theme-toggle]').forEach((btn) => {
-      btn.innerHTML = t === 'light' ? ICONS.moon || '🌙' : ICONS.sun || '☀️';
-      btn.setAttribute('aria-label', t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng');
-      btn.title = t === 'light' ? 'Chuyển chế độ tối' : 'Chuyển chế độ sáng';
+      const iconEl = btn.querySelector('[data-theme-icon]');
+      const labelEl = btn.querySelector('[data-theme-label]');
+      if (iconEl || labelEl) {
+        if (iconEl) iconEl.innerHTML = icon;
+        if (labelEl) labelEl.textContent = label;
+      } else {
+        btn.innerHTML = icon; // nút icon trần (nếu còn ở đâu đó)
+      }
+      btn.setAttribute('aria-label', label);
+      btn.title = label;
     });
   }
   function wireThemeToggle() {
@@ -2349,6 +2403,7 @@ window.KENIOS_DEFAULT_DB = {
     step(wireServiceModal, 'wireServiceModal');
     step(wireCart, 'wireCart');
     step(wireAdminModal, 'wireAdminModal');
+    step(wireAdminOtp, 'wireAdminOtp');
     step(wireLegalModal, 'wireLegalModal');
     step(wireAiWidget, 'wireAiWidget');
     step(wireSearchModal, 'wireSearchModal');
@@ -2683,6 +2738,8 @@ window.KENIOS_DEFAULT_DB = {
     renderShowcase();
     renderCombos();
     if (typeof updateFlashSaleBar === 'function') updateFlashSaleBar();
+    updateOrdersWarnBadge();   // chấm đỏ "Đơn hàng của tôi" khi có key sắp/đã hết hạn
+    updateAnnounceBadge();     // chấm đỏ chuông thông báo khi có tin chưa đọc
     injectSeoJsonLd();
     applyMaintenanceMode();
   }
@@ -3296,10 +3353,10 @@ window.KENIOS_DEFAULT_DB = {
     const minPrice = Math.min(...(s.packages || []).map((p) => p.price));
     const inStock = Store.serviceInStock(s);
     const isVideo = isVideoUrl(s.image);
-    const flash = Store.flashSaleInfo();
+    const sale = Store.saleInfoFor(s); // gộp Flash toàn shop + sale riêng sản phẩm/danh mục
     const rCount = Store.ratingCount(s.id);
-    const salePrice = Store.flashSalePrice(minPrice);
-    const priceHtml = flash.active && salePrice < minPrice ?
+    const salePrice = Store.salePriceFor(s, minPrice);
+    const priceHtml = sale.active && salePrice < minPrice ?
     `<span class="price"><del class="price-old">Từ ${fmt(minPrice)}</del> <b class="price-sale">Từ ${fmt(salePrice)}</b></span>` :
     `<span class="price">Từ ${fmt(minPrice)}</span>`;
     return `
@@ -3308,7 +3365,7 @@ window.KENIOS_DEFAULT_DB = {
           ${isVideo ? `<video class="thumb-video" src="${esc(s.image)}" muted loop autoplay playsinline></video>` : ''}
           <div class="thumb-badges">
             <span class="badge ${inStock ? '' : 'out'}">${inStock ? 'Còn hàng' : 'Hết hàng'}</span>
-            ${flash.active ? `<span class="badge flash-badge">-${flash.percent}%</span>` : ''}
+            ${sale.active ? `<span class="badge flash-badge">-${sale.percent}%</span>` : ''}
           </div>
           <span class="views-badge">${ICONS.eye}<b>${viewsFor(s.id)}</b></span>
         </div>
@@ -3458,6 +3515,77 @@ window.KENIOS_DEFAULT_DB = {
   }
   function clearAdminCreds() {
     try {localStorage.removeItem(ADMIN_CREDS_KEY);sessionStorage.removeItem(ADMIN_CREDS_KEY);} catch {/* ignore */}
+  }
+
+  // ---- Xác thực 2 lớp admin (OTP qua Telegram) ----
+  // Kiểm tra phiên admin còn hiệu lực không (gọi 1 lệnh admin nhẹ); hết hạn/chưa xác
+  // thực thì tự gửi mã + mở hộp nhập OTP. Gọi sau khi đăng nhập admin và khi mở bảng
+  // quản trị (nếu bật 2FA trong cấu hình).
+  async function ensureAdmin2fa() {
+    const c = getAdminCreds();
+    if (!c || !Store.db.config.admin2faEnabled) return;
+    try {
+      const r = await fetch('./api.php?action=secrets_status', { headers: { 'X-Admin-User': c.username, 'X-Admin-Pass': c.password } });
+      const j = await r.json();
+      if (j && j.status === 'success') return; // phiên 2FA còn hiệu lực
+    } catch (e) {return;} // mất mạng thì thôi, không chặn
+    openAdminOtpModal();
+  }
+  async function requestAdminOtp() {
+    const c = getAdminCreds();
+    if (!c) return { status: 'error', message: 'Đăng nhập lại admin trước.' };
+    try {
+      const r = await fetch('./api.php?action=request_admin_otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: c.username, password: c.password })
+      });
+      return await r.json();
+    } catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
+  }
+  function openAdminOtpModal() {
+    const inp = $('#otpInput');
+    const err = $('#otpError');
+    if (inp) inp.value = '';
+    if (err) err.textContent = '';
+    openModal('#otpModal');
+    requestAdminOtp().then((r) => {
+      if (r.status !== 'success') {if (err) err.textContent = r.message || 'Không gửi được mã.';} else
+      {toast('Đã gửi mã 6 số qua Telegram.', 'success');}
+    });
+    if (inp) setTimeout(() => inp.focus(), 150);
+  }
+  function wireAdminOtp() {
+    const btn = $('#otpVerifyBtn');
+    const resend = $('#otpResendBtn');
+    const inp = $('#otpInput');
+    const err = $('#otpError');
+    if (!btn) return;
+    const verify = () => withLoading(btn, async () => {
+      const c = getAdminCreds();
+      const code = (inp && inp.value || '').trim();
+      if (!c) {if (err) err.textContent = 'Đăng nhập lại admin trước.';return;}
+      if (!/^\d{6}$/.test(code)) {if (err) err.textContent = 'Nhập đúng 6 chữ số.';return;}
+      try {
+        const r = await fetch('./api.php?action=verify_admin_otp', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: c.username, password: c.password, code })
+        });
+        const j = await r.json();
+        if (j.status === 'success') {
+          closeModal('#otpModal');
+          toast('Xác thực 2 lớp thành công! Phiên quản trị mở trong 12 giờ.', 'success');
+        } else {if (err) err.textContent = j.message || 'Mã không đúng.';}
+      } catch (e) {if (err) err.textContent = 'Không kết nối được máy chủ.';}
+    });
+    btn.addEventListener('click', verify);
+    if (inp) inp.addEventListener('keydown', (ev) => {if (ev.key === 'Enter') {ev.preventDefault();verify();}});
+    if (resend) resend.addEventListener('click', () => {
+      if (err) err.textContent = '';
+      requestAdminOtp().then((r) => {
+        if (r.status === 'success') toast('Đã gửi lại mã.', 'success');else
+        if (err) err.textContent = r.message || 'Không gửi được mã.';
+      });
+    });
   }
 
   function renderAuthArea() {
@@ -3737,6 +3865,14 @@ window.KENIOS_DEFAULT_DB = {
     (_$7 = $('#mobileNavTxHistory')) === null || _$7 === void 0 || _$7.addEventListener('click', () => {closeMobileNavGlobal();openTxHistoryModal();});
     $('#mobileNavOrders').addEventListener('click', () => openOrdersModal());
     $('#mobileNavDownloads').addEventListener('click', () => {closeMobileNav();openDownloadsModal();});
+    var _navKeyCheck = $('#mobileNavKeyCheck');
+    if (_navKeyCheck) _navKeyCheck.addEventListener('click', () => {closeMobileNav();openKeyCheckModal();});
+    var _annBtn = $('#mobileNavAnnounce');
+    if (_annBtn) _annBtn.addEventListener('click', () => {closeMobileNav();openAnnounceModal();});
+    var _kcBtn = $('#keyCheckBtn');
+    if (_kcBtn) _kcBtn.addEventListener('click', runKeyCheck);
+    var _kcInp = $('#keyCheckInput');
+    if (_kcInp) _kcInp.addEventListener('keydown', (ev) => {if (ev.key === 'Enter') {ev.preventDefault();runKeyCheck();}});
     const adminNavBtn2 = $('#mobileNavAdminLink');
     if (adminNavBtn2) adminNavBtn2.addEventListener('click', () => {closeMobileNavGlobal();openAdminModal();});
 
@@ -3790,6 +3926,8 @@ window.KENIOS_DEFAULT_DB = {
           e.target.reset();
           $('#loginError').textContent = '';
           toast('Đăng nhập thành công!', 'success');
+          // Admin + bật 2FA -> yêu cầu mã Telegram ngay để mở phiên quản trị.
+          if (u && u.role === 'admin' && Store.db.config.admin2faEnabled) ensureAdmin2fa();
         } catch (err) {$('#loginError').textContent = err.message;}
       });
     });
@@ -4032,7 +4170,7 @@ window.KENIOS_DEFAULT_DB = {
     const codeStr = currentDiscount && currentDiscount.valid ? currentDiscount.code : '';
     const p = Store.computePurchasePrice(service, currentPackage, codeStr, Store.currentUser());
     const tags = [];
-    if (p.flashPercent > 0) tags.push(`<span class="save-tag flash">Flash -${p.flashPercent}%</span>`);
+    if (p.flashPercent > 0) tags.push(`<span class="save-tag flash">${p.saleSource === 'item' ? 'Sale' : 'Flash'} -${p.flashPercent}%</span>`);
     if (p.vipPercent > 0) tags.push(`<span class="save-tag vip">${esc(p.vipName || 'VIP')} -${p.vipPercent}%</span>`);
     if (p.code) tags.push(`<span class="save-tag code">Mã ${esc(p.code)} -${fmt(p.codeDiscount)}</span>`);
     if (p.totalDiscount > 0) {
@@ -4155,10 +4293,10 @@ window.KENIOS_DEFAULT_DB = {
     $('#serviceModalFeatures').innerHTML = (service.features || []).map((f) => `<li>${esc(f)}</li>`).join('');
 
     const pkgWrap = $('#serviceModalPackages');
-    const flash = Store.flashSaleInfo();
+    const flash = Store.saleInfoFor(service); // gộp Flash + sale riêng sản phẩm/danh mục
     const selId = currentPackage && currentPackage.id;
     const optHtml = (p) => {
-      const sale = Store.flashSalePrice(p.price);
+      const sale = Store.salePriceFor(service, p.price);
       const priceCell = flash.active && sale < p.price ?
       `<del class="price-old">${fmt(p.price)}</del> <strong>${fmt(sale)}</strong>` :
       `<strong>${fmt(p.price)}</strong>`;
@@ -4321,9 +4459,21 @@ window.KENIOS_DEFAULT_DB = {
       </div>`;
   }
 
+  // Đếm key sắp/đã hết hạn của user hiện tại + cập nhật CHẤM ĐỎ trên menu "Đơn hàng của tôi".
+  function ordersWarnCount() {
+    const u = Store.currentUser();
+    if (!u) return 0;
+    return Store.myOrders().filter((o) => orderExpiryWarn(o)).length;
+  }
+  function updateOrdersWarnBadge() {
+    const n = ordersWarnCount();
+    $$('#ordersWarnBadge, #profileOrdersWarnBadge').forEach((b) => {b.hidden = n === 0;b.textContent = n;});
+  }
+
   function openOrdersModal() {
     if (!Store.currentUser()) {toast('Vui lòng đăng nhập.', 'error');openModal('#authModal');return;}
-    const orders = Store.myOrders();
+    // Key sắp/đã hết hạn ĐƯA LÊN ĐẦU danh sách để khách thấy ngay và gia hạn.
+    const orders = Store.myOrders().slice().sort((a, b) => (orderExpiryWarn(b) ? 1 : 0) - (orderExpiryWarn(a) ? 1 : 0));
     // Banner tổng hợp số key sắp/đã hết hạn để khách chú ý gia hạn.
     const warnCount = orders.filter((o) => orderExpiryWarn(o)).length;
     const banner = warnCount > 0 ?
@@ -4357,6 +4507,79 @@ window.KENIOS_DEFAULT_DB = {
         </div>`).join('') :
     '<p class="empty-note">Chưa có bản tải nào. Admin thêm link tải cho sản phẩm ở tab Dịch vụ.</p>';
     openModal('#downloadsModal');
+  }
+
+  // ---- Thông báo (chuông) — admin đăng trong tab Cấu hình, khách thấy chấm đỏ khi có tin mới ----
+  const ANNOUNCE_SEEN_KEY = 'kenios_announce_seen_v1';
+  function announceList() {
+    return (Store.db.config.announcements || []).
+    filter((a) => a && (a.title || a.text)).
+    slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  }
+  function updateAnnounceBadge() {
+    const btn = $('#mobileNavAnnounce'); // nút "Thông báo" nằm trong menu 3 gạch
+    const dot = $('#announceNavDot');
+    if (!btn || !dot) return;
+    const list = announceList();
+    btn.hidden = list.length === 0;                 // không có thông báo nào -> ẩn mục này
+    let seen = '';
+    try {seen = localStorage.getItem(ANNOUNCE_SEEN_KEY) || '';} catch (e) {/* ignore */}
+    const newest = list.length ? String(list[0].date || '') + '|' + String(list[0].id || '') : '';
+    dot.hidden = !list.length || seen === newest;   // đã xem tin mới nhất -> tắt nhãn "Mới"
+  }
+  function openAnnounceModal() {
+    const list = announceList();
+    $('#announceList').innerHTML = list.length ?
+    list.map((a) => `
+        <div class="announce-item">
+          <div class="announce-item-head"><span class="announce-ico">${ICONS.megaphone}</span><strong>${esc(a.title || 'Thông báo')}</strong></div>
+          ${a.text ? `<p>${esc(a.text)}</p>` : ''}
+          ${a.date ? `<small>${esc(fmtDateTime(a.date))}</small>` : ''}
+        </div>`).join('') :
+    '<p class="empty-note">Chưa có thông báo nào.</p>';
+    // Đánh dấu ĐÃ XEM tin mới nhất -> tắt chấm đỏ.
+    if (list.length) {try {localStorage.setItem(ANNOUNCE_SEEN_KEY, String(list[0].date || '') + '|' + String(list[0].id || ''));} catch (e) {/* ignore */}}
+    updateAnnounceBadge();
+    openModal('#announceModal');
+  }
+
+  // ---- Tra cứu key công khai (khách dán key -> biết còn hạn hay không) ----
+  function openKeyCheckModal() {
+    const inp = $('#keyCheckInput');
+    const res = $('#keyCheckResult');
+    if (inp) inp.value = '';
+    if (res) {res.hidden = true;res.innerHTML = '';}
+    openModal('#keyCheckModal');
+    if (inp) setTimeout(() => inp.focus(), 150);
+  }
+  async function runKeyCheck() {
+    const inp = $('#keyCheckInput');
+    const res = $('#keyCheckResult');
+    const key = (inp && inp.value || '').trim();
+    if (!key) {toast('Dán key cần kiểm tra vào ô trước đã.', 'error');return;}
+    if (res) {res.hidden = false;res.innerHTML = `<span class="kc-line">${ICONS.clock} Đang kiểm tra…</span>`;}
+    let r = null;
+    try {
+      const resp = await fetch(`./api.php?action=check_key`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key })
+      });
+      r = await resp.json();
+    } catch (e) {r = null;}
+    if (!res) return;
+    if (!r || r.status !== 'success') {
+      res.innerHTML = `<span class="kc-line bad">${ICONS.warn} ${esc(r && r.message || 'Không kiểm tra được, thử lại sau.')}</span>`;
+      return;
+    }
+    if (!r.found) {
+      res.innerHTML = `<span class="kc-line bad">${ICONS.close} Không tìm thấy key này trong hệ thống.</span>`;
+      return;
+    }
+    const lines = [`<span class="kc-line ok">${ICONS.check} Key hợp lệ — <b>${esc(r.serviceName || '')}</b>${r.packageName ? ` (${esc(r.packageName)})` : ''}</span>`];
+    if (r.expired) lines.push(`<span class="kc-line bad">${ICONS.ban} ĐÃ HẾT HẠN ${r.expiryDate ? 'từ ' + esc(fmtDateTime(r.expiryDate)) : ''}</span>`);else
+    if (r.expiryDate) lines.push(`<span class="kc-line ok">${ICONS.clock} Còn hạn tới <b>${esc(fmtDateTime(r.expiryDate))}</b></span>`);else
+    lines.push(`<span class="kc-line ok">${ICONS.shield} Key VĨNH VIỄN (không hết hạn)</span>`);
+    res.innerHTML = lines.join('');
   }
 
   // Nhãn trạng thái thẻ cào dùng ICON SVG RIÊNG (không dùng emoji máy). failText đổi được
@@ -4703,6 +4926,7 @@ window.KENIOS_DEFAULT_DB = {
     renderAdminTab('overview');
     $('#adminSyncMsg').textContent = '';
     openModal('#adminModal');
+    ensureAdmin2fa(); // bật 2FA mà phiên hết hạn thì hiện hộp nhập mã Telegram
   }
 
   function wireAdminModal() {
@@ -5581,7 +5805,8 @@ window.KENIOS_DEFAULT_DB = {
       return d >= start && d <= end && !o.refunded;
     });
     const revenue = orders.reduce((s, o) => s + (parseFloat(o.price) || 0), 0);
-    const byUser = {},byService = {};
+    const byUser = {},byService = {},byCode = {},byDay = {};
+    let discountTotal = 0;
     orders.forEach((o) => {
       const uname = (Store.db.users.find((u) => u.userId === o.userId) || {}).username || o.userId;
       byUser[uname] = (byUser[uname] || 0) + (parseFloat(o.price) || 0);
@@ -5589,11 +5814,34 @@ window.KENIOS_DEFAULT_DB = {
       if (!byService[sn]) byService[sn] = { revenue: 0, count: 0 };
       byService[sn].revenue += parseFloat(o.price) || 0;
       byService[sn].count += 1;
+      // Hiệu quả MÃ GIẢM GIÁ: số lần dùng + tổng tiền đã giảm cho từng mã trong khoảng.
+      const code = String(o.discountCode || '').trim().toUpperCase();
+      const cut = parseFloat(o.discountAmount) || 0;
+      if (code) {
+        if (!byCode[code]) byCode[code] = { count: 0, cut: 0 };
+        byCode[code].count += 1;
+        byCode[code].cut += cut;
+      }
+      discountTotal += cut;
+      // Doanh thu theo từng ngày trong khoảng.
+      const dk = _ymd(new Date(o.date || o.purchaseDate || 0));
+      if (!byDay[dk]) byDay[dk] = { revenue: 0, count: 0 };
+      byDay[dk].revenue += parseFloat(o.price) || 0;
+      byDay[dk].count += 1;
     });
+    // Tổng NẠP TIỀN trong khoảng (giao dịch type deposit / referral cộng ví không tính).
+    const deposits = (Store.db.transactions || []).filter((t) => {
+      if ((t.type || '') !== 'deposit') return false;
+      const d = new Date(t.date || 0);
+      return d >= start && d <= end;
+    }).reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
     return {
       revenue, count: orders.length, avg: orders.length ? revenue / orders.length : 0,
+      deposits, discountTotal,
       topUsers: Object.entries(byUser).sort((a, b) => b[1] - a[1]).slice(0, 10),
-      topServices: Object.entries(byService).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 10)
+      topServices: Object.entries(byService).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 10),
+      topCodes: Object.entries(byCode).sort((a, b) => b[1].cut - a[1].cut).slice(0, 10),
+      byDay: Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0]))
     };
   }
   function renderReportBody(from, to) {
@@ -5603,7 +5851,9 @@ window.KENIOS_DEFAULT_DB = {
     const tiles = [
     { label: 'Doanh thu', value: fmt(r.revenue) },
     { label: 'Số đơn', value: r.count },
-    { label: 'TB/đơn', value: fmt(Math.round(r.avg)) }];
+    { label: 'TB/đơn', value: fmt(Math.round(r.avg)) },
+    { label: 'Khách đã nạp', value: fmt(r.deposits) },
+    { label: 'Đã giảm giá', value: fmt(r.discountTotal) }];
 
     box.innerHTML = `
       <div class="report-tiles">
@@ -5621,6 +5871,20 @@ window.KENIOS_DEFAULT_DB = {
           ${r.topServices.length ? `<table class="admin-table"><tbody>
             ${r.topServices.map(([n, o], i) => `<tr><td>${i + 1}. ${esc(n)}</td><td style="text-align:right">${fmt(o.revenue)} <small class="muted">(${o.count} đơn)</small></td></tr>`).join('')}
           </tbody></table>` : '<p class="muted">—</p>'}
+        </div>
+      </div>
+      <div class="report-cols">
+        <div class="report-col">
+          <h4>${ico('tag')} Hiệu quả mã giảm giá</h4>
+          ${r.topCodes.length ? `<table class="admin-table"><tbody>
+            ${r.topCodes.map(([n, o]) => `<tr><td><b>${esc(n)}</b></td><td style="text-align:right">${o.count} lượt · giảm ${fmt(o.cut)}</td></tr>`).join('')}
+          </tbody></table>` : '<p class="muted">Không có đơn nào dùng mã trong khoảng này.</p>'}
+        </div>
+        <div class="report-col">
+          <h4>${ico('calendar')} Doanh thu theo ngày</h4>
+          ${r.byDay.length ? `<div class="report-byday"><table class="admin-table"><tbody>
+            ${r.byDay.map(([d, o]) => `<tr><td>${esc(d.split('-').reverse().join('/'))}</td><td style="text-align:right">${fmt(o.revenue)} <small class="muted">(${o.count} đơn)</small></td></tr>`).join('')}
+          </tbody></table></div>` : '<p class="muted">—</p>'}
         </div>
       </div>`;
   }
@@ -5851,6 +6115,63 @@ window.KENIOS_DEFAULT_DB = {
       .concat(readDiscountEditor('#dcListPrivate', 'private'));
   }
 
+  // 1 dòng THÔNG BÁO (chuông) trong admin: tiêu đề + nội dung + nút xoá. Giữ id/date cũ
+  // (data-*) để khách đã đọc rồi không bị báo chấm đỏ lại khi admin chỉ lưu lại y nguyên.
+  function announceRowHtml(a = {}) {
+    return `
+      <div class="announce-row" data-an-row data-an-id="${esc(a.id || '')}" data-an-date="${esc(a.date || '')}">
+        <input data-an-title value="${esc(a.title || '')}" placeholder="Tiêu đề (VD: Khuyến mãi 20% cuối tuần)">
+        <textarea data-an-text rows="2" placeholder="Nội dung thông báo...">${esc(a.text || '')}</textarea>
+        <button type="button" class="discount-del" data-an-remove title="Xoá thông báo">${ico('close')}</button>
+      </div>`;
+  }
+  function readAnnouncementsFromEditor() {
+    return $$('#announceEditor [data-an-row]').map((row) => ({
+      id: row.dataset.anId || 'AN' + Date.now() + Math.floor(Math.random() * 1000),
+      date: row.dataset.anDate || new Date().toISOString(),
+      title: row.querySelector('[data-an-title]').value.trim(),
+      text: row.querySelector('[data-an-text]').value.trim()
+    })).filter((x) => x.title || x.text);
+  }
+
+  // 1 dòng SALE theo sản phẩm/danh mục trong admin: chọn mục tiêu + % + hạn + bật/tắt.
+  function itemSaleRowHtml(s = {}) {
+    const cats = Store.db.categories || [];
+    const svcs = Store.db.services || [];
+    const cur = (s.targetType && s.targetId) ? `${s.targetType}:${s.targetId}` : '';
+    const endLocal = s.endsAt ? toLocalDatetimeValue(s.endsAt) : '';
+    return `
+      <div class="itemsale-row" data-is-row>
+        <label class="discount-on" title="Bật sale này"><input type="checkbox" data-is-enabled ${s.enabled !== false ? 'checked' : ''}></label>
+        <select data-is-target>
+          <option value="">— Chọn sản phẩm / danh mục —</option>
+          <optgroup label="Danh mục (áp cho mọi sản phẩm trong đó)">
+            ${cats.map((c1) => `<option value="category:${esc(c1.id)}" ${cur === 'category:' + c1.id ? 'selected' : ''}>${esc(c1.name)}</option>`).join('')}
+          </optgroup>
+          <optgroup label="Sản phẩm">
+            ${svcs.map((sv) => `<option value="service:${esc(sv.id)}" ${cur === 'service:' + sv.id ? 'selected' : ''}>${esc(sv.name)}</option>`).join('')}
+          </optgroup>
+        </select>
+        <label class="is-cond">Giảm % <input data-is-percent type="number" min="1" max="99" step="1" value="${parseFloat(s.percent) || ''}" placeholder="VD: 20"></label>
+        <label class="is-cond">Kết thúc lúc <input data-is-ends type="datetime-local" value="${esc(endLocal)}"></label>
+        <button type="button" class="discount-del" data-is-remove title="Xoá sale này">${ico('close')}</button>
+      </div>`;
+  }
+  function readItemSalesFromEditor() {
+    return $$('#itemSalesEditor [data-is-row]').map((row) => {
+      const tv = row.querySelector('[data-is-target]').value || '';
+      const sep = tv.indexOf(':');
+      const ends = row.querySelector('[data-is-ends]').value;
+      return {
+        targetType: sep > 0 ? tv.slice(0, sep) : '',
+        targetId: sep > 0 ? tv.slice(sep + 1) : '',
+        percent: Math.max(0, Math.min(99, parseFloat(row.querySelector('[data-is-percent]').value) || 0)),
+        endsAt: ends ? new Date(ends).toISOString() : '',
+        enabled: row.querySelector('[data-is-enabled]').checked
+      };
+    }).filter((x) => x.targetType && x.targetId && x.percent > 0);
+  }
+
   // 1 dòng hạng VIP trong admin (tên hạng + mốc chi tiêu + % giảm).
   function vipTierRowHtml(t = {}) {
     return `
@@ -5932,6 +6253,17 @@ window.KENIOS_DEFAULT_DB = {
           <input name="flashSaleTitle" value="${esc(fs.title || 'FLASH SALE')}" placeholder="VD: FLASH SALE CUỐI TUẦN">
         </label>
 
+        <div class="admin-form-section">2b. ${ico('sale')} Sale theo TỪNG sản phẩm / danh mục</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Hướng dẫn:</b> Giảm % riêng cho <b>1 sản phẩm</b> hoặc <b>cả 1 danh mục</b> trong thời hạn tuỳ chọn (để trống = không hết hạn). Giá hiện gạch ngang + huy hiệu -% ngay trên thẻ sản phẩm. Nếu trùng thời điểm với Flash Sale toàn shop thì áp <b>mức giảm cao hơn</b> (không cộng dồn).
+        </div>
+        <div class="span-2 itemsale-editor" id="itemSalesEditor">
+          ${(c.itemSales || []).map((s) => itemSaleRowHtml(s)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addItemSaleBtn"><span class="btn-ico">${ICONS.sale || ICONS.tag}</span> + Thêm sale sản phẩm/danh mục</button>
+        </div>
+
         <div class="admin-form-section">3. Mã giảm giá sản phẩm</div>
         <div class="admin-guide">
           <b>${ico('bulb')} Cách làm:</b> Điền phần <b>"Tạo mã"</b> (MÃ · Giảm % hay Giảm tiền + giá trị · các điều kiện: Lượt tối đa, Số lần/người, Số tài khoản, Hạn dùng, Đơn tối thiểu, Chỉ danh mục — để trống/0 = không giới hạn) → bấm <b>"Lưu mã"</b> thì mã hiện xuống <b>DANH SÁCH</b> bên dưới (mỗi mã 1 dòng, có nút <b>Sửa</b> và <b>✕</b>). Xong tất cả, bấm <b>"Lưu khuyến mãi"</b> ở cuối trang để áp dụng cho khách.
@@ -5940,18 +6272,18 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-subsection" style="margin-top:6px;font-weight:700;color:var(--brand-2);">3a. ${ico('megaphone')} Mã khuyến mãi CHO MỌI NGƯỜI</div>
         <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Ai cũng nhập được (tuỳ giới hạn bạn đặt). <b>Điền phần "Tạo mã" bên dưới → bấm "Lưu mã"</b>; mã sẽ hiện trong <b>DANH SÁCH</b> ngay dưới, mỗi mã 1 dòng có nút Sửa và ✕.</p>
-        <div class="span-2 dc-create-label muted">✍️ Tạo mã cho mọi người</div>
+        <div class="span-2 dc-create-label muted">${ico("edit")} Tạo mã cho mọi người</div>
         <div class="span-2">${discountCreateFormHtml('public')}</div>
-        <div class="span-2 dc-create-label muted">📋 Danh sách mã cho mọi người</div>
+        <div class="span-2 dc-create-label muted">${ico("list")} Danh sách mã cho mọi người</div>
         <div class="span-2 dc-list" id="dcListPublic" data-dc-scope="public">
           ${discountItemsHtml(c.discountCodes, 'public')}
         </div>
 
         <div class="admin-subsection" style="margin-top:16px;font-weight:700;color:var(--gold);">3b. ${ico('key')} Mã khuyến mãi RIÊNG (cho tài khoản chỉ định)</div>
         <p class="muted" style="grid-column:1/-1;font-size:.8rem;margin:2px 0 6px;">Mặc định "Số tài khoản được dùng" = 1 → chỉ <b>1 tài khoản đầu tiên</b> dùng rồi mã <b>tự xoá</b>. Gửi mã cho đúng khách cần tặng.</p>
-        <div class="span-2 dc-create-label muted">✍️ Tạo mã riêng</div>
+        <div class="span-2 dc-create-label muted">${ico("edit")} Tạo mã riêng</div>
         <div class="span-2">${discountCreateFormHtml('private')}</div>
-        <div class="span-2 dc-create-label muted">📋 Danh sách mã riêng</div>
+        <div class="span-2 dc-create-label muted">${ico("list")} Danh sách mã riêng</div>
         <div class="span-2 dc-list" id="dcListPrivate" data-dc-scope="private">
           ${discountItemsHtml(c.discountCodes, 'private')}
         </div>
@@ -5968,6 +6300,14 @@ window.KENIOS_DEFAULT_DB = {
         <div class="span-2">
           <button type="button" class="btn btn-glass btn-sm" id="addVipTierBtn"><span class="btn-ico">${ICONS.crown || ''}</span> + Thêm hạng VIP</button>
         </div>
+
+        <div class="admin-form-section">4b. ${ico('users')} Chiết khấu CỘNG TÁC VIÊN (đại lý)</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Hướng dẫn:</b> Tài khoản có vai trò <b>Cộng tác viên</b> (đặt trong tab Người dùng) được giảm % này trên <b>mọi đơn</b> — dành cho đại lý mua sỉ bán lại. Nếu CTV cũng đạt hạng VIP thì áp <b>mức cao hơn</b> (không cộng dồn). Để 0 = không chiết khấu.
+        </div>
+        <label>Giảm giá cho CTV (%)
+          <input type="number" name="ctvDiscountPercent" min="0" max="90" step="1" value="${parseFloat(c.ctvDiscountPercent) || 0}" placeholder="VD: 10">
+        </label>
 
         <div class="admin-form-section">5. ${ico('gift')} Mã giới thiệu bạn bè</div>
         <div class="admin-guide">
@@ -6124,6 +6464,12 @@ window.KENIOS_DEFAULT_DB = {
           <p class="muted" style="font-size:.75rem;margin:6px 0 0;">Tạo bot bằng <b>@BotFather</b> để lấy <b>Bot Token</b>. Lấy <b>Chat ID</b> bằng cách nhắn cho bot rồi mở <b>@userinfobot</b> (hoặc thêm bot vào nhóm). Khi cấu hình xong, admin sẽ nhận tin nhắn mỗi khi có <b>đơn mới / khách nạp tiền / kho key sắp hết</b>.</p>
         </div>
 
+        <div class="admin-form-section">${ico('shield')} Xác thực 2 lớp cho Admin (qua Telegram)</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Hướng dẫn:</b> Khi bật, mỗi lần đăng nhập admin phải nhập thêm <b>mã 6 số</b> bot Telegram gửi tới bạn (hiệu lực 12 giờ). Kẻ xấu dù biết mật khẩu cũng không điều khiển được shop. <b>Yêu cầu:</b> đã cấu hình Telegram ở trên (chưa cấu hình thì bật cũng không có tác dụng). Nếu mất Telegram, sửa <code>"admin2faEnabled": false</code> trong database.json trên hosting để tắt khẩn cấp.
+        </div>
+        <label class="admin-check-label"><input type="checkbox" name="admin2faEnabled" ${c.admin2faEnabled ? 'checked' : ''}> Bật xác thực 2 lớp cho tài khoản admin</label>
+
         <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí của card2k.net.</div>
         <div class="card-discount-grid span-2">
           ${['VIETTEL', 'VINAPHONE', 'MOBIFONE', 'GARENA', 'ZING', 'GATE', 'VCOIN', 'SCOIN'].map((t) => {
@@ -6168,6 +6514,17 @@ window.KENIOS_DEFAULT_DB = {
             <option value="0" ${c.welcomeAlways === false ? 'selected' : ''}>Chỉ 1 lần mỗi phiên</option>
           </select>
         </label>
+
+        <div class="admin-form-section">${ico('bell')} Thông báo trong web (chuông)</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Hướng dẫn:</b> Đăng thông báo (khuyến mãi mới, cập nhật, lịch bảo trì...) — khách thấy <b>biểu tượng chuông có chấm đỏ</b> trên đầu trang, bấm vào đọc. Xoá hết thông báo thì chuông tự ẩn. Nhớ bấm Lưu ở cuối trang rồi Đồng bộ lên máy chủ.
+        </div>
+        <div class="span-2 announce-editor" id="announceEditor">
+          ${(c.announcements || []).map((a) => announceRowHtml(a)).join('')}
+        </div>
+        <div class="span-2">
+          <button type="button" class="btn btn-glass btn-sm" id="addAnnounceBtn"><span class="btn-ico">${ICONS.bell}</span> + Thêm thông báo</button>
+        </div>
 
         <div class="admin-form-section">Chữ chạy</div>
         <label class="span-2">Chữ chạy (marqueeText) <input name="marqueeText" value="${esc(c.marqueeText)}"></label>
@@ -6781,6 +7138,30 @@ window.KENIOS_DEFAULT_DB = {
     const delDc = e.target.closest('[data-dc-remove]');
     if (delDc) { const it = delDc.closest('[data-dc-item]'); if (it) it.remove(); return; }
 
+    // ----- Thêm / xoá THÔNG BÁO (chuông) -----
+    if (e.target.closest('#addAnnounceBtn')) {
+      const editor = $('#announceEditor');
+      if (editor) {
+        editor.insertAdjacentHTML('beforeend', announceRowHtml({}));
+        const inp = editor.querySelector('[data-an-row]:last-child [data-an-title]'); if (inp) inp.focus();
+      }
+      return;
+    }
+    const delAn = e.target.closest('[data-an-remove]');
+    if (delAn) { const r = delAn.closest('[data-an-row]'); if (r) r.remove(); return; }
+
+    // ----- Thêm / xoá SALE theo sản phẩm/danh mục -----
+    if (e.target.closest('#addItemSaleBtn')) {
+      const editor = $('#itemSalesEditor');
+      if (editor) {
+        editor.insertAdjacentHTML('beforeend', itemSaleRowHtml({ enabled: true }));
+        const sel = editor.querySelector('[data-is-row]:last-child [data-is-target]'); if (sel) sel.focus();
+      }
+      return;
+    }
+    const delIs = e.target.closest('[data-is-remove]');
+    if (delIs) { const r = delIs.closest('[data-is-row]'); if (r) r.remove(); return; }
+
     // ----- Thêm / xoá hạng VIP -----
     if (e.target.closest('#addVipTierBtn')) {
       const editor = $('#vipTiersEditor');
@@ -7112,6 +7493,8 @@ window.KENIOS_DEFAULT_DB = {
         googleClientId: fd.get('googleClientId'),
         welcomePopupEnabled: fd.get('welcomePopupEnabled') === '1',
         welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
+        announcements: readAnnouncementsFromEditor(),
+        admin2faEnabled: fd.get('admin2faEnabled') === 'on',
         welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceEnabled: false,
         maintenanceMode: fd.get('maintenanceMode') === '1', maintenanceMessage: fd.get('maintenanceMessage'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
@@ -7141,6 +7524,8 @@ window.KENIOS_DEFAULT_DB = {
           title: (fd.get('flashSaleTitle') || 'FLASH SALE').trim() || 'FLASH SALE'
         },
         vipTiers: readVipTiersFromEditor(),
+        itemSales: readItemSalesFromEditor(),
+        ctvDiscountPercent: Math.max(0, Math.min(90, parseFloat(fd.get('ctvDiscountPercent')) || 0)),
         referralEnabled: fd.get('referralEnabled') === 'on',
         referralBonus: parseInt(fd.get('referralBonus'), 10) || 0
       });

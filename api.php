@@ -80,10 +80,30 @@ function admin_authenticated($db, $admin_user, $admin_pass) {
             && strtolower($u['username'] ?? '') === strtolower($admin_user)
             && verify_password($admin_pass, $u['password'] ?? '')) {
             rate_limit_reset($rlKey); // đúng mật khẩu -> xoá bộ đếm (dùng admin bình thường không bị khoá)
+            // XÁC THỰC 2 LỚP: nếu bật (và Telegram đã cấu hình), phải có phiên OTP còn hiệu
+            // lực (admin2faOkUntil) — kẻ biết mật khẩu nhưng không có Telegram sẽ bị chặn.
+            if (!empty($db['config']['admin2faEnabled'])) {
+                $sec2 = read_secrets();
+                if (!empty($sec2['telegramBotToken']) && !empty($sec2['telegramChatId'])
+                    && intval($u['admin2faOkUntil'] ?? 0) < time()) {
+                    return false;
+                }
+            }
             return true;
         }
     }
     return false;
+}
+
+// Kiểm tra RIÊNG mật khẩu admin (KHÔNG qua cổng 2FA) — dùng cho chính luồng cấp/xác minh
+// OTP (nếu bắt 2FA ở đây thì thành vòng lặp gà–trứng). Trả về chỉ số user hoặc -1.
+function admin_password_ok($db, $admin_user, $admin_pass) {
+    foreach (($db['users'] ?? []) as $i => $u) {
+        if (($u['role'] ?? '') === 'admin'
+            && strtolower($u['username'] ?? '') === strtolower($admin_user)
+            && verify_password($admin_pass, $u['password'] ?? '')) return $i;
+    }
+    return -1;
 }
 
 // ---- CHỐNG DÒ MẬT KHẨU / SPAM (rate limit) ----
@@ -266,6 +286,43 @@ function token_ok($u, $token) {
     $serverToken = (string)($u['token'] ?? '');
     if ($serverToken === '') return true;
     return is_string($token) && $token !== '' && hash_equals($serverToken, $token);
+}
+
+// Nhắc admin qua Telegram (1 lần/ngày) danh sách key SẮP HẾT HẠN trong 3 ngày tới, để
+// admin chủ động nhắn khách gia hạn. Chốt theo file đánh dấu ngày để không gửi trùng.
+function maybe_notify_expiring_keys($db) {
+    if (!function_exists('notify_telegram')) return;
+    $marker = __DIR__ . '/expiry_notify_marker.txt';
+    $today = date('Y-m-d');
+    if (@file_get_contents($marker) === $today) return;
+    @file_put_contents($marker, $today); // ghi TRƯỚC để nhiều request cùng lúc không gửi trùng
+    $now = time(); $soon = []; $names = [];
+    foreach (($db['users'] ?? []) as $u) { $names[(string)($u['userId'] ?? '')] = (string)($u['username'] ?? ''); }
+    foreach (($db['orders'] ?? []) as $o) {
+        if (empty($o['expiryDate'])) continue;
+        $t = strtotime((string)$o['expiryDate']);
+        if ($t === false || $t <= $now || $t > $now + 3 * 86400) continue;
+        $un = $names[(string)($o['userId'] ?? '')] ?? (string)($o['userId'] ?? '?');
+        $soon[] = "• {$un} — " . ($o['serviceName'] ?? '') . " (" . ($o['packageName'] ?? '') . ") hết hạn " . date('d/m H:i', $t);
+        if (count($soon) >= 15) { $soon[] = '…'; break; }
+    }
+    if ($soon) notify_telegram("⏰ <b>KEY SẮP HẾT HẠN (3 ngày tới)</b>\n" . implode("\n", $soon) . "\n👉 Nhắn khách gia hạn nhé!");
+}
+
+// % SALE RIÊNG theo sản phẩm/danh mục (config.itemSales) — trả % CAO NHẤT đang hiệu lực
+// khớp với sản phẩm này (theo chính nó hoặc danh mục của nó). Hết hạn/tắt thì bỏ qua.
+function item_sale_percent($cfg, $serviceId, $categoryId) {
+    $best = 0;
+    foreach ((is_array($cfg['itemSales'] ?? null) ? $cfg['itemSales'] : []) as $s) {
+        if (!is_array($s) || ($s['enabled'] ?? true) === false) continue;
+        $p = floatval($s['percent'] ?? 0);
+        if ($p <= 0) continue;
+        if (!empty($s['endsAt'])) { $t = strtotime((string)$s['endsAt']); if ($t !== false && time() > $t) continue; }
+        $match = ((($s['targetType'] ?? '') === 'service') && (($s['targetId'] ?? '') === $serviceId))
+              || ((($s['targetType'] ?? '') === 'category') && (($s['targetId'] ?? '') === $categoryId));
+        if ($match && $p > $best) $best = $p;
+    }
+    return $best;
 }
 
 // Sinh mã giới thiệu ngắn, DUY NHẤT (không trùng refCode nào đang có). Bỏ ký tự dễ nhầm.
@@ -779,6 +836,10 @@ switch ($action) {
         // Khách xem thẻ của mình qua action=card_status; admin xem qua action=card_requests.
         unset($db['cardRequests']);
         echo json_encode($db, JSON_UNESCAPED_UNICODE);
+        // Nhắc admin qua Telegram (tối đa 1 lần/ngày) danh sách key sắp hết hạn — gửi SAU
+        // khi đã trả dữ liệu cho khách nên không làm chậm ai.
+        flush_response();
+        maybe_notify_expiring_keys(read_db($db_file));
         break;
 
     case 'redeem_key':
@@ -859,6 +920,10 @@ switch ($action) {
             $endsOk = empty($fs['endsAt']) || strtotime((string)$fs['endsAt']) > time();
             if ($fp_percent > 0 && $endsOk) $flashPercent = $fp_percent;
         }
+        // 1b) Sale RIÊNG theo sản phẩm/danh mục: so với Flash toàn shop lấy mức CAO HƠN
+        // (không cộng dồn để tránh giảm chồng giảm).
+        $isp = item_sale_percent($cfg, $serviceId, (string)($service['categoryId'] ?? ''));
+        if ($isp > $flashPercent) $flashPercent = $isp;
         $price = $basePrice - floor($basePrice * $flashPercent / 100);
 
         // 2) Hạng VIP theo tổng chi tiêu (tổng price các đơn của user).
@@ -874,6 +939,12 @@ switch ($action) {
                     $vipPercent = floatval($t['discountPercent'] ?? 0);
                 }
             }
+        }
+        // 2b) Chiết khấu CTV: cộng tác viên có % riêng (config.ctvDiscountPercent);
+        // lấy mức CAO HƠN giữa VIP và CTV (không cộng dồn).
+        if (($db['users'][$userIdx]['role'] ?? '') === 'ctv') {
+            $ctvP = floatval($cfg['ctvDiscountPercent'] ?? 0);
+            if ($ctvP > $vipPercent) $vipPercent = $ctvP;
         }
         $price = max(0, $price - floor($price * $vipPercent / 100));
 
@@ -1093,6 +1164,10 @@ switch ($action) {
             $endsOk = empty($fs['endsAt']) || strtotime((string)$fs['endsAt']) > time();
             if ($fp_percent > 0 && $endsOk) $flashPercent = $fp_percent;
         }
+        // 1b) Sale RIÊNG theo sản phẩm/danh mục: so với Flash toàn shop lấy mức CAO HƠN
+        // (không cộng dồn để tránh giảm chồng giảm).
+        $isp = item_sale_percent($cfg, $serviceId, (string)($service['categoryId'] ?? ''));
+        if ($isp > $flashPercent) $flashPercent = $isp;
         $price = $basePrice - floor($basePrice * $flashPercent / 100);
 
         // 2) Hạng VIP theo tổng chi tiêu.
@@ -1108,6 +1183,12 @@ switch ($action) {
                     $vipPercent = floatval($t['discountPercent'] ?? 0);
                 }
             }
+        }
+        // 2b) Chiết khấu CTV: cộng tác viên có % riêng (config.ctvDiscountPercent);
+        // lấy mức CAO HƠN giữa VIP và CTV (không cộng dồn).
+        if (($db['users'][$userIdx]['role'] ?? '') === 'ctv') {
+            $ctvP = floatval($cfg['ctvDiscountPercent'] ?? 0);
+            if ($ctvP > $vipPercent) $vipPercent = $ctvP;
         }
         $price = max(0, $price - floor($price * $vipPercent / 100));
 
@@ -2291,6 +2372,82 @@ switch ($action) {
         echo json_encode($ok
             ? ["status" => "success", "message" => "Đã gửi tin thử — kiểm tra Telegram của bạn!"]
             : ["status" => "error", "message" => "Gửi thất bại. Kiểm tra lại Bot Token / Chat ID (và bạn đã bấm Start cho bot chưa)."]);
+        break;
+
+    // XÁC THỰC 2 LỚP ADMIN — bước 1: cấp mã OTP 6 số qua Telegram (hiệu lực 5 phút).
+    case 'request_admin_otp':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $au = trim((string)($input['username'] ?? ''));
+        $ap = (string)($input['password'] ?? '');
+        $rlO = rate_limit_hit('otp:' . client_ip(), 5, 600, 900);
+        if (!$rlO['ok']) { echo json_encode(["status" => "error", "message" => "Yêu cầu mã quá nhiều lần, thử lại sau " . retry_human($rlO['retry']) . "."]); exit; }
+        $db = read_db($db_file);
+        if (admin_password_ok($db, $au, $ap) === -1) { echo json_encode(["status" => "error", "message" => "Sai tài khoản hoặc mật khẩu admin."]); exit; }
+        $sec = read_secrets();
+        if (empty($sec['telegramBotToken']) || empty($sec['telegramChatId'])) { echo json_encode(["status" => "error", "message" => "Chưa cấu hình Telegram — không gửi được mã."]); exit; }
+        $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        @file_put_contents(__DIR__ . '/otp_admin.json', json_encode([
+            'user' => strtolower($au), 'hash' => password_hash($code, PASSWORD_BCRYPT),
+            'exp' => time() + 300, 'tries' => 0
+        ]));
+        notify_telegram("🔐 <b>MÃ XÁC THỰC ADMIN</b>\nMã của bạn: <b>{$code}</b>\nHiệu lực 5 phút. KHÔNG chia sẻ mã này cho bất kỳ ai.");
+        echo json_encode(["status" => "success", "message" => "Đã gửi mã 6 số qua Telegram."]);
+        break;
+
+    // XÁC THỰC 2 LỚP ADMIN — bước 2: xác minh mã, mở phiên admin 12 giờ (admin2faOkUntil).
+    case 'verify_admin_otp':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $au = trim((string)($input['username'] ?? ''));
+        $ap = (string)($input['password'] ?? '');
+        $codeIn = preg_replace('/\D/', '', (string)($input['code'] ?? ''));
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        $ai = admin_password_ok($db, $au, $ap);
+        if ($ai === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Sai tài khoản hoặc mật khẩu admin."]); exit; }
+        $otpFile = __DIR__ . '/otp_admin.json';
+        $otp = @json_decode(@file_get_contents($otpFile), true);
+        $fail = function ($msg) use ($fp) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => $msg]); exit; };
+        if (!is_array($otp) || ($otp['user'] ?? '') !== strtolower($au)) $fail("Chưa có mã nào được cấp — bấm gửi lại mã.");
+        if (intval($otp['exp'] ?? 0) < time()) { @unlink($otpFile); $fail("Mã đã hết hạn — bấm gửi lại mã."); }
+        if (intval($otp['tries'] ?? 0) >= 5) { @unlink($otpFile); $fail("Nhập sai quá 5 lần — bấm gửi lại mã."); }
+        if ($codeIn === '' || !password_verify($codeIn, (string)($otp['hash'] ?? ''))) {
+            $otp['tries'] = intval($otp['tries'] ?? 0) + 1;
+            @file_put_contents($otpFile, json_encode($otp));
+            $fail("Mã không đúng (" . $otp['tries'] . "/5).");
+        }
+        @unlink($otpFile); // mã dùng 1 lần
+        $db['users'][$ai]['admin2faOkUntil'] = time() + 12 * 3600;
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "message" => "Xác thực thành công — phiên admin mở trong 12 giờ."]);
+        break;
+
+    // TRA CỨU KEY công khai: khách dán key -> biết key có tồn tại + còn hạn không.
+    // KHÔNG trả thông tin người mua. Rate-limit chống dò quét key hàng loạt.
+    case 'check_key':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $key = trim((string)($input['key'] ?? ''));
+        if ($key === '' || strlen($key) > 200) { echo json_encode(["status" => "error", "message" => "Thiếu key cần kiểm tra."]); exit; }
+        $rlK = rate_limit_hit('keycheck:' . client_ip(), 12, 60, 120);
+        if (!$rlK['ok']) { echo json_encode(["status" => "error", "message" => "Bạn kiểm tra quá nhanh, thử lại sau " . retry_human($rlK['retry']) . "."]); exit; }
+        $db = read_db($db_file);
+        $hit = null;
+        foreach (($db['orders'] ?? []) as $o) {
+            if (hash_equals((string)($o['key'] ?? ''), $key)) { $hit = $o; break; }
+        }
+        if ($hit === null) { echo json_encode(["status" => "success", "found" => false]); exit; }
+        $expIso = (string)($hit['expiryDate'] ?? '');
+        $expTs = $expIso !== '' ? strtotime($expIso) : false;
+        echo json_encode([
+            "status" => "success", "found" => true,
+            "serviceName" => (string)($hit['serviceName'] ?? ''),
+            "packageName" => (string)($hit['packageName'] ?? ''),
+            "expiryDate" => $expIso,
+            "expired" => ($expTs !== false && $expTs < time())
+        ], JSON_UNESCAPED_UNICODE);
         break;
 
     case 'upload_file':
