@@ -3337,14 +3337,20 @@ window.KENIOS_DEFAULT_DB = {
       // Tải video bằng fetch (kênh tải file thường, không phải kênh phát video):
       // webview có đủ dữ liệu mà video KHÔNG cần phát -> không phải mồi, không bung;
       // nguồn blob cũng LUÔN tua được, không phụ thuộc máy chủ hỗ trợ Range hay không.
-      fetch(src).then(function (r) {if (!r.ok) throw new Error('http');return r.blob();}).then(function (b) {
+      var useBlob = function (b) {
         if (sv._srcKey !== src) return; // admin vừa đổi nền khác trong lúc đang tải
         try {if (sv._blobUrl) URL.revokeObjectURL(sv._blobUrl);} catch (e) {/* ignore */}
         sv._blobUrl = URL.createObjectURL(b);
         sv.src = sv._blobUrl;sv.load();
-      }).catch(function () {
+      };
+      var okBlob = function (r) {if (!r.ok) throw new Error('http');return r.blob();};
+      fetch(src).then(okBlob).then(useBlob).catch(function () {
         if (sv._srcKey !== src) return;
-        sv.src = src;sv.load(); // fetch hỏng (video khác nguồn chặn CORS...) -> gán thẳng như cũ
+        // Video ở nguồn khác bị CORS chặn -> nhờ máy chủ NHÀ MÌNH tải hộ (media_proxy).
+        fetch('api.php?action=media_proxy&u=' + encodeURIComponent(src)).then(okBlob).then(useBlob).catch(function () {
+          if (sv._srcKey !== src) return;
+          sv.src = src;sv.load(); // hết cách -> gán thẳng như cũ (sẽ cần mồi ở cú chạm đầu)
+        });
       });
     }
     _startMirrorSeek(videoEl, sv, cv);
@@ -3854,7 +3860,7 @@ window.KENIOS_DEFAULT_DB = {
         const j = await r.json();
         if (j.status === 'success') {
           closeModal('#otpModal');
-          toast('Xác thực 2 lớp thành công! Phiên quản trị mở trong 12 giờ.', 'success');
+          toast('Xác thực 2 lớp thành công! Trong 3 giờ tới sẽ không hỏi mã lại.', 'success');
         } else {if (err) err.textContent = j.message || 'Mã không đúng.';}
       } catch (e) {if (err) err.textContent = 'Không kết nối được máy chủ.';}
     });
@@ -7137,7 +7143,7 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section">${ico('shield')} Xác thực 2 lớp cho Admin (qua Telegram)</div>
         <div class="admin-guide">
-          <b>${ico('bulb')} Hướng dẫn:</b> Khi bật, mỗi lần đăng nhập admin phải nhập thêm <b>mã 6 số</b> bot Telegram gửi tới bạn (hiệu lực 12 giờ). Kẻ xấu dù biết mật khẩu cũng không điều khiển được shop. <b>Yêu cầu:</b> đã cấu hình Telegram ở trên (chưa cấu hình thì bật cũng không có tác dụng). Nếu mất Telegram, sửa <code>"admin2faEnabled": false</code> trong database.json trên hosting để tắt khẩn cấp.
+          <b>${ico('bulb')} Hướng dẫn:</b> Khi bật, đăng nhập admin phải nhập thêm <b>mã 6 số</b> bot Telegram gửi tới bạn — nhập 1 lần dùng được 3 giờ, trong 3 giờ đó không hỏi lại. Kẻ xấu dù biết mật khẩu cũng không điều khiển được shop. <b>Yêu cầu:</b> đã cấu hình Telegram ở trên (chưa cấu hình thì bật cũng không có tác dụng). Nếu mất Telegram, sửa <code>"admin2faEnabled": false</code> trong database.json trên hosting để tắt khẩn cấp.
         </div>
         <label class="admin-check-label"><input type="checkbox" name="admin2faEnabled" ${c.admin2faEnabled ? 'checked' : ''}> Bật xác thực 2 lớp cho tài khoản admin</label>
 

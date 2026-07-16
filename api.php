@@ -986,6 +986,50 @@ switch ($action) {
         ], JSON_UNESCAPED_UNICODE);
         break;
 
+    // TRẠM TRUNG CHUYỂN VIDEO: video nền/hero đặt ở nguồn khác bị CORS chặn fetch trong
+    // webview Zalo -> máy chủ tải hộ rồi trả về như file cùng nhà. CHỈ cho file video,
+    // chặn địa chỉ nội bộ (chống dò mạng), giới hạn 50MB, cache 1 ngày cho nhẹ băng thông.
+    case 'media_proxy': {
+        $u = isset($_GET['u']) ? trim((string)$_GET['u']) : '';
+        if (!preg_match('~^https?://~i', $u) || !preg_match('~\.(mp4|webm|ogg|ogv|mov|m4v)([?#]|$)~i', $u)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'URL không hợp lệ (chỉ nhận file video)']);
+            break;
+        }
+        $host = parse_url($u, PHP_URL_HOST);
+        $ip = $host ? gethostbyname($host) : '';
+        if (!$host || ($ip && filter_var($ip, FILTER_VALIDATE_IP) &&
+            !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'Nguồn video không được phép']);
+            break;
+        }
+        $ext = strtolower(preg_replace('~^.*\.([a-z0-9]+)([?#].*)?$~i', '$1', $u));
+        $mime = ['mp4' => 'video/mp4', 'webm' => 'video/webm', 'ogg' => 'video/ogg',
+                 'ogv' => 'video/ogg', 'mov' => 'video/quicktime', 'm4v' => 'video/mp4'][$ext] ?? 'video/mp4';
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=86400'); // webview cache 1 ngày, đỡ tải lại
+        header_remove('Pragma');
+        $sent = 0;
+        $ch = curl_init($u);
+        curl_setopt_array($ch, [
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (kenios-media-proxy)',
+            CURLOPT_WRITEFUNCTION  => function ($ch, $chunk) use (&$sent) {
+                $sent += strlen($chunk);
+                if ($sent > 50 * 1024 * 1024) return -1; // quá 50MB -> ngắt
+                echo $chunk;
+                return strlen($chunk);
+            }
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+        exit; // đã tự đổ dữ liệu ra, không cho khối JSON phía dưới chạy thêm
+    }
+
     case 'get_db':
         if (!file_exists($db_file)) {
             echo json_encode(["status" => "error", "message" => "Database file not found"]);
@@ -1966,9 +2010,13 @@ switch ($action) {
         // Mật khẩu (băm) không còn được gửi ra trình duyệt qua get_db, nên khi admin
         // ghi đè lại toàn bộ users, giữ nguyên password cũ theo userId thay vì để trống.
         if (isset($db['users']) && is_array($db['users']) && isset($input['users']) && is_array($input['users'])) {
-            $existingPasswords = []; $existingContacts = [];
+            $existingPasswords = []; $existingContacts = []; $existing2fa = [];
             foreach ($db['users'] as $u) {
-                if (!empty($u['userId'])) { $existingPasswords[$u['userId']] = $u['password'] ?? ''; $existingContacts[$u['userId']] = $u['contact'] ?? ''; }
+                if (!empty($u['userId'])) {
+                    $existingPasswords[$u['userId']] = $u['password'] ?? '';
+                    $existingContacts[$u['userId']] = $u['contact'] ?? '';
+                    $existing2fa[$u['userId']] = intval($u['admin2faOkUntil'] ?? 0);
+                }
             }
             foreach ($input['users'] as $i => $u) {
                 $uid = $u['userId'] ?? null;
@@ -1977,6 +2025,11 @@ switch ($action) {
                 }
                 if ($uid && empty($u['contact']) && !empty($existingContacts[$uid])) {
                     $input['users'][$i]['contact'] = $existingContacts[$uid];
+                }
+                // Dấu phiên 2FA không được gửi ra trình duyệt -> khi admin lưu lại users,
+                // giữ nguyên phiên đang mở (không thì cứ lưu xong là bị hỏi mã lại).
+                if ($uid && empty($u['admin2faOkUntil']) && !empty($existing2fa[$uid])) {
+                    $input['users'][$i]['admin2faOkUntil'] = $existing2fa[$uid];
                 }
             }
         }
@@ -2890,7 +2943,7 @@ switch ($action) {
         echo json_encode(["status" => "success", "message" => "Đã gửi mã 6 số qua Telegram."]);
         break;
 
-    // XÁC THỰC 2 LỚP ADMIN — bước 2: xác minh mã, mở phiên admin 12 giờ (admin2faOkUntil).
+    // XÁC THỰC 2 LỚP ADMIN — bước 2: xác minh mã, mở phiên admin 3 giờ (admin2faOkUntil).
     case 'verify_admin_otp':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $au = trim((string)($input['username'] ?? ''));
@@ -2914,11 +2967,11 @@ switch ($action) {
             $fail("Mã không đúng (" . $otp['tries'] . "/5).");
         }
         @unlink($otpFile); // mã dùng 1 lần
-        $db['users'][$ai]['admin2faOkUntil'] = time() + 12 * 3600;
+        $db['users'][$ai]['admin2faOkUntil'] = time() + 3 * 3600; // nhập mã 1 lần dùng 3 tiếng
         ftruncate($fp, 0); rewind($fp);
         fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         fflush($fp); flock($fp, LOCK_UN); fclose($fp);
-        echo json_encode(["status" => "success", "message" => "Xác thực thành công — phiên admin mở trong 12 giờ."]);
+        echo json_encode(["status" => "success", "message" => "Xác thực thành công — phiên admin mở trong 3 giờ."]);
         break;
 
     // TRA CỨU KEY công khai: khách dán key -> biết key có tồn tại + còn hạn không.
