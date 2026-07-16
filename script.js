@@ -13,6 +13,8 @@ window.KENIOS_DEFAULT_DB = {
     siteName: "kenios.store",
     siteTitle: "KENIOS.STORE - Cửa Hàng Dịch Vụ Game & Thiết Kế Website",
     siteSubtitle: "Hệ thống phân phối phụ kiện game & dịch vụ thiết kế web hàng đầu Việt Nam. Tự động 24/24, hỗ trợ setup từ A-Z.",
+    servicesTitle: "Dịch Vụ Nổi Bật",
+    servicesSubtitle: "Đầy đủ gói theo ngày · tháng · vĩnh viễn, giao key tự động sau khi thanh toán",
     logoText: "KENIOS.STORE",
     logoSubtext: "Next Gen",
     logoUrl: "",
@@ -2466,6 +2468,9 @@ window.KENIOS_DEFAULT_DB = {
     setText('#heroSub', cfg.siteSubtitle);
     setText('#heroBtn1', cfg.bannerBtn1Text);
     setText('#heroBtn2', cfg.bannerBtn2Text);
+    // Tiêu đề + mô tả mục "Dịch Vụ Nổi Bật" — admin đổi được trong Cấu hình.
+    if (cfg.servicesTitle) setText('#servicesHeadTitle', cfg.servicesTitle);
+    if (cfg.servicesSubtitle) setText('#servicesHeadDesc', cfg.servicesSubtitle);
     applyHeroBackground(cfg.bgUrl);
     applySiteBackground(cfg.siteBgUrl);
 
@@ -6942,6 +6947,8 @@ window.KENIOS_DEFAULT_DB = {
         <div class="admin-form-section">Liên hệ &amp; Giới thiệu</div>
         <label class="span-2">Tên website (siteTitle) <input name="siteTitle" value="${esc(c.siteTitle)}"></label>
         <label class="span-2">Mô tả ngắn (siteSubtitle) <textarea name="siteSubtitle">${esc(c.siteSubtitle)}</textarea></label>
+        <label class="span-2">Tiêu đề mục sản phẩm (servicesTitle) <input name="servicesTitle" value="${esc(c.servicesTitle || 'Dịch Vụ Nổi Bật')}"></label>
+        <label class="span-2">Mô tả mục sản phẩm (servicesSubtitle) <textarea name="servicesSubtitle">${esc(c.servicesSubtitle || '')}</textarea></label>
         <label>Tên Admin hiển thị (contactAdminName) <input name="contactAdminName" value="${esc(c.contactAdminName || '')}"></label>
         <label>Chức danh (contactAdminSub) <input name="contactAdminSub" value="${esc(c.contactAdminSub || '')}"></label>
         <label class="span-2">Giới thiệu (contactAdminDesc) <textarea name="contactAdminDesc">${esc(c.contactAdminDesc || '')}</textarea></label>
@@ -8085,6 +8092,7 @@ window.KENIOS_DEFAULT_DB = {
         showcaseEnabled: fd.get('showcaseEnabled') === 'on',
         bannerTagText: fd.get('bannerTagText'), bannerBtn1Text: fd.get('bannerBtn1Text'), bannerBtn2Text: fd.get('bannerBtn2Text'),
         siteTitle: fd.get('siteTitle'), siteSubtitle: fd.get('siteSubtitle'),
+        servicesTitle: fd.get('servicesTitle'), servicesSubtitle: fd.get('servicesSubtitle'),
         contactAdminName: fd.get('contactAdminName'), contactAdminSub: fd.get('contactAdminSub'), contactAdminDesc: fd.get('contactAdminDesc'),
         hotline: fd.get('hotline'), zaloLink: normalizeContactUrl(fd.get('zaloLink')),
         googleClientId: fd.get('googleClientId'),
