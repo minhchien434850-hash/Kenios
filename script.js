@@ -4082,6 +4082,7 @@ window.KENIOS_DEFAULT_DB = {
     $(sel).hidden = true;document.body.style.overflow = '';
     if (!$('.modal-overlay:not([hidden])')) document.body.classList.remove('modal-open');
     if (_updateScrollBtns) _updateScrollBtns();
+    if (sel === '#depositModal') stopDepositAutoPoll(); // đóng modal nạp -> ngừng kiểm tra ngầm
     // Đóng popup sản phẩm -> gỡ link riêng (#sp/...) khỏi thanh địa chỉ.
     if (sel === '#serviceModal' && /^#sp\//.test(location.hash)) {
       try {history.replaceState(null, '', location.pathname + location.search);} catch (e) {/* ignore */}
@@ -4430,6 +4431,7 @@ window.KENIOS_DEFAULT_DB = {
       if (!amount || amount < 10000) {toast('Số tiền nạp tối thiểu là 10.000đ.', 'error');return;}
       const user = Store.currentUser();
       const note = `NAP${user.userId}${Date.now().toString().slice(-6)}`;
+      startDepositAutoPoll(note, amount); // TỰ kiểm tra ngầm — khách không cần bấm nút
       const url = `https://img.vietqr.io/image/${encodeURIComponent(cfg.bankId)}-${cfg.bankAccountNo}-qr_only.png` +
       `?amount=${amount}&addInfo=${encodeURIComponent(note)}&accountName=${encodeURIComponent(cfg.bankAccountName)}`;
       $('#depositQrImg').src = url;
@@ -4474,6 +4476,39 @@ window.KENIOS_DEFAULT_DB = {
         }
       });
     });
+  }
+
+  // ---- NẠP TỰ ĐỘNG: tự kiểm tra ngầm khi QR đang hiện (khách KHÔNG cần bấm nút) ----
+  // Cứ vài giây hỏi máy chủ "đã nhận chuyển khoản chưa"; nhận được thì cộng tiền + báo +
+  // đóng modal ngay. Dừng khi: đã cộng, đóng modal, hoặc quá 15 phút (an toàn).
+  let _depositPollTimer = null;
+  let _depositPollStop = 0;
+  function stopDepositAutoPoll() {
+    if (_depositPollTimer) {clearInterval(_depositPollTimer);_depositPollTimer = null;}
+  }
+  function startDepositAutoPoll(note) {
+    stopDepositAutoPoll();
+    _depositPollStop = Date.now() + 15 * 60 * 1000; // tự tắt sau 15 phút
+    let busy = false;
+    const tick = async () => {
+      if (Date.now() > _depositPollStop) {stopDepositAutoPoll();return;}
+      if (busy || $('#depositModal').hidden) return; // đang bận / đã đóng modal
+      busy = true;
+      try {
+        const res = await Store.checkAutoDeposit(note);
+        if (res && res.credited) {
+          stopDepositAutoPoll();
+          closeModal('#depositModal');
+          $('#depositQrBox').hidden = true;
+          toast('Đã nhận được chuyển khoản! Số dư của bạn đã được cộng tự động.', 'success');
+        }
+        // serverError (bank tạm lỗi) hoặc chưa nhận -> im lặng thử lại lần sau.
+      } catch (e) {
+        stopDepositAutoPoll(); // không có máy chủ PHP (chế độ demo) -> ngừng, để nút bấm tay lo.
+      } finally {busy = false;}
+    };
+    _depositPollTimer = setInterval(tick, 6000); // 6 giây/lần
+    setTimeout(tick, 4000); // thử sớm lần đầu sau 4 giây
   }
 
   // ---- Chi tiết dịch vụ ----

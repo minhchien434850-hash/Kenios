@@ -29,11 +29,12 @@ $action = $_GET['action'] ?? '';
     $ht = __DIR__ . '/.htaccess';
     $cur = @file_get_contents($ht);
     if ($cur !== false && strpos($cur, 'otp_admin') !== false && strpos($cur, 'auto_backup') !== false
-        && strpos($cur, 'key_log') !== false && strpos($cur, 'push_subs') !== false) return;
+        && strpos($cur, 'key_log') !== false && strpos($cur, 'push_subs') !== false
+        && strpos($cur, 'bank_poll_marker') !== false) return;
     @file_put_contents($ht,
         "# Chặn truy cập trực tiếp vào các file dữ liệu / bí mật (chỉ cho PHP đọc nội bộ).\n"
         . "# File này do api.php tự tạo/cập nhật — không cần up thủ công.\n"
-        . "<FilesMatch \"^(database\\.json|database_backup\\.json|orders_backup\\.json|rate_limits\\.json|secrets\\.php|lib_secrets\\.php|lib_bank\\.php|lib_card\\.php|card_callback_log\\.txt|card_query_log\\.txt|expiry_notify_marker\\.txt|auto_backup_marker\\.txt|auto_backup_[0-9-]+\\.json|otp_admin\\.json|key_log\\.json|push_subs\\.json|push_vapid\\.json|\\.user\\.ini)$\">\n"
+        . "<FilesMatch \"^(database\\.json|database_backup\\.json|orders_backup\\.json|rate_limits\\.json|secrets\\.php|lib_secrets\\.php|lib_bank\\.php|lib_card\\.php|card_callback_log\\.txt|card_query_log\\.txt|expiry_notify_marker\\.txt|auto_backup_marker\\.txt|bank_poll_marker\\.txt|auto_backup_[0-9-]+\\.json|otp_admin\\.json|key_log\\.json|push_subs\\.json|push_vapid\\.json|\\.user\\.ini)$\">\n"
         . "  <IfModule mod_authz_core.c>\n    Require all denied\n  </IfModule>\n"
         . "  <IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n  </IfModule>\n"
         . "</FilesMatch>\n");
@@ -406,6 +407,85 @@ function daily_backup_core($db_file) {
             . "👉 Cất file này. Khôi phục: Quản trị → Sao lưu → <b>Khôi phục từ file</b> (kéo file vào).");
     }
     return ['ok' => true, 'skipped' => false, 'msg' => 'Đã sao lưu & gửi Telegram.', 'file' => basename($backupPath)];
+}
+
+// ---- NẠP VIETQR TỰ ĐỘNG (dùng chung cho poll thủ công + poll nền) ----
+// KÉO lịch sử ACB từ ThueAPIBank rồi cộng tiền cho mọi giao dịch khớp "NAP<userId>".
+// Cộng cho TẤT CẢ khách có chuyển khoản chờ, không phụ thuộc ai bấm nút. $note (tuỳ chọn)
+// chỉ để biết riêng giao dịch của mã nạp này đã được ghi nhận chưa (trả về cho đúng khách đó).
+// Trả về: ['ok'=>bool, 'processed'=>int, 'credited'=>bool, 'balance'=>?, 'message'=>string].
+function bank_pull_credit($db_file, $note = '') {
+    require_once __DIR__ . '/lib_bank.php';
+    $secrets = function_exists('read_secrets') ? read_secrets() : [];
+    $token = trim((string)($secrets['bankToken'] ?? ''));
+    if ($token === '') return ['ok' => false, 'message' => 'Chưa cấu hình token ThueAPIBank trong phần Cấu hình admin.'];
+
+    $ch = curl_init("https://thueapibank.vn/historyapiacb/" . urlencode($token));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    $response = curl_exec($ch);
+    $curl_err = curl_error($ch);
+    curl_close($ch);
+    if ($response === false) return ['ok' => false, 'message' => "Không kết nối được tới ThueAPIBank: $curl_err"];
+    $parsed = json_decode($response, true);
+    if (!is_array($parsed)) return ['ok' => false, 'message' => 'ThueAPIBank trả về dữ liệu không hợp lệ (kiểm tra lại token).'];
+    $transactions = bank_extract_transactions($parsed);
+
+    // Khóa file khi cộng tiền để không cộng trùng khi có nhiều request cùng lúc.
+    $fp = fopen($db_file, 'c+');
+    if (!$fp || !flock($fp, LOCK_EX)) return ['ok' => false, 'message' => 'Không khóa được cơ sở dữ liệu, thử lại sau.'];
+    $raw = stream_get_contents($fp);
+    $db = $raw ? (json_decode($raw, true) ?: []) : [];
+    list($count, $logs, $notifs) = bank_process_transactions($db, $transactions);
+    if ($count > 0) {
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp);
+    }
+    flock($fp, LOCK_UN); fclose($fp);
+
+    // Báo Telegram cho admin từng giao dịch vừa cộng (sau khi đã mở khóa file).
+    if ($count > 0 && function_exists('tg_notify_deposit')) {
+        foreach (($notifs ?? []) as $n) { tg_notify_deposit($n['username'] ?? '', $n['amount'] ?? 0, 'VietQR tự động'); }
+    }
+
+    // Giao dịch của "note" (mã nạp lần này) đã được ghi nhận chưa + số dư mới của user đó.
+    $credited = false; $balance = null;
+    if ($note !== '') {
+        $noteClean = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $note));
+        foreach (($db['transactions'] ?? []) as $t) {
+            if (($t['type'] ?? '') !== 'deposit') continue;
+            $desc = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $t['description'] ?? ''));
+            if ($noteClean !== '' && strpos($desc, $noteClean) !== false) {
+                $credited = true;
+                foreach (($db['users'] ?? []) as $u) {
+                    if (($u['userId'] ?? '') === ($t['userId'] ?? '~')) { $balance = $u['balance']; break; }
+                }
+                break;
+            }
+        }
+    }
+    return ['ok' => true, 'processed' => $count, 'credited' => $credited, 'balance' => $balance, 'message' => 'ok'];
+}
+
+// POLL NỀN TỰ ĐỘNG: chạy sau get_db (mỗi lần có người vào web) nhưng CÓ GIỚI HẠN NHỊP —
+// tối đa 1 lần mỗi ~15 giây (đánh dấu atomic trong bank_poll_marker.txt) để không gọi
+// ThueAPIBank quá dày. Nhờ vậy khách chuyển khoản xong, dù KHÔNG bấm nút nào, chỉ cần có
+// bất kỳ ai (kể cả chính khách đang mở trang) truy cập web là tiền được cộng trong ~15s.
+function maybe_auto_poll_bank($db_file) {
+    $secrets = function_exists('read_secrets') ? read_secrets() : [];
+    if (trim((string)($secrets['bankToken'] ?? '')) === '') return; // chưa bật nạp tự động
+    $marker = __DIR__ . '/bank_poll_marker.txt';
+    $now = time();
+    $mf = @fopen($marker, 'c+');
+    if (!$mf) return;
+    if (!flock($mf, LOCK_EX)) { fclose($mf); return; }
+    $last = (int)trim((string)stream_get_contents($mf));
+    $due = ($now - $last) >= 15; // tối thiểu 15 giây/lần
+    if ($due) { ftruncate($mf, 0); rewind($mf); fwrite($mf, (string)$now); fflush($mf); }
+    flock($mf, LOCK_UN); fclose($mf);
+    if (!$due) return;
+    try { bank_pull_credit($db_file); } catch (Throwable $e) { /* không được để hỏng get_db */ }
 }
 
 // ---- THÔNG BÁO ĐẨY (Web Push, kiểu "không kèm nội dung") ----
@@ -907,70 +987,18 @@ switch ($action) {
     case 'poll_acb':
         // Chủ động KÉO lịch sử giao dịch ACB từ ThueAPIBank rồi cộng số dư cho các nội
         // dung chuyển khoản khớp "NAP<userId>". Token giữ bí mật trong secrets.php.
-        // Frontend gọi khi khách bấm "Tôi đã chuyển khoản" (và có thể lặp lại vài giây/lần).
-        require_once __DIR__ . '/lib_bank.php';
-        $secrets = read_secrets();
-        $token = trim((string)($secrets['bankToken'] ?? ''));
-        if ($token === '') {
-            echo json_encode(["status" => "error", "message" => "Chưa cấu hình token ThueAPIBank trong phần Cấu hình admin."]);
-            exit;
-        }
+        // Khách bấm "Tôi đã chuyển khoản" HOẶC trang tự gọi ngầm vài giây/lần khi mở QR.
         $body = json_decode(file_get_contents('php://input'), true) ?: [];
-        $note = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', (string)($body['note'] ?? '')));
-
-        $ch = curl_init("https://thueapibank.vn/historyapiacb/" . urlencode($token));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $response = curl_exec($ch);
-        $curl_err = curl_error($ch);
-        curl_close($ch);
-        if ($response === false) {
-            echo json_encode(["status" => "error", "message" => "Không kết nối được tới ThueAPIBank: $curl_err"]);
+        $note = (string)($body['note'] ?? '');
+        $r = bank_pull_credit($db_file, $note);
+        if (empty($r['ok'])) {
+            echo json_encode(["status" => "error", "message" => $r['message'] ?? 'Lỗi kiểm tra giao dịch.']);
             exit;
         }
-        $parsed = json_decode($response, true);
-        if (!is_array($parsed)) {
-            echo json_encode(["status" => "error", "message" => "ThueAPIBank trả về dữ liệu không hợp lệ (kiểm tra lại token)."]);
-            exit;
-        }
-        $transactions = bank_extract_transactions($parsed);
-
-        // Khóa file khi cộng tiền để không cộng trùng khi có nhiều request cùng lúc.
-        $fp = fopen($db_file, 'c+');
-        if (!$fp || !flock($fp, LOCK_EX)) {
-            echo json_encode(["status" => "error", "message" => "Không khóa được cơ sở dữ liệu, thử lại sau."]);
-            exit;
-        }
-        $raw = stream_get_contents($fp);
-        $db = $raw ? (json_decode($raw, true) ?: []) : [];
-        list($count, $logs) = bank_process_transactions($db, $transactions);
-        if ($count > 0) {
-            ftruncate($fp, 0);
-            rewind($fp);
-            fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-            fflush($fp);
-        }
-        flock($fp, LOCK_UN);
-        fclose($fp);
-
-        // Kiểm tra riêng: giao dịch của "note" (mã nạp lần này) đã được ghi nhận chưa
-        // (dù ở lần poll này hay đã cộng từ webhook trước đó) + trả về số dư mới của user.
-        $credited = false;
-        $balance = null;
-        if ($note !== '') {
-            foreach (($db['transactions'] ?? []) as $t) {
-                if (($t['type'] ?? '') !== 'deposit') continue;
-                $desc = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $t['description'] ?? ''));
-                if (strpos($desc, $note) !== false) {
-                    $credited = true;
-                    foreach (($db['users'] ?? []) as $u) {
-                        if (($u['userId'] ?? '') === ($t['userId'] ?? '~')) { $balance = $u['balance']; break; }
-                    }
-                    break;
-                }
-            }
-        }
-        echo json_encode(["status" => "success", "processed" => $count, "credited" => $credited, "balance" => $balance]);
+        echo json_encode([
+            "status" => "success", "processed" => $r['processed'] ?? 0,
+            "credited" => !empty($r['credited']), "balance" => $r['balance'] ?? null
+        ]);
         break;
 
     // CRON SAO LƯU 12H: cron job của hosting gọi URL này lúc 12h -> tạo bản sao lưu ĐẦY ĐỦ
@@ -1092,6 +1120,7 @@ switch ($action) {
         flush_response();
         maybe_notify_expiring_keys(read_db($db_file));
         maybe_auto_backup($db_file); // sao lưu tự động 1 lần/ngày (sau khi đã trả dữ liệu)
+        maybe_auto_poll_bank($db_file); // NẠP VIETQR tự động: cộng tiền dù khách không bấm nút
         break;
 
     case 'redeem_key':
