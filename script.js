@@ -3167,11 +3167,42 @@ window.KENIOS_DEFAULT_DB = {
   // Tạo chuyển động bằng cách TUA (seek) từng khung hình của một video LUÔN TẠM DỪNG
   // rồi chép lên canvas (~12-14 hình/giây). Video không bao giờ ở trạng thái "đang phát"
   // -> Zalo không có phiên phát nào để bung trình phát toàn màn hình hay vẽ nút.
+  // MỒI video: iPhone/webview KHÔNG tải dữ liệu video khi video chưa từng phát (preload
+  // bị lơ) -> phát CÂM ~60ms rồi dừng ngay để ép tải dữ liệu. Nếu bị chặn (cần cú chạm)
+  // thì thử lại ở lần chạm/cuộn đầu tiên của người dùng.
+  var _primeQueue = [];
+  function _primeShadow(sv) {
+    if (sv._primed) return;
+    try {
+      var stop = function () {try {sv.pause();} catch (e) {/* ignore */}sv._primed = true;};
+      var p = sv.play();
+      if (p && p.then) {p.then(function () {setTimeout(stop, 60);}).catch(function () {
+        if (_primeQueue.indexOf(sv) < 0) _primeQueue.push(sv); // chờ cú chạm đầu tiên
+      });} else {setTimeout(stop, 60);}
+    } catch (e) {if (_primeQueue.indexOf(sv) < 0) _primeQueue.push(sv);}
+  }
+  (function wirePrimeWake() {
+    if (!IS_HIJACK_WEBVIEW) return;
+    var wake = function () {
+      var q = _primeQueue.slice();_primeQueue.length = 0;
+      q.forEach(function (sv) {_primeShadow(sv);});
+    };
+    window.addEventListener('touchstart', wake, { passive: true });
+    window.addEventListener('scroll', wake, { passive: true });
+  })();
   function _startMirrorSeek(videoEl, sv, cv) {
     if (videoEl._mirrorSeekOn) return;
     videoEl._mirrorSeekOn = true;
     var ctx = cv.getContext('2d');
-    var step = 1 / 12; // bước tua mỗi khung
+    var step = 1 / 12;   // bước tua mỗi khung
+    var mode = 'seek';   // 'seek' = video luôn tạm dừng, tua từng khung (an toàn nhất)
+    var seekFails = 0;   // đếm lần tua hỏng -> quá 8 lần thì chuyển 'play'
+    // LÁ CHẮN: nếu webview vẫn cố bung video lên toàn màn hình -> thoát ngay lập tức
+    // và chạy tiếp, người dùng gần như không thấy gì.
+    sv.addEventListener('webkitbeginfullscreen', function () {
+      try {if (sv.webkitExitFullscreen) sv.webkitExitFullscreen();} catch (e) {/* ignore */}
+      if (mode === 'play') {try {var p = sv.play();if (p && p.catch) p.catch(function () {});} catch (e) {/* ignore */}}
+    });
     function draw() {
       if (!sv.videoWidth) return;
       var w = cv.clientWidth, h = cv.clientHeight;
@@ -3181,28 +3212,55 @@ window.KENIOS_DEFAULT_DB = {
       var s = Math.max(w / vw, h / vh), dw = vw * s, dh = vh * s;
       try {ctx.drawImage(sv, (w - dw) / 2, (h - dh) / 2, dw, dh);} catch (e) {/* khung chưa sẵn */}
     }
+    function toPlayMode() {
+      // Video không tua được -> đành cho PHÁT liên tục (vẫn 2px + câm + lá chắn thoát
+      // toàn màn hình + tự chạy lại khi bị dừng) để nền LUÔN có hình chuyển động.
+      mode = 'play';
+      try {sv.loop = true;var p = sv.play();if (p && p.catch) p.catch(function () {});} catch (e) {/* ignore */}
+    }
     function next() {
       // Canvas đang ẩn / rời tab -> nghỉ, thăm lại sau (không tốn pin).
       if (cv.hidden || document.hidden) {setTimeout(next, 400);return;}
-      // Vài video (webm quay màn hình...) báo duration = Infinity -> tua tới thời điểm
-      // cực lớn 1 lần để trình duyệt tính lại độ dài thật rồi mới chạy vòng tua.
-      if (sv.readyState >= 1 && !isFinite(sv.duration) && !sv._durFixed) {
+      if (sv.readyState < 2) {_primeShadow(sv);setTimeout(next, 300);return;}
+      if (mode === 'play') {
+        if (sv.paused) {try {var pp = sv.play();if (pp && pp.catch) pp.catch(function () {});} catch (e) {/* ignore */}}
+        draw();
+        setTimeout(next, 70);
+        return;
+      }
+      // Vài video báo duration = Infinity -> tua tới thời điểm cực lớn 1 lần để trình
+      // duyệt tính lại độ dài thật rồi mới chạy vòng tua.
+      if (!isFinite(sv.duration) && !sv._durFixed) {
         sv._durFixed = true;
         try {sv.currentTime = 1e7;} catch (e) {/* ignore */}
+        setTimeout(next, 250);return;
       }
-      if (!sv.duration || !isFinite(sv.duration) || sv.readyState < 2) {setTimeout(next, 250);return;}
-      // Video KHÔNG tua được (thiếu mục lục seek) -> đành hiện khung hình hiện tại
-      // (tĩnh), thăm lại thưa hơn phòng khi dữ liệu tải thêm thì tua được.
+      if (!sv.duration || !isFinite(sv.duration)) {setTimeout(next, 250);return;}
+      // Video KHÔNG tua được (máy chủ không hỗ trợ tải từng đoạn) -> thử vài lần rồi
+      // chuyển hẳn sang chế độ phát liên tục.
       var sk = sv.seekable;
-      if (!sk.length || sk.end(sk.length - 1) < step) {draw();setTimeout(next, 1000);return;}
+      if (!sk.length || sk.end(sk.length - 1) < step) {
+        draw();
+        seekFails++;
+        if (seekFails > 8) {toPlayMode();setTimeout(next, 100);return;}
+        setTimeout(next, 500);return;
+      }
       var t = sv.currentTime + step;
       if (t >= sv.duration - 0.08) t = 0; // hết video -> quay về đầu (lặp vô hạn)
       var done = false;
-      var guard = setTimeout(function () {if (!done) {done = true;next();}}, 700); // phòng kẹt seek
+      var guard = setTimeout(function () {
+        if (!done) {
+          done = true;
+          seekFails++;
+          if (seekFails > 8) toPlayMode(); // tua toàn kẹt -> đổi chế độ
+          next();
+        }
+      }, 700);
       var onSeeked = function () {
         sv.removeEventListener('seeked', onSeeked);
         if (done) return;
         done = true;clearTimeout(guard);
+        seekFails = 0;
         draw();
         setTimeout(next, 70); // nhịp khung hình
       };
@@ -3211,6 +3269,7 @@ window.KENIOS_DEFAULT_DB = {
     }
     sv.addEventListener('loadeddata', function () {draw();});
     if (sv.readyState >= 2) draw();
+    _primeShadow(sv);
     next();
   }
   function mountVideoCanvas(videoEl) {
