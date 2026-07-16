@@ -3181,6 +3181,7 @@ window.KENIOS_DEFAULT_DB = {
       });} else {setTimeout(stop, 60);}
     } catch (e) {if (_primeQueue.indexOf(sv) < 0) _primeQueue.push(sv);}
   }
+  var _mirrorMounts = []; // mọi video ngầm đang hoạt động — để hồi sinh khi quay lại app
   (function wirePrimeWake() {
     if (!IS_HIJACK_WEBVIEW) return;
     var wake = function () {
@@ -3189,6 +3190,25 @@ window.KENIOS_DEFAULT_DB = {
     };
     window.addEventListener('touchstart', wake, { passive: true });
     window.addEventListener('scroll', wake, { passive: true });
+    // HỒI SINH khi thoát app rồi quay lại: webview xả bộ giải mã video để tiết kiệm
+    // pin -> video ngầm chết/mất dữ liệu -> canvas đứng hình. Mỗi lần trang hiện lại:
+    // video chết thì nạp lại nguồn, còn sống thì hích nhẹ cho bộ giải mã vẽ tiếp.
+    var revive = function () {
+      if (document.hidden) return;
+      _mirrorMounts.forEach(function (sv) {
+        try {
+          if (sv.error || sv.readyState === 0) {
+            var u = sv._blobUrl || sv._srcKey;
+            if (u) {sv.src = u;sv.load();}
+          } else if (sv.readyState >= 2 && sv.paused) {
+            sv.currentTime = Math.max(0, sv.currentTime) + 0.001; // hích cho vẽ lại khung
+          }
+        } catch (e) {/* ignore */}
+      });
+    };
+    document.addEventListener('visibilitychange', revive);
+    window.addEventListener('pageshow', revive);
+    window.addEventListener('focus', revive);
   })();
   function _startMirrorSeek(videoEl, sv, cv) {
     if (videoEl._mirrorSeekOn) return;
@@ -3310,6 +3330,7 @@ window.KENIOS_DEFAULT_DB = {
       sv.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;';
       document.body.appendChild(sv); // phải nằm trong trang thì webview mới chịu giải mã khi tua
       videoEl._shadowVideo = sv;
+      _mirrorMounts.push(sv);
     }
     if (sv._srcKey !== src) {
       sv._srcKey = src;
