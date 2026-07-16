@@ -3159,29 +3159,54 @@ window.KENIOS_DEFAULT_DB = {
   // đặt đúng vị trí cũ — Zalo không còn thấy video trên màn hình nên hết chỗ vẽ nút,
   // bấm/lướt cũng không mở được trình phát toàn màn hình. ----
   var IS_HIJACK_WEBVIEW = /zalo/i.test(navigator.userAgent || '');
-  var _mirrorList = []; // các cặp {v, cv, ctx} đang cần vẽ — 1 vòng rAF chung cho nhẹ máy
-  var _mirrorRafOn = false;
-  var _mirrorFrame = 0;
-  function _mirrorLoop() {
-    if (!_mirrorList.length) {_mirrorRafOn = false;return;}
-    requestAnimationFrame(_mirrorLoop);
-    _mirrorFrame++;
-    for (var i = 0; i < _mirrorList.length; i++) {
-      var m = _mirrorList[i];
-      if (m.cv.hidden) continue;
-      // Video ngầm bị tạm dừng (webview tiết kiệm pin, quay lại tab...) -> tự kích chạy
-      // lại mỗi ~2 giây, không cần người dùng chạm.
-      if (m.v.paused && _mirrorFrame % 120 === 0) {
-        try {var p = m.v.play();if (p && p.catch) p.catch(function () {});} catch (e) {/* ignore */}
-      }
-      if (!m.v.videoWidth) continue;
-      var w = m.cv.clientWidth, h = m.cv.clientHeight;
-      if (!w || !h) continue;
-      if (m.cv.width !== w || m.cv.height !== h) {m.cv.width = w;m.cv.height = h;}
-      var vw = m.v.videoWidth, vh = m.v.videoHeight;
+  // Tạo chuyển động bằng cách TUA (seek) từng khung hình của một video LUÔN TẠM DỪNG
+  // rồi chép lên canvas (~12-14 hình/giây). Video không bao giờ ở trạng thái "đang phát"
+  // -> Zalo không có phiên phát nào để bung trình phát toàn màn hình hay vẽ nút.
+  function _startMirrorSeek(videoEl, sv, cv) {
+    if (videoEl._mirrorSeekOn) return;
+    videoEl._mirrorSeekOn = true;
+    var ctx = cv.getContext('2d');
+    var step = 1 / 12; // bước tua mỗi khung
+    function draw() {
+      if (!sv.videoWidth) return;
+      var w = cv.clientWidth, h = cv.clientHeight;
+      if (!w || !h) return;
+      if (cv.width !== w || cv.height !== h) {cv.width = w;cv.height = h;}
+      var vw = sv.videoWidth, vh = sv.videoHeight;
       var s = Math.max(w / vw, h / vh), dw = vw * s, dh = vh * s;
-      try {m.ctx.drawImage(m.v, (w - dw) / 2, (h - dh) / 2, dw, dh);} catch (e) {/* khung chưa sẵn sàng */}
+      try {ctx.drawImage(sv, (w - dw) / 2, (h - dh) / 2, dw, dh);} catch (e) {/* khung chưa sẵn */}
     }
+    function next() {
+      // Canvas đang ẩn / rời tab -> nghỉ, thăm lại sau (không tốn pin).
+      if (cv.hidden || document.hidden) {setTimeout(next, 400);return;}
+      // Vài video (webm quay màn hình...) báo duration = Infinity -> tua tới thời điểm
+      // cực lớn 1 lần để trình duyệt tính lại độ dài thật rồi mới chạy vòng tua.
+      if (sv.readyState >= 1 && !isFinite(sv.duration) && !sv._durFixed) {
+        sv._durFixed = true;
+        try {sv.currentTime = 1e7;} catch (e) {/* ignore */}
+      }
+      if (!sv.duration || !isFinite(sv.duration) || sv.readyState < 2) {setTimeout(next, 250);return;}
+      // Video KHÔNG tua được (thiếu mục lục seek) -> đành hiện khung hình hiện tại
+      // (tĩnh), thăm lại thưa hơn phòng khi dữ liệu tải thêm thì tua được.
+      var sk = sv.seekable;
+      if (!sk.length || sk.end(sk.length - 1) < step) {draw();setTimeout(next, 1000);return;}
+      var t = sv.currentTime + step;
+      if (t >= sv.duration - 0.08) t = 0; // hết video -> quay về đầu (lặp vô hạn)
+      var done = false;
+      var guard = setTimeout(function () {if (!done) {done = true;next();}}, 700); // phòng kẹt seek
+      var onSeeked = function () {
+        sv.removeEventListener('seeked', onSeeked);
+        if (done) return;
+        done = true;clearTimeout(guard);
+        draw();
+        setTimeout(next, 70); // nhịp khung hình
+      };
+      sv.addEventListener('seeked', onSeeked);
+      try {sv.currentTime = t;} catch (e) {sv.removeEventListener('seeked', onSeeked);clearTimeout(guard);setTimeout(next, 400);}
+    }
+    sv.addEventListener('loadeddata', function () {draw();});
+    if (sv.readyState >= 2) draw();
+    next();
   }
   function mountVideoCanvas(videoEl) {
     if (!IS_HIJACK_WEBVIEW || !videoEl || !videoEl.parentNode) return;
@@ -3199,35 +3224,37 @@ window.KENIOS_DEFAULT_DB = {
       videoEl._mirrorCanvas = cv;
     }
     cv.hidden = false;
-    // Video chạy trong phần tử TÁCH RỜI, KHÔNG nằm trong trang: Zalo không nhìn thấy
-    // video nào trong DOM nên không thể bung trình phát toàn màn hình khi người dùng
-    // chạm, cũng không có nút nào để vẽ. Canvas chỉ việc chép khung hình từ nó ra.
+    // Video nguồn: nằm trong trang (2px, trong suốt) nhưng VĨNH VIỄN TẠM DỪNG —
+    // không autoplay, không loop, không bao giờ gọi play(). Chỉ dùng để giải mã
+    // khung hình khi tua. noAutoplay để ensureVideosPlay không bao giờ kích nó chạy.
     var sv = videoEl._shadowVideo;
     if (!sv) {
       sv = document.createElement('video');
+      sv.dataset.noAutoplay = '1';
       sv.muted = true;sv.defaultMuted = true;sv.setAttribute('muted', '');
       sv.playsInline = true;sv.setAttribute('playsinline', '');
       sv.setAttribute('webkit-playsinline', '');
-      sv.loop = true;sv.autoplay = true;
+      sv.preload = 'auto';
+      sv.disablePictureInPicture = true;sv.setAttribute('disablepictureinpicture', '');
+      sv.setAttribute('disableremoteplayback', '');
+      sv.setAttribute('controlslist', 'nodownload noplaybackrate nofullscreen noremoteplayback');
+      sv.tabIndex = -1;
+      sv.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;';
+      document.body.appendChild(sv); // phải nằm trong trang thì webview mới chịu giải mã khi tua
       videoEl._shadowVideo = sv;
-      _mirrorList.push({ v: sv, cv: cv, ctx: cv.getContext('2d') });
     }
     if (sv.getAttribute('src') !== src) {sv.src = src;sv.load();}
-    try {var p = sv.play();if (p && p.catch) p.catch(function () {});} catch (e) {/* ignore */}
-    // Thẻ video THẬT trong trang: dừng + ẩn hẳn để Zalo hết thứ để chiếm. Đánh dấu
-    // noAutoplay để ensureVideosPlay không kích nó chạy lại (chạy là Zalo bung player).
+    _startMirrorSeek(videoEl, sv, cv);
+    // Thẻ video THẬT: dừng + ẩn hẳn + gỡ nguồn để Zalo hết thứ để chiếm/bung lên.
     videoEl.dataset.noAutoplay = '1';
     try {videoEl.pause();} catch (e) {/* ignore */}
     videoEl.hidden = true;
-    // Gỡ src để thẻ thật ngừng tải file (đỡ tốn mạng — video đã tải ở phần tử ngầm).
     videoEl.removeAttribute('src');
     try {videoEl.load();} catch (e) {/* ignore */}
-    if (!_mirrorRafOn) {_mirrorRafOn = true;requestAnimationFrame(_mirrorLoop);}
   }
   function unmountVideoCanvas(videoEl) {
     if (!videoEl) return;
     if (videoEl._mirrorCanvas) videoEl._mirrorCanvas.hidden = true;
-    if (videoEl._shadowVideo) {try {videoEl._shadowVideo.pause();} catch (e) {/* ignore */}}
   }
 
   // ÉP MỌI VIDEO trên trang tự chạy trong webview (Zalo/Telegram/Messenger...).
