@@ -3221,7 +3221,12 @@ window.KENIOS_DEFAULT_DB = {
     function next() {
       // Canvas đang ẩn / rời tab -> nghỉ, thăm lại sau (không tốn pin).
       if (cv.hidden || document.hidden) {setTimeout(next, 400);return;}
-      if (sv.readyState < 2) {_primeShadow(sv);setTimeout(next, 300);return;}
+      if (sv.readyState < 2) {
+        // CHƯA có dữ liệu: KHÔNG mồi ngay lúc vào trang (Zalo sẽ bung video lên màn
+        // hình 1 lần) — xếp hàng chờ cú chạm/cuộn đầu tiên của người dùng mới mồi.
+        if (!sv._primed && _primeQueue.indexOf(sv) < 0) _primeQueue.push(sv);
+        setTimeout(next, 300);return;
+      }
       if (mode === 'play') {
         if (sv.paused) {try {var pp = sv.play();if (pp && pp.catch) pp.catch(function () {});} catch (e) {/* ignore */}}
         draw();
@@ -3269,7 +3274,6 @@ window.KENIOS_DEFAULT_DB = {
     }
     sv.addEventListener('loadeddata', function () {draw();});
     if (sv.readyState >= 2) draw();
-    _primeShadow(sv);
     next();
   }
   function mountVideoCanvas(videoEl) {
@@ -3307,7 +3311,21 @@ window.KENIOS_DEFAULT_DB = {
       document.body.appendChild(sv); // phải nằm trong trang thì webview mới chịu giải mã khi tua
       videoEl._shadowVideo = sv;
     }
-    if (sv.getAttribute('src') !== src) {sv.src = src;sv.load();}
+    if (sv._srcKey !== src) {
+      sv._srcKey = src;
+      // Tải video bằng fetch (kênh tải file thường, không phải kênh phát video):
+      // webview có đủ dữ liệu mà video KHÔNG cần phát -> không phải mồi, không bung;
+      // nguồn blob cũng LUÔN tua được, không phụ thuộc máy chủ hỗ trợ Range hay không.
+      fetch(src).then(function (r) {if (!r.ok) throw new Error('http');return r.blob();}).then(function (b) {
+        if (sv._srcKey !== src) return; // admin vừa đổi nền khác trong lúc đang tải
+        try {if (sv._blobUrl) URL.revokeObjectURL(sv._blobUrl);} catch (e) {/* ignore */}
+        sv._blobUrl = URL.createObjectURL(b);
+        sv.src = sv._blobUrl;sv.load();
+      }).catch(function () {
+        if (sv._srcKey !== src) return;
+        sv.src = src;sv.load(); // fetch hỏng (video khác nguồn chặn CORS...) -> gán thẳng như cũ
+      });
+    }
     _startMirrorSeek(videoEl, sv, cv);
     // Thẻ video THẬT: dừng + ẩn hẳn + gỡ nguồn để Zalo hết thứ để chiếm/bung lên.
     videoEl.dataset.noAutoplay = '1';
