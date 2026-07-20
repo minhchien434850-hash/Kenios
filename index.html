@@ -30,9 +30,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Exo+2:wght@500;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="./style.css?v=41" />
+  <link rel="stylesheet" href="./style.css?v=42" />
 </head>
 <body>
+
+  <!-- MÀN HÌNH CHỜ khởi động: che trang NGAY từ khung hình đầu tiên cho tới khi tải xong
+       cấu hình thật từ máy chủ — không còn cảnh "nháy" giao diện mặc định (chữ/nút gốc
+       trong HTML) rồi mới đổi sang giao diện admin đã tùy chỉnh. JS gỡ sau khi boot xong;
+       phao inline 12s tự gỡ nếu JS chết để không kẹt màn hình chờ. -->
+  <div class="boot-loader" id="bootLoader">
+    <img src="./logo.png" alt="" class="boot-loader-mark">
+    <div class="boot-loader-spinner"></div>
+  </div>
+  <script>setTimeout(function () {var l = document.getElementById('bootLoader');if (l && !l.dataset.hidden) {l.classList.add('hidden');}}, 12000);</script>
 
   <!-- Trang "Đang bảo trì" — hiện phủ toàn màn hình khi admin bật bảo trì (khách; admin vẫn vào được). -->
   <div class="maintenance-overlay" id="maintenanceOverlay" hidden>
@@ -741,6 +751,6 @@
     </div>
   </div>
 
-  <script src="./script.js?v=41"></script>
+  <script src="./script.js?v=42"></script>
 </body>
 </html>
