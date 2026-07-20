@@ -192,8 +192,10 @@ function flush_response() {
     @ob_end_flush(); @flush();
 }
 // Soạn + gửi thông báo "đơn mới" (kèm cảnh báo kho key nếu sắp hết) tới Telegram admin.
-function tg_notify_order($username, $serviceName, $pkgName, $price, $remainKeys = null) {
-    $msg = "🛒 <b>ĐƠN MỚI</b>\n"
+// $isRenew: true = đơn GIA HẠN (khách mua lại gói đang sắp/vừa hết hạn) — tiêu đề Telegram
+// phân biệt rõ "GIA HẠN KEY" với "MUA KEY" để admin nhìn phát biết ngay.
+function tg_notify_order($username, $serviceName, $pkgName, $price, $remainKeys = null, $isRenew = false) {
+    $msg = ($isRenew ? "🔁 <b>GIA HẠN KEY</b>\n" : "🛒 <b>MUA KEY MỚI</b>\n")
          . "👤 <b>" . htmlspecialchars((string)$username) . "</b>\n"
          . "📦 " . htmlspecialchars((string)$serviceName) . " — " . htmlspecialchars((string)$pkgName) . "\n"
          . "💵 " . number_format((float)$price) . "đ";
@@ -1370,7 +1372,7 @@ switch ($action) {
         // Lịch sử kho: ghi 1 dòng "đã bán 1 key" (sau khi trả kết quả, không làm chậm khách).
         key_log_add([['t' => date('c'), 'by' => (string)($db['users'][$userIdx]['username'] ?? ''), 'act' => 'sold',
             'sv' => (string)$service['name'], 'pkg' => (string)$pkg['name'], 'n' => 1, 'total' => count($keys)]]);
-        tg_notify_order($db['users'][$userIdx]['username'] ?? $order['userId'], $service['name'], $pkg['name'], $price, count($keys));
+        tg_notify_order($db['users'][$userIdx]['username'] ?? $order['userId'], $service['name'], $pkg['name'], $price, count($keys), $renewP > 0);
         break;
 
     case 'purchase':
@@ -1627,7 +1629,7 @@ switch ($action) {
         archive_orders([$order]); // lưu đơn + key vào kho đơn hàng bền vững
         echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$userIdx]['balance']]);
         flush_response();
-        tg_notify_order($db['users'][$userIdx]['username'] ?? $order['userId'], $service['name'], $pkg['name'], $price);
+        tg_notify_order($db['users'][$userIdx]['username'] ?? $order['userId'], $service['name'], $pkg['name'], $price, null, $renewP > 0);
         break;
 
     case 'purchase_combo':

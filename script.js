@@ -6437,15 +6437,17 @@ window.KENIOS_DEFAULT_DB = {
       byDay[dk].revenue += parseFloat(o.price) || 0;
       byDay[dk].count += 1;
     });
-    // Tổng NẠP TIỀN trong khoảng (giao dịch type deposit / referral cộng ví không tính).
-    const deposits = (Store.db.transactions || []).filter((t) => {
+    // NẠP TIỀN trong khoảng: vừa tính tổng, vừa giữ DANH SÁCH chi tiết (ai nạp, bao nhiêu,
+    // lúc nào, qua kênh gì) cho bảng "Lịch sử nạp tiền của khách".
+    const depositList = (Store.db.transactions || []).filter((t) => {
       if ((t.type || '') !== 'deposit') return false;
       const d = new Date(t.date || 0);
       return d >= start && d <= end;
-    }).reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+    }).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+    const deposits = depositList.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
     return {
       revenue, count: orders.length, avg: orders.length ? revenue / orders.length : 0,
-      deposits, discountTotal,
+      deposits, discountTotal, depositList,
       topUsers: Object.entries(byUser).sort((a, b) => b[1] - a[1]).slice(0, 10),
       topServices: Object.entries(byService).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 10),
       topCodes: Object.entries(byCode).sort((a, b) => b[1].cut - a[1].cut).slice(0, 10),
@@ -6493,6 +6495,24 @@ window.KENIOS_DEFAULT_DB = {
           ${r.byDay.length ? `<div class="report-byday"><table class="admin-table"><tbody>
             ${r.byDay.map(([d, o]) => `<tr><td>${esc(d.split('-').reverse().join('/'))}</td><td style="text-align:right">${fmt(o.revenue)} <small class="muted">(${o.count} đơn)</small></td></tr>`).join('')}
           </tbody></table></div>` : '<p class="muted">—</p>'}
+        </div>
+      </div>
+      <div class="report-cols" style="grid-template-columns:1fr;">
+        <div class="report-col">
+          <h4>${ico('card')} Lịch sử nạp tiền của khách <small class="muted" style="font-weight:400;">(${r.depositList.length} lượt · tổng ${fmt(r.deposits)} trong khoảng đã chọn)</small></h4>
+          ${r.depositList.length ? `<div class="report-byday"><table class="admin-table"><thead>
+            <tr><th>Lúc</th><th>Khách</th><th style="text-align:right">Số tiền</th><th>Kênh nạp</th></tr>
+          </thead><tbody>
+            ${r.depositList.slice(0, 100).map((t) => {
+        const uname = (Store.db.users.find((u) => u.userId === t.userId) || {}).username || t.userId;
+        return `<tr>
+              <td style="white-space:nowrap;font-size:.78rem;">${esc(new Date(t.date).toLocaleString('vi-VN'))}</td>
+              <td><b>${esc(uname)}</b></td>
+              <td style="text-align:right;color:var(--success,#4ade80);"><b>+${fmt(t.amount)}</b></td>
+              <td style="font-size:.8rem;">${esc(t.description || '')}</td>
+            </tr>`;
+      }).join('')}
+          </tbody></table></div>${r.depositList.length > 100 ? `<p class="muted" style="font-size:.75rem;margin:6px 0 0;">Hiện 100 lượt gần nhất — thu hẹp khoảng ngày để xem chi tiết hơn.</p>` : ''}` : '<p class="muted">Không có lượt nạp nào trong khoảng này.</p>'}
         </div>
       </div>
       ${loyaltyBoardsHtml()}`;
