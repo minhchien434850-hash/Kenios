@@ -919,6 +919,9 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 .report-tile strong { display: block; font-size: 1.3rem; color: var(--gold, #22d3ee); }
 .report-tile span { font-size: .76rem; color: var(--muted); }
 .report-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* Cột lưới KHÔNG được nở theo bảng rộng bên trong (mặc định min-width:auto làm cột phình
+   ra ngoài màn hình) — bó lại để khung .report-xscroll tự cuộn ngang được. */
+.report-cols > .report-col { min-width: 0; }
 .report-col h4 { margin: 0 0 8px; font-size: .95rem; }
 @media (max-width: 640px) { .report-tiles { grid-template-columns: 1fr 1fr; } .report-cols { grid-template-columns: 1fr; } }
 .admin-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; }
@@ -1209,6 +1212,12 @@ video.category-media { width: calc(100% + 36px); height: 100%; object-fit: cover
 
 /* Bảng doanh thu theo ngày trong báo cáo — cuộn riêng khi dài */
 .report-byday { max-height: 300px; overflow-y: auto; }
+/* Bảng RỘNG (lịch sử nạp tiền, lịch sử kho key): cho VUỐT NGANG trong khung — trên điện
+   thoại bảng nhiều cột không còn bị cắt mất phần bên phải. */
+.report-xscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.report-xscroll table { min-width: 600px; }
+.report-xscroll th, .report-xscroll td { white-space: nowrap; }
+.report-col h4 { white-space: normal; overflow-wrap: anywhere; }
 
 /* Nút chia sẻ link sản phẩm (trong popup chi tiết) */
 .service-modal-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

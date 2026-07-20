@@ -6500,7 +6500,7 @@ window.KENIOS_DEFAULT_DB = {
       <div class="report-cols" style="grid-template-columns:1fr;">
         <div class="report-col">
           <h4>${ico('card')} Lịch sử nạp tiền của khách <small class="muted" style="font-weight:400;">(${r.depositList.length} lượt · tổng ${fmt(r.deposits)} trong khoảng đã chọn)</small></h4>
-          ${r.depositList.length ? `<div class="report-byday"><table class="admin-table"><thead>
+          ${r.depositList.length ? `<div class="report-byday report-xscroll"><table class="admin-table"><thead>
             <tr><th>Lúc</th><th>Khách</th><th style="text-align:right">Số tiền</th><th>Kênh nạp</th></tr>
           </thead><tbody>
             ${r.depositList.slice(0, 100).map((t) => {
@@ -6576,7 +6576,7 @@ window.KENIOS_DEFAULT_DB = {
         if (!j.log.length) {box.innerHTML = '<p class="muted" style="font-size:.82rem;">Chưa có biến động kho nào (thêm/bớt key hoặc bán key sẽ hiện ở đây).</p>';return;}
         const actLabel = { add: 'Thêm key', remove: 'Bớt key', sold: 'Bán key' };
         const actCls = { add: 'ok', remove: 'bad', sold: '' };
-        box.innerHTML = '<div class="report-byday"><table class="admin-table"><thead><tr><th>Lúc</th><th>Ai</th><th>Việc</th><th>Sản phẩm</th><th style="text-align:right">SL</th><th style="text-align:right">Còn lại</th></tr></thead><tbody>' +
+        box.innerHTML = '<div class="report-byday report-xscroll"><table class="admin-table"><thead><tr><th>Lúc</th><th>Ai</th><th>Việc</th><th>Sản phẩm</th><th style="text-align:right">SL</th><th style="text-align:right">Còn lại</th></tr></thead><tbody>' +
         j.log.map((e) => `<tr>
             <td style="white-space:nowrap;font-size:.78rem;">${esc(new Date(e.t).toLocaleString('vi-VN'))}</td>
             <td>${esc(e.by || '—')}</td>
