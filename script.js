@@ -683,10 +683,28 @@ window.KENIOS_DEFAULT_DB = {
     },
 
     // Tính chi tiết giá phải trả khi mua 1 gói: Sale (flash/sản phẩm) -> VIP/CTV -> Mã giảm giá.
-    // Trả về { base, afterFlash, afterVip, final, flashPercent, saleSource, vipPercent, vipName, ... }.
+    // RIÊNG GIA HẠN (admin có đặt % gia hạn + khách mua lại đúng gói sắp/vừa hết hạn):
+    // giá tính THẲNG TỪ GIÁ GỐC của sản phẩm — KHÔNG cộng dồn với sale/VIP/CTV, nhờ vậy
+    // gia hạn bao nhiêu lần giá vẫn như nhau, không bị "giảm chồng giảm" qua từng lần.
+    // Chưa đặt % gia hạn thì gia hạn = mua thường (không tự giảm).
     computePurchasePrice(service, pkg, discountCode, user) {
       user = user || this.currentUser();
       const base = pkg.price;
+      const renewPercent = this.renewPercentFor(user, service, pkg);
+      if (renewPercent > 0) {
+        // GIA HẠN: chỉ áp % gia hạn trên GIÁ GỐC; mã giảm giá (nếu khách nhập) vẫn dùng được.
+        const afterRenew = Math.max(0, base - Math.floor(base * renewPercent / 100));
+        const dcR = this.applyDiscountToPrice(afterRenew, discountCode, { categoryId: service ? service.categoryId : '' });
+        const codeDiscountR = dcR.valid ? dcR.discount : 0;
+        const finalR = Math.max(0, afterRenew - codeDiscountR);
+        return {
+          base, afterFlash: base, afterVip: afterRenew, final: finalR,
+          flashPercent: 0, saleSource: 'flash',
+          vipPercent: renewPercent, vipName: 'Gia hạn',
+          code: dcR.valid ? dcR.code : '', codeValid: dcR.valid, codeReason: dcR.reason || '',
+          codeDiscount: codeDiscountR, totalDiscount: base - finalR
+        };
+      }
       // 1) SALE: mức cao hơn giữa Flash toàn shop và sale riêng sản phẩm/danh mục.
       const sale = this.saleInfoFor(service);
       const afterFlash = this.salePriceFor(service, base);
@@ -697,10 +715,6 @@ window.KENIOS_DEFAULT_DB = {
       let vipName = tier ? tier.name : '';
       const ctvPercent = (user && user.role === 'ctv') ? (parseFloat(this.db.config.ctvDiscountPercent) || 0) : 0;
       if (ctvPercent > vipPercent) {vipPercent = ctvPercent;vipName = 'Cộng tác viên';}
-      // 2c) GIẢM GIA HẠN: mua lại đúng gói sắp/vừa hết hạn -> % gia hạn cạnh tranh bằng
-      // MAX với VIP/CTV (không cộng dồn) — khớp logic máy chủ (renew_discount_percent).
-      const renewPercent = this.renewPercentFor(user, service, pkg);
-      if (renewPercent > vipPercent) {vipPercent = renewPercent;vipName = 'Gia hạn';}
       const vipCut = Math.floor(afterFlash * vipPercent / 100);
       const afterVip = Math.max(0, afterFlash - vipCut);
       const dc = this.applyDiscountToPrice(afterVip, discountCode, { categoryId: service ? service.categoryId : '' });
@@ -6998,7 +7012,9 @@ window.KENIOS_DEFAULT_DB = {
 
         <div class="admin-form-section">4c. ${ico('history')} Giảm giá GIA HẠN key</div>
         <div class="admin-guide">
-          <b>${ico('bulb')} Cách hoạt động:</b> Khách mua lại <b>đúng sản phẩm + đúng gói</b> đang có key <b>sắp hết hạn</b> (trong 7 ngày tới) hoặc <b>vừa hết hạn</b> (30 ngày qua) sẽ tự động được giảm % này — khuyến khích gia hạn thay vì bỏ đi. Nếu khách cũng có VIP/CTV thì áp <b>mức cao hơn</b> (không cộng dồn). Để 0 = tắt.
+          <b>${ico('bulb')} Cách hoạt động:</b> Khách mua lại <b>đúng sản phẩm + đúng gói</b> đang có key <b>sắp hết hạn</b> (trong 7 ngày tới) hoặc <b>vừa hết hạn</b> (30 ngày qua) được tính là GIA HẠN.
+          <br>• <b>Để 0 (chưa thiết lập):</b> gia hạn tính như mua thường — KHÔNG tự giảm gì thêm.
+          <br>• <b>Đặt % (VD 10):</b> giá gia hạn LUÔN = <b>GIÁ GỐC sản phẩm − ${'%'} gia hạn</b>, KHÔNG cộng dồn với Sale/VIP/CTV và không lấy giá đã giảm của lần gia hạn trước để giảm tiếp — gia hạn bao nhiêu lần giá vẫn như nhau.
         </div>
         <label>Giảm giá gia hạn (%)
           <input type="number" name="renewDiscountPercent" min="0" max="90" step="1" value="${parseFloat(c.renewDiscountPercent) || 0}" placeholder="VD: 10">

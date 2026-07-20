@@ -1227,11 +1227,18 @@ switch ($action) {
             $ctvP = floatval($cfg['ctvDiscountPercent'] ?? 0);
             if ($ctvP > $vipPercent) $vipPercent = $ctvP;
         }
-        // 2c) GIẢM GIA HẠN: mua lại đúng gói đang sắp/vừa hết hạn -> % gia hạn cạnh tranh
-        // bằng MAX với VIP/CTV (không cộng dồn, cùng triết lý các giảm giá khác).
+        // 2c) GIA HẠN: nếu admin CÓ đặt % gia hạn và đây đúng là trường hợp gia hạn, giá
+        // tính THẲNG TỪ GIÁ GỐC của sản phẩm — KHÔNG cộng dồn với sale/VIP/CTV. Nhờ vậy
+        // gia hạn lần nào giá cũng như nhau (không lấy giá đã giảm của lần trước để giảm
+        // tiếp). Admin CHƯA đặt % gia hạn thì gia hạn = mua thường, không tự giảm.
         $renewP = renew_discount_percent($db, $cfg, (string)($db['users'][$userIdx]['userId'] ?? ''), $serviceId, (string)($pkg['name'] ?? ''));
-        if ($renewP > $vipPercent) $vipPercent = $renewP;
-        $price = max(0, $price - floor($price * $vipPercent / 100));
+        if ($renewP > 0) {
+            $flashPercent = 0;
+            $vipPercent = $renewP;
+            $price = max(0, $basePrice - floor($basePrice * $renewP / 100));
+        } else {
+            $price = max(0, $price - floor($price * $vipPercent / 100));
+        }
 
         // 3) Mã giảm giá (nếu khách nhập): đối chiếu + kiểm tra hạn/lượt/đơn tối thiểu/danh mục.
         $discountAmount = 0;
@@ -1334,7 +1341,7 @@ switch ($action) {
         if (!isset($db['transactions'])) $db['transactions'] = [];
         $parts = [];
         if ($flashPercent > 0) $parts[] = "flash -{$flashPercent}%";
-        if ($vipPercent > 0) $parts[] = "VIP -{$vipPercent}%";
+        if ($vipPercent > 0) $parts[] = ($renewP > 0 ? "gia hạn -{$vipPercent}%" : "VIP -{$vipPercent}%");
         if ($appliedCode !== '') $parts[] = "mã {$appliedCode}";
         $txDesc = count($parts) > 0
             ? "Mua {$service['name']} - {$pkg['name']} (" . implode(', ', $parts) . " · giảm " . number_format($totalDiscount) . "đ)"
@@ -1478,11 +1485,18 @@ switch ($action) {
             $ctvP = floatval($cfg['ctvDiscountPercent'] ?? 0);
             if ($ctvP > $vipPercent) $vipPercent = $ctvP;
         }
-        // 2c) GIẢM GIA HẠN: mua lại đúng gói đang sắp/vừa hết hạn -> % gia hạn cạnh tranh
-        // bằng MAX với VIP/CTV (không cộng dồn, cùng triết lý các giảm giá khác).
+        // 2c) GIA HẠN: nếu admin CÓ đặt % gia hạn và đây đúng là trường hợp gia hạn, giá
+        // tính THẲNG TỪ GIÁ GỐC của sản phẩm — KHÔNG cộng dồn với sale/VIP/CTV. Nhờ vậy
+        // gia hạn lần nào giá cũng như nhau (không lấy giá đã giảm của lần trước để giảm
+        // tiếp). Admin CHƯA đặt % gia hạn thì gia hạn = mua thường, không tự giảm.
         $renewP = renew_discount_percent($db, $cfg, (string)($db['users'][$userIdx]['userId'] ?? ''), $serviceId, (string)($pkg['name'] ?? ''));
-        if ($renewP > $vipPercent) $vipPercent = $renewP;
-        $price = max(0, $price - floor($price * $vipPercent / 100));
+        if ($renewP > 0) {
+            $flashPercent = 0;
+            $vipPercent = $renewP;
+            $price = max(0, $basePrice - floor($basePrice * $renewP / 100));
+        } else {
+            $price = max(0, $price - floor($price * $vipPercent / 100));
+        }
 
         // 3) Mã giảm giá (nếu khách nhập).
         $discountAmount = 0;
@@ -1588,7 +1602,7 @@ switch ($action) {
         if (!isset($db['transactions'])) $db['transactions'] = [];
         $parts = [];
         if ($flashPercent > 0) $parts[] = "flash -{$flashPercent}%";
-        if ($vipPercent > 0) $parts[] = "VIP -{$vipPercent}%";
+        if ($vipPercent > 0) $parts[] = ($renewP > 0 ? "gia hạn -{$vipPercent}%" : "VIP -{$vipPercent}%");
         if ($appliedCode !== '') $parts[] = "mã {$appliedCode}";
         $txDesc = count($parts) > 0
             ? "Mua {$service['name']} - {$pkg['name']} (" . implode(', ', $parts) . " · giảm " . number_format($totalDiscount) . "đ)"
