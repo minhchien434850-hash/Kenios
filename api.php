@@ -2137,6 +2137,69 @@ switch ($action) {
         break;
 
     // Admin cộng/trừ số dư 1 người dùng NGAY TRÊN MÁY CHỦ (bền vững, khách thấy liền).
+    // ĐỔI VAI TRÒ người dùng (member/ctv/admin) — ghi THẲNG máy chủ ngay khi admin chọn,
+    // không đi đường đồng bộ cả cục database nữa (trước đây chỉ lưu cục bộ nên "không nhận").
+    case 'admin_set_role':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $targetId = (string)($input['userId'] ?? '');
+        $role = (string)($input['role'] ?? '');
+        if (!in_array($role, ['member', 'ctv', 'admin'], true)) { echo json_encode(["status" => "error", "message" => "Vai trò không hợp lệ."]); exit; }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $ti = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $targetId) { $ti = $i; break; } }
+        if ($ti === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Không tìm thấy người dùng."]); exit; }
+        // Không cho hạ vai trò admin CUỐI CÙNG (tự khóa mình khỏi quản trị).
+        if (($db['users'][$ti]['role'] ?? '') === 'admin' && $role !== 'admin') {
+            $adminCount = 0;
+            foreach ($db['users'] as $u) { if (($u['role'] ?? '') === 'admin') $adminCount++; }
+            if ($adminCount <= 1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Đây là admin cuối cùng — không thể hạ vai trò (shop sẽ mất quyền quản trị)."]); exit; }
+        }
+        $db['users'][$ti]['role'] = $role;
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "role" => $role]);
+        break;
+
+    // KHÓA/MỞ tài khoản — cũng ghi thẳng máy chủ như đổi vai trò.
+    case 'admin_set_status':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $targetId = (string)($input['userId'] ?? '');
+        $status = (string)($input['status'] ?? '');
+        if (!in_array($status, ['active', 'locked'], true)) { echo json_encode(["status" => "error", "message" => "Trạng thái không hợp lệ."]); exit; }
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
+        }
+        $ti = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (($u['userId'] ?? '') === $targetId) { $ti = $i; break; } }
+        if ($ti === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Không tìm thấy người dùng."]); exit; }
+        if (($db['users'][$ti]['role'] ?? '') === 'admin' && $status === 'locked') {
+            flock($fp, LOCK_UN); fclose($fp);
+            echo json_encode(["status" => "error", "message" => "Không thể khóa tài khoản quản trị."]); exit;
+        }
+        $db['users'][$ti]['status'] = $status;
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        echo json_encode(["status" => "success", "userStatus" => $status]);
+        break;
+
     case 'admin_adjust_balance':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');

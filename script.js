@@ -303,16 +303,11 @@ window.KENIOS_DEFAULT_DB = {
       localArrays.forEach((key) => {
         if (Array.isArray(local[key])) this.db[key] = local[key];
       });
-      if (fromServer && Array.isArray(local.users)) {
-        // Nền là user từ server (đúng số dư + đủ user); phủ lại vai trò/trạng thái đã
-        // chỉnh cục bộ chưa đồng bộ để không mất thao tác đổi vai trò/khóa của admin.
-        const localById = {};
-        local.users.forEach((u) => {if (u && u.userId) localById[u.userId] = u;});
-        this.db.users = serverUsers.map((su) => {
-          const lu = su && su.userId ? localById[su.userId] : null;
-          return lu ? Object.assign({}, su, { role: lu.role, status: lu.status }) : su;
-        });
-      }
+      // Vai trò/trạng thái người dùng giờ GHI THẲNG máy chủ ngay khi admin đổi
+      // (admin_set_role / admin_set_status) -> khi tải được từ server, users LUÔN theo
+      // server. KHÔNG phủ bản cục bộ cũ lên nữa — chính việc phủ đó từng làm vai trò
+      // vừa đổi bị bản localStorage cũ "nuốt" mất sau khi tải lại trang.
+      if (fromServer) this.db.users = serverUsers;
       if (local.config) Object.assign(this.db.config, local.config);
     },
 
@@ -1327,17 +1322,33 @@ window.KENIOS_DEFAULT_DB = {
       } catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
 
-    adminSetUserStatus(userId, status) {
+    // KHÓA/MỞ tài khoản — ghi THẲNG máy chủ (action admin_set_status); demo không backend
+    // thì mới lưu cục bộ. Trước đây chỉ lưu localStorage nên tải lại trang là mất.
+    async adminSetUserStatus(userId, status, adminUser, adminPass) {
       const user = this.db.users.find((u) => u.userId === userId);
       if (!user) throw new Error('Không tìm thấy người dùng.');
       if (user.role === 'admin') throw new Error('Không thể khóa tài khoản quản trị.');
+      if (adminUser) {
+        let r = null;
+        try {
+          const res = await fetch(`${API_URL}?action=admin_set_status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+            body: JSON.stringify({ userId, status })
+          });
+          r = await res.json();
+        } catch (e) {r = null;} // không có máy chủ -> demo cục bộ
+        if (r && r.status === 'error') throw new Error(r.message || 'Không lưu được trạng thái.');
+      }
       user.status = status;
       this._persistOverrides();
       this._emit();
     },
 
-    // Đặt vai trò: 'member' | 'ctv' (cộng tác viên) | 'admin'.
-    adminSetRole(userId, role) {
+    // Đặt vai trò: 'member' | 'ctv' (cộng tác viên) | 'admin' — ghi THẲNG máy chủ
+    // (action admin_set_role) ngay khi admin chọn, nên đổi xong là NHẬN liền, tải lại
+    // trang hay khách đăng nhập lại đều thấy đúng vai trò mới.
+    async adminSetRole(userId, role, adminUser, adminPass) {
       const valid = ['member', 'ctv', 'admin'];
       if (!valid.includes(role)) return;
       const user = this.db.users.find((u) => u.userId === userId);
@@ -1345,6 +1356,18 @@ window.KENIOS_DEFAULT_DB = {
       const me = this.currentUser();
       if (me && me.userId === userId && me.role === 'admin' && role !== 'admin') {
         throw new Error('Không thể tự hạ vai trò admin của chính bạn (tránh tự khóa mình khỏi quản trị).');
+      }
+      if (adminUser) {
+        let r = null;
+        try {
+          const res = await fetch(`${API_URL}?action=admin_set_role`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Admin-User': adminUser, 'X-Admin-Pass': adminPass },
+            body: JSON.stringify({ userId, role })
+          });
+          r = await res.json();
+        } catch (e) {r = null;} // không có máy chủ -> demo cục bộ
+        if (r && r.status === 'error') throw new Error(r.message || 'Không lưu được vai trò.');
       }
       user.role = role;
       this._persistOverrides();
@@ -8023,9 +8046,14 @@ window.KENIOS_DEFAULT_DB = {
 
     const toggleStatus = e.target.closest('[data-admin-toggle-status]');
     if (toggleStatus) {
-      Store.adminSetUserStatus(toggleStatus.dataset.adminToggleStatus, toggleStatus.dataset.status);
-      renderAdminTab('users');
-      toast('Đã cập nhật trạng thái người dùng.', 'success');
+      const cSt = getAdminCreds();
+      (async () => {
+        try {
+          await Store.adminSetUserStatus(toggleStatus.dataset.adminToggleStatus, toggleStatus.dataset.status, cSt && cSt.username, cSt && cSt.password);
+          renderAdminTab('users');
+          toast('Đã cập nhật trạng thái người dùng — lưu thẳng trên máy chủ.', 'success');
+        } catch (err) {toast(err.message, 'error');renderAdminTab('users');}
+      })();
       return;
     }
 
@@ -8133,14 +8161,17 @@ window.KENIOS_DEFAULT_DB = {
 
   // Khi admin đổi Danh mục trong form Dịch vụ, nạp lại danh sách Thư mục con tương ứng.
   function onAdminPanelChange(e) {
-    // Đổi VAI TRÒ người dùng (Thành viên / Cộng tác viên / Admin).
+    // Đổi VAI TRÒ người dùng (Thành viên / Cộng tác viên / Admin) — chờ máy chủ xác nhận.
     const roleSel = e.target.closest('[data-admin-set-role]');
     if (roleSel) {
-      try {
-        Store.adminSetRole(roleSel.dataset.adminSetRole, roleSel.value);
-        renderAdminTab('users');
-        toast('Đã cập nhật vai trò.', 'success');
-      } catch (err) {toast(err.message, 'error');renderAdminTab('users');}
+      const cRole = getAdminCreds();
+      (async () => {
+        try {
+          await Store.adminSetRole(roleSel.dataset.adminSetRole, roleSel.value, cRole && cRole.username, cRole && cRole.password);
+          renderAdminTab('users');
+          toast('Đã cập nhật vai trò — lưu thẳng trên máy chủ.', 'success');
+        } catch (err) {toast(err.message, 'error');renderAdminTab('users');}
+      })();
       return;
     }
 
