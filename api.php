@@ -601,6 +601,41 @@ function renew_discount_percent($db, $cfg, $userId, $serviceId, $pkgName) {
     return 0;
 }
 
+// QUYỀN CỘNG TÁC VIÊN (config.ctvPerms) — admin bật/tắt từng quyền trong tab Cấu hình.
+// Chưa cấu hình gì => mặc định BẬT các quyền an toàn (xem kho/đơn/doanh số, bán tặng,
+// trả lời đánh giá) trừ "xem TẤT CẢ đơn" mặc định TẮT (chỉ xem đơn do mình giới thiệu)
+// cho riêng tư hơn. Admin luôn có mọi quyền (hàm này chỉ áp cho vai trò 'ctv').
+function ctv_perms($cfg) {
+    $p = is_array($cfg['ctvPerms'] ?? null) ? $cfg['ctvPerms'] : [];
+    $on = function ($key, $default) use ($p) {
+        if (!array_key_exists($key, $p)) return $default;
+        return $p[$key] === true || $p[$key] === 1 || $p[$key] === '1';
+    };
+    return [
+        'viewStock'     => $on('viewStock', true),
+        'viewOrdersOwn' => $on('viewOrdersOwn', true),
+        'viewOrdersAll' => $on('viewOrdersAll', false),
+        'viewSales'     => $on('viewSales', true),
+        'giftPurchase'  => $on('giftPurchase', true),
+        'replyReviews'  => $on('replyReviews', true),
+    ];
+}
+
+// Xác thực 1 yêu cầu là CỘNG TÁC VIÊN (hoặc admin) đang đăng nhập: khớp userId + token
+// phiên, vai trò ctv/admin, tài khoản còn hoạt động. Trả về chỉ số user hoặc -1.
+// KHÔNG cần mật khẩu admin — CTV chỉ có token phiên như khách thường.
+function ctv_user_index($db, $userId, $token) {
+    foreach (($db['users'] ?? []) as $i => $u) {
+        if ((string)($u['userId'] ?? '') !== (string)$userId) continue;
+        $role = (string)($u['role'] ?? '');
+        if ($role !== 'ctv' && $role !== 'admin') return -1;
+        if (($u['status'] ?? 'active') !== 'active') return -1;
+        if (!token_ok($u, $token)) return -1;
+        return $i;
+    }
+    return -1;
+}
+
 // Sinh mã giới thiệu ngắn, DUY NHẤT (không trùng refCode nào đang có). Bỏ ký tự dễ nhầm.
 function gen_ref_code($db) {
     $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1973,6 +2008,181 @@ switch ($action) {
         ], JSON_UNESCAPED_UNICODE);
         break;
 
+    // TRANG CỘNG TÁC VIÊN: trả về dữ liệu CHỈ ĐỌC cho CTV theo đúng quyền admin đã bật —
+    // tồn kho (số lượng key, KHÔNG lộ nội dung key), danh sách đơn (của khách mình giới
+    // thiệu hoặc tất cả), và tổng doanh số. Xác thực bằng token phiên của chính CTV.
+    case 'ctv_panel':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $token = (string)($input['token'] ?? '');
+        $db = read_db($db_file);
+        $ci = ctv_user_index($db, $userId, $token);
+        if ($ci === -1) { echo json_encode(["status" => "error", "message" => "Bạn không có quyền Cộng tác viên hoặc phiên đã hết hạn."]); exit; }
+        $cfg = is_array($db['config'] ?? null) ? $db['config'] : [];
+        $isAdmin = (($db['users'][$ci]['role'] ?? '') === 'admin');
+        $perms = ctv_perms($cfg);
+        // Admin xem trang này thì thấy đủ mọi quyền.
+        if ($isAdmin) foreach ($perms as $k => $v) $perms[$k] = true;
+
+        // Bảng tồn kho: mỗi sản phẩm > gói > số key còn. Chỉ những gói có kho key thật.
+        $stock = [];
+        if ($perms['viewStock']) {
+            foreach (($db['services'] ?? []) as $s) {
+                $pkgs = [];
+                foreach (($s['packages'] ?? []) as $p) {
+                    if (!array_key_exists('keys', $p)) continue; // gói không dùng kho key thì bỏ
+                    $pkgs[] = ["name" => (string)($p['name'] ?? ''), "price" => floatval($p['price'] ?? 0), "count" => count((array)($p['keys'] ?? []))];
+                }
+                if ($pkgs) $stock[] = ["service" => (string)($s['name'] ?? ''), "packages" => $pkgs];
+            }
+        }
+
+        // Mã giới thiệu của CTV -> tập userId của khách do CTV này giới thiệu.
+        $myRef = strtoupper(trim((string)($db['users'][$ci]['refCode'] ?? '')));
+        $myReferredIds = [];
+        if ($myRef !== '') {
+            foreach (($db['users'] ?? []) as $u) {
+                if (strtoupper(trim((string)($u['referredBy'] ?? ''))) === $myRef) $myReferredIds[(string)($u['userId'] ?? '')] = true;
+            }
+        }
+        // Bản đồ userId -> tên để hiển thị (không lộ mật khẩu/email).
+        $nameOf = [];
+        foreach (($db['users'] ?? []) as $u) { $nameOf[(string)($u['userId'] ?? '')] = (string)($u['username'] ?? ''); }
+
+        // Danh sách đơn theo quyền: xem TẤT CẢ hoặc chỉ đơn của khách mình giới thiệu.
+        // KHÔNG trả nội dung key (bảo mật) — chỉ tên sản phẩm/gói/giá/ngày/khách.
+        $showAll = $perms['viewOrdersAll'];
+        $showOwn = $perms['viewOrdersOwn'] || $showAll;
+        $orders = [];
+        if ($showOwn) {
+            foreach (($db['orders'] ?? []) as $o) {
+                $ouid = (string)($o['userId'] ?? '');
+                $mine = isset($myReferredIds[$ouid]);
+                if (!$showAll && !$mine) continue;
+                $orders[] = [
+                    "id" => (string)($o['id'] ?? ''), "user" => $nameOf[$ouid] ?? $ouid,
+                    "serviceName" => (string)($o['serviceName'] ?? ''), "packageName" => (string)($o['packageName'] ?? ''),
+                    "price" => floatval($o['price'] ?? 0), "date" => (string)($o['date'] ?? $o['purchaseDate'] ?? ''),
+                    "mine" => $mine, "refunded" => !empty($o['refunded'])
+                ];
+                if (count($orders) >= 300) break;
+            }
+        }
+
+        // Doanh số: hôm nay / tháng này. "own" = đơn của khách mình giới thiệu; "all" nếu có quyền.
+        $sales = null;
+        if ($perms['viewSales']) {
+            $now = time(); $tToday = strtotime(date('Y-m-d') . ' 00:00:00'); $tMonth = strtotime(date('Y-m-01') . ' 00:00:00');
+            $agg = ["todayCount" => 0, "todayRevenue" => 0.0, "monthCount" => 0, "monthRevenue" => 0.0, "ownTotalCount" => 0, "ownTotalRevenue" => 0.0, "referredUsers" => count($myReferredIds)];
+            foreach (($db['orders'] ?? []) as $o) {
+                if (!empty($o['refunded'])) continue;
+                $ouid = (string)($o['userId'] ?? '');
+                $mine = isset($myReferredIds[$ouid]);
+                if (!$showAll && !$mine) continue; // không có quyền xem all thì chỉ tính đơn của mình
+                $price = floatval($o['price'] ?? 0);
+                $t = strtotime((string)($o['date'] ?? $o['purchaseDate'] ?? ''));
+                if ($mine) { $agg['ownTotalCount']++; $agg['ownTotalRevenue'] += $price; }
+                if ($t !== false && $t >= $tToday) { $agg['todayCount']++; $agg['todayRevenue'] += $price; }
+                if ($t !== false && $t >= $tMonth) { $agg['monthCount']++; $agg['monthRevenue'] += $price; }
+            }
+            $sales = $agg;
+        }
+
+        echo json_encode([
+            "status" => "success", "perms" => $perms,
+            "ctvName" => (string)($db['users'][$ci]['username'] ?? ''),
+            "refCode" => $myRef, "ctvDiscountPercent" => floatval($cfg['ctvDiscountPercent'] ?? 0),
+            "balance" => floatval($db['users'][$ci]['balance'] ?? 0),
+            "stock" => $stock, "orders" => $orders, "sales" => $sales
+        ], JSON_UNESCAPED_UNICODE);
+        break;
+
+    // CTV MUA/TẶNG KEY cho khách: CTV trả bằng số dư của MÌNH (theo giá CTV), key được giao
+    // THẲNG vào tài khoản khách (tạo đơn cho khách). Nguyên tử bằng khóa file. Cần quyền
+    // giftPurchase đang bật.
+    case 'ctv_gift_key':
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $userId = (string)($input['userId'] ?? '');
+        $token = (string)($input['token'] ?? '');
+        $serviceId = (string)($input['serviceId'] ?? '');
+        $packageId = (string)($input['packageId'] ?? '');
+        $targetName = trim((string)($input['targetUsername'] ?? ''));
+        $fp = fopen($db_file, 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL, thử lại."]); exit; }
+        $raw = stream_get_contents($fp);
+        $db = $raw ? (json_decode($raw, true) ?: []) : [];
+        $ci = ctv_user_index($db, $userId, $token);
+        if ($ci === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Bạn không có quyền Cộng tác viên hoặc phiên đã hết hạn."]); exit; }
+        $cfg = is_array($db['config'] ?? null) ? $db['config'] : [];
+        $isAdmin = (($db['users'][$ci]['role'] ?? '') === 'admin');
+        $perms = ctv_perms($cfg);
+        if (!$isAdmin && !$perms['giftPurchase']) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Quyền bán/tặng key của Cộng tác viên đang tắt."]); exit; }
+        // Tìm khách nhận theo tên đăng nhập (không phân biệt hoa thường).
+        $ti = -1;
+        foreach (($db['users'] ?? []) as $i => $u) { if (strtolower((string)($u['username'] ?? '')) === strtolower($targetName)) { $ti = $i; break; } }
+        if ($ti === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Không tìm thấy tài khoản khách \"" . $targetName . "\"."]); exit; }
+        if (($db['users'][$ti]['status'] ?? 'active') !== 'active') { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Tài khoản khách đang bị khóa."]); exit; }
+        // Tìm sản phẩm + gói.
+        $serviceIdx = -1;
+        foreach (($db['services'] ?? []) as $i => $s) { if (($s['id'] ?? '') === $serviceId) { $serviceIdx = $i; break; } }
+        if ($serviceIdx === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Sản phẩm không tồn tại."]); exit; }
+        $service = $db['services'][$serviceIdx];
+        $pkgIdx = -1;
+        foreach (($service['packages'] ?? []) as $i => $p) { if (($p['id'] ?? '') === $packageId) { $pkgIdx = $i; break; } }
+        if ($pkgIdx === -1) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Gói không tồn tại."]); exit; }
+        $pkg = $service['packages'][$pkgIdx];
+        if (!array_key_exists('keys', $pkg)) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Gói này không dùng kho key."]); exit; }
+        // Giá CTV: LẤY GIÁ GỐC trừ % chiết khấu CTV (không cộng dồn sale/VIP/mã) — CTV luôn
+        // mua đúng giá sỉ đã thoả thuận, dễ tính tiền bán lại.
+        $basePrice = floatval($pkg['price'] ?? 0);
+        $ctvP = floatval($cfg['ctvDiscountPercent'] ?? 0);
+        $price = max(0, $basePrice - floor($basePrice * $ctvP / 100));
+        $balance = floatval($db['users'][$ci]['balance'] ?? 0);
+        if ($balance < $price) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Số dư của bạn không đủ (" . number_format($price) . "đ). Nạp thêm để bán tiếp."]); exit; }
+        $keys = $pkg['keys'] ?? [];
+        if (empty($keys)) { flock($fp, LOCK_UN); fclose($fp); echo json_encode(["status" => "error", "message" => "Gói này tạm hết key."]); exit; }
+        $key = array_shift($keys);
+        $db['services'][$serviceIdx]['packages'][$pkgIdx]['keys'] = $keys;
+        $db['users'][$ci]['balance'] = $balance - $price; // TRỪ tiền CTV
+        // Hệ điều hành: theo thư mục con rồi danh mục (như redeem_key).
+        $os = '';
+        $subId = $service['subcategoryId'] ?? '';
+        foreach (($db['subcategories'] ?? []) as $sc) { if (($sc['id'] ?? '') === $subId && $subId !== '') { $os = $sc['name']; break; } }
+        if ($os === '') foreach (($db['categories'] ?? []) as $c) { if (($c['id'] ?? '') === ($service['categoryId'] ?? '')) { $os = $c['name']; break; } }
+        $purchaseTs = time();
+        $days = duration_days_from_name($pkg['name']);
+        // Đơn thuộc về KHÁCH (targetUser) — key vào tài khoản khách; ghi CTV đã bán hộ.
+        $order = [
+            "id" => "DH" . time() . rand(100, 999), "userId" => $db['users'][$ti]['userId'],
+            "serviceId" => $serviceId, "serviceName" => $service['name'], "packageName" => $pkg['name'],
+            "os" => $os, "price" => $price, "originalPrice" => $basePrice,
+            "discountCode" => '', "discountAmount" => $basePrice - $price,
+            "flashPercent" => 0, "vipPercent" => $ctvP, "key" => $key,
+            "giftedByCtv" => (string)($db['users'][$ci]['username'] ?? ''),
+            "date" => date("c", $purchaseTs), "purchaseDate" => date("c", $purchaseTs),
+            "expiryDate" => $days === null ? null : date("c", $purchaseTs + $days * 86400)
+        ];
+        if (!isset($db['orders'])) $db['orders'] = [];
+        array_unshift($db['orders'], $order);
+        if (!isset($db['transactions'])) $db['transactions'] = [];
+        // Giao dịch TRỪ tiền của CTV (không phải của khách).
+        array_unshift($db['transactions'], [
+            "id" => "TX" . time() . rand(100, 999), "userId" => $db['users'][$ci]['userId'], "amount" => -$price,
+            "type" => "ctv_gift", "description" => "CTV bán/tặng key {$service['name']} - {$pkg['name']} cho {$targetName}", "date" => date("c")
+        ]);
+        ftruncate($fp, 0); rewind($fp);
+        fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+        archive_orders([$order]);
+        echo json_encode(["status" => "success", "order" => $order, "balance" => $db['users'][$ci]['balance'], "price" => $price], JSON_UNESCAPED_UNICODE);
+        flush_response();
+        key_log_add([['t' => date('c'), 'by' => (string)($db['users'][$ci]['username'] ?? ''), 'act' => 'sold',
+            'sv' => (string)$service['name'], 'pkg' => (string)$pkg['name'], 'n' => 1, 'total' => count($keys)]]);
+        if (function_exists('notify_telegram')) {
+            notify_telegram("🤝 <b>CTV BÁN KEY</b>\n👤 CTV: " . ($db['users'][$ci]['username'] ?? '') . "\n🎁 Giao cho: {$targetName}\n📦 {$service['name']} - {$pkg['name']}\n💰 " . number_format($price) . "đ\n📦 Còn " . count($keys) . " key");
+        }
+        break;
+
     // LỊCH SỬ KHO KEY (admin xem): trả tối đa 200 dòng gần nhất từ key_log.json.
     case 'key_log':
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
@@ -1984,11 +2194,14 @@ switch ($action) {
         echo json_encode(["status" => "success", "log" => array_slice($log, 0, 200)], JSON_UNESCAPED_UNICODE);
         break;
 
-    // ADMIN TRẢ LỜI đánh giá của khách: ghi adminReply vào đúng review theo id.
+    // TRẢ LỜI đánh giá của khách: ghi adminReply vào đúng review theo id. Cho phép ADMIN
+    // (mật khẩu) HOẶC Cộng tác viên (token phiên + quyền replyReviews đang bật).
     case 'reply_review':
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? '';
         $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? '';
+        $ctvUserId = (string)($input['ctvUserId'] ?? '');
+        $ctvToken = (string)($input['ctvToken'] ?? '');
         $reviewId = (string)($input['reviewId'] ?? '');
         $reply = trim((string)($input['reply'] ?? ''));
         if ($reviewId === '') { echo json_encode(["status" => "error", "message" => "Thiếu mã đánh giá."]); exit; }
@@ -1997,7 +2210,14 @@ switch ($action) {
         if (!$fp || !flock($fp, LOCK_EX)) { echo json_encode(["status" => "error", "message" => "Không khóa được CSDL."]); exit; }
         $raw = stream_get_contents($fp);
         $db = $raw ? (json_decode($raw, true) ?: []) : [];
-        if (!admin_authenticated($db, $admin_user, $admin_pass)) {
+        $okAdmin = ($admin_user !== '' && admin_authenticated($db, $admin_user, $admin_pass));
+        $okCtv = false;
+        if (!$okAdmin && $ctvUserId !== '') {
+            $rci = ctv_user_index($db, $ctvUserId, $ctvToken);
+            $rperms = ctv_perms(is_array($db['config'] ?? null) ? $db['config'] : []);
+            $okCtv = ($rci !== -1 && (($db['users'][$rci]['role'] ?? '') === 'admin' || $rperms['replyReviews']));
+        }
+        if (!$okAdmin && !$okCtv) {
             flock($fp, LOCK_UN); fclose($fp);
             echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit;
         }

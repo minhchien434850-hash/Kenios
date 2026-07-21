@@ -4770,7 +4770,8 @@ window.KENIOS_DEFAULT_DB = {
     const head = reviews.length ?
     `<div class="review-summary">${starsHtml(avg)} <b>${avg.toFixed(1)}</b>/5 · ${reviews.length} đánh giá</div>` :
     `<p class="muted" style="font-size:.85rem;margin:0;">Chưa có đánh giá nào. ${canReview ? 'Hãy là người đầu tiên đánh giá!' : 'Mua sản phẩm để đánh giá.'}</p>`;
-    const isAdmin = Store.isAdmin();
+    // ADMIN (mật khẩu) hoặc CTV có quyền "Trả lời đánh giá" đều được phản hồi.
+    const canReplyReview = Store.isAdmin() || (Store.isCtv() && ctvCanClient('replyReviews'));
     const list = reviews.map((r) => `
       <div class="review-item" data-review-id="${esc(r.id || '')}">
         <div class="review-item-head">
@@ -4783,7 +4784,7 @@ window.KENIOS_DEFAULT_DB = {
           <span class="rar-head">${ico('shield')} Phản hồi từ Shop</span>
           <p>${esc(r.adminReply)}</p>
         </div>` : ''}
-        ${isAdmin && r.id ? `
+        ${canReplyReview && r.id ? `
         <div class="review-reply-box">
           <button type="button" class="btn btn-glass btn-sm" data-reply-toggle>${ico('edit')} ${r.adminReply ? 'Sửa phản hồi' : 'Trả lời'}</button>
           <span class="review-reply-form" hidden>
@@ -4840,14 +4841,20 @@ window.KENIOS_DEFAULT_DB = {
       btn.addEventListener('click', async () => {
         const item = btn.closest('[data-review-id]');
         const input = item.querySelector('[data-reply-input]');
-        const c = getAdminCreds();
-        if (!c) {toast('Đăng nhập lại admin 1 lần.', 'error');return;}
+        // Admin gửi bằng mật khẩu; CTV gửi bằng token phiên (không cần mật khẩu admin).
+        const isAdminUser = Store.isAdmin();
+        const c = isAdminUser ? getAdminCreds() : null;
+        const cu = Store.currentUser();
+        if (isAdminUser && !c) {toast('Đăng nhập lại admin 1 lần.', 'error');return;}
+        if (!isAdminUser && !cu) {toast('Vui lòng đăng nhập lại.', 'error');return;}
+        const headers = { 'Content-Type': 'application/json' };
+        if (isAdminUser && c) {headers['X-Admin-User'] = c.username;headers['X-Admin-Pass'] = c.password;}
+        const payload = { reviewId: item.dataset.reviewId, reply: input.value };
+        if (!isAdminUser) {payload.ctvUserId = cu.userId;payload.ctvToken = Store.currentToken();}
         withLoading(btn, async () => {
           try {
             const r = await fetch('./api.php?action=reply_review', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-Admin-User': c.username, 'X-Admin-Pass': c.password },
-              body: JSON.stringify({ reviewId: item.dataset.reviewId, reply: input.value })
+              method: 'POST', headers, body: JSON.stringify(payload)
             });
             const j = await r.json();
             if (j.status === 'success') {
@@ -5502,15 +5509,29 @@ window.KENIOS_DEFAULT_DB = {
     try {btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });} catch (_) {}
   }
 
-  // Các tab Cộng tác viên được phép xem: Tổng quan, Đơn hàng, Dịch vụ (thêm/sửa
-  // sản phẩm) và Thư viện. KHÔNG có Cấu hình, Người dùng, Ngân hàng — an toàn.
-  const CTV_TABS = ['overview', 'orders', 'services', 'media'];
+  // Cộng tác viên KHÔNG dùng các tab sửa của admin nữa — CTV có TRANG RIÊNG (dashboard
+  // chỉ đọc: tồn kho, đơn, doanh số + công cụ bán/tặng key). Chỉ admin mới thấy các tab.
+  const CTV_TABS = [];
 
   function openAdminModal() {
     if (!Store.canAccessAdmin()) {toast('Bạn không có quyền truy cập.', 'error');return;}
-    const ctv = Store.isCtv();
-    // Ẩn các tab nhạy cảm với CTV; admin thấy đủ.
-    $$('.admin-tab').forEach((t) => {t.hidden = ctv && !CTV_TABS.includes(t.dataset.adminTab);});
+    const ctvOnly = Store.isCtv() && !Store.isAdmin();
+    const titleEl = $('#adminTitle');
+    const tabsEl = $('#adminTabs');
+    const syncBar = $('.admin-sync-bar');
+    if (ctvOnly) {
+      // TRANG CỘNG TÁC VIÊN: ẩn thanh tab + thanh đồng bộ của admin, hiện dashboard riêng.
+      if (titleEl) titleEl.textContent = 'Trang Cộng Tác Viên';
+      if (tabsEl) tabsEl.hidden = true;
+      if (syncBar) syncBar.hidden = true;
+      openModal('#adminModal');
+      renderCtvDashboard();
+      return;
+    }
+    if (titleEl) titleEl.textContent = 'Quản Trị Hệ Thống';
+    if (tabsEl) tabsEl.hidden = false;
+    if (syncBar) syncBar.hidden = false;
+    $$('.admin-tab').forEach((t) => {t.hidden = false;});
     adminActiveTab = 'overview';
     const first = $('.admin-tab[data-admin-tab="overview"]');
     $$('.admin-tab').forEach((t) => t.classList.toggle('active', t === first));
@@ -5519,6 +5540,170 @@ window.KENIOS_DEFAULT_DB = {
     $('#adminSyncMsg').textContent = '';
     openModal('#adminModal');
     ensureAdmin2fa(); // bật 2FA mà phiên hết hạn thì hiện hộp nhập mã Telegram
+  }
+
+  // ============================================================
+  // TRANG CỘNG TÁC VIÊN (dashboard riêng — chỉ đọc + bán/tặng key)
+  // ============================================================
+  let ctvPanelData = null;
+  function ctvFmt(n) {return (Math.round(n) || 0).toLocaleString('vi-VN') + 'đ';}
+
+  // Kiểm tra 1 quyền CTV theo config.ctvPerms (đồng bộ với ctv_perms bên máy chủ).
+  // Chưa cấu hình => mặc định như server: bật hết trừ "xem TẤT CẢ đơn".
+  const CTV_PERM_DEFAULTS = { viewStock: true, viewOrdersOwn: true, viewOrdersAll: false, viewSales: true, giftPurchase: true, replyReviews: true };
+  function ctvCanClient(perm) {
+    const p = (Store.db.config && Store.db.config.ctvPerms) || {};
+    if (!(perm in p)) return !!CTV_PERM_DEFAULTS[perm];
+    return p[perm] === true || p[perm] === 1 || p[perm] === '1';
+  }
+
+  async function renderCtvDashboard() {
+    const body = $('#adminPanelBody');
+    if (!body) return;
+    body.innerHTML = `<p class="empty-note">${ico('refresh')} Đang tải Trang Cộng tác viên…</p>`;
+    const user = Store.currentUser();
+    if (!user) {body.innerHTML = '<p class="empty-note">Vui lòng đăng nhập lại.</p>';return;}
+    let data;
+    try {
+      data = await Store._callApi('ctv_panel', { userId: user.userId, token: Store.currentToken() });
+    } catch (e) {
+      body.innerHTML = '<p class="empty-note">Không kết nối được máy chủ. Thử lại sau.</p>';
+      return;
+    }
+    if (!data || data.status !== 'success') {
+      body.innerHTML = `<p class="empty-note">${esc(data && data.message || 'Không tải được dữ liệu.')}</p>`;
+      return;
+    }
+    ctvPanelData = data;
+    body.innerHTML = ctvDashboardHtml(data);
+    wireCtvDashboard(data);
+  }
+
+  function ctvDashboardHtml(d) {
+    const p = d.perms || {};
+    const s = d.sales;
+    const salesHtml = p.viewSales && s ? `
+      <div class="ctv-section-title">${ico('pulse')} Doanh số của tôi</div>
+      <div class="report-tiles ctv-tiles">
+        <div class="report-tile"><strong>${s.todayCount || 0}</strong><span>Đơn hôm nay</span></div>
+        <div class="report-tile"><strong>${ctvFmt(s.todayRevenue)}</strong><span>Doanh thu hôm nay</span></div>
+        <div class="report-tile"><strong>${s.monthCount || 0}</strong><span>Đơn tháng này</span></div>
+        <div class="report-tile"><strong>${ctvFmt(s.monthRevenue)}</strong><span>Doanh thu tháng này</span></div>
+        <div class="report-tile"><strong>${s.referredUsers || 0}</strong><span>Khách tôi giới thiệu</span></div>
+        <div class="report-tile"><strong>${ctvFmt(d.balance)}</strong><span>Số dư của tôi</span></div>
+      </div>` : '';
+
+    const refHtml = d.refCode ? `
+      <div class="ctv-refbox">
+        <span>${ico('gift')} Mã giới thiệu của bạn: <b class="ctv-refcode">${esc(d.refCode)}</b></span>
+        <span class="muted" style="font-size:.78rem;">Chiết khấu CTV: <b>${parseFloat(d.ctvDiscountPercent) || 0}%</b> — khách nhập mã này khi đăng ký sẽ được ghi nhận là khách của bạn.</span>
+      </div>` : '';
+
+    const giftHtml = p.giftPurchase ? ctvGiftFormHtml(d) : '';
+
+    let stockHtml = '';
+    if (p.viewStock) {
+      const rows = (d.stock || []).map((sv) => (sv.packages || []).map((pk, i) => `
+        <tr>
+          ${i === 0 ? `<td rowspan="${sv.packages.length}"><b>${esc(sv.service)}</b></td>` : ''}
+          <td>${esc(pk.name)}</td>
+          <td style="text-align:right;">${ctvFmt(pk.price)}</td>
+          <td style="text-align:center;"><span class="ctv-stock-badge ${pk.count > 0 ? (pk.count <= 3 ? 'low' : 'ok') : 'out'}">${pk.count > 0 ? pk.count + ' key' : 'Hết'}</span></td>
+        </tr>`).join('')).join('');
+      stockHtml = `
+        <div class="ctv-section-title">${ico('box')} Tồn kho key</div>
+        <div class="report-byday report-xscroll">
+          <table><thead><tr><th>Sản phẩm</th><th>Gói</th><th style="text-align:right;">Giá gốc</th><th style="text-align:center;">Còn lại</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="4" class="empty-note">Chưa có gói nào dùng kho key.</td></tr>'}</tbody></table>
+        </div>`;
+    }
+
+    let ordersHtml = '';
+    if (p.viewOrdersOwn || p.viewOrdersAll) {
+      const rows = (d.orders || []).map((o) => `
+        <tr class="${o.refunded ? 'ctv-order-refunded' : ''}">
+          <td>${esc(o.user || '')}${o.mine ? ` <span class="ctv-mine-tag">${ico('heart')} của tôi</span>` : ''}</td>
+          <td>${esc(o.serviceName)} <span class="muted">· ${esc(o.packageName)}</span></td>
+          <td style="text-align:right;">${ctvFmt(o.price)}</td>
+          <td class="muted" style="white-space:nowrap;">${fmtCtvDate(o.date)}</td>
+        </tr>`).join('');
+      const scopeLbl = p.viewOrdersAll ? 'tất cả đơn của shop' : 'đơn của khách bạn giới thiệu';
+      ordersHtml = `
+        <div class="ctv-section-title">${ico('history')} Đơn hàng (${scopeLbl})</div>
+        <div class="report-byday report-xscroll">
+          <table><thead><tr><th>Khách</th><th>Sản phẩm</th><th style="text-align:right;">Giá</th><th>Ngày</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="4" class="empty-note">Chưa có đơn nào.</td></tr>'}</tbody></table>
+        </div>`;
+    }
+
+    return `
+      <div class="ctv-dashboard">
+        <div class="ctv-hello">${ico('heart')} Xin chào <b>${esc(d.ctvName || 'Cộng tác viên')}</b> — đây là trang làm việc của bạn.</div>
+        ${refHtml}
+        ${salesHtml}
+        ${giftHtml}
+        ${stockHtml}
+        ${ordersHtml}
+      </div>`;
+  }
+
+  function fmtCtvDate(iso) {try {return new Date(iso).toLocaleString('vi-VN');} catch {return '';}}
+
+  // Công cụ CTV bán/tặng key: chọn sản phẩm > gói (chỉ gói còn key) + nhập tên khách.
+  function ctvGiftFormHtml(d) {
+    const opts = (d.stock || []).map((sv) => {
+      const svc = (Store.db.services || []).find((x) => x.name === sv.service);
+      if (!svc) return '';
+      return (sv.packages || []).filter((pk) => pk.count > 0).map((pk) => {
+        const pkg = (svc.packages || []).find((x) => x.name === pk.name);
+        if (!pkg) return '';
+        const price = Math.max(0, pk.price - Math.floor(pk.price * (parseFloat(d.ctvDiscountPercent) || 0) / 100));
+        return `<option value="${esc(svc.id)}|${esc(pkg.id)}">${esc(sv.service)} · ${esc(pk.name)} — ${ctvFmt(price)} (còn ${pk.count})</option>`;
+      }).join('');
+    }).join('');
+    return `
+      <div class="ctv-section-title">${ico('cart')} Bán / Tặng key cho khách</div>
+      <div class="ctv-gift-box">
+        <p class="muted" style="font-size:.8rem;margin:0 0 8px;">Chọn gói và nhập <b>tên đăng nhập</b> của khách. Hệ thống trừ tiền theo <b>giá CTV</b> vào số dư của bạn và giao key thẳng vào tài khoản khách.</p>
+        <label class="ctv-gift-label">Sản phẩm / gói (chỉ hiện gói còn key)
+          <select id="ctvGiftPkg">${opts || '<option value="">— Chưa có gói nào còn key —</option>'}</select>
+        </label>
+        <label class="ctv-gift-label">Tên đăng nhập của khách nhận
+          <input type="text" id="ctvGiftTarget" placeholder="VD: khachhang01" autocomplete="off">
+        </label>
+        <button type="button" class="btn btn-primary btn-sm" id="ctvGiftBtn">${ico('gift')} Giao key cho khách</button>
+        <span id="ctvGiftMsg" class="muted" style="font-size:.8rem;display:block;margin-top:6px;"></span>
+      </div>`;
+  }
+
+  function wireCtvDashboard(d) {
+    const btn = $('#ctvGiftBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const sel = $('#ctvGiftPkg');
+      const target = ($('#ctvGiftTarget').value || '').trim();
+      const msg = $('#ctvGiftMsg');
+      if (!sel || !sel.value) {msg.textContent = 'Chưa chọn gói còn key.';return;}
+      if (!target) {msg.textContent = 'Nhập tên đăng nhập của khách nhận.';return;}
+      const [serviceId, packageId] = sel.value.split('|');
+      const user = Store.currentUser();
+      withLoading(btn, async () => {
+        msg.textContent = '';
+        try {
+          const res = await Store._callApi('ctv_gift_key', {
+            userId: user.userId, token: Store.currentToken(), serviceId, packageId, targetUsername: target
+          });
+          if (res.status === 'success') {
+            toast(`Đã giao key cho "${target}" — trừ ${ctvFmt(res.price)} vào số dư của bạn.`, 'success');
+            renderCtvDashboard(); // tải lại (kho + số dư cập nhật)
+          } else {
+            msg.textContent = res.message || 'Không giao được key.';
+          }
+        } catch (e) {
+          msg.textContent = 'Không kết nối được máy chủ.';
+        }
+      });
+    });
   }
 
   function wireAdminModal() {
@@ -7241,6 +7426,19 @@ window.KENIOS_DEFAULT_DB = {
         </div>
         <label class="admin-check-label"><input type="checkbox" name="admin2faEnabled" ${c.admin2faEnabled ? 'checked' : ''}> Bật xác thực 2 lớp cho tài khoản admin</label>
 
+        <div class="admin-form-section">${ico('heart')} Quyền Cộng tác viên (CTV)</div>
+        <div class="admin-guide">
+          <b>${ico('bulb')} Hướng dẫn:</b> Tài khoản có vai trò <b>Cộng tác viên</b> (đặt trong tab Người dùng) khi mở "Trang Cộng tác viên" sẽ được làm đúng những mục bạn tích dưới đây. CTV <b>không sửa/xóa</b> được sản phẩm, cấu hình hay người dùng — chỉ dùng đúng các quyền này. Bỏ tích mục nào thì mọi CTV mất mục đó ngay sau khi lưu + đồng bộ.
+        </div>
+        <div class="ctv-perms-grid span-2">
+          <label class="admin-check-label"><input type="checkbox" name="ctvPerm_viewStock" ${ctvCanClient('viewStock') ? 'checked' : ''}> ${ico('box')} Xem tồn kho key (chỉ số lượng còn lại, không thấy nội dung key)</label>
+          <label class="admin-check-label"><input type="checkbox" name="ctvPerm_viewOrdersOwn" ${ctvCanClient('viewOrdersOwn') ? 'checked' : ''}> ${ico('heart')} Xem đơn của khách do CTV giới thiệu (theo mã giới thiệu)</label>
+          <label class="admin-check-label"><input type="checkbox" name="ctvPerm_viewOrdersAll" ${ctvCanClient('viewOrdersAll') ? 'checked' : ''}> ${ico('history')} Xem TẤT CẢ đơn hàng của shop (kém riêng tư hơn)</label>
+          <label class="admin-check-label"><input type="checkbox" name="ctvPerm_viewSales" ${ctvCanClient('viewSales') ? 'checked' : ''}> ${ico('pulse')} Xem doanh số &amp; số dư của chính CTV</label>
+          <label class="admin-check-label"><input type="checkbox" name="ctvPerm_giftPurchase" ${ctvCanClient('giftPurchase') ? 'checked' : ''}> ${ico('cart')} Bán / tặng key cho khách (trừ tiền theo giá CTV vào số dư CTV)</label>
+          <label class="admin-check-label"><input type="checkbox" name="ctvPerm_replyReviews" ${ctvCanClient('replyReviews') ? 'checked' : ''}> ${ico('star')} Trả lời đánh giá của khách trên trang sản phẩm</label>
+        </div>
+
         <div class="admin-form-section span-2">Tỷ lệ % chiết khấu nạp thẻ theo nhà mạng — khách nhận = mệnh giá × (100 − %). Đặt đúng bằng bảng phí của card2k.net.</div>
         <div class="card-discount-grid span-2">
           ${['VIETTEL', 'VINAPHONE', 'MOBIFONE', 'GARENA', 'ZING', 'GATE', 'VCOIN', 'SCOIN'].map((t) => {
@@ -8306,6 +8504,14 @@ window.KENIOS_DEFAULT_DB = {
         welcomePopupTitle: fd.get('welcomePopupTitle'), welcomePopupMessage: fd.get('welcomePopupMessage'),
         announcements: readAnnouncementsFromEditor(),
         admin2faEnabled: fd.get('admin2faEnabled') === 'on',
+        ctvPerms: {
+          viewStock: fd.get('ctvPerm_viewStock') === 'on',
+          viewOrdersOwn: fd.get('ctvPerm_viewOrdersOwn') === 'on',
+          viewOrdersAll: fd.get('ctvPerm_viewOrdersAll') === 'on',
+          viewSales: fd.get('ctvPerm_viewSales') === 'on',
+          giftPurchase: fd.get('ctvPerm_giftPurchase') === 'on',
+          replyReviews: fd.get('ctvPerm_replyReviews') === 'on'
+        },
         welcomeAlways: fd.get('welcomeAlways') !== '0', welcomeVoiceEnabled: false,
         maintenanceMode: fd.get('maintenanceMode') === '1', maintenanceMessage: fd.get('maintenanceMessage'),
         bankId: fd.get('bankId'), bankAccountNo: fd.get('bankAccountNo'), bankAccountName: fd.get('bankAccountName'),
