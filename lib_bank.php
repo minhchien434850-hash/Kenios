@@ -60,9 +60,33 @@ function bank_amount_int($raw) {
     return $neg ? -$v : $v;
 }
 
+// Đọc THỜI ĐIỂM giao dịch (unix timestamp) từ mọi tên field/định dạng hay gặp. Trả 0 nếu
+// KHÔNG tìm/parse được -> khi lọc theo thời gian sẽ coi như "không rõ" và VẪN cộng (an toàn,
+// không bỏ sót vì thiếu trường ngày).
+function bank_txn_ts($txn) {
+    if (!is_array($txn)) return 0;
+    foreach (['transactionDate', 'date', 'time', 'datetime', 'dateTime', 'transactionTime', 'transTime', 'transDate', 'tranDate', 'when', 'created', 'createdAt', 'timestamp', 'thoiGian', 'thoi_gian', 'ngay', 'ngayGiaoDich'] as $f) {
+        if (empty($txn[$f])) continue;
+        $val = $txn[$f];
+        $ts = is_numeric($val) ? (int)$val : strtotime((string)$val);
+        if ($ts && $ts > 946684800 && $ts < time() + 172800) return $ts; // hợp lệ: sau 2000, không quá tương lai
+    }
+    // Dự phòng: quét mọi giá trị chuỗi trông giống ngày giờ.
+    foreach ($txn as $v) {
+        if (is_string($v) && preg_match('/\d{4}\D+\d|\d\D+\d{4}/', $v)) {
+            $ts = strtotime($v);
+            if ($ts && $ts > 946684800 && $ts < time() + 172800) return $ts;
+        }
+    }
+    return 0;
+}
+
 // Cộng số dư cho user có nội dung chuyển khoản khớp "NAP<userId>", chống trùng bằng bankRef.
+//   $maxAgeSec > 0: CHỈ cộng giao dịch gần đây (trong khoảng $maxAgeSec giây đổ lại) — dùng để
+//                   "cộng bù" chỉ đụng giao dịch mới trong ngày, không lôi giao dịch quá cũ.
+//                   Giao dịch KHÔNG đọc được thời gian vẫn được cộng (an toàn, không bỏ sót).
 // Thay đổi trực tiếp $db (tham chiếu). Trả về [số_đã_xử_lý, mảng_log, mảng_thông_báo, mảng_chẩn_đoán].
-function bank_process_transactions(&$db, $transactions) {
+function bank_process_transactions(&$db, $transactions, $maxAgeSec = 0) {
     $processed = 0;
     $logs = [];
     $notifs = [];  // danh sách nạp tiền để thông báo Telegram (gửi SAU khi ghi DB)
@@ -125,6 +149,15 @@ function bank_process_transactions(&$db, $transactions) {
         $dg = ['memo' => $memo_clean, 'amount' => $amount, 'ref' => $txnRef, 'result' => ''];
 
         if ($amount < 1000) { $dg['result'] = 'BỎ: số tiền < 1000 (đọc được ' . $amount . ')'; $details[] = $dg; continue; }
+
+        // GIỚI HẠN THỜI GIAN (khi cộng bù): bỏ giao dịch quá cũ. Không đọc được ngày -> vẫn cộng.
+        if ($maxAgeSec > 0) {
+            $ts = bank_txn_ts($txn);
+            if ($ts > 0 && $ts < time() - $maxAgeSec) {
+                $dg['result'] = 'BỎ: giao dịch cũ (' . date('d/m H:i', $ts) . ') — ngoài phạm vi cộng bù gần đây';
+                $details[] = $dg; continue;
+            }
+        }
 
         // Chống xử lý trùng lặp
         $already = false;

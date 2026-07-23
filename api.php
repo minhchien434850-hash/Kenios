@@ -514,7 +514,9 @@ function bank_pull_credit($db_file, $note = '', $minInterval = 0, $verboseLog = 
     if (!$fp || !flock($fp, LOCK_EX)) return ['ok' => false, 'message' => 'Không khóa được cơ sở dữ liệu, thử lại sau.'];
     $raw = stream_get_contents($fp);
     $db = $raw ? (json_decode($raw, true) ?: []) : [];
-    list($count, $logs, $notifs, $details) = bank_process_transactions($db, $transactions);
+    // CHỈ cộng giao dịch GẦN ĐÂY (~36 giờ đổ lại) — cộng bù trong ngày, không lôi giao dịch
+    // quá cũ; giao dịch đã cộng vẫn tự bỏ qua (chống trùng). Giao dịch không rõ ngày vẫn cộng.
+    list($count, $logs, $notifs, $details) = bank_process_transactions($db, $transactions, 36 * 3600);
     if ($count > 0) {
         ftruncate($fp, 0); rewind($fp);
         fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
