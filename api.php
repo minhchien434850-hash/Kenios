@@ -493,6 +493,20 @@ function bank_pull_credit($db_file, $note = '', $minInterval = 0, $verboseLog = 
     if ($response === false) { bank_poll_log_write("LỖI kết nối ThueAPIBank: $curl_err"); return ['ok' => false, 'message' => "Không kết nối được tới ThueAPIBank: $curl_err"]; }
     $parsed = json_decode($response, true);
     if (!is_array($parsed)) { bank_poll_log_write("ThueAPIBank trả về KHÔNG phải JSON (token sai?): " . substr((string)$response, 0, 200)); return ['ok' => false, 'message' => 'ThueAPIBank trả về dữ liệu không hợp lệ (kiểm tra lại token).']; }
+
+    // PHÁT HIỆN LỖI TỪ ThueAPIBank (VD {"status":"error","msg":"Token không hợp lệ"}) — trả
+    // lỗi RÕ RÀNG thay vì cố đọc như giao dịch (ra "tiền=0" khó hiểu). Đây là lý do hay gặp
+    // nhất khiến "ngân hàng nhận tiền mà web không cộng": token sai / hết hạn / chưa kích hoạt.
+    $statusVal = strtolower(trim((string)($parsed['status'] ?? ($parsed['success'] ?? ''))));
+    $errMsg = $parsed['msg'] ?? ($parsed['message'] ?? ($parsed['error'] ?? ''));
+    if (!is_string($errMsg)) $errMsg = json_encode($errMsg, JSON_UNESCAPED_UNICODE);
+    $looksError = in_array($statusVal, ['error', 'false', '0', 'fail', 'failed'], true);
+    if (($looksError || $errMsg !== '') && empty(bank_find_txn_list($parsed))) {
+        $shown = $errMsg !== '' ? $errMsg : 'ThueAPIBank từ chối yêu cầu';
+        bank_poll_log_write("ThueAPIBank BÁO LỖI: " . $shown . "  → token SAI / HẾT HẠN / CHƯA KÍCH HOẠT, hoặc token không phải của tài khoản đang nhận tiền. Vào Cấu hình dán lại token đúng.");
+        return ['ok' => false, 'message' => 'ThueAPIBank báo: "' . $shown . '". Kiểm tra lại token trong Cấu hình (token sai/hết hạn/chưa kích hoạt?).'];
+    }
+
     $transactions = bank_extract_transactions($parsed);
 
     // Khóa file khi cộng tiền để không cộng trùng khi có nhiều request cùng lúc.
