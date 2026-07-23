@@ -4,11 +4,32 @@
 //   • api.php?action=poll_acb — chủ động KÉO lịch sử giao dịch từ ThueAPIBank (pull)
 // Tách ra đây để hai đường (webhook / polling) xử lý giống hệt nhau, không lệch nhau.
 
+// $arr có phải là DANH SÁCH các object (giao dịch) không: khóa 0..n và phần tử đầu là mảng.
+function bank_is_list_of_objects($arr) {
+    if (!is_array($arr) || empty($arr)) return false;
+    if (array_keys($arr) !== range(0, count($arr) - 1)) return false; // không phải list tuần tự
+    return is_array(reset($arr)); // phần tử đầu là object
+}
+// Đào ĐỆ QUY tìm mảng-các-object đầu tiên ở bất kỳ độ sâu nào (ThueAPIBank hay lồng
+// giao dịch trong data.transactions / result.data ...). Trả [] nếu không thấy.
+function bank_find_txn_list($data, $depth = 0) {
+    if ($depth > 5 || !is_array($data)) return [];
+    if (bank_is_list_of_objects($data)) return $data;
+    foreach ($data as $v) {
+        if (is_array($v)) {
+            $r = bank_find_txn_list($v, $depth + 1);
+            if (!empty($r)) return $r;
+        }
+    }
+    return [];
+}
 // Rút danh sách giao dịch từ nhiều định dạng payload khác nhau (Casso/SePay/ThueAPIBank/flat).
+// Đào sâu tự động: tìm mảng-các-object ở bất kỳ đâu trong JSON, không phụ thuộc tên khóa.
 function bank_extract_transactions($data) {
     if (!is_array($data)) return [];
-    if (isset($data['data']) && is_array($data['data'])) return $data['data'];
-    if (isset($data['transactions']) && is_array($data['transactions'])) return $data['transactions'];
+    $found = bank_find_txn_list($data);
+    if (!empty($found)) return $found;
+    // Không thấy danh sách nào -> có thể payload chính LÀ 1 giao dịch đơn: bọc lại.
     if (isset($data['transaction']) && is_array($data['transaction'])) return [$data['transaction']];
     return [$data];
 }
