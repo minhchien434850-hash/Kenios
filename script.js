@@ -1512,6 +1512,11 @@ window.KENIOS_DEFAULT_DB = {
       try {const r = await fetch(`${API_URL}?action=health_check`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
       catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
     },
+    // Nhật ký chẩn đoán nạp VietQR tự động. force=true -> buộc quét ngân hàng ngay 1 lần.
+    async bankPollLog(u, p, force) {
+      try {const r = await fetch(`${API_URL}?action=bank_poll_log${force ? '&force=1' : ''}`, { headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
+      catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
+    },
     async restoreFromServer(u, p) {
       try {const r = await fetch(`${API_URL}?action=restore_db`, { method: 'POST', headers: { 'X-Admin-User': u, 'X-Admin-Pass': p } });return await r.json();}
       catch (e) {return { status: 'error', message: 'Không kết nối được máy chủ.' };}
@@ -5844,6 +5849,23 @@ window.KENIOS_DEFAULT_DB = {
           </div>`).join('');
       });
     });
+
+    // Nhật ký nạp VietQR tự động — soi ThueAPIBank trả về gì, giao dịch nào khớp/không khớp.
+    const showBankLog = (force) => {
+      const c = getAdminCreds();
+      if (!c) {toast('Đăng nhập lại admin 1 lần để xem.', 'error');return;}
+      const box = $('#bankLogResults');
+      const which = force ? $('#bankForceBtn') : $('#bankLogBtn');
+      box.hidden = false;
+      box.textContent = force ? 'Đang quét ngay lịch sử ngân hàng…' : 'Đang tải nhật ký…';
+      withLoading(which, async () => {
+        const res = await Store.bankPollLog(c.username, c.password, force);
+        if (!res || res.status !== 'success') {box.textContent = res && res.message || 'Không tải được nhật ký.';return;}
+        box.textContent = (res.forced ? '» ' + res.forced + '\n\n' : '') + (res.log || '(trống)');
+      });
+    };
+    var _bankBtn = $('#bankLogBtn'); if (_bankBtn) _bankBtn.addEventListener('click', () => showBankLog(false));
+    var _forceBtn = $('#bankForceBtn'); if (_forceBtn) _forceBtn.addEventListener('click', () => showBankLog(true));
   }
 
   function wireAdminConfigSecretBoxes() {var _$22, _$23, _$24, _$25, _$26, _$27;
@@ -6154,6 +6176,14 @@ window.KENIOS_DEFAULT_DB = {
           <span class="muted" id="healthSummary"></span>
         </div>
         <div id="healthResults" class="health-results" hidden></div>
+      </div>
+
+      <div class="health-box">
+        <div class="health-head">
+          <button type="button" class="btn btn-glass btn-sm" id="bankLogBtn">${ico('card')} Nhật ký nạp VietQR tự động</button>
+          <button type="button" class="btn btn-primary btn-sm" id="bankForceBtn">${ico('refresh') || ico('history')} Quét ngay</button>
+        </div>
+        <pre id="bankLogResults" class="health-results" hidden style="white-space:pre-wrap;word-break:break-word;font-size:.78rem;line-height:1.5;max-height:340px;overflow:auto;margin:8px 0 0;"></pre>
       </div>
 
       ${lowStockHtml}

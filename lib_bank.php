@@ -25,25 +25,44 @@ function bank_deposit_bonus($db, $amount) {
     return (int)floor($amount * $percent / 100);
 }
 
+// Đọc số tiền BỀN BỈ từ mọi định dạng: số nguyên, số thực, hoặc CHUỖI có dấu phân cách
+// ("100,000", "+100.000đ", "100 000 VND"...). intval() cũ đọc "100,000" thành 100 -> nhỏ
+// hơn 1000 -> giao dịch bị bỏ qua, KHÔNG cộng tiền. Ở đây chỉ giữ chữ số; dấu trừ = tiền ra.
+function bank_amount_int($raw) {
+    if (is_int($raw)) return $raw;
+    if (is_float($raw)) return (int)$raw;
+    $s = (string)$raw;
+    $neg = (strpos($s, '-') !== false);
+    $digits = preg_replace('/\D+/', '', $s);
+    if ($digits === '') return 0;
+    $v = (int)substr($digits, 0, 15); // cắt bớt phòng chuỗi quá dài gây tràn số
+    return $neg ? -$v : $v;
+}
+
 // Cộng số dư cho user có nội dung chuyển khoản khớp "NAP<userId>", chống trùng bằng bankRef.
-// Hàm này thay đổi trực tiếp $db (tham chiếu) và trả về [số_giao_dịch_đã_xử_lý, mảng_log].
+// Thay đổi trực tiếp $db (tham chiếu). Trả về [số_đã_xử_lý, mảng_log, mảng_thông_báo, mảng_chẩn_đoán].
 function bank_process_transactions(&$db, $transactions) {
     $processed = 0;
     $logs = [];
-    $notifs = []; // danh sách nạp tiền để thông báo Telegram (gửi SAU khi ghi DB)
-    if (empty($db) || !isset($db['users']) || !is_array($db['users'])) return [0, [], []];
+    $notifs = [];  // danh sách nạp tiền để thông báo Telegram (gửi SAU khi ghi DB)
+    $details = []; // CHẨN ĐOÁN: mỗi giao dịch kéo về + lý do khớp/không khớp (ghi ra log)
+    if (empty($db) || !isset($db['users']) || !is_array($db['users'])) return [0, [], [], []];
 
     foreach ($transactions as $txn) {
         if (!is_array($txn)) continue;
 
         $memo = '';
-        foreach (['description', 'memo', 'addInfo', 'content', 'remarks', 'transferDescription'] as $f) {
+        foreach (['description', 'memo', 'addInfo', 'content', 'remarks', 'transferDescription', 'note', 'detail', 'comment'] as $f) {
             if (!empty($txn[$f])) { $memo = $txn[$f]; break; }
         }
 
+        // Đọc số tiền: thử lần lượt các tên field, lấy field đầu tiên ra số khác 0.
         $amount = 0;
-        foreach (['amount', 'transferAmount', 'value', 'credit', 'creditAmount'] as $f) {
-            if (isset($txn[$f]) && intval($txn[$f]) > 0) { $amount = intval($txn[$f]); break; }
+        foreach (['amount', 'transferAmount', 'value', 'credit', 'creditAmount', 'amountIn', 'money', 'amount_in'] as $f) {
+            if (isset($txn[$f]) && $txn[$f] !== '' && $txn[$f] !== null) {
+                $a = bank_amount_int($txn[$f]);
+                if ($a != 0) { $amount = $a; break; }
+            }
         }
 
         // Bỏ qua giao dịch tiền RA (chỉ cộng tiền VÀO) nếu payload có đánh dấu chiều giao dịch.
@@ -54,6 +73,7 @@ function bank_process_transactions(&$db, $transactions) {
                 break;
             }
         }
+        if ($amount < 0) $amount = 0; // số âm = tiền ra
 
         $txnRef = '';
         foreach (['transactionNumber', 'tid', 'id', 'reference', 'refNumber', 'transId', 'transactionID', 'ftNo'] as $f) {
@@ -61,28 +81,32 @@ function bank_process_transactions(&$db, $transactions) {
         }
         if (empty($txnRef)) $txnRef = 'AUTO-' . $amount . '-' . md5($memo . $amount);
 
-        if ($amount < 1000) continue;
+        $memo_clean = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $memo));
+        $dg = ['memo' => $memo_clean, 'amount' => $amount, 'ref' => $txnRef, 'result' => ''];
+
+        if ($amount < 1000) { $dg['result'] = 'BỎ: số tiền < 1000 (đọc được ' . $amount . ')'; $details[] = $dg; continue; }
 
         // Chống xử lý trùng lặp
         $already = false;
         foreach (($db['transactions'] ?? []) as $t) {
             if (isset($t['bankRef']) && strval($t['bankRef']) === $txnRef) { $already = true; break; }
         }
-        if ($already) continue;
+        if ($already) { $dg['result'] = 'BỎ: đã cộng trước đó (trùng ref)'; $details[] = $dg; continue; }
 
-        // Khớp user: nội dung chuyển khoản phải chứa "NAP<userId>" (đúng định dạng do trang
-        // nạp tiền sinh ra), tránh khớp nhầm theo tên gây cộng sai tài khoản.
-        $memo_clean = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $memo));
-        $matchedIdx = -1;
+        // Khớp user: nội dung chuyển khoản phải chứa "NAP<userId>". Chọn userId DÀI NHẤT khớp
+        // để tránh nhầm "NAP1" trong "NAP12..." (userId ngắn ăn trước userId dài của khách).
+        $matchedIdx = -1; $matchedLen = -1;
         foreach ($db['users'] as $idx => $u) {
             $uid = isset($u['userId']) ? strval($u['userId']) : '';
             if ($uid === '') continue;
-            // memo_clean đã viết hoa -> PHẢI viết hoa cả userId khi so khớp, nếu không tài
-            // khoản có userId chứa chữ cái (khách đăng ký/Google dùng uniqid) sẽ khớp trượt
-            // và không được cộng tiền, trong khi admin (userId toàn số) thì vẫn khớp.
-            if (strpos($memo_clean, 'NAP' . strtoupper($uid)) !== false) { $matchedIdx = $idx; break; }
+            if (strpos($memo_clean, 'NAP' . strtoupper($uid)) !== false && strlen($uid) > $matchedLen) {
+                $matchedIdx = $idx; $matchedLen = strlen($uid);
+            }
         }
-        if ($matchedIdx === -1) continue;
+        if ($matchedIdx === -1) {
+            $dg['result'] = 'KHÔNG KHỚP: nội dung không chứa NAP<mã tài khoản> nào';
+            $details[] = $dg; continue;
+        }
 
         // Khuyến mãi nạp tiền: nạp >= depositBonusMin được cộng thêm depositBonusPercent%.
         $bonus = bank_deposit_bonus($db, $amount);
@@ -106,7 +130,9 @@ function bank_process_transactions(&$db, $transactions) {
         $processed++;
         $logs[] = '+' . number_format($credit) . 'd (goc ' . number_format($amount) . ' + km ' . number_format($bonus) . ') -> ' . ($mu['username'] ?? $mu['userId']) . " | Ref=$txnRef";
         $notifs[] = ['username' => $mu['username'] ?? $mu['userId'], 'amount' => $credit];
+        $dg['result'] = 'ĐÃ CỘNG +' . number_format($credit) . 'đ -> ' . ($mu['username'] ?? $mu['userId']);
+        $details[] = $dg;
     }
 
-    return [$processed, $logs, $notifs];
+    return [$processed, $logs, $notifs, $details];
 }

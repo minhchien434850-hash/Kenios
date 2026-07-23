@@ -30,11 +30,11 @@ $action = $_GET['action'] ?? '';
     $cur = @file_get_contents($ht);
     if ($cur !== false && strpos($cur, 'otp_admin') !== false && strpos($cur, 'auto_backup') !== false
         && strpos($cur, 'key_log') !== false && strpos($cur, 'push_subs') !== false
-        && strpos($cur, 'bank_poll_marker') !== false) return;
+        && strpos($cur, 'bank_poll_marker') !== false && strpos($cur, 'bank_poll_log') !== false) return;
     @file_put_contents($ht,
         "# Chặn truy cập trực tiếp vào các file dữ liệu / bí mật (chỉ cho PHP đọc nội bộ).\n"
         . "# File này do api.php tự tạo/cập nhật — không cần up thủ công.\n"
-        . "<FilesMatch \"^(database\\.json|database_backup\\.json|orders_backup\\.json|rate_limits\\.json|secrets\\.php|lib_secrets\\.php|lib_bank\\.php|lib_card\\.php|card_callback_log\\.txt|card_query_log\\.txt|expiry_notify_marker\\.txt|auto_backup_marker\\.txt|bank_poll_marker\\.txt|auto_backup_[0-9-]+\\.json|otp_admin\\.json|key_log\\.json|push_subs\\.json|push_vapid\\.json|\\.user\\.ini)$\">\n"
+        . "<FilesMatch \"^(database\\.json|database_backup\\.json|orders_backup\\.json|rate_limits\\.json|secrets\\.php|lib_secrets\\.php|lib_bank\\.php|lib_card\\.php|card_callback_log\\.txt|card_query_log\\.txt|expiry_notify_marker\\.txt|auto_backup_marker\\.txt|bank_poll_marker\\.txt|bank_poll_log\\.txt|auto_backup_[0-9-]+\\.json|otp_admin\\.json|key_log\\.json|push_subs\\.json|push_vapid\\.json|\\.user\\.ini)$\">\n"
         . "  <IfModule mod_authz_core.c>\n    Require all denied\n  </IfModule>\n"
         . "  <IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n  </IfModule>\n"
         . "</FilesMatch>\n");
@@ -411,6 +411,20 @@ function daily_backup_core($db_file) {
     return ['ok' => true, 'skipped' => false, 'msg' => 'Đã sao lưu & gửi Telegram.', 'file' => basename($backupPath)];
 }
 
+// Ghi nhật ký chẩn đoán nạp tự động (giữ ~200 dòng cuối), file bị .htaccess chặn.
+function bank_poll_log_write($text) {
+    $file = __DIR__ . '/bank_poll_log.txt';
+    try { $vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')); $ts = $vn->format('d/m H:i:s'); }
+    catch (Exception $e) { $ts = date('d/m H:i:s'); }
+    $entry = "[$ts] " . $text . "\n";
+    $old = @file_get_contents($file);
+    if ($old === false) $old = '';
+    $combined = $old . $entry;
+    // Cắt bớt: chỉ giữ ~30KB cuối để không phình file.
+    if (strlen($combined) > 30000) $combined = substr($combined, -30000);
+    @file_put_contents($file, $combined, LOCK_EX);
+}
+
 // ---- NẠP VIETQR TỰ ĐỘNG (dùng chung cho poll thủ công + poll nền) ----
 // KÉO lịch sử ACB từ ThueAPIBank rồi cộng tiền cho mọi giao dịch khớp "NAP<userId>".
 // Cộng cho TẤT CẢ khách có chuyển khoản chờ, không phụ thuộc ai bấm nút. $note (tuỳ chọn)
@@ -428,9 +442,9 @@ function bank_pull_credit($db_file, $note = '') {
     $response = curl_exec($ch);
     $curl_err = curl_error($ch);
     curl_close($ch);
-    if ($response === false) return ['ok' => false, 'message' => "Không kết nối được tới ThueAPIBank: $curl_err"];
+    if ($response === false) { bank_poll_log_write("LỖI kết nối ThueAPIBank: $curl_err"); return ['ok' => false, 'message' => "Không kết nối được tới ThueAPIBank: $curl_err"]; }
     $parsed = json_decode($response, true);
-    if (!is_array($parsed)) return ['ok' => false, 'message' => 'ThueAPIBank trả về dữ liệu không hợp lệ (kiểm tra lại token).'];
+    if (!is_array($parsed)) { bank_poll_log_write("ThueAPIBank trả về KHÔNG phải JSON (token sai?): " . substr((string)$response, 0, 200)); return ['ok' => false, 'message' => 'ThueAPIBank trả về dữ liệu không hợp lệ (kiểm tra lại token).']; }
     $transactions = bank_extract_transactions($parsed);
 
     // Khóa file khi cộng tiền để không cộng trùng khi có nhiều request cùng lúc.
@@ -438,13 +452,23 @@ function bank_pull_credit($db_file, $note = '') {
     if (!$fp || !flock($fp, LOCK_EX)) return ['ok' => false, 'message' => 'Không khóa được cơ sở dữ liệu, thử lại sau.'];
     $raw = stream_get_contents($fp);
     $db = $raw ? (json_decode($raw, true) ?: []) : [];
-    list($count, $logs, $notifs) = bank_process_transactions($db, $transactions);
+    list($count, $logs, $notifs, $details) = bank_process_transactions($db, $transactions);
     if ($count > 0) {
         ftruncate($fp, 0); rewind($fp);
         fwrite($fp, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         fflush($fp);
     }
     flock($fp, LOCK_UN); fclose($fp);
+
+    // GHI NHẬT KÝ CHẨN ĐOÁN: ThueAPIBank trả về mấy giao dịch, từng cái khớp/không khớp
+    // + vì sao. Admin xem qua action=bank_poll_log để biết vì sao tiền chưa cộng.
+    $summary = "Kéo về " . count($transactions) . " giao dịch, đã cộng " . $count . ".";
+    if (empty($transactions)) $summary .= " (ThueAPIBank không trả giao dịch nào — tài khoản đúng chưa? token đúng ngân hàng nhận tiền chưa?)";
+    $lines = [$summary];
+    foreach (($details ?? []) as $d) {
+        $lines[] = "  • ND='" . $d['memo'] . "' | tiền=" . number_format($d['amount']) . " | " . $d['result'];
+    }
+    bank_poll_log_write(implode("\n", $lines));
 
     // Báo Telegram cho admin từng giao dịch vừa cộng (sau khi đã mở khóa file).
     if ($count > 0 && function_exists('tg_notify_deposit')) {
@@ -2879,6 +2903,38 @@ switch ($action) {
         $parts[] = "\n===== KIỂM TRA CHỦ ĐỘNG (web hỏi lại cổng) =====\n" .
             ($qr !== null ? $qr : "(Chưa có lần hỏi lại nào được ghi.)");
         echo json_encode(["status" => "success", "log" => implode("\n", $parts)]);
+        break;
+
+    // Admin xem NHẬT KÝ NẠP VIETQR TỰ ĐỘNG: ThueAPIBank trả về gì, giao dịch nào khớp/
+    // không khớp + lý do. Có ?force=1 để BUỘC quét ngay 1 lần (bỏ qua giới hạn nhịp) rồi
+    // trả log mới nhất — dùng khi khách báo "đã chuyển mà chưa cộng" để chẩn đoán tại chỗ.
+    case 'bank_poll_log':
+        $admin_user = $_SERVER['HTTP_X_ADMIN_USER'] ?? ($_GET['admin_user'] ?? '');
+        $admin_pass = $_SERVER['HTTP_X_ADMIN_PASS'] ?? ($_GET['admin_pass'] ?? '');
+        $db = read_db($db_file);
+        if (!admin_authenticated($db, $admin_user, $admin_pass)) { echo json_encode(["status" => "error", "message" => "Unauthorized"]); exit; }
+        $forced = null;
+        if (!empty($_GET['force'])) {
+            $r = bank_pull_credit($db_file); // quét ngay, ghi vào log
+            $forced = empty($r['ok'])
+                ? ('Quét ngay: LỖI — ' . ($r['message'] ?? '?'))
+                : ('Quét ngay: đã cộng ' . ($r['processed'] ?? 0) . ' giao dịch.');
+        }
+        $logTxt = @file_get_contents(__DIR__ . '/bank_poll_log.txt');
+        if ($logTxt === false || $logTxt === '') {
+            $logTxt = "(Chưa có lần quét nào được ghi. Nếu đã cấu hình token ThueAPIBank, hãy bấm \"Quét ngay\" hoặc để khách vào web để hệ thống tự quét.)";
+        } else {
+            $lines = explode("\n", rtrim($logTxt, "\n"));
+            $logTxt = implode("\n", array_slice($lines, -120)); // 120 dòng cuối
+        }
+        $sec = read_secrets();
+        $hasToken = trim((string)($sec['bankToken'] ?? '')) !== '';
+        echo json_encode([
+            "status" => "success",
+            "hasToken" => $hasToken,
+            "forced" => $forced,
+            "log" => ($hasToken ? '' : "⚠️ CHƯA cấu hình token ThueAPIBank trong Cấu hình — nạp tự động sẽ KHÔNG chạy.\n\n") . $logTxt
+        ], JSON_UNESCAPED_UNICODE);
         break;
 
     // Tạo bản sao lưu thủ công trên máy chủ (chép database.json -> database_backup.json).
