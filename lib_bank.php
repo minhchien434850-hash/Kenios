@@ -52,16 +52,35 @@ function bank_process_transactions(&$db, $transactions) {
         if (!is_array($txn)) continue;
 
         $memo = '';
-        foreach (['description', 'memo', 'addInfo', 'content', 'remarks', 'transferDescription', 'note', 'detail', 'comment'] as $f) {
+        foreach (['description', 'memo', 'addInfo', 'content', 'remarks', 'transferDescription', 'note', 'detail', 'comment', 'noidung', 'noiDung', 'noi_dung', 'mota', 'moTa', 'mo_ta'] as $f) {
             if (!empty($txn[$f])) { $memo = $txn[$f]; break; }
+        }
+        // DỰ PHÒNG: không khớp tên field nào -> quét MỌI giá trị chuỗi, lấy cái chứa "NAP"
+        // (đúng nội dung nạp do web sinh ra) — nhờ vậy đọc được dù ThueAPIBank đặt tên lạ.
+        if ($memo === '') {
+            foreach ($txn as $v) {
+                if (is_string($v) && stripos(preg_replace('/[^a-zA-Z0-9]/', '', $v), 'NAP') !== false) { $memo = $v; break; }
+            }
         }
 
         // Đọc số tiền: thử lần lượt các tên field, lấy field đầu tiên ra số khác 0.
         $amount = 0;
-        foreach (['amount', 'transferAmount', 'value', 'credit', 'creditAmount', 'amountIn', 'money', 'amount_in'] as $f) {
+        foreach (['amount', 'transferAmount', 'value', 'credit', 'creditAmount', 'amountIn', 'money', 'amount_in', 'sotien', 'soTien', 'so_tien', 'tien', 'giatri', 'giaTri'] as $f) {
             if (isset($txn[$f]) && $txn[$f] !== '' && $txn[$f] !== null) {
                 $a = bank_amount_int($txn[$f]);
                 if ($a != 0) { $amount = $a; break; }
+            }
+        }
+        // DỰ PHÒNG: chưa ra số tiền -> quét field có TÊN gợi ý tiền (chứa amount/tien/money/
+        // credit/gia tri/value), lấy giá trị >= 1000 đầu tiên. Đọc được dù tên field lạ.
+        if ($amount == 0) {
+            foreach ($txn as $k => $v) {
+                if (!is_scalar($v)) continue;
+                $kl = strtolower((string)$k);
+                if (preg_match('/(amount|tien|money|credit|gia.?tri|value|sotien)/', $kl)) {
+                    $a = bank_amount_int($v);
+                    if ($a >= 1000) { $amount = $a; break; }
+                }
             }
         }
 

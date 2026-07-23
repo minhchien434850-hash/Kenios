@@ -517,6 +517,11 @@ function bank_pull_credit($db_file, $note = '', $minInterval = 0, $verboseLog = 
         foreach (($details ?? []) as $d) {
             $lines[] = "  • ND='" . $d['memo'] . "' | tiền=" . number_format($d['amount']) . " | " . $d['result'];
         }
+        // Khi CÓ giao dịch nhưng KHÔNG cộng được -> in DỮ LIỆU GỐC của giao dịch đầu để biết
+        // ThueAPIBank đặt tên trường (số tiền/nội dung) là gì mà web đọc chưa ra.
+        if ($count === 0 && !empty($transactions) && is_array($transactions[0])) {
+            $lines[] = "  RAW mẫu (tên trường thật): " . substr(json_encode($transactions[0], JSON_UNESCAPED_UNICODE), 0, 600);
+        }
         bank_poll_log_write(implode("\n", $lines));
     }
 
