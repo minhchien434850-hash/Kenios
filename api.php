@@ -2964,8 +2964,8 @@ switch ($action) {
         if (!empty($_GET['force'])) {
             $r = bank_pull_credit($db_file); // quét ngay, ghi vào log
             $forced = empty($r['ok'])
-                ? ('Quét ngay: LỖI — ' . ($r['message'] ?? '?'))
-                : ('Quét ngay: đã cộng ' . ($r['processed'] ?? 0) . ' giao dịch.');
+                ? ('Cộng bù: LỖI — ' . ($r['message'] ?? '?'))
+                : ('Cộng bù: đã cộng ' . ($r['processed'] ?? 0) . ' giao dịch cũ chưa cộng (giao dịch đã cộng trước đó tự bỏ qua, không cộng trùng).');
         }
         $logTxt = @file_get_contents(__DIR__ . '/bank_poll_log.txt');
         if ($logTxt === false || $logTxt === '') {

@@ -5857,10 +5857,11 @@ window.KENIOS_DEFAULT_DB = {
       const box = $('#bankLogResults');
       const which = force ? $('#bankForceBtn') : $('#bankLogBtn');
       box.hidden = false;
-      box.textContent = force ? 'Đang quét ngay lịch sử ngân hàng…' : 'Đang tải nhật ký…';
+      box.textContent = force ? 'Đang quét toàn bộ lịch sử ngân hàng và cộng bù giao dịch chưa cộng…' : 'Đang tải nhật ký…';
       withLoading(which, async () => {
         const res = await Store.bankPollLog(c.username, c.password, force);
         if (!res || res.status !== 'success') {box.textContent = res && res.message || 'Không tải được nhật ký.';return;}
+        if (force) toast(res.forced || 'Đã quét xong.', 'success');
         box.textContent = (res.forced ? '» ' + res.forced + '\n\n' : '') + (res.log || '(trống)');
       });
     };
@@ -6181,7 +6182,7 @@ window.KENIOS_DEFAULT_DB = {
       <div class="health-box">
         <div class="health-head">
           <button type="button" class="btn btn-glass btn-sm" id="bankLogBtn">${ico('card')} Nhật ký nạp VietQR tự động</button>
-          <button type="button" class="btn btn-primary btn-sm" id="bankForceBtn">${ico('refresh') || ico('history')} Quét ngay</button>
+          <button type="button" class="btn btn-primary btn-sm" id="bankForceBtn">${ico('refresh') || ico('history')} Cộng bù tất cả giao dịch cũ</button>
         </div>
         <pre id="bankLogResults" class="health-results" hidden style="white-space:pre-wrap;word-break:break-word;font-size:.78rem;line-height:1.5;max-height:340px;overflow:auto;margin:8px 0 0;"></pre>
       </div>
