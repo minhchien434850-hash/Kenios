@@ -425,16 +425,64 @@ function bank_poll_log_write($text) {
     @file_put_contents($file, $combined, LOCK_EX);
 }
 
+// Đọc riêng: giao dịch của "note" đã được ghi nhận chưa + số dư mới của user đó (đọc từ $db).
+function bank_note_status($db, $note) {
+    $out = ['credited' => false, 'balance' => null];
+    if ($note === '') return $out;
+    $noteClean = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $note));
+    if ($noteClean === '') return $out;
+    foreach (($db['transactions'] ?? []) as $t) {
+        if (($t['type'] ?? '') !== 'deposit') continue;
+        $desc = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $t['description'] ?? ''));
+        if (strpos($desc, $noteClean) !== false) {
+            $out['credited'] = true;
+            foreach (($db['users'] ?? []) as $u) {
+                if (($u['userId'] ?? '') === ($t['userId'] ?? '~')) { $out['balance'] = $u['balance']; break; }
+            }
+            break;
+        }
+    }
+    return $out;
+}
+
 // ---- NẠP VIETQR TỰ ĐỘNG (dùng chung cho poll thủ công + poll nền) ----
 // KÉO lịch sử ACB từ ThueAPIBank rồi cộng tiền cho mọi giao dịch khớp "NAP<userId>".
-// Cộng cho TẤT CẢ khách có chuyển khoản chờ, không phụ thuộc ai bấm nút. $note (tuỳ chọn)
-// chỉ để biết riêng giao dịch của mã nạp này đã được ghi nhận chưa (trả về cho đúng khách đó).
-// Trả về: ['ok'=>bool, 'processed'=>int, 'credited'=>bool, 'balance'=>?, 'message'=>string].
-function bank_pull_credit($db_file, $note = '') {
+// Cộng cho TẤT CẢ khách có chuyển khoản chờ, không phụ thuộc ai bấm nút.
+//   $note        : (tuỳ chọn) chỉ để biết riêng giao dịch của mã nạp này đã cộng chưa.
+//   $minInterval : nếu >0, chỉ THỰC SỰ gọi ThueAPIBank tối đa 1 lần / $minInterval giây
+//                  (chung 1 đồng hồ bank_poll_marker.txt cho MỌI nơi gọi — trình duyệt của
+//                  nhiều khách + poll nền — để không gọi API quá dày). Chưa tới hạn thì
+//                  BỎ QUA việc gọi API nhưng vẫn trả trạng thái mã nạp đọc từ CSDL.
+//   $verboseLog  : true = luôn ghi nhật ký chi tiết (dùng cho nút "Quét ngay" của admin);
+//                  false = chỉ ghi khi có cộng tiền hoặc lỗi (poll tự động, đỡ nhiễu log).
+// Trả về: ['ok'=>bool, 'processed'=>int, 'credited'=>bool, 'balance'=>?, 'skipped'=>bool, 'message'=>string].
+function bank_pull_credit($db_file, $note = '', $minInterval = 0, $verboseLog = true) {
     require_once __DIR__ . '/lib_bank.php';
     $secrets = function_exists('read_secrets') ? read_secrets() : [];
     $token = trim((string)($secrets['bankToken'] ?? ''));
     if ($token === '') return ['ok' => false, 'message' => 'Chưa cấu hình token ThueAPIBank trong phần Cấu hình admin.'];
+
+    // GIỚI HẠN NHỊP dùng chung: chốt "đến hạn gọi API chưa" một cách atomic. Chưa tới hạn ->
+    // không gọi ThueAPIBank, chỉ đọc trạng thái mã nạp từ CSDL rồi trả về.
+    if ($minInterval > 0) {
+        $marker = __DIR__ . '/bank_poll_marker.txt';
+        $now = time(); $due = false;
+        $mf = @fopen($marker, 'c+');
+        if ($mf) {
+            if (flock($mf, LOCK_EX)) {
+                $last = (int)trim((string)stream_get_contents($mf));
+                $due = ($now - $last) >= $minInterval;
+                if ($due) { ftruncate($mf, 0); rewind($mf); fwrite($mf, (string)$now); fflush($mf); }
+                flock($mf, LOCK_UN);
+            }
+            fclose($mf);
+        }
+        if (!$due) {
+            $db = read_db($db_file);
+            $st = bank_note_status($db, $note);
+            return ['ok' => true, 'processed' => 0, 'skipped' => true, 'credited' => $st['credited'], 'balance' => $st['balance'], 'message' => 'throttled'];
+        }
+    }
 
     $ch = curl_init("https://thueapibank.vn/historyapiacb/" . urlencode($token));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -460,58 +508,32 @@ function bank_pull_credit($db_file, $note = '') {
     }
     flock($fp, LOCK_UN); fclose($fp);
 
-    // GHI NHẬT KÝ CHẨN ĐOÁN: ThueAPIBank trả về mấy giao dịch, từng cái khớp/không khớp
-    // + vì sao. Admin xem qua action=bank_poll_log để biết vì sao tiền chưa cộng.
-    $summary = "Kéo về " . count($transactions) . " giao dịch, đã cộng " . $count . ".";
-    if (empty($transactions)) $summary .= " (ThueAPIBank không trả giao dịch nào — tài khoản đúng chưa? token đúng ngân hàng nhận tiền chưa?)";
-    $lines = [$summary];
-    foreach (($details ?? []) as $d) {
-        $lines[] = "  • ND='" . $d['memo'] . "' | tiền=" . number_format($d['amount']) . " | " . $d['result'];
+    // GHI NHẬT KÝ CHẨN ĐOÁN: ThueAPIBank trả về mấy giao dịch, từng cái khớp/không khớp + vì
+    // sao. Poll tự động chỉ ghi khi CÓ cộng tiền (đỡ nhiễu); admin "Quét ngay" luôn ghi đủ.
+    if ($verboseLog || $count > 0) {
+        $summary = "Kéo về " . count($transactions) . " giao dịch, đã cộng " . $count . ".";
+        if (empty($transactions)) $summary .= " (ThueAPIBank không trả giao dịch nào — tài khoản đúng chưa? token đúng ngân hàng nhận tiền chưa?)";
+        $lines = [$summary];
+        foreach (($details ?? []) as $d) {
+            $lines[] = "  • ND='" . $d['memo'] . "' | tiền=" . number_format($d['amount']) . " | " . $d['result'];
+        }
+        bank_poll_log_write(implode("\n", $lines));
     }
-    bank_poll_log_write(implode("\n", $lines));
 
     // Báo Telegram cho admin từng giao dịch vừa cộng (sau khi đã mở khóa file).
     if ($count > 0 && function_exists('tg_notify_deposit')) {
         foreach (($notifs ?? []) as $n) { tg_notify_deposit($n['username'] ?? '', $n['amount'] ?? 0, 'VietQR tự động'); }
     }
 
-    // Giao dịch của "note" (mã nạp lần này) đã được ghi nhận chưa + số dư mới của user đó.
-    $credited = false; $balance = null;
-    if ($note !== '') {
-        $noteClean = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $note));
-        foreach (($db['transactions'] ?? []) as $t) {
-            if (($t['type'] ?? '') !== 'deposit') continue;
-            $desc = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $t['description'] ?? ''));
-            if ($noteClean !== '' && strpos($desc, $noteClean) !== false) {
-                $credited = true;
-                foreach (($db['users'] ?? []) as $u) {
-                    if (($u['userId'] ?? '') === ($t['userId'] ?? '~')) { $balance = $u['balance']; break; }
-                }
-                break;
-            }
-        }
-    }
-    return ['ok' => true, 'processed' => $count, 'credited' => $credited, 'balance' => $balance, 'message' => 'ok'];
+    $st = bank_note_status($db, $note);
+    return ['ok' => true, 'processed' => $count, 'credited' => $st['credited'], 'balance' => $st['balance'], 'skipped' => false, 'message' => 'ok'];
 }
 
-// POLL NỀN TỰ ĐỘNG: chạy sau get_db (mỗi lần có người vào web) nhưng CÓ GIỚI HẠN NHỊP —
-// tối đa 1 lần mỗi ~15 giây (đánh dấu atomic trong bank_poll_marker.txt) để không gọi
-// ThueAPIBank quá dày. Nhờ vậy khách chuyển khoản xong, dù KHÔNG bấm nút nào, chỉ cần có
-// bất kỳ ai (kể cả chính khách đang mở trang) truy cập web là tiền được cộng trong ~15s.
+// POLL NỀN TỰ ĐỘNG: chạy sau get_db (mỗi lần có người vào web). Giới hạn nhịp 15s nằm bên
+// trong bank_pull_credit (chung đồng hồ với poll của trình duyệt khách). Nhờ vậy khách
+// chuyển khoản xong, dù KHÔNG bấm nút nào, chỉ cần có ai đó vào web là tiền được cộng.
 function maybe_auto_poll_bank($db_file) {
-    $secrets = function_exists('read_secrets') ? read_secrets() : [];
-    if (trim((string)($secrets['bankToken'] ?? '')) === '') return; // chưa bật nạp tự động
-    $marker = __DIR__ . '/bank_poll_marker.txt';
-    $now = time();
-    $mf = @fopen($marker, 'c+');
-    if (!$mf) return;
-    if (!flock($mf, LOCK_EX)) { fclose($mf); return; }
-    $last = (int)trim((string)stream_get_contents($mf));
-    $due = ($now - $last) >= 15; // tối thiểu 15 giây/lần
-    if ($due) { ftruncate($mf, 0); rewind($mf); fwrite($mf, (string)$now); fflush($mf); }
-    flock($mf, LOCK_UN); fclose($mf);
-    if (!$due) return;
-    try { bank_pull_credit($db_file); } catch (Throwable $e) { /* không được để hỏng get_db */ }
+    try { bank_pull_credit($db_file, '', 15, false); } catch (Throwable $e) { /* không được để hỏng get_db */ }
 }
 
 // ---- THÔNG BÁO ĐẨY (Web Push, kiểu "không kèm nội dung") ----
@@ -1051,7 +1073,9 @@ switch ($action) {
         // Khách bấm "Tôi đã chuyển khoản" HOẶC trang tự gọi ngầm vài giây/lần khi mở QR.
         $body = json_decode(file_get_contents('php://input'), true) ?: [];
         $note = (string)($body['note'] ?? '');
-        $r = bank_pull_credit($db_file, $note);
+        // Giới hạn nhịp 8s chung: nhiều khách mở QR cùng lúc cũng không gọi ThueAPIBank quá
+        // dày. Chưa tới hạn thì chỉ đọc trạng thái mã nạp từ CSDL (vẫn báo "đã cộng" kịp thời).
+        $r = bank_pull_credit($db_file, $note, 8, false);
         if (empty($r['ok'])) {
             echo json_encode(["status" => "error", "message" => $r['message'] ?? 'Lỗi kiểm tra giao dịch.']);
             exit;
@@ -1106,6 +1130,10 @@ switch ($action) {
             CURLOPT_MAXREDIRS      => 3,
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_TIMEOUT        => 120,
+            // CHỈ cho http/https (kể cả khi bị chuyển hướng) — chặn file://, gopher://... để
+            // không bị lợi dụng đọc tệp nội bộ / dò dịch vụ trong mạng máy chủ (SSRF).
+            CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_USERAGENT      => 'Mozilla/5.0 (kenios-media-proxy)',
             CURLOPT_WRITEFUNCTION  => function ($ch, $chunk) use (&$sent) {
                 $sent += strlen($chunk);
